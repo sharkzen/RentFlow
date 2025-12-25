@@ -1,0 +1,318 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * =======================
+ * ENUMS
+ * =======================
+ */
+
+enum UserRole {
+  ADMIN
+  OWNER
+  TENANT
+}
+
+enum OwnerStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  DISABLED
+}
+
+enum BillStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentStatus {
+  WAITING_VERIFY
+  VERIFIED
+  REJECTED
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum FileCategory {
+  DORMITORY
+  ROOM
+  PAYMENT_SLIP
+  MAINTENANCE
+}
+
+enum Status {
+  PENDING
+  ACTIVE
+  BANNED
+}
+
+//  
+model File {
+  id          String     @id @default(uuid())
+  tenantId    String?
+  ownerId     String?
+  bucket      String
+  dormitoryId String?
+  dormitory   Dormitory? @relation("DormitoryImages", fields: [dormitoryId], references: [id])
+
+  roomId String?
+  room   Room?   @relation("RoomImages", fields: [roomId], references: [id])
+
+  paymentId String?
+  payment   Payment? @relation("PaymentSlips", fields: [paymentId], references: [id])
+
+  maintenanceId String?
+  maintenance   MaintenanceRequest? @relation("MaintenanceImages", fields: [maintenanceId], references: [id])
+  category      FileCategory
+  objectKey     String
+  mimeType      String
+  size          Int
+
+  order   Int?
+  isCover Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+/**
+ * =======================
+ * USER & PROFILES
+ * =======================
+ */
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  password       String
+  role           UserRole
+  deletedAt      DateTime?
+  status         Status          @default(PENDING)
+  ownerProfile   OwnerProfile?
+  tenantProfiles TenantProfile[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OwnerProfile {
+  id        String      @id @default(uuid())
+  userId    String      @unique
+  status    OwnerStatus @default(PENDING)
+  fullName  String
+  phone     String?
+  deletedAt DateTime?
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  dormitories Dormitory[]
+
+  createdAt DateTime @default(now())
+}
+
+/**
+ * =======================
+ * DORMITORY
+ * =======================
+ */
+
+model Dormitory {
+  id          String    @id @default(uuid())
+  ownerId     String
+  name        String
+  slug        String    @unique
+  description Json?
+  address     String
+  latitude    Float
+  longitude   Float
+  mapUrl      String
+  images      File[]    @relation("DormitoryImages")
+  status      Status    @default(PENDING)
+  isPublished Boolean   @default(false)
+  deletedAt   DateTime?
+
+  owner               OwnerProfile         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  settings            DormitorySetting?
+  rooms               Room[]
+  maintenanceRequests MaintenanceRequest[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
+
+model DormitorySetting {
+  id             String    @id @default(uuid())
+  dormitoryId    String    @unique
+  roomPrice      Float?
+  waterRate      Float
+  electricRate   Float
+  commonFee      Float     @default(0)
+  lateFee        Float     @default(0)
+  dueDay         Int
+  dueMonthOffset Int       @default(1)
+  dormitory      Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+}
+
+/**
+ * =======================
+ * ROOM
+ * =======================
+ */
+
+model Room {
+  id                  String               @id @default(uuid())
+  dormitoryId         String
+  roomNumber          String
+  images              File[]               @relation("RoomImages")
+  basePrice           Float
+  status              RoomStatus           @default(AVAILABLE)
+  deletedAt           DateTime?
+  maintenanceRequests MaintenanceRequest[]
+  dormitory           Dormitory            @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+  tenants             TenantProfile[]
+  bills               Bill[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([dormitoryId, roomNumber])
+}
+
+/**
+ * =======================
+ * TENANT / CONTRACT
+ * =======================
+ */
+
+model TenantProfile {
+  id     String @id @default(uuid())
+  userId String
+  roomId String
+  firstName String
+  lastName  String
+  phone     String?
+  email     String?
+  idCard    String?
+  tenantNameSnapshot String?
+  roomPriceSnapshot  Float?
+
+  moveInDate DateTime?
+  moveOutDate DateTime?
+  isActive   Boolean @default(true)
+  deletedAt  DateTime?
+  notes      String?
+
+  emergencyContactName  String?
+  emergencyContactPhone String?
+
+  maintenanceRequests MaintenanceRequest[]
+  user                User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  room                Room @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  bills               Bill[]
+
+  createdAt DateTime @default(now())
+}
+
+
+/**
+ * =======================
+ * BILLING
+ * =======================
+ */
+
+model Bill {
+  id       String @id @default(uuid())
+  roomId   String
+  tenantId String
+
+  tenantNameSnapshot String
+  roomNumberSnapshot String
+  roomPriceSnapshot  Float
+
+  billingMonth DateTime
+  dueDate      DateTime
+
+  waterUnitSnapshot    Float
+  electricUnitSnapshot Float
+  waterRateSnapshot    Float
+  electricRateSnapshot Float
+  commonFeeSnapshot    Float
+  lateFeeSnapshot      Float
+
+  total    Float
+  status   BillStatus @default(PENDING)
+  archived Boolean    @default(false)
+
+  room    Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  tenant  TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  payment Payment?
+
+  createdAt DateTime @default(now())
+
+  @@unique([roomId, billingMonth])
+}
+
+/**
+ * =======================
+ * PAYMENT
+ * =======================
+ */
+
+model Payment {
+  id     String @id @default(uuid())
+  billId String @unique
+
+  slips      File[]        @relation("PaymentSlips")
+  status     PaymentStatus @default(WAITING_VERIFY)
+  verifiedBy String?
+  verifiedAt DateTime?
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+}
+
+/**
+ * =======================
+ * MAINTENANCE
+ * =======================
+ */
+
+model MaintenanceRequest {
+  id          String @id @default(uuid())
+  dormitoryId String
+  roomId      String
+  tenantId    String
+
+  title       String
+  description String
+  status      MaintenanceStatus @default(OPEN)
+  images      File[]            @relation("MaintenanceImages")
+  dormitory   Dormitory         @relation(fields: [dormitoryId], references: [id], onDelete: Restrict)
+  room        Room              @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  tenant      TenantProfile     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

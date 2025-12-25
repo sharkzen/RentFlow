@@ -1,0 +1,44 @@
+import { cookies } from "next/headers";
+
+export async function fetchWithRefresh(url: string, options: RequestInit = {}) {
+  const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll();
+  const cookieHeader = allCookies.map((c) => `${c.name}=${c.value}`).join("; ");
+
+  let res = await fetch(url, {
+    ...options,
+    headers: { ...options.headers, Cookie: cookieHeader },
+    cache: "no-store",
+  });
+
+  if (res.status === 401) {
+    const refreshUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`;
+    const refreshRes = await fetch(refreshUrl, {
+      method: "POST",
+      headers: { Cookie: cookieHeader },
+    });
+
+    if (refreshRes.ok) {
+      const setCookieHeader = refreshRes.headers.get("set-cookie");
+      let retryHeader = cookieHeader;
+
+      if (setCookieHeader) {
+        const tokenMatch = setCookieHeader.match(/access_token=([^;]+)/);
+        const newToken = tokenMatch ? tokenMatch[1] : null;
+        if (newToken) {
+          retryHeader = `access_token=${newToken}; refresh_token=${cookieStore.get("refresh_token")?.value}`;
+        }
+      }
+
+      res = await fetch(url, {
+        ...options,
+        headers: { ...options.headers, Cookie: retryHeader },
+        cache: "no-store",
+      });
+    } else {
+      throw new Error("REFRESH_FAILED");
+    }
+  }
+
+  return res.json();
+}

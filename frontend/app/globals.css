@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  --font-sans: var(--font-ibm-plex-thai);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.toast-custom {
+  font-family: var(--font-sans);
+}
+@media screen and (max-width: 640px) {
+  .toast-custom {
+    max-width: 350px;
+    margin: auto;
+    margin-top: 20px;
+    font-size: 14px;
+  }
+}
+
+/* ios spin */
+@keyframes ios-spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ios-fade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+
+.animate-ios-spin {
+  animation: ios-spin 1s linear infinite;
+}
+
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: #000 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
