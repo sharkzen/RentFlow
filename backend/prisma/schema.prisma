@@ -316,3 +316,32 @@ model MaintenanceRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+
+
+enum LandmarkType {
+  UNIVERSITY      
+  SCHOOL         
+  HOSPITAL       
+  SHOPPING_MALL   
+  ARL             
+  OFFICE          
+  MARKET         
+  OTHER          
+}
+
+model Landmark {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique 
+  type        LandmarkType
+  
+  latitude    Float
+  longitude   Float
+  
+  mapUrl      String
+  status      Status       @default(ACTIVE) 
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}

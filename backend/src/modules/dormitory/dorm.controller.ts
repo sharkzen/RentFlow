@@ -4,10 +4,25 @@ import { randomUUID } from "crypto";
 import { dormService } from "@/modules/dormitory/dorm.service";
 import sharp from "sharp";
 import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
-import { DormFormDataDto } from "@/modules/dormitory/dtos/dorm.dto";
+import {
+  DormFormDataDto,
+  GetDormsQueryDto,
+} from "@/modules/dormitory/dtos/dorm.dto";
 import logger from "@/utils/logger";
 
 export const DormController = {
+  async getAllDorms(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const query = request.query as GetDormsQueryDto;
+
+      const dorms = await dormService.getAllDorms(query);
+
+      return reply.send(dorms);
+    } catch (error: any) {
+      logger.error(error.message);
+      return reply.status(500).send({ message: "INTERNAL_SERVER_ERROR" });
+    }
+  },
   async createDorm(request: FastifyRequest, reply: FastifyReply) {
     const user = request.user as UserDecodedDto;
     if (!user) return reply.status(401).send({ message: "UNAUTHORIZED" });
@@ -229,6 +244,33 @@ export const DormController = {
         return reply.status(403).send({ message: "FORBIDDEN" });
       }
       reply.status(500).send({ message: "FAILED_TO_FETCH_OVERVIEW" });
+    }
+  },
+  async deleteDorm(request: FastifyRequest, reply: FastifyReply) {
+    const user = request.user as UserDecodedDto;
+    if (!user) return reply.status(401).send({ message: "UNAUTHORIZED" });
+
+    const { dormId } = request.params as { dormId: string };
+
+    if (!dormId) {
+      return reply.status(400).send({ message: "DORM_ID_REQUIRED" });
+    }
+
+    try {
+      await dormService.deleteDorm(dormId, user.sub);
+
+      return reply.send({ success: true, message: "DORM_DELETED" });
+    } catch (error: any) {
+      logger.error(error.message);
+
+      if (error.message === "FORBIDDEN") {
+        return reply.status(403).send({ message: "FORBIDDEN" });
+      }
+      if (error.message === "NOT_FOUND") {
+        return reply.status(404).send({ message: "DORM_NOT_FOUND" });
+      }
+
+      return reply.status(500).send({ message: "DELETE_FAILED" });
     }
   },
 };

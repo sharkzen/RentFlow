@@ -1,79 +1,59 @@
-import React from "react";
-import {
-  Search,
-  MapPin,
-  CircleDollarSign,
-  Wifi,
-  Car,
-  Dumbbell,
-  Waves,
-} from "lucide-react";
+"use client";
+
 import DormCard from "./DormCard";
+import { Element } from "react-scroll";
+export default function Dormitory({ dorms }: { dorms: any[] }) {
+  if (!dorms || dorms.length === 0) {
+    return (
+      <div className="py-20 text-center text-gray-500">
+        ไม่พบหอพักที่ตรงกับเงื่อนไขที่ค้นหา
+      </div>
+    );
+  }
 
-// Mock Data
-const MOCK_DORMS = [
-  {
-    id: 1,
-    title: "Sunny Loft ใกล้ ม.เกษตร",
-    location: "0.5 กม. จาก ม.เกษตรศาสตร์",
-    price: 5500,
-    beds: 1,
-    baths: 1,
-    tag: "มาใหม่",
-    image:
-      "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=2070",
-  },
-  {
-    id: 2,
-    title: "Cozy Studio ติดห้าง Central",
-    location: "1.2 กม. จาก Central Ladprao",
-    price: 8500,
-    beds: 1,
-    baths: 1,
-    image:
-      "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=2080",
-  },
-  {
-    id: 3,
-    title: "Modern 2BHK ห้องใหญ่ วิวสวน",
-    location: "3.0 กม. จาก BTS หมอชิต",
-    price: 12000,
-    beds: 2,
-    baths: 2,
-    image:
-      "https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=2070",
-  },
-  {
-    id: 4,
-    title: "Skyline View Penthouse",
-    location: "0.1 กม. จาก MRT พระราม 9",
-    price: 25000,
-    beds: 3,
-    baths: 2,
-    tag: "ยอดนิยม",
-    image:
-      "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?q=80&w=2070",
-  },
-];
-
-export default function Dormitory() {
   return (
-    <div suppressHydrationWarning data-aos="fade-up" className="min-h-screen">
-      <div className="mx-auto">
-        <div className="mb-8 flex items-end justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              หอพักแนะนำสำหรับคุณ
-            </h2>
+    <Element name="dorm-results" className="min-h-screen">
+      <div suppressHydrationWarning data-aos="fade-up" className="min-h-screen">
+        <div className="max-w-7xl">
+          <div className="mb-8 flex items-end justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                หอพักแนะนำสำหรับคุณ
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                พบทั้งหมด {dorms.length} รายการ
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+            {dorms.map((dorm) => {
+              const coverImage =
+                dorm.images?.find((img: any) => img.isCover)?.url ||
+                dorm.images?.[0]?.url ||
+                null;
+
+              const locationName = dorm.nearby
+                ? `ใกล้ ${dorm.nearby.name}`
+                : dorm.address || "ไม่ระบุที่ตั้ง";
+
+              const distanceText = dorm.nearby?.distanceText;
+
+              return (
+                <DormCard
+                  key={dorm.id}
+                  slug={dorm.slug}
+                  image={coverImage}
+                  title={dorm.name}
+                  location={locationName}
+                  distance={distanceText}
+                  price={dorm.settings?.roomPrice || 0}
+                />
+              );
+            })}
           </div>
         </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {MOCK_DORMS.map((dorm) => (
-            <DormCard key={dorm.id} {...dorm} />
-          ))}
-        </div>
       </div>
-    </div>
+    </Element>
   );
 }

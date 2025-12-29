@@ -2,10 +2,128 @@ import prisma from "@/lib/prisma";
 import { UserDecodedDto } from "../auth/dto/user.dto";
 import { minioClient, generateSignedUrl } from "@/services/minio";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { DormFormDataDto } from "@/modules/dormitory/dtos/dorm.dto";
+
+import {
+  DormFormDataDto,
+  GetDormsQueryDto,
+} from "@/modules/dormitory/dtos/dorm.dto";
 import { generateSlug } from "@/lib/text";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
+import { formatDistance, getDistance } from "@/utils/geo";
+import { Prisma, Status } from "@prisma/client";
+import logger from "@/utils/logger";
 export const dormService = {
+  async getAllDorms(query: GetDormsQueryDto) {
+    const { search, minPrice, maxPrice, landmarkId } = query;
+
+    const whereCondition: Prisma.DormitoryWhereInput = {
+      status: Status.ACTIVE,
+      isPublished: true,
+    };
+
+    if (
+      search &&
+      search !== "null" &&
+      search !== "undefined" &&
+      search.trim() !== ""
+    ) {
+      whereCondition.name = { contains: search, mode: "insensitive" };
+    }
+
+    const parsedMin =
+      minPrice && !isNaN(Number(minPrice)) ? Number(minPrice) : undefined;
+    const parsedMax =
+      maxPrice && !isNaN(Number(maxPrice)) ? Number(maxPrice) : undefined;
+
+    if (parsedMin !== undefined || parsedMax !== undefined) {
+      whereCondition.settings = {
+        roomPrice: {
+          gte: parsedMin,
+          lte: parsedMax,
+        },
+      };
+    }
+
+    const dorms = await prisma.dormitory.findMany({
+      where: whereCondition,
+      include: {
+        images: {
+          where: { isCover: true },
+        },
+        settings: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const cleanLandmarkId =
+      landmarkId &&
+      landmarkId !== "null" &&
+      landmarkId !== "undefined" &&
+      landmarkId !== ""
+        ? landmarkId
+        : undefined;
+
+    const landmarks = await prisma.landmark.findMany({
+      where: {
+        status: Status.ACTIVE,
+        ...(cleanLandmarkId ? { id: cleanLandmarkId } : {}),
+      },
+    });
+
+    const dormsWithData = await Promise.all(
+      dorms.map(async (dorm) => {
+        const imagesWithUrl = await Promise.all(
+          dorm.images.map(async (img) => ({
+            ...img,
+            url: await generateSignedUrl(img.objectKey, img.bucket),
+          }))
+        );
+
+        let nearestLandmark = null;
+        let minDistance = Infinity;
+
+        if (landmarks.length > 0) {
+          for (const landmark of landmarks) {
+            if (!landmark.latitude || !landmark.longitude) continue;
+
+            const dist = getDistance(
+              dorm.latitude,
+              dorm.longitude,
+              landmark.latitude,
+              landmark.longitude
+            );
+
+            if (dist < minDistance) {
+              minDistance = dist;
+              nearestLandmark = landmark;
+            }
+          }
+        }
+
+        return {
+          ...dorm,
+          images: imagesWithUrl,
+          nearby: nearestLandmark
+            ? {
+                name: nearestLandmark.name,
+                slug: nearestLandmark.slug,
+                distanceKm: Number(minDistance.toFixed(2)),
+                distanceText: formatDistance(minDistance),
+              }
+            : null,
+        };
+      })
+    );
+
+    if (cleanLandmarkId && landmarks.length > 0) {
+      dormsWithData.sort(
+        (a, b) => (a.nearby?.distanceKm || 0) - (b.nearby?.distanceKm || 0)
+      );
+    }
+
+    return dormsWithData;
+  },
+
   async createDorm(name: string, userId: string) {
     const owner = await prisma.ownerProfile.findUnique({
       where: {
@@ -187,6 +305,7 @@ export const dormService = {
         images: true,
         owner: true,
       },
+      orderBy: [{ isPublished: "desc" }, { createdAt: "asc" }],
     });
 
     if (dorms.length === 0) return [];
@@ -216,18 +335,27 @@ export const dormService = {
     objectKey: string,
     bucket: string,
     mimeType: string,
-    size: number,
-    isCover = false
+    size: number
   ) => {
+    const existingCount = await prisma.file.count({
+      where: {
+        dormitoryId: dormId,
+        category: "DORMITORY",
+      },
+    });
+
+    const isCover = existingCount === 0;
+
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: objectKey,
       Body: file,
       ContentType: mimeType,
     });
+
     await minioClient.send(command);
 
-    const image = await prisma.file.create({
+    return prisma.file.create({
       data: {
         dormitoryId: dormId,
         bucket,
@@ -236,10 +364,9 @@ export const dormService = {
         size,
         category: "DORMITORY",
         isCover,
+        order: existingCount,
       },
     });
-
-    return image;
   },
 
   deleteDormImage: async (imageId: string) => {
@@ -279,25 +406,49 @@ export const dormService = {
     images: { id: string; order: number; isCover: boolean }[]
   ) {
     const existingImages = await prisma.file.findMany({
-      where: { dormitoryId: dormId, category: "DORMITORY" },
+      where: {
+        dormitoryId: dormId,
+        category: "DORMITORY",
+      },
     });
 
     const existingIds = existingImages.map((img) => img.id);
+
     const invalid = images.filter((img) => !existingIds.includes(img.id));
     if (invalid.length > 0) {
       throw new Error("Some images do not belong to this dormitory");
     }
 
+    const coverCount = images.filter((img) => img.isCover).length;
+    if (coverCount !== 1) {
+      throw new Error("Dormitory must have exactly one cover image");
+    }
+
+    await prisma.file.updateMany({
+      where: {
+        dormitoryId: dormId,
+        category: "DORMITORY",
+      },
+      data: {
+        isCover: false,
+      },
+    });
+
     const updatePromises = images.map((img) =>
       prisma.file.update({
         where: { id: img.id },
-        data: { order: img.order, isCover: img.isCover },
+        data: {
+          order: img.order,
+          isCover: img.isCover,
+        },
       })
     );
 
     await Promise.all(updatePromises);
+
     return true;
   },
+
   async getDormOverview(dormId: string, userId: string) {
     const owner = await prisma.ownerProfile.findUnique({
       where: { userId },
@@ -407,5 +558,33 @@ export const dormService = {
         inProgress: inProgressMaintenance,
       },
     };
+  },
+  async deleteDorm(dormId: string, userId: string) {
+    const ownerProfile = await prisma.ownerProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!ownerProfile) throw new Error("FORBIDDEN");
+
+    const dorm = await prisma.dormitory.findUnique({
+      where: { id: dormId },
+    });
+
+    if (!dorm) {
+      throw new Error("NOT_FOUND");
+    }
+
+    if (dorm.ownerId !== ownerProfile.id) {
+      throw new Error("FORBIDDEN");
+    }
+
+    return await prisma.dormitory.update({
+      where: { id: dormId },
+      data: {
+        deletedAt: new Date(),
+        status: "BANNED",
+        isPublished: false,
+      },
+    });
   },
 };

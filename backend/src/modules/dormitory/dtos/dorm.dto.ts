@@ -15,3 +15,10 @@ export interface DormFormDataDto {
   dueDay: number;
   dueMonthOffset?: number;
 }
+
+export interface GetDormsQueryDto {
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  landmarkId?: string;
+}

@@ -1,25 +1,68 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, MapPin, CircleDollarSign, X } from "lucide-react";
-import { Element } from "react-scroll";
-import { useRouter } from "next/navigation";
-export default function DormFilter() {
-  const [name, setName] = useState("");
-  const [location, setLocation] = useState("");
-  const [priceMin, setPriceMin] = useState<number | "">("");
-  const [priceMax, setPriceMax] = useState<number | "">("");
+import { Element, scroller } from "react-scroll";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  LandmarkService,
+  Landmark,
+} from "@/features/dormitory/services/landmark.service";
 
+export default function DormFilter() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [name, setName] = useState(searchParams.get("search") || "");
+  const [location, setLocation] = useState(
+    searchParams.get("landmarkId") || "",
+  );
+  const [priceMin, setPriceMin] = useState<number | "">(
+    searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : "",
+  );
+  const [priceMax, setPriceMax] = useState<number | "">(
+    searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : "",
+  );
+
+  const [landmarks, setLandmarks] = useState<Landmark[]>([]);
+
+  useEffect(() => {
+    const fetchLandmarks = async () => {
+      try {
+        const data = await LandmarkService.getAllLandmarks();
+        setLandmarks(data);
+      } catch (error) {
+        console.error("Failed to fetch landmarks", error);
+      }
+    };
+    fetchLandmarks();
+  }, []);
+
+  const groupedLandmarks = landmarks.reduce(
+    (acc, landmark) => {
+      const type = landmark.type || "OTHER";
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(landmark);
+      return acc;
+    },
+    {} as Record<string, Landmark[]>,
+  );
 
   const handleSearch = () => {
     const params = new URLSearchParams();
 
-    if (name) params.set("name", name);
-    if (location) params.set("location", location);
-    if (priceMin !== "") params.set("priceMin", String(priceMin));
-    if (priceMax !== "") params.set("priceMax", String(priceMax));
+    if (name) params.set("search", name);
+    if (location) params.set("landmarkId", location);
+    if (priceMin !== "") params.set("minPrice", String(priceMin));
+    if (priceMax !== "") params.set("maxPrice", String(priceMax));
 
     router.push(`/?${params.toString()}`, { scroll: false });
+    setTimeout(() => {
+      scroller.scrollTo("dorm-results", {
+        duration: 100,
+        delay: 0,
+        smooth: "easeInOutQuart",
+      });
+    });
   };
 
   const handleReset = () => {
@@ -27,7 +70,6 @@ export default function DormFilter() {
     setLocation("");
     setPriceMin("");
     setPriceMax("");
-
     router.push(`/?`, { scroll: false });
   };
 
@@ -38,9 +80,7 @@ export default function DormFilter() {
         data-aos="fade-up"
         className="relative z-10 mx-auto my-10 w-full"
       >
-        {/* --- Filter Row --- */}
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-gray-100 bg-white p-3 shadow md:flex-row md:p-2">
-          {/* Name Filter */}
           <div className="flex w-full flex-1 items-center border-b border-gray-100 px-4 py-2 md:border-r md:border-b-0">
             <Search className="mr-3 h-5 w-5 text-gray-400" />
             <input
@@ -52,7 +92,6 @@ export default function DormFilter() {
             />
           </div>
 
-          {/* Location Filter */}
           <div className="flex w-full flex-1 items-center border-b border-gray-100 px-4 py-2 md:border-r md:border-b-0">
             <MapPin className="mr-3 h-5 w-5 text-gray-400" />
             <select
@@ -60,19 +99,20 @@ export default function DormFilter() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
             >
-              <option value="">ใกล้สถานที่สำคัญ...</option>
-              <optgroup label="มหาวิทยาลัย">
-                <option value="uni1">ม.เกษตรศาสตร์</option>
-                <option value="uni2">ม.มหิดล</option>
-              </optgroup>
-              <optgroup label="ห้างสรรพสินค้า">
-                <option value="mall1">Siam Paragon</option>
-                <option value="mall2">Central World</option>
-              </optgroup>
+              <option value="">เลือกสถานที่ใกล้เคียง...</option>
+
+              {Object.entries(groupedLandmarks).map(([type, items]) => (
+                <optgroup key={type} label={type}>
+                  {items.map((lm) => (
+                    <option key={lm.id} value={lm.id}>
+                      {lm.name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
             </select>
           </div>
 
-          {/* Price Filter */}
           <div className="flex w-full flex-[1.2] items-center px-4 py-2">
             <CircleDollarSign className="mr-3 h-5 w-5 text-gray-400" />
             <div className="flex w-full items-center gap-2">
@@ -107,7 +147,7 @@ export default function DormFilter() {
               onClick={handleReset}
               className="flex-0.5 flex items-center text-blue-500 hover:cursor-pointer hover:underline"
             >
-              รีเซ็ตค่า <X size={20} />
+              รีเซ็ต <X size={20} />
             </span>
           )}
 
