@@ -14,19 +14,16 @@ import { Prisma, Status } from "@prisma/client";
 import logger from "@/utils/logger";
 export const dormService = {
   async getAllDorms(query: GetDormsQueryDto) {
-    const { search, minPrice, maxPrice, landmarkId } = query;
+    const { search, minPrice, maxPrice, landmarkId, page = 1 } = query;
+    const limit = 15;
+    const skip = (Number(page) - 1) * limit;
 
     const whereCondition: Prisma.DormitoryWhereInput = {
       status: Status.ACTIVE,
       isPublished: true,
     };
 
-    if (
-      search &&
-      search !== "null" &&
-      search !== "undefined" &&
-      search.trim() !== ""
-    ) {
+    if (search && search.trim() !== "" && search !== "null") {
       whereCondition.name = { contains: search, mode: "insensitive" };
     }
 
@@ -44,17 +41,6 @@ export const dormService = {
       };
     }
 
-    const dorms = await prisma.dormitory.findMany({
-      where: whereCondition,
-      include: {
-        images: {
-          where: { isCover: true },
-        },
-        settings: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
     const cleanLandmarkId =
       landmarkId &&
       landmarkId !== "null" &&
@@ -63,65 +49,144 @@ export const dormService = {
         ? landmarkId
         : undefined;
 
-    const landmarks = await prisma.landmark.findMany({
-      where: {
-        status: Status.ACTIVE,
-        ...(cleanLandmarkId ? { id: cleanLandmarkId } : {}),
-      },
-    });
+    let resultDorms = [];
+    let totalItems = 0;
 
-    const dormsWithData = await Promise.all(
-      dorms.map(async (dorm) => {
+    if (cleanLandmarkId) {
+      const targetLandmark = await prisma.landmark.findUnique({
+        where: { id: cleanLandmarkId },
+      });
+
+      if (!targetLandmark)
+        return { data: [], meta: { page: 1, limit, total: 0, totalPages: 0 } };
+
+      const allMatchingDorms = await prisma.dormitory.findMany({
+        where: whereCondition,
+        include: {
+          images: { where: { isCover: true } },
+          settings: true,
+        },
+      });
+
+      const dormsWithDistance = allMatchingDorms.map((dorm) => {
+        let dist = Infinity;
+        if (
+          dorm.latitude &&
+          dorm.longitude &&
+          targetLandmark.latitude &&
+          targetLandmark.longitude
+        ) {
+          dist = getDistance(
+            dorm.latitude,
+            dorm.longitude,
+            targetLandmark.latitude,
+            targetLandmark.longitude
+          );
+        }
+        return { ...dorm, _distance: dist, _targetLandmark: targetLandmark };
+      });
+
+      dormsWithDistance.sort((a, b) => a._distance - b._distance);
+
+      totalItems = dormsWithDistance.length;
+
+      resultDorms = dormsWithDistance.slice(skip, skip + limit);
+    } else {
+      totalItems = await prisma.dormitory.count({ where: whereCondition });
+
+      resultDorms = await prisma.dormitory.findMany({
+        where: whereCondition,
+        include: {
+          images: { where: { isCover: true } },
+          settings: true,
+        },
+        orderBy: { createdAt: "desc" },
+        skip: skip,
+        take: limit,
+      });
+    }
+
+    const finalData = await Promise.all(
+      resultDorms.map(async (dorm: any) => {
         const imagesWithUrl = await Promise.all(
-          dorm.images.map(async (img) => ({
+          dorm.images.map(async (img: any) => ({
             ...img,
             url: await generateSignedUrl(img.objectKey, img.bucket),
           }))
         );
 
-        let nearestLandmark = null;
-        let minDistance = Infinity;
+        let nearbyData = null;
 
-        if (landmarks.length > 0) {
-          for (const landmark of landmarks) {
-            if (!landmark.latitude || !landmark.longitude) continue;
+        const hasValidLocation =
+          dorm.latitude &&
+          dorm.longitude &&
+          dorm.latitude !== 0 &&
+          dorm.longitude !== 0;
 
-            const dist = getDistance(
-              dorm.latitude,
-              dorm.longitude,
-              landmark.latitude,
-              landmark.longitude
-            );
+        if (dorm._targetLandmark) {
+          if (hasValidLocation && dorm._distance !== Infinity) {
+            nearbyData = {
+              name: dorm._targetLandmark.name,
+              slug: dorm._targetLandmark.slug,
+              distanceKm: Number(dorm._distance.toFixed(2)),
+              distanceText: formatDistance(dorm._distance),
+            };
+          }
+        } else {
+          if (hasValidLocation) {
+            const landmarks = await prisma.landmark.findMany({
+              where: { status: Status.ACTIVE },
+            });
 
-            if (dist < minDistance) {
-              minDistance = dist;
-              nearestLandmark = landmark;
+            let minDistance = Infinity;
+            let nearest = null;
+
+            for (const lm of landmarks) {
+              if (!lm.latitude || !lm.longitude) continue;
+
+              const dist = getDistance(
+                dorm.latitude,
+                dorm.longitude,
+                lm.latitude,
+                lm.longitude
+              );
+
+              if (dist < minDistance) {
+                minDistance = dist;
+                nearest = lm;
+              }
+            }
+
+            if (nearest && minDistance !== Infinity) {
+              nearbyData = {
+                name: nearest.name,
+                slug: nearest.slug,
+                distanceKm: Number(minDistance.toFixed(2)),
+                distanceText: formatDistance(minDistance),
+              };
             }
           }
         }
 
+        const { _distance, _targetLandmark, ...rest } = dorm;
+
         return {
-          ...dorm,
+          ...rest,
           images: imagesWithUrl,
-          nearby: nearestLandmark
-            ? {
-                name: nearestLandmark.name,
-                slug: nearestLandmark.slug,
-                distanceKm: Number(minDistance.toFixed(2)),
-                distanceText: formatDistance(minDistance),
-              }
-            : null,
+          nearby: nearbyData,
         };
       })
     );
 
-    if (cleanLandmarkId && landmarks.length > 0) {
-      dormsWithData.sort(
-        (a, b) => (a.nearby?.distanceKm || 0) - (b.nearby?.distanceKm || 0)
-      );
-    }
-
-    return dormsWithData;
+    return {
+      data: finalData,
+      meta: {
+        page: Number(page),
+        limit: limit,
+        total: totalItems,
+        totalPages: Math.ceil(totalItems / limit),
+      },
+    };
   },
 
   async createDorm(name: string, userId: string) {

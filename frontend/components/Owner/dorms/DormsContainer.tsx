@@ -33,7 +33,7 @@ export default function DormsContainer() {
         <DromCreate onClose={() => setOnCreate(false)} onSuccess={fetchDorms} />
       )}
 
-      <div className="mb-8 flex items-end justify-between transition-all">
+      <div className="mb-8 flex items-end justify-between border-b transition-all">
         <div>
           <h2 className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-4xl font-bold text-transparent">
             หอพักของคุณ
@@ -48,7 +48,7 @@ export default function DormsContainer() {
           </button>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid max-h-screen grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
         {dorms.map((dorm) => (
           <DormsCard
             key={dorm.id}

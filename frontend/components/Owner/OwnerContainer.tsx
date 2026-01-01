@@ -78,7 +78,7 @@ export default function OwnerContainer() {
               </button>
 
               {open && (
-                <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg">
+                <div className="absolute z-50 mt-2 max-h-125 w-full overflow-hidden overflow-y-scroll rounded-xl border border-gray-100 bg-white shadow-lg">
                   {dorms.map((dorm) => {
                     const active = dorm.id === selectedDormId;
 
@@ -89,7 +89,7 @@ export default function OwnerContainer() {
                           setSelectedDormId(dorm.id);
                           setOpen(false);
                         }}
-                        className={`flex w-full cursor-pointer items-center justify-between px-4 py-2.5 text-sm transition ${
+                        className={`flex w-full cursor-pointer items-center justify-between border-b border-gray-100 px-4 py-2.5 text-sm transition ${
                           active
                             ? "bg-blue-50 text-blue-700"
                             : "text-gray-700 hover:bg-gray-50"

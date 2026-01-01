@@ -1,13 +1,16 @@
 import { axios } from "@/lib/api-client";
-import { DormitoryImage } from "@/features/dormitory";
+import { DormitoryImage, PaginationResponse } from "@/features/dormitory";
 import { DormFormData } from "@/features/dormitory";
 export const DormService = {
-  getAllDroms: async (params?: Record<string, any>) => {
+  getAllDroms: async (
+    params?: Record<string, any>,
+  ): Promise<PaginationResponse<any>> => {
     const queryString = params
       ? "?" + new URLSearchParams(params).toString()
       : "";
 
     const response = await axios.get(`/api/dorms/all${queryString}`);
+
     return response.data;
   },
   getOverview: async (dormId: string) => {

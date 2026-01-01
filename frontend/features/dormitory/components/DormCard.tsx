@@ -25,7 +25,7 @@ export default function DormCard({
 
   return (
     <Link href={`/dorms/${slug}`} className="group block h-full">
-      <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 will-change-transform backface-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-100/50">
+      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 will-change-transform backface-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-100/50">
         <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-200">
           <img
             src={displayImage}
@@ -48,7 +48,7 @@ export default function DormCard({
             <div className="mb-2">
               <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600 ring-1 ring-blue-500/10 ring-inset">
                 <MapPin size={12} />
-                ห่างจากจุดหมาย {distance}
+                {distance}
               </span>
             </div>
           )}

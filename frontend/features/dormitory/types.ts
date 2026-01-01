@@ -108,3 +108,13 @@ export interface DormOverview {
     inProgress: number;
   };
 }
+
+export interface PaginationResponse<T> {
+  data: T[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}

@@ -6,6 +6,7 @@ const PUBLIC_ROUTES: string[] = [
   "/auth/register",
   "/api/auth/login",
   "/api/auth/refresh",
+  "/dorms",
 ];
 
 function isTokenExpired(token: string) {

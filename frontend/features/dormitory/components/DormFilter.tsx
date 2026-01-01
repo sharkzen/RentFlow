@@ -57,7 +57,7 @@ export default function DormFilter() {
 
     router.push(`/?${params.toString()}`, { scroll: false });
     setTimeout(() => {
-      scroller.scrollTo("dorm-results", {
+      scroller.scrollTo("dorm-filter", {
         duration: 100,
         delay: 0,
         smooth: "easeInOutQuart",

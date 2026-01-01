@@ -21,4 +21,5 @@ export interface GetDormsQueryDto {
   minPrice?: number;
   maxPrice?: number;
   landmarkId?: string;
+  page?: number;
 }

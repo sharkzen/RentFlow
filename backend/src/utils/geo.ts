@@ -18,6 +18,9 @@ export function getDistance(
 }
 
 export function formatDistance(km: number) {
+  if (km === Infinity || km === null || km === undefined) {
+    return "";
+  }
   if (km < 1) {
     return `${Math.round(km * 1000)} ม.`;
   }

@@ -60,7 +60,7 @@ export default function OwnerNavbar() {
       )}
 
       <aside
-        className={`fixed top-0 left-0 h-full w-64 transform bg-white transition-transform duration-300 ease-in-out max-md:z-999 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:static md:translate-x-0`}
+        className={`fixed top-0 left-0 h-full min-h-screen w-64 transform bg-white transition-transform duration-300 ease-in-out max-md:z-999 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:static md:translate-x-0`}
       >
         <div className="flex items-center gap-3 px-6 py-8">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">

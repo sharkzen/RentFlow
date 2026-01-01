@@ -1,16 +1,20 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { off } from "process";
+import { scroller } from "react-scroll";
+
 export default function Hero() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   const onSearch = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("focus", "filter");
-
-    router.replace(`/?${params.toString()}`, { scroll: false });
+    setTimeout(() => {
+      scroller.scrollTo("dorm-filter", {
+        duration: 800,
+        delay: 100,
+        smooth: "easeInOutQuart",
+        offset: -70,
+      });
+    });
   };
+
   return (
     <section
       suppressHydrationWarning
@@ -51,15 +55,15 @@ export default function Hero() {
               และลูกบ้านได้สะดวกในที่เดียว
             </p>
 
-            <div className="flex flex-wrap justify-center gap-6 pt-8">
+            <div className="flex flex-wrap justify-center gap-6 p-5">
               <Link href="/owner/dashboard">
-                <button className="cursor-pointer rounded-2xl bg-linear-to-r from-blue-600 to-cyan-500 px-10 py-5 font-bold text-white shadow-2xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-cyan-500/60 active:scale-95">
+                <button className="cursor-pointer rounded-2xl bg-linear-to-r from-blue-600 to-cyan-500 p-5 font-bold text-white shadow-2xl transition-all duration-300 hover:-translate-y-1.5 hover:shadow-cyan-500/60 active:scale-95">
                   สร้างหอพักของคุณ (สำหรับเจ้าของ)
                 </button>
               </Link>
               <button
                 onClick={onSearch}
-                className="cursor-pointer rounded-2xl border-2 border-white/70 bg-white/15 px-10 py-5 font-bold text-white backdrop-blur-md transition-all duration-300 hover:border-white hover:bg-white/25 active:scale-95"
+                className="cursor-pointer rounded-2xl border-2 border-white/70 bg-white/15 p-5 font-bold text-white backdrop-blur-md transition-all duration-300 hover:border-white hover:bg-white/25 active:scale-95"
               >
                 ค้นหาห้องพัก
               </button>
