@@ -6,4 +6,5 @@ export const env = {
   DATABASE_URL:
     process.env.DATABASE_URL ||
     "postgresql://rentflow:rentflow@localhost:5432/rentflow",
+  BUCKET: process.env.S3_BUCKET!,
 };

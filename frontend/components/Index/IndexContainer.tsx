@@ -80,7 +80,7 @@ export default function IndexContainer() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-gray-50 pb-20">
+    <main className="min-h-screen w-full pb-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <DormFilter />
       </div>

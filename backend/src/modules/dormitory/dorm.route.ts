@@ -13,7 +13,7 @@ export async function dormRoute(app: FastifyInstance) {
 
     routeRoles.addHook(
       "preHandler",
-      authRoleMiddleware([Role.OWNER, Role.STAFF, Role.ADMIN])
+      authRoleMiddleware([Role.OWNER, Role.ADMIN])
     );
 
     routeRoles.post("/", DormController.createDorm);

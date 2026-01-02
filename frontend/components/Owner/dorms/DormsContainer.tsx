@@ -33,7 +33,7 @@ export default function DormsContainer() {
         <DromCreate onClose={() => setOnCreate(false)} onSuccess={fetchDorms} />
       )}
 
-      <div className="mb-8 flex items-end justify-between border-b transition-all">
+      <div className="mb-8 flex items-end justify-between transition-all">
         <div>
           <h2 className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-4xl font-bold text-transparent">
             หอพักของคุณ
@@ -42,9 +42,10 @@ export default function DormsContainer() {
         <div>
           <button
             onClick={() => setOnCreate(true)}
-            className="flex cursor-pointer items-center rounded-md bg-linear-to-r from-blue-600 to-cyan-500 px-4 py-2 text-white duration-300 hover:bg-linear-to-r hover:from-blue-400 hover:to-cyan-600"
+            className="flex cursor-pointer items-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-cyan-500 px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
           >
-            เพิ่มหอพัก <PlusIcon size={20} />
+            <span>เพิ่มหอพัก</span>
+            <PlusIcon size={18} />
           </button>
         </div>
       </div>

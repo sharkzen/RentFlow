@@ -1,0 +1,14 @@
+{
+  "name": "rentflow",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:backup": "powershell -Command \"if (!(Test-Path backups)) { New-Item -ItemType Directory backups } ; $ts = Get-Date -Format yyyyMMdd_HHmmss ; docker exec rentflow-postgres pg_dump -U rentflow -F c -f /tmp/rentflow_$ts.backup rentflow ; docker cp rentflow-postgres:/tmp/rentflow_$ts.backup ./backups/rentflow_$ts.backup\"",
+    "db:restore": "powershell -Command \"docker cp ./backups/rentflow.backup rentflow-postgres:/tmp/rentflow.backup ; docker exec rentflow-postgres pg_restore -U rentflow -d rentflow --clean --if-exists /tmp/rentflow.backup\"",
+    "minio:backup": "powershell -Command \"if (!(Test-Path backups)) { New-Item -ItemType Directory backups } ; $ts = Get-Date -Format yyyyMMdd_HHmmss ; Compress-Archive -Path minio-data\\* -DestinationPath backups\\minio_$ts.zip\"",
+    "minio:restore": "powershell -Command \"docker compose down ; if (Test-Path minio-data) { Remove-Item -Recurse -Force minio-data } ; Expand-Archive backups\\minio.zip -DestinationPath minio-data ; docker compose up -d\"",
+    "backup:all": "npm run db:backup && npm run minio:backup",
+    "restore:all": "npm run minio:restore && npm run db:restore"
+  }
+}

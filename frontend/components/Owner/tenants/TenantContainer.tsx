@@ -81,7 +81,7 @@ export default function TenantContainer() {
   }, [search]);
 
   return (
-    <div className="flex h-[calc(90vh-2rem)] flex-col gap-6 overflow-hidden bg-white pb-5">
+    <div className="flex h-[calc(90vh-2rem)] flex-col gap-6 overflow-hidden bg-white py-1">
       <div className="col-span-12 grid grid-cols-12 gap-3 md:col-span-8">
         <div className="relative order-1 col-span-12 sm:col-span-6 md:order-2 md:col-span-4">
           <select

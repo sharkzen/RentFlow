@@ -28,9 +28,9 @@ export default async function OwnerLayout({
   if (!allowedRoles.includes(me.role as Role)) redirect("/");
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex min-h-screen bg-white">
       <OwnerNavbar />
-      <main className="flex-1 p-4 md:p-8">{children}</main>
+      <main className="flex-1 overflow-hidden p-4 md:p-8">{children}</main>
     </div>
   );
 }

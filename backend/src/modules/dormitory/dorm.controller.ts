@@ -164,7 +164,6 @@ export const DormController = {
         optimizedBuffer,
         dormId,
         objectKey,
-        "dorm-images",
         file.mimetype || "application/octet-stream",
         optimizedBuffer.length
       );

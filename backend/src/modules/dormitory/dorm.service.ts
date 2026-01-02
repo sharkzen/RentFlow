@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import { UserDecodedDto } from "../auth/dto/user.dto";
 import { minioClient, generateSignedUrl } from "@/services/minio";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-
+import { env } from "@/config/env";
 import {
   DormFormDataDto,
   GetDormsQueryDto,
@@ -111,7 +111,7 @@ export const dormService = {
         const imagesWithUrl = await Promise.all(
           dorm.images.map(async (img: any) => ({
             ...img,
-            url: await generateSignedUrl(img.objectKey, img.bucket),
+            url: await generateSignedUrl(img.objectKey),
           }))
         );
 
@@ -380,7 +380,7 @@ export const dormService = {
         const imagesWithUrl = await Promise.all(
           dorm.images.map(async (img) => ({
             ...img,
-            url: await generateSignedUrl(img.objectKey, img.bucket),
+            url: await generateSignedUrl(img.objectKey),
           }))
         );
 
@@ -393,15 +393,13 @@ export const dormService = {
 
     return dormsWithUrl;
   },
-
-  uploadDormImage: async (
+  async uploadDormImage(
     file: Buffer,
     dormId: string,
     objectKey: string,
-    bucket: string,
     mimeType: string,
     size: number
-  ) => {
+  ) {
     const existingCount = await prisma.file.count({
       where: {
         dormitoryId: dormId,
@@ -412,7 +410,7 @@ export const dormService = {
     const isCover = existingCount === 0;
 
     const command = new PutObjectCommand({
-      Bucket: bucket,
+      Bucket: env.BUCKET,
       Key: objectKey,
       Body: file,
       ContentType: mimeType,
@@ -423,7 +421,7 @@ export const dormService = {
     return prisma.file.create({
       data: {
         dormitoryId: dormId,
-        bucket,
+        bucket: env.BUCKET,
         objectKey,
         mimeType,
         size,
@@ -434,24 +432,32 @@ export const dormService = {
     });
   },
 
-  deleteDormImage: async (imageId: string) => {
+  async deleteDormImage(imageId: string) {
     const image = await prisma.file.findUnique({
       where: { id: imageId },
     });
     if (!image) throw new Error("Image not found");
 
-    const command = new DeleteObjectCommand({
-      Bucket: image.bucket,
-      Key: image.objectKey,
-    });
-    await minioClient.send(command);
+    try {
+      await minioClient.send(
+        new DeleteObjectCommand({
+          Bucket: env.BUCKET,
+          Key: image.objectKey,
+        })
+      );
+    } catch (err: any) {
+      if (err?.name !== "NoSuchKey" && err?.Code !== "NoSuchKey") {
+        throw err;
+      }
+    }
 
-    await prisma.file.delete({ where: { id: imageId } });
+    await prisma.file.delete({
+      where: { id: imageId },
+    });
 
     return true;
   },
-
-  getDormImages: async (dormId: string) => {
+  async getDormImages(dormId: string) {
     const images = await prisma.file.findMany({
       where: { dormitoryId: dormId, category: "DORMITORY" },
       orderBy: [{ isCover: "desc" }, { order: "asc" }, { createdAt: "asc" }],
@@ -460,7 +466,7 @@ export const dormService = {
     const imagesWithUrl = await Promise.all(
       images.map(async (img) => ({
         ...img,
-        url: await generateSignedUrl(img.objectKey, img.bucket),
+        url: await generateSignedUrl(img.objectKey),
       }))
     );
 

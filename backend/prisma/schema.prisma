@@ -180,11 +180,17 @@ model DormitorySetting {
  * ROOM
  * =======================
  */
+enum RoomType {
+  AIR
+  FAN
+}
 
 model Room {
   id                  String               @id @default(uuid())
   dormitoryId         String
   roomNumber          String
+  type                RoomType?
+  description         String?
   images              File[]               @relation("RoomImages")
   basePrice           Float
   status              RoomStatus           @default(AVAILABLE)
@@ -206,34 +212,33 @@ model Room {
  */
 
 model TenantProfile {
-  id     String @id @default(uuid())
-  userId String
-  roomId String
-  firstName String
-  lastName  String
-  phone     String?
-  email     String?
-  idCard    String?
+  id                 String  @id @default(uuid())
+  userId             String
+  roomId             String
+  firstName          String
+  lastName           String
+  phone              String?
+  email              String?
+  idCard             String?
   tenantNameSnapshot String?
   roomPriceSnapshot  Float?
 
-  moveInDate DateTime?
+  moveInDate  DateTime?
   moveOutDate DateTime?
-  isActive   Boolean @default(true)
-  deletedAt  DateTime?
-  notes      String?
+  isActive    Boolean   @default(true)
+  deletedAt   DateTime?
+  notes       String?
 
   emergencyContactName  String?
   emergencyContactPhone String?
 
   maintenanceRequests MaintenanceRequest[]
-  user                User @relation(fields: [userId], references: [id], onDelete: Restrict)
-  room                Room @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  room                Room                 @relation(fields: [roomId], references: [id], onDelete: Restrict)
   bills               Bill[]
 
   createdAt DateTime @default(now())
 }
-
 
 /**
  * =======================
@@ -317,31 +322,29 @@ model MaintenanceRequest {
   updatedAt DateTime @updatedAt
 }
 
-
-
 enum LandmarkType {
-  UNIVERSITY      
-  SCHOOL         
-  HOSPITAL       
-  SHOPPING_MALL   
-  ARL             
-  OFFICE          
-  MARKET         
-  OTHER          
+  UNIVERSITY
+  SCHOOL
+  HOSPITAL
+  SHOPPING_MALL
+  ARL
+  OFFICE
+  MARKET
+  OTHER
 }
 
 model Landmark {
-  id          String       @id @default(uuid())
-  name        String
-  slug        String       @unique 
-  type        LandmarkType
-  
-  latitude    Float
-  longitude   Float
-  
-  mapUrl      String
-  status      Status       @default(ACTIVE) 
-  
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id   String       @id @default(uuid())
+  name String
+  slug String       @unique
+  type LandmarkType
+
+  latitude  Float
+  longitude Float
+
+  mapUrl String
+  status Status @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

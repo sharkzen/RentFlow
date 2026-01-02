@@ -6,52 +6,60 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
+if (!process.env.S3_BUCKET) {
+  throw new Error("S3_BUCKET is not defined");
+}
+
+import { env } from "@/config/env";
+
 export const minioClient = new S3Client({
-  region: "ap-southeast-1",
-  endpoint: "http://localhost:9000",
+  region: process.env.S3_REGION!,
+  endpoint: process.env.S3_ENDPOINT!,
   credentials: {
-    accessKeyId: "rentflow",
-    secretAccessKey: "rentflow123",
+    accessKeyId: process.env.S3_ACCESS_KEY!,
+    secretAccessKey: process.env.S3_SECRET_KEY!,
   },
   forcePathStyle: true,
 });
 
 export async function uploadFile(
-  file: Buffer | File,
-  fileName: string,
-  contentType: string,
-  bucketName: string
+  file: Buffer,
+  objectKey: string,
+  contentType: string
 ) {
-  const command = new PutObjectCommand({
-    Bucket: bucketName,
-    Key: fileName,
-    Body: file,
-    ContentType: contentType,
-  });
-
-  await minioClient.send(command);
-  return fileName;
+  await minioClient.send(
+    new PutObjectCommand({
+      Bucket: env.BUCKET,
+      Key: objectKey,
+      Body: file,
+      ContentType: contentType,
+    })
+  );
+  return objectKey;
 }
 
-export async function deleteFile(objectKey: string, bucketName: string) {
-  const command = new DeleteObjectCommand({
-    Bucket: bucketName,
-    Key: objectKey,
-  });
-
-  await minioClient.send(command);
+export async function deleteFile(objectKey: string) {
+  await minioClient.send(
+    new DeleteObjectCommand({
+      Bucket: env.BUCKET,
+      Key: objectKey,
+    })
+  );
 }
 
 export async function generateSignedUrl(
   objectKey: string,
-  bucketName: string,
-  expiresIn = 3600
+  expiresIn: number | string = 3600
 ) {
-  const command = new GetObjectCommand({
-    Bucket: bucketName,
-    Key: objectKey,
-  });
+  const expireSeconds =
+    typeof expiresIn === "string" ? Number(expiresIn) : expiresIn;
 
-  const url = await getSignedUrl(minioClient, command, { expiresIn });
-  return url;
+  return getSignedUrl(
+    minioClient,
+    new GetObjectCommand({
+      Bucket: env.BUCKET,
+      Key: objectKey,
+    }),
+    { expiresIn: expireSeconds }
+  );
 }

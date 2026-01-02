@@ -50,9 +50,8 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio_data:/data
+      - ./minio-data:/data
 
 volumes:
   postgres_data:
   pgadmin_data:
-  minio_data:

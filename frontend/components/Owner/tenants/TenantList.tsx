@@ -23,10 +23,8 @@ export default function TenantList({ tenants, onEdit }: Props) {
 
   return (
     <table className="w-full min-w-max table-auto text-left text-sm">
-      {/* Sticky Header */}
       <thead className="sticky top-0 z-20 bg-gray-50/95 backdrop-blur-sm">
         <tr>
-          {/* เพิ่ม border-b border-gray-200 ให้ชัดเจน เพื่อเป็นเส้นแบ่งเวลาเลื่อน */}
           <th className="border-b border-gray-200 py-3 pr-3 pl-6 text-xs font-semibold tracking-wider text-gray-500 uppercase">
             ชื่อ-สกุล
           </th>
