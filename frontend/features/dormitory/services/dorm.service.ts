@@ -13,6 +13,10 @@ export const DormService = {
 
     return response.data;
   },
+  getDormBySlug: async (slug: string) => {
+    const res = await axios.get(`/api/dorms/${encodeURIComponent(slug)}`);
+    return res.data;
+  },
   getOverview: async (dormId: string) => {
     const res = await axios.get(`/api/dorms/${dormId}/overview`);
     return res.data;
@@ -36,13 +40,16 @@ export const DormService = {
     return res.data;
   },
 
-  uploadImage: async (dormId: string, file: File) => {
+  uploadImages: async (dormId: string, files: File[]) => {
     const formData = new FormData();
-    formData.append("file", file);
+
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
 
     const res = await axios.post(`/api/dorms/${dormId}/upload`, formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": undefined as any,
       },
     });
 

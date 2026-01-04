@@ -124,7 +124,9 @@ model OwnerProfile {
   userId    String      @unique
   status    OwnerStatus @default(PENDING)
   fullName  String
+  lineId    String?
   phone     String?
+  facebook  String?
   deletedAt DateTime?
 
   user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)

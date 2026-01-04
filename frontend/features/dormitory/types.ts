@@ -118,3 +118,82 @@ export interface PaginationResponse<T> {
     totalPages: number;
   };
 }
+
+export type DormSlugResponse = {
+  id: string;
+  ownerId: string;
+  name: string;
+  slug: string;
+
+  description: {
+    sections: (
+      | {
+          id: string;
+          type: "text";
+          order: number;
+          value: string;
+        }
+      | {
+          id: string;
+          type: "list";
+          order: number;
+          items: string[];
+        }
+    )[];
+  };
+
+  address: string;
+  latitude: number;
+  longitude: number;
+  mapUrl: string;
+
+  status: "ACTIVE" | "INACTIVE";
+  isPublished: boolean;
+
+  deletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+
+  settings: {
+    id: string;
+    dormitoryId: string;
+    roomPrice: number;
+    waterRate: number;
+    electricRate: number;
+    commonFee: number;
+    lateFee: number;
+    dueDay: number;
+    dueMonthOffset: number;
+  };
+
+  images: {
+    id: string;
+    tenantId: string | null;
+    ownerId: string | null;
+    bucket: string;
+    dormitoryId: string;
+    roomId: string | null;
+    paymentId: string | null;
+    maintenanceId: string | null;
+    category: "DORMITORY";
+    objectKey: string;
+    mimeType: string;
+    size: number;
+    order: number;
+    isCover: boolean;
+    createdAt: string;
+    url: string;
+  }[];
+
+  owner: {
+    id: string;
+    userId: string;
+    status: "APPROVED" | "PENDING" | "REJECTED";
+    fullName: string;
+    phone: string;
+    lineId: string | null;
+    facebook: string | null;
+    deletedAt: string | null;
+    createdAt: string;
+  };
+};

@@ -51,12 +51,29 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
   );
 
   const handleAddImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.[0]) return;
-    const file = e.target.files[0];
+    if (!e.target.files || e.target.files.length === 0) return;
+
+    const selectedFiles = Array.from(e.target.files);
+
+    const remainingSlots = 5 - images.length;
+    if (selectedFiles.length > remainingSlots) {
+      toast.error(`เพิ่มได้อีก ${remainingSlots} รูปเท่านั้น`);
+      e.target.value = "";
+      return;
+    }
+
+    const MAX_SIZE = 10 * 1024 * 1024;
+    const isOverSize = selectedFiles.some((file) => file.size > MAX_SIZE);
+
+    if (isOverSize) {
+      toast.error("มีบางไฟล์ขนาดเกิน 10MB กรุณาเลือกใหม่");
+      e.target.value = "";
+      return;
+    }
 
     try {
-      await DormService.uploadImage(dormId, file);
-      toast.success("อัพโหลดรูปสำเร็จ");
+      await DormService.uploadImages(dormId, selectedFiles);
+      toast.success(`อัพโหลด ${selectedFiles.length} รูปสำเร็จ`);
       await fetchImages();
     } catch (error: any) {
       log.error(error);
@@ -112,7 +129,8 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
     <div className="relative space-y-4 p-4">
       <div className="flex items-center justify-between">
         <label className="text-sm font-bold text-gray-700">
-          รูปภาพ ({images.length}/5)
+          รูปภาพ ({images.length}/5){" "}
+          <span className="text-xs text-red-500">* ขนาดไม่เกิน 10MB/รูป</span>
         </label>
 
         <label
@@ -128,6 +146,7 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
             type="file"
             accept="image/*"
             className="hidden"
+            multiple
             disabled={images.length >= 5}
             onChange={handleAddImage}
           />

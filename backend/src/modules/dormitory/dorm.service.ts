@@ -11,7 +11,7 @@ import { generateSlug } from "@/lib/text";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { formatDistance, getDistance } from "@/utils/geo";
 import { Prisma, Status } from "@prisma/client";
-import logger from "@/utils/logger";
+
 export const dormService = {
   async getAllDorms(query: GetDormsQueryDto) {
     const { search, minPrice, maxPrice, landmarkId, page = 1 } = query;
@@ -186,6 +186,34 @@ export const dormService = {
         total: totalItems,
         totalPages: Math.ceil(totalItems / limit),
       },
+    };
+  },
+  async getDormSlug(slug: string) {
+    const dorm = await prisma.dormitory.findUnique({
+      where: { slug: slug },
+      include: {
+        settings: true,
+        images: {
+          orderBy: [{ isCover: "desc" }, { order: "asc" }],
+        },
+        owner: true,
+      },
+    });
+
+    if (!dorm) return null;
+
+    const imagesWithUrls = await Promise.all(
+      dorm.images.map(async (img) => {
+        return {
+          ...img,
+          url: await generateSignedUrl(img.objectKey),
+        };
+      })
+    );
+
+    return {
+      ...dorm,
+      images: imagesWithUrls,
     };
   },
 

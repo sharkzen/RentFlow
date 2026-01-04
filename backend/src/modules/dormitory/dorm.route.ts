@@ -8,6 +8,7 @@ import { DormController } from "./dorm.controller";
 
 export async function dormRoute(app: FastifyInstance) {
   app.get("/all", DormController.getAllDorms);
+  app.get("/:slug", DormController.getDormSlug);
   app.register(async (routeRoles) => {
     routeRoles.addHook("preHandler", authMiddleware);
 

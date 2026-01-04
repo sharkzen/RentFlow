@@ -9,7 +9,7 @@ import DormFilter from "@/features/dormitory/components/DormFilter";
 
 const DormSkeleton = () => (
   <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-    {[...Array(8)].map((_, i) => (
+    {[...Array(15)].map((_, i) => (
       <div
         key={i}
         className="flex flex-col gap-3 rounded-2xl bg-white p-3 shadow-sm"
@@ -81,11 +81,11 @@ export default function IndexContainer() {
 
   return (
     <main className="min-h-screen w-full pb-20">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <DormFilter />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
         {loading ? (
           <div className="py-10">
             <div className="mb-6 h-8 w-48 animate-pulse rounded bg-gray-200" />

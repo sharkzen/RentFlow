@@ -1,5 +1,5 @@
-import React from "react";
+import DormSlugContainer from "@/components/public/dormslug/DormSlugContainer";
 
 export default function page() {
-  return <div>page</div>;
+  return <DormSlugContainer />;
 }

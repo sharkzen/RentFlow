@@ -3,6 +3,7 @@ import { extname } from "path";
 import { randomUUID } from "crypto";
 import { dormService } from "@/modules/dormitory/dorm.service";
 import sharp from "sharp";
+import { pipeline } from "stream/promises";
 import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import {
   DormFormDataDto,
@@ -20,6 +21,28 @@ export const DormController = {
       return reply.send(dorms);
     } catch (error: any) {
       logger.error(error.message);
+      return reply.status(500).send({ message: "INTERNAL_SERVER_ERROR" });
+    }
+  },
+  async getDormSlug(request: FastifyRequest, reply: FastifyReply) {
+    const { slug } = request.params as { slug: string };
+
+    if (!slug) {
+      return reply.status(400).send({ message: "SLUG_REQUIRED" });
+    }
+
+    try {
+      const decodedSlug = decodeURIComponent(slug);
+
+      const dorm = await dormService.getDormSlug(decodedSlug);
+
+      if (!dorm) {
+        return reply.status(404).send({ message: "DORM_NOT_FOUND" });
+      }
+
+      return reply.send(dorm);
+    } catch (error: any) {
+      console.error(error);
       return reply.status(500).send({ message: "INTERNAL_SERVER_ERROR" });
     }
   },
@@ -124,53 +147,90 @@ export const DormController = {
     }
   },
   async uploadDormImage(request: FastifyRequest, reply: FastifyReply) {
-    const user = request.user as UserDecodedDto;
-    if (!user) return reply.status(401).send({ message: "UNAUTHORIZED" });
-
-    const { dormId } = request.params as { dormId: string };
-
-    let file;
     try {
-      file = await request.file();
-      if (!file || !file.filename) {
-        return reply
-          .status(400)
-          .send({ message: "No file uploaded or filename missing" });
-      }
-    } catch (err) {
-      return reply.status(400).send({ message: "Failed to read file" });
-    }
+      const user = request.user as UserDecodedDto;
+      if (!user) return reply.status(401).send({ message: "UNAUTHORIZED" });
 
-    try {
+      const { dormId } = request.params as { dormId: string };
+
       const ownerDorm = await dormService.getOwnerDorm(dormId, user.sub);
       if (!ownerDorm) return reply.status(403).send({ message: "FORBIDDEN" });
 
-      const extension = extname(file.filename);
-      const newFilename = `${randomUUID()}${extension}`;
-      const objectKey = `dorms/${dormId}/${newFilename}`;
+      const parts = request.files({
+        limits: { fileSize: 10 * 1024 * 1024 },
+      });
 
-      const buffer = await file.toBuffer();
+      const filesToProcess: {
+        buffer: Buffer;
+        filename: string;
+        mimetype: string;
+      }[] = [];
 
-      let optimizedBuffer = buffer;
-      if (file.mimetype === "image/jpeg" || file.mimetype === "image/jpg") {
-        optimizedBuffer = await sharp(buffer).jpeg({ quality: 80 }).toBuffer();
-      } else if (file.mimetype === "image/png") {
-        optimizedBuffer = await sharp(buffer)
-          .png({ compressionLevel: 9 })
-          .toBuffer();
+      for await (const part of parts) {
+        if (!part.file) continue;
+
+        try {
+          const buffer = await part.toBuffer();
+
+          filesToProcess.push({
+            buffer,
+            filename: part.filename,
+            mimetype: part.mimetype,
+          });
+        } catch (error: any) {
+          // 🔥 ดักจับ Error ตรงนี้
+          if (error.code === "FST_REQ_FILE_TOO_LARGE") {
+            console.warn(`⚠️ File too large skipped: ${part.filename}`);
+            return reply.status(413).send({
+              message: `FILE_TOO_LARGE`,
+              filename: part.filename,
+            });
+          }
+          console.error("Error reading stream part:", error);
+        }
       }
 
-      const image = await dormService.uploadDormImage(
-        optimizedBuffer,
-        dormId,
-        objectKey,
-        file.mimetype || "application/octet-stream",
-        optimizedBuffer.length
-      );
+      if (filesToProcess.length === 0) {
+        return reply.status(400).send({ message: "NO_FILE_UPLOADED" });
+      }
 
-      return reply.send(image);
-    } catch (error: any) {
-      logger.error("Upload failed:", error);
+      const uploadPromises = filesToProcess.map(async (fileData) => {
+        let optimizedBuffer = fileData.buffer;
+
+        try {
+          if (
+            fileData.mimetype === "image/jpeg" ||
+            fileData.mimetype === "image/jpg"
+          ) {
+            optimizedBuffer = await sharp(fileData.buffer)
+              .jpeg({ quality: 80 })
+              .toBuffer();
+          } else if (fileData.mimetype === "image/png") {
+            optimizedBuffer = await sharp(fileData.buffer)
+              .png({ compressionLevel: 9 })
+              .toBuffer();
+          }
+        } catch (e) {
+          console.error("Optimization failed, using original", e);
+        }
+
+        const extension = extname(fileData.filename);
+        const objectKey = `dorms/${dormId}/${randomUUID()}${extension}`;
+
+        return dormService.uploadDormImage(
+          optimizedBuffer,
+          dormId,
+          objectKey,
+          fileData.mimetype,
+          optimizedBuffer.length
+        );
+      });
+
+      const uploadedImages = await Promise.all(uploadPromises);
+
+      return reply.send(uploadedImages);
+    } catch (error) {
+      console.error("💥 UPLOAD ERROR:", error);
       return reply.status(500).send({ message: "UPLOAD_FAILED" });
     }
   },
