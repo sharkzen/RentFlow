@@ -17,8 +17,13 @@ export const DormService = {
     const res = await axios.get(`/api/dorms/${encodeURIComponent(slug)}`);
     return res.data;
   },
-  getOverview: async (dormId: string) => {
-    const res = await axios.get(`/api/dorms/${dormId}/overview`);
+  getOverview: async (dormId: string, month?: number, year?: number) => {
+    const res = await axios.get(`/api/dorms/${dormId}/overview`, {
+      params: {
+        month,
+        year,
+      },
+    });
     return res.data;
   },
   createDrom: async (name: string) => {

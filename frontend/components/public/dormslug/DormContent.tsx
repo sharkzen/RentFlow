@@ -1,5 +1,7 @@
+"use client";
+
 import React from "react";
-import { CheckCircle2 } from "lucide-react";
+import { Check } from "lucide-react";
 import { DormSlugResponse } from "@/features/dormitory/types";
 
 export const DormContent: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
@@ -7,26 +9,30 @@ export const DormContent: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
     switch (section.type) {
       case "text":
         return (
-          <p key={section.id} className="mb-4 leading-relaxed text-gray-600">
+          <p
+            key={section.id}
+            className="mb-6 text-base leading-relaxed text-slate-600 md:text-lg"
+          >
             {section.value}
           </p>
         );
       case "list":
         return (
-          <ul
-            key={section.id}
-            className="mb-6 grid grid-cols-1 gap-3 rounded-xl border border-blue-50 bg-blue-50/30 p-4"
-          >
-            {section.items.map((item: string, idx: number) => (
-              <li
-                key={idx}
-                className="flex items-start gap-3 font-medium text-gray-700"
-              >
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-500" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+          <div key={section.id} className="mb-8">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {section.items.map((item: string, idx: number) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-3 rounded-lg border border-slate-100 bg-slate-50/50 p-3 transition-colors hover:border-blue-100 hover:bg-blue-50/30"
+                >
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                    <Check size={14} strokeWidth={3} />
+                  </div>
+                  <span className="font-medium text-slate-700">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         );
       default:
         return null;
@@ -34,20 +40,24 @@ export const DormContent: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="mb-2 text-2xl font-bold text-gray-900 md:text-4xl">
+    <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-8">
+      <div className="mb-8 border-b border-slate-100 pb-6">
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl lg:text-5xl">
           {data.name}
         </h1>
       </div>
 
       <div>
-        <h3 className="mb-3 border-l-4 border-blue-500 pl-3 text-lg font-bold text-gray-900">
-          รายละเอียด
+        <h3 className="mb-4 flex items-center gap-2 text-xl font-bold text-slate-900">
+          <span className="inline-block h-6 w-1 rounded-full bg-blue-500"></span>
+          รายละเอียดหอพัก
         </h3>
-        {data.description?.sections
-          ?.sort((a: any, b: any) => a.order - b.order)
-          .map(renderSection)}
+
+        <div className="prose prose-slate max-w-none text-slate-600">
+          {data.description?.sections
+            ?.sort((a: any, b: any) => a.order - b.order)
+            .map(renderSection)}
+        </div>
       </div>
     </div>
   );

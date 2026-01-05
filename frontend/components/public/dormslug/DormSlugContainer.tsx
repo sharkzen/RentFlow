@@ -3,12 +3,25 @@ import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { DormSlugResponse } from "@/features/dormitory/types";
-import { Loader2 } from "lucide-react";
-
 import { DormHeroSlider } from "./DormHeroSlider";
 import { DormContent } from "./DormContent";
 import { DormSidebar } from "./DormSidebar";
 import { DormMap } from "./DormMap";
+
+const DormSlugSkeleton = () => (
+  <div className="mx-auto max-w-7xl animate-pulse space-y-8 p-4 pt-8">
+    <div className="h-100 w-full rounded-3xl bg-slate-200" />
+    <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
+      <div className="space-y-4 lg:col-span-2">
+        <div className="h-10 w-3/4 rounded-full bg-slate-200" />
+        <div className="h-4 w-full rounded-full bg-slate-100" />
+        <div className="h-4 w-5/6 rounded-full bg-slate-100" />
+        <div className="mt-8 h-64 w-full rounded-3xl bg-slate-200" />
+      </div>
+      <div className="h-96 w-full rounded-3xl bg-slate-200" />
+    </div>
+  </div>
+);
 
 export default function DormSlugContainer() {
   const { slug } = useParams<{ slug: string }>();
@@ -31,9 +44,6 @@ export default function DormSlugContainer() {
       console.error(error);
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }, 100);
     }
   }, [decodedSlug]);
 
@@ -41,23 +51,17 @@ export default function DormSlugContainer() {
     fetchDorm();
   }, [fetchDorm]);
 
-  if (!dorm) return null;
+  if (loading || !dorm) return <DormSlugSkeleton />;
 
   return (
-    <main className="min-h-screen bg-white pb-20">
-      <section className="w-full">
-        <DormHeroSlider images={dorm.images} />
-      </section>
+    <main className="min-h-screen bg-[#F8F9FA] pb-20">
+      <div className="mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <section className="mb-8 w-full overflow-hidden rounded-3xl shadow-sm">
+          <DormHeroSlider images={dorm.images} />
+        </section>
 
-      <div className="mx-auto max-w-375 p-4 py-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-12">
-          <div className="order-1 lg:order-2 lg:col-span-1">
-            <div className="sticky top-24">
-              <DormSidebar data={dorm} />
-            </div>
-          </div>
-
-          <div className="order-2 lg:order-1 lg:col-span-2">
+          <div className="order-2 space-y-10 lg:order-1 lg:col-span-2">
             <DormContent data={dorm} />
 
             <DormMap
@@ -66,6 +70,12 @@ export default function DormSlugContainer() {
               mapUrl={dorm.mapUrl}
               address={dorm.address}
             />
+          </div>
+
+          <div className="order-1 lg:order-2 lg:col-span-1">
+            <div className="sticky top-24 z-10">
+              <DormSidebar data={dorm} />
+            </div>
           </div>
         </div>
       </div>

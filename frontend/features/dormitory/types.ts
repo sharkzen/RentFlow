@@ -67,7 +67,7 @@ export interface DormitoryOwner {
   createdAt: string;
 }
 
-export type OwnerStatus = "APPROVED" | "PENDING" | "REJECTED";
+export type OwnerStatus = "APPROVED" | "PENDING" | "SUSPENDED";
 
 export interface DormFormData {
   id: string;
@@ -188,7 +188,7 @@ export type DormSlugResponse = {
   owner: {
     id: string;
     userId: string;
-    status: "APPROVED" | "PENDING" | "REJECTED";
+    status: "APPROVED" | "PENDING" | "SUSPENDED";
     fullName: string;
     phone: string;
     lineId: string | null;

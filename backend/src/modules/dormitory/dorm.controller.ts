@@ -3,7 +3,7 @@ import { extname } from "path";
 import { randomUUID } from "crypto";
 import { dormService } from "@/modules/dormitory/dorm.service";
 import sharp from "sharp";
-import { pipeline } from "stream/promises";
+
 import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import {
   DormFormDataDto,
@@ -178,7 +178,6 @@ export const DormController = {
             mimetype: part.mimetype,
           });
         } catch (error: any) {
-          // 🔥 ดักจับ Error ตรงนี้
           if (error.code === "FST_REQ_FILE_TOO_LARGE") {
             console.warn(`⚠️ File too large skipped: ${part.filename}`);
             return reply.status(413).send({
@@ -291,14 +290,27 @@ export const DormController = {
     if (!user) return reply.status(401).send({ message: "UNAUTHORIZED" });
 
     const { dormId } = request.params as { dormId: string };
+
+    const { month, year } = request.query as { month?: string; year?: string };
+
     if (!dormId) {
       return reply.status(400).send({ message: "DORM_ID_REQUIRED" });
     }
 
     try {
-      const overview = await dormService.getDormOverview(dormId, user.sub);
+      const now = new Date();
+      const targetMonth = month ? parseInt(month) : now.getMonth() + 1;
+      const targetYear = year ? parseInt(year) : now.getFullYear();
+
+      const overview = await dormService.getDormOverview(
+        dormId,
+        user.sub,
+        targetMonth,
+        targetYear
+      );
       return reply.send(overview);
     } catch (error: any) {
+      console.error(error);
       if (error.message === "FORBIDDEN") {
         return reply.status(403).send({ message: "FORBIDDEN" });
       }

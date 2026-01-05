@@ -8,15 +8,22 @@ import Pagination from "@/components/ui/Pagination";
 import DormFilter from "@/features/dormitory/components/DormFilter";
 
 const DormSkeleton = () => (
-  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-    {[...Array(15)].map((_, i) => (
+  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+    {[...Array(8)].map((_, i) => (
       <div
         key={i}
-        className="flex flex-col gap-3 rounded-2xl bg-white p-3 shadow-sm"
+        className="flex flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm"
       >
-        <div className="aspect-4/3 w-full animate-pulse rounded-xl bg-gray-200" />
-        <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
-        <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
+        <div className="aspect-4/3 w-full animate-pulse bg-slate-200" />
+
+        <div className="space-y-3 p-4">
+          <div className="h-5 w-3/4 animate-pulse rounded-full bg-slate-200" />
+          <div className="h-4 w-1/2 animate-pulse rounded-full bg-slate-100" />
+          <div className="mt-4 flex items-center justify-between">
+            <div className="h-6 w-20 animate-pulse rounded-full bg-slate-200" />
+            <div className="h-8 w-8 animate-pulse rounded-full bg-slate-100" />
+          </div>
+        </div>
       </div>
     ))}
   </div>
@@ -72,38 +79,46 @@ export default function IndexContainer() {
 
     setTimeout(() => {
       scroller.scrollTo("dorm-results", {
-        duration: 500,
+        duration: 800,
+        delay: 0,
         smooth: "easeInOutQuart",
-        offset: -100,
+        offset: -120,
       });
     }, 100);
   };
 
   return (
-    <main className="min-h-screen w-full pb-20">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        <DormFilter />
-      </div>
+    <main className="min-h-screen w-full bg-[#F3F4F6] pb-24">
+      <div className="mx-auto px-4">
+        <div className="py-6">
+          <DormFilter />
+        </div>
 
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
-        {loading ? (
-          <div className="py-10">
-            <div className="mb-6 h-8 w-48 animate-pulse rounded bg-gray-200" />
-            <DormSkeleton />
-          </div>
-        ) : (
-          <>
-            <Dormitory dorms={dorms} />
-
-            <div className="mt-8">
-              <Pagination
-                currentPage={meta.page}
-                totalPages={meta.totalPages}
-                onPageChange={handlePageChange}
-              />
+        <div className="min-h-125">
+          {loading ? (
+            <div className="py-4">
+              <div className="mb-8 flex items-center justify-between">
+                <div className="h-8 w-48 animate-pulse rounded-full bg-slate-200" />
+                <div className="h-4 w-24 animate-pulse rounded-full bg-slate-200" />
+              </div>
+              <DormSkeleton />
             </div>
-          </>
-        )}
+          ) : (
+            <>
+              <Dormitory dorms={dorms} total={meta.total} />
+
+              {dorms.length > 0 && (
+                <div className="mt-12 flex justify-center">
+                  <Pagination
+                    currentPage={meta.page}
+                    totalPages={meta.totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </main>
   );

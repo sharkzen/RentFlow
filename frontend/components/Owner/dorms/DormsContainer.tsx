@@ -5,17 +5,24 @@ import DormsCard from "./DormsCard";
 import DormsDialog from "./DormsDialog";
 import { Dormitory } from "@/features/dormitory";
 import { DormService } from "@/features/dormitory/services/dorm.service";
-import { PlusIcon } from "lucide-react";
+import { Plus, Building2 } from "lucide-react";
 import DromCreate from "./DromCreate";
+import { Spinner } from "@/components/ui/Spinner";
+
 export default function DormsContainer() {
   const [dorms, setDorms] = useState<Dormitory[]>([]);
   const [selectedDorm, setSelectedDorm] = useState<Dormitory | null>(null);
-
   const [onCreate, setOnCreate] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchDorms = useCallback(async () => {
-    const data = await DormService.getDorm();
-    setDorms(data);
+    try {
+      setLoading(true);
+      const data = await DormService.getDorm();
+      setDorms(data);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -28,36 +35,60 @@ export default function DormsContainer() {
   };
 
   return (
-    <>
+    <div className="container mx-auto max-w-7xl px-4 py-8">
       {onCreate && (
         <DromCreate onClose={() => setOnCreate(false)} onSuccess={fetchDorms} />
       )}
 
-      <div className="mb-8 flex items-end justify-between transition-all">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h2 className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-4xl font-bold text-transparent">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
             หอพักของคุณ
           </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            จัดการรายการหอพัก ข้อมูลราคา และสถานะการเผยแพร่
+          </p>
         </div>
-        <div>
+        <button
+          onClick={() => setOnCreate(true)}
+          className="flex cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md active:scale-95"
+        >
+          <Plus size={18} strokeWidth={2.5} />
+          <span>เพิ่มหอพักใหม่</span>
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex h-64 items-center justify-center">
+          <Spinner />
+        </div>
+      ) : dorms.length === 0 ? (
+        <div className="flex h-80 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 text-center">
+          <div className="mb-4 rounded-full bg-slate-100 p-4">
+            <Building2 className="h-10 w-10 text-slate-400" />
+          </div>
+          <h3 className="text-lg font-medium text-slate-900">ยังไม่มีหอพัก</h3>
+          <p className="mt-1 text-sm text-slate-500">
+            เริ่มต้นด้วยการสร้างหอพักแรกของคุณ
+          </p>
           <button
             onClick={() => setOnCreate(true)}
-            className="flex cursor-pointer items-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-cyan-500 px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+            className="mt-4 font-medium text-indigo-600 hover:underline"
           >
-            <span>เพิ่มหอพัก</span>
-            <PlusIcon size={18} />
+            สร้างหอพักเลย
           </button>
         </div>
-      </div>
-      <div className="grid max-h-screen grid-cols-1 gap-4 overflow-y-auto sm:grid-cols-2 lg:grid-cols-3">
-        {dorms.map((dorm) => (
-          <DormsCard
-            key={dorm.id}
-            dorm={dorm}
-            onEdit={() => setSelectedDorm(dorm)}
-          />
-        ))}
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {dorms.map((dorm) => (
+            <DormsCard
+              key={dorm.id}
+              dorm={dorm}
+              onEdit={() => setSelectedDorm(dorm)}
+            />
+          ))}
+        </div>
+      )}
 
       {selectedDorm && (
         <DormsDialog
@@ -66,6 +97,6 @@ export default function DormsContainer() {
           onEdit={fetchDorms}
         />
       )}
-    </>
+    </div>
   );
 }

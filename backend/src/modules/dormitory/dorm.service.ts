@@ -11,6 +11,7 @@ import { generateSlug } from "@/lib/text";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { formatDistance, getDistance } from "@/utils/geo";
 import { Prisma, Status } from "@prisma/client";
+import { shuffleArray } from "./lib/dorm.lib";
 
 export const dormService = {
   async getAllDorms(query: GetDormsQueryDto) {
@@ -23,23 +24,10 @@ export const dormService = {
       isPublished: true,
     };
 
-    if (search && search.trim() !== "" && search !== "null") {
-      whereCondition.name = { contains: search, mode: "insensitive" };
-    }
-
-    const parsedMin =
-      minPrice && !isNaN(Number(minPrice)) ? Number(minPrice) : undefined;
-    const parsedMax =
-      maxPrice && !isNaN(Number(maxPrice)) ? Number(maxPrice) : undefined;
-
-    if (parsedMin !== undefined || parsedMax !== undefined) {
-      whereCondition.settings = {
-        roomPrice: {
-          gte: parsedMin,
-          lte: parsedMax,
-        },
-      };
-    }
+    const hasSearch = search && search.trim() !== "" && search !== "null";
+    const hasPriceFilter =
+      (minPrice && !isNaN(Number(minPrice))) ||
+      (maxPrice && !isNaN(Number(maxPrice)));
 
     const cleanLandmarkId =
       landmarkId &&
@@ -49,7 +37,24 @@ export const dormService = {
         ? landmarkId
         : undefined;
 
-    let resultDorms = [];
+    if (hasSearch) {
+      whereCondition.name = { contains: search, mode: "insensitive" };
+    }
+
+    const parsedMin =
+      minPrice && !isNaN(Number(minPrice)) ? Number(minPrice) : undefined;
+    const parsedMax =
+      maxPrice && !isNaN(Number(maxPrice)) ? Number(maxPrice) : undefined;
+    if (parsedMin !== undefined || parsedMax !== undefined) {
+      whereCondition.settings = {
+        roomPrice: {
+          gte: parsedMin,
+          lte: parsedMax,
+        },
+      };
+    }
+
+    let resultDorms: any[] = [];
     let totalItems = 0;
 
     if (cleanLandmarkId) {
@@ -87,10 +92,49 @@ export const dormService = {
       });
 
       dormsWithDistance.sort((a, b) => a._distance - b._distance);
-
       totalItems = dormsWithDistance.length;
-
       resultDorms = dormsWithDistance.slice(skip, skip + limit);
+    } else if (!hasSearch && !hasPriceFilter) {
+      const allDormIds = await prisma.dormitory.findMany({
+        where: whereCondition,
+        select: {
+          id: true,
+          images: {
+            select: { id: true },
+            take: 1,
+          },
+        },
+      });
+
+      totalItems = allDormIds.length;
+
+      const dormsWithImages = allDormIds.filter((d) => d.images.length > 0);
+      const dormsWithoutImages = allDormIds.filter(
+        (d) => d.images.length === 0
+      );
+
+      shuffleArray(dormsWithImages);
+      shuffleArray(dormsWithoutImages);
+
+      const sortedIds = [...dormsWithImages, ...dormsWithoutImages].map(
+        (d) => d.id
+      );
+
+      const pageIds = sortedIds.slice(skip, skip + limit);
+
+      if (pageIds.length > 0) {
+        const fetchedDorms = await prisma.dormitory.findMany({
+          where: { id: { in: pageIds } },
+          include: {
+            images: { where: { isCover: true } },
+            settings: true,
+          },
+        });
+
+        resultDorms = pageIds
+          .map((id) => fetchedDorms.find((d) => d.id === id))
+          .filter(Boolean);
+      }
     } else {
       totalItems = await prisma.dormitory.count({ where: whereCondition });
 
@@ -116,48 +160,36 @@ export const dormService = {
         );
 
         let nearbyData = null;
-
-        const hasValidLocation =
-          dorm.latitude &&
-          dorm.longitude &&
-          dorm.latitude !== 0 &&
-          dorm.longitude !== 0;
+        const hasValidLocation = dorm.latitude && dorm.longitude;
 
         if (dorm._targetLandmark) {
-          if (hasValidLocation && dorm._distance !== Infinity) {
-            nearbyData = {
-              name: dorm._targetLandmark.name,
-              slug: dorm._targetLandmark.slug,
-              distanceKm: Number(dorm._distance.toFixed(2)),
-              distanceText: formatDistance(dorm._distance),
-            };
-          }
+          nearbyData = {
+            name: dorm._targetLandmark.name,
+            slug: dorm._targetLandmark.slug,
+            distanceKm: Number(dorm._distance.toFixed(2)),
+            distanceText: formatDistance(dorm._distance),
+          };
         } else {
           if (hasValidLocation) {
             const landmarks = await prisma.landmark.findMany({
               where: { status: Status.ACTIVE },
             });
-
             let minDistance = Infinity;
             let nearest = null;
-
             for (const lm of landmarks) {
               if (!lm.latitude || !lm.longitude) continue;
-
               const dist = getDistance(
                 dorm.latitude,
                 dorm.longitude,
                 lm.latitude,
                 lm.longitude
               );
-
               if (dist < minDistance) {
                 minDistance = dist;
                 nearest = lm;
               }
             }
-
-            if (nearest && minDistance !== Infinity) {
+            if (nearest) {
               nearbyData = {
                 name: nearest.name,
                 slug: nearest.slug,
@@ -548,10 +580,13 @@ export const dormService = {
     return true;
   },
 
-  async getDormOverview(dormId: string, userId: string) {
-    const owner = await prisma.ownerProfile.findUnique({
-      where: { userId },
-    });
+  async getDormOverview(
+    dormId: string,
+    userId: string,
+    month: number,
+    year: number
+  ) {
+    const owner = await prisma.ownerProfile.findUnique({ where: { userId } });
     if (!owner) throw new Error("FORBIDDEN");
 
     const dorm = await prisma.dormitory.findUnique({
@@ -563,30 +598,25 @@ export const dormService = {
       throw new Error("FORBIDDEN");
     }
 
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
 
     const [
       totalRooms,
       occupiedRooms,
       availableRooms,
 
-      paidBills,
-      unpaidBills,
+      billsPaid,
+      billsPending,
+      billsOverdue,
 
-      pendingBills,
-      overdueBills,
-
-      openMaintenance,
-      inProgressMaintenance,
+      maintTotal,
+      maintOpen,
+      maintInProgress,
+      maintCompleted,
     ] = await Promise.all([
       prisma.room.count({ where: { dormitoryId: dormId } }),
-
-      prisma.room.count({
-        where: { dormitoryId: dormId, status: "OCCUPIED" },
-      }),
-
+      prisma.room.count({ where: { dormitoryId: dormId, status: "OCCUPIED" } }),
       prisma.room.count({
         where: { dormitoryId: dormId, status: "AVAILABLE" },
       }),
@@ -595,30 +625,36 @@ export const dormService = {
         where: {
           room: { dormitoryId: dormId },
           status: "PAID",
-          billingMonth: { gte: startOfMonth },
+          billingMonth: { gte: startDate, lte: endDate },
         },
         _sum: { total: true },
+        _count: true,
       }),
 
       prisma.bill.aggregate({
         where: {
           room: { dormitoryId: dormId },
-          status: { in: ["PENDING", "OVERDUE"] },
+          status: "PENDING",
+          billingMonth: { gte: startDate, lte: endDate },
         },
         _sum: { total: true },
+        _count: true,
       }),
 
-      prisma.bill.count({
-        where: {
-          room: { dormitoryId: dormId },
-          status: "PENDING",
-        },
-      }),
-
-      prisma.bill.count({
+      prisma.bill.aggregate({
         where: {
           room: { dormitoryId: dormId },
           status: "OVERDUE",
+          billingMonth: { gte: startDate, lte: endDate },
+        },
+        _sum: { total: true },
+        _count: true,
+      }),
+
+      prisma.maintenanceRequest.count({
+        where: {
+          dormitoryId: dormId,
+          createdAt: { gte: startDate, lte: endDate },
         },
       }),
 
@@ -626,6 +662,7 @@ export const dormService = {
         where: {
           dormitoryId: dormId,
           status: "OPEN",
+          createdAt: { gte: startDate, lte: endDate },
         },
       }),
 
@@ -633,28 +670,44 @@ export const dormService = {
         where: {
           dormitoryId: dormId,
           status: "IN_PROGRESS",
+          createdAt: { gte: startDate, lte: endDate },
+        },
+      }),
+
+      prisma.maintenanceRequest.count({
+        where: {
+          dormitoryId: dormId,
+          status: "COMPLETED",
+          createdAt: { gte: startDate, lte: endDate },
         },
       }),
     ]);
 
     return {
       dormId,
+      month,
+      year,
       rooms: {
         total: totalRooms,
         occupied: occupiedRooms,
         available: availableRooms,
       },
-      income: {
-        thisMonth: paidBills._sum.total ?? 0,
-        unpaid: unpaidBills._sum.total ?? 0,
-      },
       bills: {
-        pending: pendingBills,
-        overdue: overdueBills,
+        paid: { count: billsPaid._count, amount: billsPaid._sum.total ?? 0 },
+        pending: {
+          count: billsPending._count,
+          amount: billsPending._sum.total ?? 0,
+        },
+        overdue: {
+          count: billsOverdue._count,
+          amount: billsOverdue._sum.total ?? 0,
+        },
       },
       maintenance: {
-        open: openMaintenance,
-        inProgress: inProgressMaintenance,
+        total: maintTotal,
+        open: maintOpen,
+        inProgress: maintInProgress,
+        completed: maintCompleted,
       },
     };
   },
