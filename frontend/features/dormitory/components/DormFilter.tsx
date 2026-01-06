@@ -18,7 +18,6 @@ import {
 export default function DormFilter() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
   const [name, setName] = useState(searchParams.get("search") || "");
   const [location, setLocation] = useState(
     searchParams.get("landmarkId") || "",
@@ -29,7 +28,6 @@ export default function DormFilter() {
   const [priceMax, setPriceMax] = useState<number | "">(
     searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : "",
   );
-
   const [landmarks, setLandmarks] = useState<Landmark[]>([]);
 
   useEffect(() => {
@@ -41,13 +39,16 @@ export default function DormFilter() {
         console.error("Failed to fetch landmarks", error);
       }
     };
+
     fetchLandmarks();
   }, []);
 
   const groupedLandmarks = landmarks.reduce(
     (acc, landmark) => {
       const type = landmark.type || "OTHER";
+
       if (!acc[type]) acc[type] = [];
+
       acc[type].push(landmark);
       return acc;
     },
@@ -56,12 +57,19 @@ export default function DormFilter() {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
+
     if (name) params.set("search", name);
+
     if (location) params.set("landmarkId", location);
+
     if (priceMin !== "") params.set("minPrice", String(priceMin));
+
     if (priceMax !== "") params.set("maxPrice", String(priceMax));
 
-    router.push(`/?${params.toString()}`, { scroll: false });
+    router.push(`/?${params.toString()}`, {
+      scroll: false,
+    });
+
     setTimeout(() => {
       scroller.scrollTo("dorm-filter", {
         duration: 800,
@@ -77,7 +85,10 @@ export default function DormFilter() {
     setLocation("");
     setPriceMin("");
     setPriceMax("");
-    router.push(`/?`, { scroll: false });
+
+    router.push(`/?`, {
+      scroll: false,
+    });
   };
 
   const hasFilter = name || location || priceMin || priceMax;
@@ -89,7 +100,7 @@ export default function DormFilter() {
         data-aos="fade-up"
         className="relative z-20 mx-auto my-8 w-full"
       >
-        <div className="flex flex-col rounded-3xl bg-white p-2 shadow-xl ring-1 shadow-slate-200/60 ring-slate-100 md:flex-row md:items-center md:rounded-full md:p-1.5">
+        <div className="flex flex-col rounded-3xl bg-white p-2 shadow ring-1 shadow-slate-200/60 ring-slate-100 md:flex-row md:items-center md:p-1.5">
           <div className="group relative flex flex-1 flex-col justify-center px-6 py-3 transition-colors md:rounded-l-full md:border-r md:border-slate-100">
             <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <Building2 size={14} className="text-blue-500" />
@@ -103,7 +114,6 @@ export default function DormFilter() {
               onChange={(e) => setName(e.target.value)}
             />
           </div>
-
           <div className="group relative flex flex-1 flex-col justify-center px-6 py-3 transition-colors md:border-r md:border-slate-100">
             <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <MapPin size={14} className="text-rose-500" />
@@ -134,13 +144,11 @@ export default function DormFilter() {
                   </optgroup>
                 ))}
               </select>
-
               <div className="pointer-events-none absolute top-1/2 right-0 -translate-y-1/2 text-slate-400">
                 <ChevronDown size={14} />
               </div>
             </div>
           </div>
-
           <div className="group relative flex flex-[1.3] flex-col justify-center px-6 py-3 transition-colors">
             <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <Banknote size={14} className="text-emerald-500" />
@@ -172,14 +180,9 @@ export default function DormFilter() {
               />
             </div>
           </div>
-
           <div className="flex items-center gap-2 p-2 md:pl-0">
             <div
-              className={`overflow-hidden transition-all duration-300 ${
-                hasFilter
-                  ? "w-10 scale-100 opacity-100"
-                  : "w-0 scale-90 opacity-0"
-              }`}
+              className={`overflow-hidden transition-all duration-300 ${hasFilter ? "w-10 scale-100 opacity-100" : "w-0 scale-90 opacity-0"}`}
             >
               <button
                 onClick={handleReset}
@@ -189,7 +192,6 @@ export default function DormFilter() {
                 <RotateCcw size={16} />
               </button>
             </div>
-
             <button
               onClick={handleSearch}
               className="group relative flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-linear-to-r from-blue-600 to-cyan-500 py-3.5 pr-8 pl-6 text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] hover:shadow-blue-500/50 active:scale-95 md:flex-none"

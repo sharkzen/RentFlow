@@ -6,7 +6,9 @@ import { UpdateOwnerDto } from "./validators/owner.validator";
 export const OwnerService = {
   getOwnerProfile: async (user: UserDecodedDto): Promise<OwnerProfileDto> => {
     const owner = await prisma.ownerProfile.findUnique({
-      where: { userId: user.sub },
+      where: {
+        userId: user.sub,
+      },
     });
 
     if (!owner) throw new Error("OWNER_NOT_FOUND");
@@ -16,11 +18,14 @@ export const OwnerService = {
 
   updateOwnerProfile: async (
     user: UserDecodedDto,
-    data: UpdateOwnerDto
+    data: UpdateOwnerDto,
   ): Promise<OwnerProfileDto> => {
     try {
       const updatedOwner = await prisma.ownerProfile.update({
-        where: { userId: user.sub },
+        where: {
+          userId: user.sub,
+        },
+
         data: {
           ...data,
           facebook: data.facebook === "" ? null : data.facebook,
@@ -32,6 +37,7 @@ export const OwnerService = {
       if (error.code === "P2025") {
         throw new Error("OWNER_NOT_FOUND");
       }
+
       throw error;
     }
   },

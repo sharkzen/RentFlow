@@ -9,14 +9,14 @@ export type Tenant = {
   idCard: string | null;
   tenantNameSnapshot: string | null;
   roomPriceSnapshot: number | null;
-  moveInDate: string | null; // ISO string
-  moveOutDate: string | null; // ISO string
+  moveInDate: string | null;
+  moveOutDate: string | null;
   isActive: boolean;
-  deletedAt: string | null; // ISO string
+  deletedAt: string | null;
   notes: string | null;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
-  createdAt: string; // ISO string
+  createdAt: string;
   room: {
     id: string;
     dormitoryId: string;
@@ -24,7 +24,7 @@ export type Tenant = {
     basePrice: number;
     status: "AVAILABLE" | "OCCUPIED" | "MAINTENANCE" | "DISABLED";
     deletedAt: string | null;
-    createdAt: string; // ISO string
+    createdAt: string;
   };
   user: {
     id: string;

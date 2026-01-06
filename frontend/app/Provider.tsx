@@ -1,5 +1,4 @@
 "use client";
-
 import { ReactNode, useEffect } from "react";
 import { Bounce, ToastContainer } from "react-toastify";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -35,7 +34,6 @@ export default function ProviderRoot({ children }: ProviderProps) {
         transition={Bounce}
         toastClassName="toast-custom"
       />
-
       {children}
     </QueryClientProvider>
   );

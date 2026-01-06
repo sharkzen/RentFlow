@@ -1,6 +1,7 @@
 export interface DormDescription {
   sections: any[];
 }
+
 export interface Dormitory {
   id: string;
   ownerId: string;
@@ -16,7 +17,6 @@ export interface Dormitory {
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
-
   settings: DormitorySettings;
   images: DormitoryImage[];
   owner: DormitoryOwner;
@@ -86,23 +86,19 @@ export interface DormFormData {
 
 export interface DormOverview {
   dormId: string;
-
   rooms: {
     total: number;
     occupied: number;
     available: number;
   };
-
   income: {
     thisMonth: number;
     unpaid: number;
   };
-
   bills: {
     pending: number;
     overdue: number;
   };
-
   maintenance: {
     open: number;
     inProgress: number;
@@ -124,7 +120,6 @@ export type DormSlugResponse = {
   ownerId: string;
   name: string;
   slug: string;
-
   description: {
     sections: (
       | {
@@ -141,19 +136,15 @@ export type DormSlugResponse = {
         }
     )[];
   };
-
   address: string;
   latitude: number;
   longitude: number;
   mapUrl: string;
-
   status: "ACTIVE" | "INACTIVE";
   isPublished: boolean;
-
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
-
   settings: {
     id: string;
     dormitoryId: string;
@@ -165,7 +156,6 @@ export type DormSlugResponse = {
     dueDay: number;
     dueMonthOffset: number;
   };
-
   images: {
     id: string;
     tenantId: string | null;
@@ -184,7 +174,6 @@ export type DormSlugResponse = {
     createdAt: string;
     url: string;
   }[];
-
   owner: {
     id: string;
     userId: string;

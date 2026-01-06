@@ -17,8 +17,13 @@ export const tenantService = {
     search,
   }: GetTenantDormParams) => {
     const owner = await prisma.ownerProfile.findUnique({
-      where: { userId: sub },
-      select: { id: true },
+      where: {
+        userId: sub,
+      },
+
+      select: {
+        id: true,
+      },
     });
 
     if (!owner) {
@@ -40,6 +45,7 @@ export const tenantService = {
           ownerId: owner.id,
         },
       },
+
       deletedAt: null,
     };
 
@@ -88,6 +94,7 @@ export const tenantService = {
         where,
         skip,
         take: limit,
+
         orderBy: search
           ? undefined
           : {
@@ -95,8 +102,10 @@ export const tenantService = {
                 roomNumber: "asc",
               },
             },
+
         include: {
           room: true,
+
           user: {
             select: {
               id: true,
@@ -105,7 +114,6 @@ export const tenantService = {
           },
         },
       }),
-
       prisma.tenantProfile.count({
         where,
       }),

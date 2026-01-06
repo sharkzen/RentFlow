@@ -6,7 +6,6 @@ export interface DormFormDataDto {
   latitude: number;
   longitude: number;
   mapUrl: string;
-
   roomPrice?: number;
   waterRate: number;
   electricRate: number;

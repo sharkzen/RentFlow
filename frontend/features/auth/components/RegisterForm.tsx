@@ -27,6 +27,7 @@ import { showBackendError } from "@/lib/backendErrorMsg";
 
 export default function OwnerRegisterForm() {
   const mutation = useRegister();
+
   const [form, setForm] = useState<OwnerRegisterFormData>({
     fullName: "",
     dormName: "",
@@ -47,13 +48,23 @@ export default function OwnerRegisterForm() {
     if (field === "phone") {
       value = value.replace(/\D/g, "").slice(0, 10);
     }
-    setForm((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    if (errors[field])
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }));
   };
 
   const onRegisterSuccess = () => {
     setSuccess(true);
     toast.success("ลงทะเบียนสำเร็จ");
+
     setForm({
       fullName: "",
       dormName: "",
@@ -64,25 +75,36 @@ export default function OwnerRegisterForm() {
       password: "",
       confirmPassword: "",
     });
+
     setErrors({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: { [key: string]: string } = {};
+
+    const newErrors: {
+      [key: string]: string;
+    } = {};
 
     if (!isValidText(form.fullName, 3))
       newErrors.fullName = "กรุณากรอกชื่อ-นามสกุลให้ถูกต้อง";
+
     if (!isValidText(form.dormName, 3))
       newErrors.dormName = "กรุณากรอกชื่อหอพัก";
+
     if (!isValidText(form.address, 5)) newErrors.address = "กรุณากรอกที่อยู่";
+
     if (!isValidEmail(form.email)) newErrors.email = "อีเมลไม่ถูกต้อง";
+
     if (!isValidPassword(form.password))
       newErrors.password = "รหัสผ่านต้องมีตัวอักษรและตัวเลขอย่างน้อย 6 ตัว";
+
     if (form.password !== form.confirmPassword)
       newErrors.confirmPassword = "รหัสผ่านไม่ตรงกัน";
+
     if (!isValidPhone(form.phone))
       newErrors.phone = "เบอร์โทรศัพท์ต้องมี 10 ตัวเลขและขึ้นต้น 0";
+
     if (!isValidMapLink(form.mapUrl))
       newErrors.mapUrl = "ลิงก์ Google Map ไม่ถูกต้อง";
 
@@ -94,6 +116,7 @@ export default function OwnerRegisterForm() {
           pending: "กำลังลงทะเบียน...",
           success: "ลงทะเบียนสำเร็จ",
         });
+
         onRegisterSuccess();
       } catch (error: any) {
         log.error(error);
@@ -110,9 +133,7 @@ export default function OwnerRegisterForm() {
           alt="Apartment management"
           className="absolute inset-0 h-full w-full object-cover"
         />
-
         <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-
         <div className="relative z-10 flex h-full flex-col p-12 text-white">
           <h2 className="text-5xl leading-tight font-bold">
             จัดการหอพักของคุณ
@@ -124,7 +145,6 @@ export default function OwnerRegisterForm() {
           </p>
         </div>
       </div>
-
       <div className="flex items-center justify-center px-6 py-12 md:px-12 lg:px-24">
         <div className="w-full max-w-2xl">
           {success ? (
@@ -145,7 +165,6 @@ export default function OwnerRegisterForm() {
                   กรอกข้อมูลด้านล่างเพื่อสร้างบัญชีเจ้าของหอพัก
                 </p>
               </div>
-
               <form
                 onSubmit={handleSubmit}
                 className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8"
@@ -170,7 +189,6 @@ export default function OwnerRegisterForm() {
                         {errors.fullName || ""}
                       </p>
                     </div>
-
                     <div className="space-y-1">
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <Mail className="h-4 w-4 text-gray-500" />
@@ -187,7 +205,6 @@ export default function OwnerRegisterForm() {
                         {errors.email || ""}
                       </p>
                     </div>
-
                     <div className="space-y-1">
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <Lock className="h-4 w-4 text-gray-500" />
@@ -218,7 +235,6 @@ export default function OwnerRegisterForm() {
                         {errors.password || ""}
                       </p>
                     </div>
-
                     <div className="space-y-1">
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <Lock className="h-4 w-4 text-gray-500" />
@@ -252,7 +268,6 @@ export default function OwnerRegisterForm() {
                       </p>
                     </div>
                   </div>
-
                   <div className="space-y-5">
                     <div className="space-y-1">
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -272,7 +287,6 @@ export default function OwnerRegisterForm() {
                         {errors.dormName || ""}
                       </p>
                     </div>
-
                     <div className="space-y-1">
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <MapPin className="h-4 w-4 text-gray-500" />
@@ -291,7 +305,6 @@ export default function OwnerRegisterForm() {
                         {errors.address || ""}
                       </p>
                     </div>
-
                     <div className="space-y-1">
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <MapPin className="h-4 w-4 text-gray-500" />
@@ -308,7 +321,6 @@ export default function OwnerRegisterForm() {
                         {errors.mapUrl || ""}
                       </p>
                     </div>
-
                     <div className="space-y-1">
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <Phone className="h-4 w-4 text-gray-500" />
@@ -328,7 +340,6 @@ export default function OwnerRegisterForm() {
                     </div>
                   </div>
                 </div>
-
                 <button
                   disabled={mutation.isPending}
                   type="submit"
@@ -336,7 +347,6 @@ export default function OwnerRegisterForm() {
                 >
                   {mutation.isPending ? "กำลังลงทะเบียน..." : "ลงทะเบียน"}
                 </button>
-
                 <p className="mt-4 text-center text-sm text-gray-600">
                   มีบัญชีแล้ว?{" "}
                   <Link

@@ -15,10 +15,16 @@ export const OwnerController = {
       return reply.status(200).send(profile);
     } catch (error: any) {
       logger.error(`Get Owner Error [User: ${request.user?.sub}]:`, error);
+
       if (error.message === "OWNER_NOT_FOUND") {
-        return reply.status(404).send({ message: "Owner profile not found" });
+        return reply.status(404).send({
+          message: "Owner profile not found",
+        });
       }
-      return reply.status(500).send({ message: "Internal Server Error" });
+
+      return reply.status(500).send({
+        message: "Internal Server Error",
+      });
     }
   },
 
@@ -26,7 +32,6 @@ export const OwnerController = {
     try {
       const user = request.user as UserDecodedDto;
       const body = request.body;
-
       const parseResult = updateOwnerSchema.safeParse(body);
 
       if (!parseResult.success) {
@@ -37,16 +42,20 @@ export const OwnerController = {
       }
 
       const dto = parseResult.data as UpdateOwnerDto;
-
       const profile = await OwnerService.updateOwnerProfile(user, dto);
-
       return reply.status(200).send(profile);
     } catch (error: any) {
       logger.error(`Update Owner Error [User: ${request.user?.sub}]:`, error);
+
       if (error.message === "OWNER_NOT_FOUND") {
-        return reply.status(404).send({ message: "Owner profile not found" });
+        return reply.status(404).send({
+          message: "Owner profile not found",
+        });
       }
-      return reply.status(500).send({ message: "Internal Server Error" });
+
+      return reply.status(500).send({
+        message: "Internal Server Error",
+      });
     }
   },
 };

@@ -2,7 +2,7 @@ export function getDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const R = 6371;
   const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -21,8 +21,10 @@ export function formatDistance(km: number) {
   if (km === Infinity || km === null || km === undefined) {
     return "";
   }
+
   if (km < 1) {
     return `${Math.round(km * 1000)} ม.`;
   }
+
   return `${km.toFixed(2)} กม.`;
 }

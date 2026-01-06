@@ -12,6 +12,7 @@ export default async function AdminLayout({
     const me = await fetchWithRefresh(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
     );
+
     if ((me.role as Role) !== Role.ADMIN) redirect("/403");
 
     return <AuthProvider initialUser={me}>{children}</AuthProvider>;

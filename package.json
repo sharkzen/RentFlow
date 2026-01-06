@@ -5,10 +5,23 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:backup": "powershell -Command \"if (!(Test-Path backups)) { New-Item -ItemType Directory backups } ; $ts = Get-Date -Format yyyyMMdd_HHmmss ; docker exec rentflow-postgres pg_dump -U rentflow -F c -f /tmp/rentflow_$ts.backup rentflow ; docker cp rentflow-postgres:/tmp/rentflow_$ts.backup ./backups/rentflow_$ts.backup\"",
-    "db:restore": "powershell -Command \"docker cp ./backups/rentflow.backup rentflow-postgres:/tmp/rentflow.backup ; docker exec rentflow-postgres pg_restore -U rentflow -d rentflow --clean --if-exists /tmp/rentflow.backup\"",
+    "db:restore": "powershell -Command \"$f = Get-ChildItem backups\\*.backup | Sort-Object LastWriteTime -Descending | Select-Object -First 1 ; docker cp $f.FullName rentflow-postgres:/tmp/rentflow.backup ; docker exec rentflow-postgres pg_restore -U rentflow -d rentflow --clean --if-exists /tmp/rentflow.backup\"",
     "minio:backup": "powershell -Command \"if (!(Test-Path backups)) { New-Item -ItemType Directory backups } ; $ts = Get-Date -Format yyyyMMdd_HHmmss ; Compress-Archive -Path minio-data\\* -DestinationPath backups\\minio_$ts.zip\"",
-    "minio:restore": "powershell -Command \"docker compose down ; if (Test-Path minio-data) { Remove-Item -Recurse -Force minio-data } ; Expand-Archive backups\\minio.zip -DestinationPath minio-data ; docker compose up -d\"",
+    "minio:restore": "powershell -Command \"docker compose down ; if (Test-Path minio-data) { Remove-Item -Recurse -Force minio-data } ; $f = Get-ChildItem backups\\minio_*.zip | Sort-Object LastWriteTime -Descending | Select-Object -First 1 ; Expand-Archive $f.FullName -DestinationPath minio-data ; docker compose up -d\"",
     "backup:all": "npm run db:backup && npm run minio:backup",
-    "restore:all": "npm run minio:restore && npm run db:restore"
+    "restore:all": "npm run minio:restore && npm run db:restore",
+    "clean:comments": "npx jscodeshift -t ./scripts/remove-all-comments.js frontend/app frontend/components frontend/features frontend/lib frontend/hooks frontend/context frontend/middlewares backend/src --extensions=js,jsx,ts,tsx --parser=tsx --run-in-band --ignore-pattern \"**/.next/**\" --ignore-pattern \"**/node_modules/**\" --ignore-pattern \"**/public/**\" --ignore-pattern \"**/prisma/**\"",
+    "clean:all": "npm run clean:comments && prettier --write frontend/app frontend/components frontend/features frontend/lib frontend/hooks frontend/context frontend/middlewares backend/src"
+  },
+  "devDependencies": {
+    "@babel/generator": "^7.28.5",
+    "@babel/parser": "^7.28.5",
+    "@babel/traverse": "^7.28.5",
+    "@babel/types": "^7.28.5",
+    "eslint": "^9.39.2",
+    "fast-glob": "^3.3.3",
+    "jscodeshift": "^17.3.0",
+    "prettier": "^3.7.4",
+    "prettier-plugin-tailwindcss": "^0.7.2"
   }
 }

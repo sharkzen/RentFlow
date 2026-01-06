@@ -1,6 +1,12 @@
 type Props = {
-  dormitories: { id: string; name: string }[];
-  selectedDorm: { id: string; name: string };
+  dormitories: {
+    id: string;
+    name: string;
+  }[];
+  selectedDorm: {
+    id: string;
+    name: string;
+  };
   onChange: (dorm: { id: string; name: string }) => void;
 };
 
@@ -15,6 +21,7 @@ export default function DormitorySelector({
       value={selectedDorm.id}
       onChange={(e) => {
         const dorm = dormitories.find((d) => d.id === e.target.value);
+
         if (dorm) onChange(dorm);
       }}
     >

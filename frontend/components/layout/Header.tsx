@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,16 +12,18 @@ import Skeleton from "@/components/ui/Skeleton";
 
 export default function Header() {
   const { user, loading: authLoading, setUser } = useAuth();
+
   const logoutMutation = useLogout();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
-
   const initial = user?.email?.charAt(0).toUpperCase() || "U";
   const username = user?.email?.split("@")[0] || "User";
 
   useEffect(() => {
     const handleClickOutside = () => setDropdownOpen(false);
+
     if (dropdownOpen) window.addEventListener("click", handleClickOutside);
+
     return () => window.removeEventListener("click", handleClickOutside);
   }, [dropdownOpen]);
 
@@ -62,7 +63,6 @@ export default function Header() {
             Flow
           </span>
         </Link>
-
         <div className="flex items-center gap-3">
           {authLoading ? (
             <Skeleton className="h-8 w-32 rounded-full bg-white/50" />
@@ -100,19 +100,31 @@ export default function Header() {
                     </span>
                     <ChevronDown
                       size={14}
-                      className={`text-slate-400 transition-transform duration-300 ${
-                        dropdownOpen ? "rotate-180" : ""
-                      }`}
+                      className={`text-slate-400 transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`}
                     />
                   </button>
-
                   <AnimatePresence>
                     {dropdownOpen && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        initial={{
+                          opacity: 0,
+                          y: 10,
+                          scale: 0.95,
+                        }}
+                        animate={{
+                          opacity: 1,
+                          y: 0,
+                          scale: 1,
+                        }}
+                        exit={{
+                          opacity: 0,
+                          y: 10,
+                          scale: 0.95,
+                        }}
+                        transition={{
+                          duration: 0.2,
+                          ease: "easeOut",
+                        }}
                         className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl border border-gray-100 bg-white p-2 shadow-xl ring-1 ring-black/5"
                       >
                         <div className="mb-1 border-b border-gray-100 px-3 py-2">
@@ -123,7 +135,6 @@ export default function Header() {
                             {user.email}
                           </p>
                         </div>
-
                         <div className="space-y-1">
                           <Link
                             href={dashbaordRole(user.role)}
@@ -132,7 +143,6 @@ export default function Header() {
                             <LayoutDashboard size={16} />
                             แดชบอร์ด
                           </Link>
-
                           <button
                             onClick={handleLogout}
                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition-colors hover:cursor-pointer hover:bg-red-50"

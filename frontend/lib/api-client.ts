@@ -3,6 +3,7 @@ import axiosClient from "axios";
 export const axios = axiosClient.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
+
   headers: {
     "Content-Type": "application/json",
   },
@@ -23,6 +24,7 @@ axios.interceptors.response.use(
         await new Promise<void>((resolve) => {
           queue.push(resolve);
         });
+
         return axios(originalRequest);
       }
 
@@ -30,10 +32,8 @@ axios.interceptors.response.use(
 
       try {
         await axios.post("/api/auth/refresh");
-
         queue.forEach((cb) => cb());
         queue = [];
-
         return axios(originalRequest);
       } catch (refreshError) {
         queue = [];

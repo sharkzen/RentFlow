@@ -1,6 +1,6 @@
 "use client";
-
 import { useCallback, useEffect, useState, useRef } from "react";
+
 import {
   Users,
   DollarSign,
@@ -14,12 +14,11 @@ import {
   Home,
   Check,
 } from "lucide-react";
+
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Dormitory } from "@/features/dormitory";
 import { Spinner } from "../ui/Spinner";
 
-// --- 1. Custom Select Component (Reusable) ---
-// คอมโพเนนต์สำหรับทำ Dropdown สวยๆ ใช้ซ้ำได้
 interface Option {
   value: string | number;
   label: string;
@@ -45,7 +44,6 @@ const CustomSelect = ({
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Logic: คลิกข้างนอกแล้วปิด Dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -55,6 +53,7 @@ const CustomSelect = ({
         setIsOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -63,12 +62,10 @@ const CustomSelect = ({
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      {/* ปุ่มกดเปิด/ปิด */}
+      {}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-full w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold transition-all hover:border-blue-400 focus:ring-2 focus:ring-blue-100 ${
-          isOpen ? "border-blue-500 ring-2 ring-blue-100" : ""
-        }`}
+        className={`flex h-full w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold transition-all hover:border-blue-400 focus:ring-2 focus:ring-blue-100 ${isOpen ? "border-blue-500 ring-2 ring-blue-100" : ""}`}
       >
         <div className="flex items-center gap-2 truncate">
           {icon && <span className="text-gray-400">{icon}</span>}
@@ -80,19 +77,17 @@ const CustomSelect = ({
         </div>
         <ChevronDown
           size={16}
-          className={`shrink-0 text-gray-400 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`shrink-0 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-
-      {/* รายการ Dropdown */}
+      {}
       {isOpen && (
         <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-[160px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 duration-200">
-          {/* ส่วนนี้ทำให้ Scroll ได้ถ้าสูงเกิน (max-h-60) */}
+          {}
           <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent max-h-60 overflow-y-auto py-1">
             {options.map((option) => {
               const isActive = option.value === value;
+
               return (
                 <button
                   key={option.value}
@@ -100,11 +95,7 @@ const CustomSelect = ({
                     onChange(option.value);
                     setIsOpen(false);
                   }}
-                  className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors ${
-                    isActive
-                      ? "bg-blue-50 font-semibold text-blue-600"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                  className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors ${isActive ? "bg-blue-50 font-semibold text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}
                 >
                   <span className="truncate">{option.label}</span>
                   {isActive && <Check size={14} className="shrink-0" />}
@@ -123,7 +114,6 @@ const CustomSelect = ({
   );
 };
 
-// --- 2. Stat Card Component ---
 type StatCardProps = {
   title: string;
   value: string | number;
@@ -151,13 +141,11 @@ const StatCard = ({
   </div>
 );
 
-// --- 3. Main Container ---
 export default function OwnerContainer() {
   const [dorms, setDorms] = useState<Dormitory[]>([]);
   const [selectedDormId, setSelectedDormId] = useState<string | null>(null);
   const [overview, setOverview] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
-
   const currentYear = new Date().getFullYear();
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(currentYear);
@@ -165,6 +153,7 @@ export default function OwnerContainer() {
   const fetchDorms = useCallback(async () => {
     const data = await DormService.getDorm();
     setDorms(data);
+
     if (data.length > 0 && !selectedDormId) {
       setSelectedDormId(data[0].id);
     }
@@ -172,6 +161,7 @@ export default function OwnerContainer() {
 
   const fetchOverview = useCallback(async () => {
     if (!selectedDormId) return;
+
     try {
       setLoading(true);
       const data = await DormService.getOverview(selectedDormId, month, year);
@@ -191,7 +181,6 @@ export default function OwnerContainer() {
     fetchOverview();
   }, [fetchOverview]);
 
-  // เตรียมข้อมูลสำหรับ Select
   const monthOptions = [
     "มกราคม",
     "กุมภาพันธ์",
@@ -205,12 +194,20 @@ export default function OwnerContainer() {
     "ตุลาคม",
     "พฤศจิกายน",
     "ธันวาคม",
-  ].map((m, idx) => ({ value: idx + 1, label: m }));
-
-  const yearOptions = Array.from({ length: 5 }, (_, i) => ({
-    value: currentYear - i,
-    label: (currentYear - i).toString(),
+  ].map((m, idx) => ({
+    value: idx + 1,
+    label: m,
   }));
+
+  const yearOptions = Array.from(
+    {
+      length: 5,
+    },
+    (_, i) => ({
+      value: currentYear - i,
+      label: (currentYear - i).toString(),
+    }),
+  );
 
   const dormOptions = dorms.map((d) => ({
     value: d.id,
@@ -228,9 +225,8 @@ export default function OwnerContainer() {
             ดูสถิติ รายได้ และการแจ้งซ่อมประจำเดือน
           </p>
         </div>
-
         <div className="flex flex-wrap items-center gap-3">
-          {/* Custom Select: เลือกหอพัก */}
+          {}
           <CustomSelect
             options={dormOptions}
             value={selectedDormId}
@@ -239,8 +235,7 @@ export default function OwnerContainer() {
             icon={<Home size={16} className="text-blue-500" />}
             className="w-full sm:w-56"
           />
-
-          {/* Custom Select: เลือกเดือน */}
+          {}
           <CustomSelect
             options={monthOptions}
             value={month}
@@ -248,8 +243,7 @@ export default function OwnerContainer() {
             icon={<Calendar size={16} className="text-gray-400" />}
             className="w-full sm:w-40"
           />
-
-          {/* Custom Select: เลือกปี */}
+          {}
           <CustomSelect
             options={yearOptions}
             value={year}
@@ -258,7 +252,6 @@ export default function OwnerContainer() {
           />
         </div>
       </div>
-
       {loading || !overview ? (
         <div className="flex h-80 w-full items-center justify-center rounded-3xl">
           <div className="flex flex-col items-center gap-3 text-gray-400">
@@ -268,7 +261,7 @@ export default function OwnerContainer() {
         </div>
       ) : (
         <div className="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
-          {/* Section 1: การเงิน & ห้องพัก */}
+          {}
           <div>
             <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-800">
               <DollarSign className="text-green-500" size={20} />
@@ -305,15 +298,14 @@ export default function OwnerContainer() {
               />
             </div>
           </div>
-
-          {/* Section 2: การแจ้งซ่อม */}
+          {}
           <div>
             <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-800">
               <Wrench className="text-orange-500" size={20} />
               การแจ้งซ่อม ({monthOptions[month - 1].label} {year})
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {/* Card 1: ทั้งหมด */}
+              {}
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">
@@ -328,8 +320,7 @@ export default function OwnerContainer() {
                   <div className="h-1.5 w-full rounded-full bg-gray-400"></div>
                 </div>
               </div>
-
-              {/* Card 2: แจ้งแล้ว */}
+              {}
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">
@@ -349,8 +340,7 @@ export default function OwnerContainer() {
                   ></div>
                 </div>
               </div>
-
-              {/* Card 3: กำลังดำเนินการ */}
+              {}
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">
@@ -370,8 +360,7 @@ export default function OwnerContainer() {
                   ></div>
                 </div>
               </div>
-
-              {/* Card 4: ซ่อมเสร็จ */}
+              {}
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">
@@ -393,7 +382,6 @@ export default function OwnerContainer() {
               </div>
             </div>
           </div>
-
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="flex h-80 items-center justify-center rounded-3xl border border-gray-100 bg-white text-gray-400 shadow-sm lg:col-span-2">
               <div className="text-center">

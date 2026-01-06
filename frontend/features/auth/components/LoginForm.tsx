@@ -1,11 +1,9 @@
 "use client";
-
 import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
-
 import { isValidEmail } from "@/features/auth/validators";
 import useLogin from "@/features/auth/hooks/useLogin";
 import { authService } from "../services/auth.service";
@@ -15,12 +13,13 @@ import { showBackendError } from "@/lib/backendErrorMsg";
 
 export default function LoginForm() {
   const { setUser } = useAuth();
+
   const mutation = useLogin();
   const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -28,7 +27,11 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newErrors: { email?: string; password?: string } = {};
+
+    const newErrors: {
+      email?: string;
+      password?: string;
+    } = {};
 
     if (!email) newErrors.email = "กรุณากรอกอีเมล";
     else if (!isValidEmail(email)) newErrors.email = "อีเมลไม่ถูกต้อง";
@@ -40,7 +43,10 @@ export default function LoginForm() {
     if (Object.keys(newErrors).length === 0) {
       try {
         const response = await toast.promise(
-          mutation.mutateAsync({ email, password }),
+          mutation.mutateAsync({
+            email,
+            password,
+          }),
           {
             pending: "กำลังเข้าสู่ระบบ...",
             success: "เข้าสู่ระบบสำเร็จ",
@@ -80,7 +86,6 @@ export default function LoginForm() {
           <p className="mt-3 text-white/80">ห้องพัก • ผู้เช่า • รายได้</p>
         </div>
       </div>
-
       <div className="flex items-center justify-center px-6 py-12 md:px-12 lg:px-24">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
@@ -92,7 +97,6 @@ export default function LoginForm() {
             </h1>
             <h2 className="text-xl font-semibold text-gray-800">เข้าสู่ระบบ</h2>
           </div>
-
           <form
             onSubmit={handleSubmit}
             className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
@@ -109,8 +113,12 @@ export default function LoginForm() {
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
+
                     if (errors.email)
-                      setErrors((p) => ({ ...p, email: undefined }));
+                      setErrors((p) => ({
+                        ...p,
+                        email: undefined,
+                      }));
                   }}
                   className={`w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
                 />
@@ -118,7 +126,6 @@ export default function LoginForm() {
                   {errors.email || ""}
                 </p>
               </div>
-
               <div className="space-y-1">
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                   <Lock className="h-4 w-4 text-gray-500" />
@@ -130,8 +137,12 @@ export default function LoginForm() {
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
+
                       if (errors.password)
-                        setErrors((p) => ({ ...p, password: undefined }));
+                        setErrors((p) => ({
+                          ...p,
+                          password: undefined,
+                        }));
                     }}
                     className={`w-full rounded-xl border bg-gray-50 px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
                   />
@@ -151,7 +162,6 @@ export default function LoginForm() {
                   {errors.password || ""}
                 </p>
               </div>
-
               <button
                 disabled={mutation.isPending}
                 type="submit"
@@ -159,7 +169,6 @@ export default function LoginForm() {
               >
                 {mutation.isPending ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
               </button>
-
               <div className="flex justify-between text-sm">
                 <Link
                   href="/auth/forgot-password"

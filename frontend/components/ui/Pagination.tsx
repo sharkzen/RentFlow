@@ -24,11 +24,9 @@ export default function Pagination({
       >
         <ChevronLeft className="h-5 w-5 text-gray-600" />
       </button>
-
       <span className="text-sm font-medium text-gray-700">
-        หน้า {currentPage} จาก {totalPages}
+        หน้า {currentPage}จาก {totalPages}
       </span>
-
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}

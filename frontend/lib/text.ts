@@ -38,6 +38,7 @@ export function parseDescription(rawText: string) {
   for (const line of lines) {
     if (line.startsWith("✅")) {
       let last = sections[sections.length - 1];
+
       if (!last || last.type !== "list") {
         sections.push({
           id: crypto.randomUUID(),
@@ -45,8 +46,10 @@ export function parseDescription(rawText: string) {
           order: sections.length + 1,
           items: [],
         });
+
         last = sections[sections.length - 1];
       }
+
       last.items.push(line.replace("✅", "").trim());
     } else {
       sections.push({
@@ -58,5 +61,7 @@ export function parseDescription(rawText: string) {
     }
   }
 
-  return { sections };
+  return {
+    sections,
+  };
 }

@@ -8,8 +8,14 @@ export default function FormPending() {
     <div className="flex min-h-screen flex-1 flex-col items-center justify-center p-6">
       <div className="flex w-full max-w-md flex-col items-center p-8 text-center">
         <motion.div
-          initial={{ rotate: -180, scale: 0 }}
-          animate={{ rotate: 0, scale: 1 }}
+          initial={{
+            rotate: -180,
+            scale: 0,
+          }}
+          animate={{
+            rotate: 0,
+            scale: 1,
+          }}
           transition={{
             type: "spring",
             stiffness: 220,

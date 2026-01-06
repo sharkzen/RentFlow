@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
+
 import {
   User,
   Phone,
@@ -13,6 +14,7 @@ import {
   ExternalLink,
   AlertCircle,
 } from "lucide-react";
+
 import { toast } from "react-toastify";
 import { OwnerService } from "@/features/owner/services/owner.service";
 import log from "@/lib/logger";
@@ -30,7 +32,6 @@ export default function FormProfileColorful() {
   });
 
   const [errors, setErrors] = useState<Partial<OwnerProfile>>({});
-
   const [originalData, setOriginalData] = useState(formData);
 
   const fetchProfile = async () => {
@@ -44,6 +45,7 @@ export default function FormProfileColorful() {
         lineId: data.lineId || "",
         facebook: data.facebook || "",
       };
+
       setFormData(mappedData);
       setOriginalData(mappedData);
     } catch (error) {
@@ -59,9 +61,16 @@ export default function FormProfileColorful() {
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+
     if (errors[e.target.name as keyof OwnerProfile]) {
-      setErrors({ ...errors, [e.target.name]: "" });
+      setErrors({
+        ...errors,
+        [e.target.name]: "",
+      });
     }
   };
 
@@ -81,6 +90,7 @@ export default function FormProfileColorful() {
     }
 
     const phoneRegex = /^0[0-9]{8,9}$/;
+
     if (!formData.phone?.trim()) {
       newErrors.phone = "กรุณากรอกเบอร์โทรศัพท์";
       isValid = false;
@@ -91,9 +101,7 @@ export default function FormProfileColorful() {
 
     if (formData.lineId && formData.lineId.trim() !== "") {
       const lineValue = formData.lineId.trim();
-
       const hasThaiCharacter = /[\u0E00-\u0E7F]/.test(lineValue);
-
       const validLineFormat = /^[a-zA-Z0-9@._-]+$/;
 
       if (hasThaiCharacter) {
@@ -112,6 +120,7 @@ export default function FormProfileColorful() {
     if (formData.facebook && formData.facebook.trim() !== "") {
       try {
         new URL(formData.facebook);
+
         if (
           !formData.facebook.includes("facebook.com") &&
           !formData.facebook.includes("fb.me")
@@ -192,7 +201,6 @@ export default function FormProfileColorful() {
             ข้อมูลเหล่านี้จะถูกแสดงให้ผู้เช่าเห็นเพื่อให้ติดต่อคุณได้ง่ายขึ้น
           </p>
         </div>
-
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
@@ -203,7 +211,6 @@ export default function FormProfileColorful() {
           </button>
         )}
       </div>
-
       <div className="p-6 md:p-10">
         <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-2">
           <ColorInput
@@ -217,7 +224,6 @@ export default function FormProfileColorful() {
             required
             error={errors.fullName}
           />
-
           <ColorInput
             label="เบอร์โทรศัพท์"
             name="phone"
@@ -229,7 +235,6 @@ export default function FormProfileColorful() {
             required
             error={errors.phone}
           />
-
           <ColorInput
             label="Line ID"
             name="lineId"
@@ -241,7 +246,6 @@ export default function FormProfileColorful() {
             placeholder="เช่น my.line.id"
             error={errors.lineId}
           />
-
           <ColorInput
             label="Facebook Link"
             name="facebook"
@@ -255,21 +259,22 @@ export default function FormProfileColorful() {
             error={errors.facebook}
           />
         </div>
-
         {isEditing && (
           <div className="animate-in fade-in slide-in-from-bottom-2 mt-12 flex items-center justify-end gap-4 border-t border-slate-50 pt-6">
             <button
               onClick={handleCancel}
               className="flex cursor-pointer items-center gap-2 rounded-lg px-6 py-2.5 font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
             >
-              <X size={18} /> ยกเลิก
+              <X size={18} />
+              ยกเลิก
             </button>
             <button
               disabled={isSaving}
               onClick={handleSubmit}
               className={`${isSaving ? "pointer-events-none opacity-50" : ""} flex transform cursor-pointer items-center gap-2 rounded-lg bg-linear-to-r from-indigo-600 to-violet-600 px-8 py-2.5 font-medium text-white shadow-lg transition-all hover:shadow-indigo-500/30 active:scale-95`}
             >
-              <Save size={18} /> บันทึกการเปลี่ยนแปลง
+              <Save size={18} />
+              บันทึกการเปลี่ยนแปลง
             </button>
           </div>
         )}
@@ -298,18 +303,21 @@ const ColorInput = ({
       border: "focus:border-indigo-500",
       ring: "focus:ring-indigo-100",
     },
+
     orange: {
       bg: "bg-orange-100",
       text: "text-orange-600",
       border: "focus:border-orange-500",
       ring: "focus:ring-orange-100",
     },
+
     green: {
       bg: "bg-emerald-100",
       text: "text-emerald-600",
       border: "focus:border-emerald-500",
       ring: "focus:ring-emerald-100",
     },
+
     blue: {
       bg: "bg-blue-100",
       text: "text-blue-600",
@@ -325,14 +333,12 @@ const ColorInput = ({
       <label className="mb-2 ml-1 block text-xs font-semibold text-slate-400">
         {label} {required && <span className="text-red-400">*</span>}
       </label>
-
       <div className="relative flex items-center">
         <div
           className={`mr-3 flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 ${isEditing ? `${currentTheme.bg} ${currentTheme.text} shadow-sm` : "bg-slate-50 text-slate-400"} `}
         >
           <Icon size={20} strokeWidth={isEditing ? 2.5 : 2} />
         </div>
-
         <div className="relative flex-1">
           {isEditing ? (
             <>
@@ -342,13 +348,8 @@ const ColorInput = ({
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                className={`w-full rounded-lg border bg-slate-50 px-4 py-2.5 text-base text-slate-800 transition-all outline-none ${
-                  error
-                    ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100"
-                    : `border-slate-200 ${currentTheme.border} focus:ring-4 ${currentTheme.ring}`
-                }`}
+                className={`w-full rounded-lg border bg-slate-50 px-4 py-2.5 text-base text-slate-800 transition-all outline-none ${error ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100" : `border-slate-200 ${currentTheme.border} focus:ring-4 ${currentTheme.ring}`}`}
               />
-
               {error && (
                 <div className="animate-in fade-in slide-in-from-top-1 absolute -bottom-6 left-0 flex items-center gap-1 text-xs text-red-500">
                   <AlertCircle size={12} />
@@ -370,7 +371,6 @@ const ColorInput = ({
               ) : (
                 <span>{value || "-"}</span>
               )}
-
               {value && !isLink && (
                 <CheckCircle2
                   size={14}

@@ -13,12 +13,16 @@ import { generateSlug } from "@/lib/text";
 export const authService = {
   async me(user: UserDecodedDto) {
     const me = await prisma.user.findUnique({
-      where: { id: user.sub },
+      where: {
+        id: user.sub,
+      },
     });
+
     if (!me) throw new Error("UNAUTHORIZED");
 
     return me;
   },
+
   async registerOwner(data: OwnerRegisterDto) {
     if (
       !data?.fullName ||
@@ -33,13 +37,16 @@ export const authService = {
     }
 
     const existing = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: {
+        email: data.email,
+      },
     });
+
     if (existing) throw new Error("EMAIL_ALREADY_EXISTS");
 
     const hashedPassword = await hashPassword(data.password);
-
     const latLng = await getLatLngFromUrl(data.mapUrl);
+
     if (!latLng) throw new Error("INVALID_MAP_URL");
 
     const result = await prisma.$transaction(async (prismaTx) => {
@@ -74,7 +81,11 @@ export const authService = {
         },
       });
 
-      return { user, ownerProfile, dormitory };
+      return {
+        user,
+        ownerProfile,
+        dormitory,
+      };
     });
 
     return result;
@@ -84,8 +95,11 @@ export const authService = {
     if (!data?.email || !data?.password) throw new Error("DATA_ARE_NOT_VALID");
 
     const existing = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: {
+        email: data.email,
+      },
     });
+
     if (existing) throw new Error("EMAIL_ALREADY_EXISTS");
 
     const hashedPassword = await hashPassword(data.password);
@@ -106,11 +120,15 @@ export const authService = {
     if (!data?.email || !data?.password) throw new Error("DATA_ARE_NOT_VALID");
 
     const user = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: {
+        email: data.email,
+      },
     });
+
     if (!user) throw new Error("INVALID_EMAIL_OR_PASSWORD");
 
     const isValid = await verifyPassword(user.password, data.password);
+
     if (!isValid) throw new Error("INVALID_EMAIL_OR_PASSWORD");
 
     return user;
@@ -118,8 +136,11 @@ export const authService = {
 
   async refreshAccessToken(refreshToken: string) {
     const payload = verifyRefreshToken(refreshToken);
+
     const user = await prisma.user.findUnique({
-      where: { id: payload.sub },
+      where: {
+        id: payload.sub,
+      },
     });
 
     if (!user || user.status === "BANNED" || user.deletedAt) {

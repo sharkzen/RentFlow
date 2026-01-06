@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-type Tenant = { id?: string; name: string; room: string; dormitoryId?: string };
+type Tenant = {
+  id?: string;
+  name: string;
+  room: string;
+  dormitoryId?: string;
+};
 
 type Props = {
   tenant: Tenant | null;
@@ -14,7 +19,12 @@ export default function TenantFormDialog({ tenant, onClose, onSave }: Props) {
 
   const handleSubmit = () => {
     if (!name || !room) return alert("กรุณากรอกข้อมูลให้ครบ");
-    onSave({ ...tenant, name, room });
+
+    onSave({
+      ...tenant,
+      name,
+      room,
+    });
   };
 
   return (

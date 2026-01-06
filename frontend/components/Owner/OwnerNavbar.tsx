@@ -1,6 +1,6 @@
 "use client";
-
 import { useState } from "react";
+
 import {
   LayoutDashboard,
   Building2,
@@ -12,6 +12,7 @@ import {
   X,
   User2,
 } from "lucide-react";
+
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -45,7 +46,11 @@ export default function OwnerNavbar() {
       icon: <Wrench size={20} />,
       href: "/owner/maintenance",
     },
-    { name: "โปรไฟล์", icon: <User2 size={20} />, href: "/owner/profile" },
+    {
+      name: "โปรไฟล์",
+      icon: <User2 size={20} />,
+      href: "/owner/profile",
+    },
   ];
 
   return (
@@ -58,7 +63,6 @@ export default function OwnerNavbar() {
           <ChevronRight size={35} />
         </button>
       )}
-
       <aside
         className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden bg-white transition-transform duration-300 ease-in-out md:sticky ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       >
@@ -74,7 +78,6 @@ export default function OwnerNavbar() {
               </h1>
               <p className="text-xs font-medium text-slate-400">Owner Panel</p>
             </div>
-
             <button
               className="ml-auto cursor-pointer p-2 text-gray-600 hover:text-gray-500 md:hidden"
               onClick={() => setSidebarOpen(false)}
@@ -91,11 +94,7 @@ export default function OwnerNavbar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`${
-                    pathname === item.href
-                      ? "bg-slate-50 text-indigo-600"
-                      : "text-slate-600"
-                  } group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all hover:bg-slate-50 hover:text-indigo-600 active:scale-[0.98]`}
+                  className={`${pathname === item.href ? "bg-slate-50 text-indigo-600" : "text-slate-600"} group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all hover:bg-slate-50 hover:text-indigo-600 active:scale-[0.98]`}
                 >
                   <span className="stroke-current">{item.icon}</span>
                   {item.name}
@@ -105,7 +104,6 @@ export default function OwnerNavbar() {
           </div>
         </div>
       </aside>
-
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/30 md:hidden"

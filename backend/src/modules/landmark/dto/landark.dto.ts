@@ -14,6 +14,7 @@ export enum LandmarkTypeDto {
   MARKET = "MARKET",
   OTHER = "OTHER",
 }
+
 export interface LandmarkDto {
   id: string;
   name: string;

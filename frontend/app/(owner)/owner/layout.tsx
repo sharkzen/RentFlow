@@ -21,10 +21,13 @@ export default async function OwnerLayout({
   }
 
   if (me.role === Role.TENANT) redirect("/tenant/dashboard");
+
   if (me.status === Status.PENDING) return <FormPending />;
+
   if (me.status === Status.BANNED) return <FormBanned />;
 
   const allowedRoles = [Role.OWNER, Role.STAFF];
+
   if (!allowedRoles.includes(me.role as Role)) redirect("/");
 
   return (

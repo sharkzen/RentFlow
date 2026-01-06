@@ -1,4 +1,5 @@
 import { axios } from "@/lib/api-client";
+
 export const RoomService = {
   getRoomsByDormitory: async (
     dormId: string,
@@ -13,6 +14,7 @@ export const RoomService = {
     const response = await axios.get(`/api/rooms/${dormId}`, {
       params: params,
     });
+
     return response.data;
   },
 };

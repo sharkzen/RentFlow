@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect } from "react";
 import { axios } from "@/lib/api-client";
 
@@ -9,7 +8,9 @@ export default function SessionKeepAlive() {
 
     const refresh = async () => {
       const now = Date.now();
+
       if (now - lastRefresh < 30_000) return;
+
       lastRefresh = now;
 
       try {

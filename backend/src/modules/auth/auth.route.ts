@@ -17,7 +17,7 @@ export async function authRoute(app: FastifyInstance) {
     routeRoles.addHook("preHandler", authMiddleware);
     routeRoles.addHook(
       "preHandler",
-      authRoleMiddleware([Role.ADMIN, Role.OWNER, Role.TENANT])
+      authRoleMiddleware([Role.ADMIN, Role.OWNER, Role.TENANT]),
     );
     routeRoles.get("/me", AuthController.me);
   });

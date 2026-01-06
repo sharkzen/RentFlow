@@ -12,15 +12,25 @@ export const TenantController = {
   getTenantDorm: async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       // 1️⃣ params
-      const { dormId } = request.params as { dormId?: string };
+      const { dormId } = request.params as {
+        dormId?: string;
+      };
+
       if (!dormId) {
-        return reply.status(400).send({ message: "DORM_ID_REQUIRED" });
+        return reply.status(400).send({
+          message: "DORM_ID_REQUIRED",
+        });
       }
 
       // 2️⃣ auth
-      const { sub } = request.user as { sub?: string };
+      const { sub } = request.user as {
+        sub?: string;
+      };
+
       if (!sub) {
-        return reply.status(401).send({ message: "UNAUTHORIZED" });
+        return reply.status(401).send({
+          message: "UNAUTHORIZED",
+        });
       }
 
       // 3️⃣ query

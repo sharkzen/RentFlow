@@ -1,4 +1,8 @@
-type Tenant = { id: string; name: string; room: string };
+type Tenant = {
+  id: string;
+  name: string;
+  room: string;
+};
 
 type Props = {
   tenant: Tenant;

@@ -7,10 +7,27 @@ import { ownerRoute } from "@/modules/owner/owner.route";
 import { FastifyInstance } from "fastify";
 
 export async function indexRoute(app: FastifyInstance) {
-  app.register(authRoute, { prefix: "/auth" });
-  app.register(dormRoute, { prefix: "/dorms" });
-  app.register(ownerRoute, { prefix: "/owners" });
-  app.register(roomRoute, { prefix: "/rooms" });
-  app.register(tenantRoute, { prefix: "/tenants" });
-  app.register(landmarkRoute, { prefix: "/landmarks" });
+  app.register(authRoute, {
+    prefix: "/auth",
+  });
+
+  app.register(dormRoute, {
+    prefix: "/dorms",
+  });
+
+  app.register(ownerRoute, {
+    prefix: "/owners",
+  });
+
+  app.register(roomRoute, {
+    prefix: "/rooms",
+  });
+
+  app.register(tenantRoute, {
+    prefix: "/tenants",
+  });
+
+  app.register(landmarkRoute, {
+    prefix: "/landmarks",
+  });
 }

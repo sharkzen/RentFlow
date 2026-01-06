@@ -2,12 +2,16 @@ import prisma from "@/lib/prisma";
 import { LandmarkDto } from "./dto/landark.dto";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { generateSlug } from "@/lib/text";
+
 export const landmarkService = {
   async getAllLandmarks() {
     return await prisma.landmark.findMany({
-      where: { status: "ACTIVE" },
+      where: {
+        status: "ACTIVE",
+      },
     });
   },
+
   async createLandmark(dto: LandmarkDto) {
     const latLng = await getLatLngFromUrl(dto.mapUrl);
 

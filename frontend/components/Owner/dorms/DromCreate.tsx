@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { toast } from "react-toastify";
 import log from "@/lib/logger";
@@ -20,6 +19,7 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!name.trim()) {
       toast.warn("กรุณากรอกชื่อหอพัก");
       return;
@@ -27,11 +27,13 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
 
     try {
       setLoading(true);
+
       await toast.promise(DormService.createDrom(name.trim()), {
         pending: "กำลังสร้างระบบหอพัก...",
         success: "สร้างหอพักใหม่เรียบร้อย",
         error: "เกิดข้อผิดพลาดในการสร้างหอพัก",
       });
+
       onClose();
       onSuccess();
     } catch (error: any) {
@@ -54,7 +56,6 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
               สร้างหอพักใหม่
             </h2>
           </div>
-
           <button
             onClick={onClose}
             className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
@@ -63,19 +64,16 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
             <X size={18} />
           </button>
         </div>
-
         <form onSubmit={handleSubmit} className="p-6">
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="flex items-center gap-1 text-sm font-medium text-gray-700">
                 ชื่อหอพัก <span className="text-red-500">*</span>
               </label>
-
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                   <Home size={16} />
                 </div>
-
                 <input
                   type="text"
                   placeholder="เช่น หอพักสุขใจ เรสซิเดนซ์"
@@ -86,13 +84,11 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
                   className="w-full rounded-md border border-gray-300 bg-white py-2.5 pr-4 pl-9 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
                 />
               </div>
-
               <p className="mt-1.5 text-xs text-gray-500">
                 คุณสามารถกลับมาแก้ไขรายละเอียดอื่นๆ ได้ในภายหลัง
               </p>
             </div>
           </div>
-
           <div className="mt-8 flex items-center justify-end gap-3 border-t border-gray-50 pt-4">
             <button
               type="button"
@@ -102,7 +98,6 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
             >
               ยกเลิก
             </button>
-
             <button
               type="submit"
               disabled={!name.trim() || loading}

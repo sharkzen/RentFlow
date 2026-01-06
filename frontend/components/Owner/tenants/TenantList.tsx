@@ -45,8 +45,6 @@ export default function TenantList({ tenants, onEdit }: Props) {
           </th>
         </tr>
       </thead>
-
-      {/* Body */}
       <tbody className="divide-y divide-gray-100 bg-white">
         {tenants.map((tenant) => (
           <tr
@@ -56,21 +54,17 @@ export default function TenantList({ tenants, onEdit }: Props) {
             <td className="py-4 pr-3 pl-6 font-medium whitespace-nowrap text-gray-900">
               {tenant.firstName} {tenant.lastName}
             </td>
-
             <td className="px-3 py-4 whitespace-nowrap">
               <span className="inline-flex items-center rounded-md bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-indigo-700/10 ring-inset">
                 {tenant.room.roomNumber}
               </span>
             </td>
-
             <td className="px-3 py-4 whitespace-nowrap text-gray-500">
               {tenant.phone || <span className="text-gray-300">-</span>}
             </td>
-
             <td className="px-3 py-4 whitespace-nowrap text-gray-500">
               {tenant.email || <span className="text-gray-300">-</span>}
             </td>
-
             <td className="px-3 py-4 whitespace-nowrap text-gray-500">
               {tenant.moveInDate ? (
                 new Date(tenant.moveInDate).toLocaleDateString("th-TH", {
@@ -82,7 +76,6 @@ export default function TenantList({ tenants, onEdit }: Props) {
                 <span className="text-gray-300">-</span>
               )}
             </td>
-
             <td className="py-4 pr-6 pl-3 text-right whitespace-nowrap">
               <button
                 onClick={() => onEdit && onEdit(tenant)}

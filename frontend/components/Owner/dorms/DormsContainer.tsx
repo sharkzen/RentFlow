@@ -1,5 +1,4 @@
 "use client";
-
 import { useCallback, useEffect, useState } from "react";
 import DormsCard from "./DormsCard";
 import DormsDialog from "./DormsDialog";
@@ -39,7 +38,6 @@ export default function DormsContainer() {
       {onCreate && (
         <DromCreate onClose={() => setOnCreate(false)} onSuccess={fetchDorms} />
       )}
-
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">
@@ -57,7 +55,6 @@ export default function DormsContainer() {
           <span>เพิ่มหอพักใหม่</span>
         </button>
       </div>
-
       {loading ? (
         <div className="flex h-64 items-center justify-center">
           <Spinner />
@@ -89,7 +86,6 @@ export default function DormsContainer() {
           ))}
         </div>
       )}
-
       {selectedDorm && (
         <DormsDialog
           dorm={selectedDorm}

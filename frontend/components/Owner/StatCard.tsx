@@ -27,14 +27,12 @@ export default function StatCard({ title, value, icon, color }: StatCardProps) {
             {value}
           </h3>
         </div>
-
         <div
           className={`flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br text-white shadow-sm ${gradient}`}
         >
           {icon}
         </div>
       </div>
-
       <div
         className={`absolute -top-4 -right-4 h-24 w-24 rounded-full opacity-10 transition-transform group-hover:scale-150 ${gradient.replace("from-", "bg-")}`}
       ></div>

@@ -1,5 +1,4 @@
 "use client";
-
 import DormCard from "./DormCard";
 import { Element } from "react-scroll";
 import { Home, Sparkles, Frown } from "lucide-react";
@@ -42,7 +41,6 @@ export default function Dormitory({ dorms, total = 0 }: DormitoryProps) {
               เราคัดสรรหอพักคุณภาพดี ในทำเลที่คุณต้องการ
             </p>
           </div>
-
           <div className="text-right">
             <span className="text-sm font-medium text-slate-500">
               ทั้งหมด <span className="font-bold text-slate-900">{total}</span>{" "}
@@ -50,18 +48,15 @@ export default function Dormitory({ dorms, total = 0 }: DormitoryProps) {
             </span>
           </div>
         </div>
-
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {dorms.map((dorm) => {
             const coverImage =
               dorm.images?.find((img: any) => img.isCover)?.url ||
               dorm.images?.[0]?.url ||
               "https://placehold.co/600x400/f1f5f9/94a3b8?text=No+Image";
-
             const locationName = dorm.nearby
               ? `ใกล้ ${dorm.nearby.name}`
               : dorm.address || "ไม่ระบุที่ตั้ง";
-
             const distanceText = dorm.nearby?.distanceText;
 
             return (

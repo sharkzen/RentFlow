@@ -1,7 +1,7 @@
 "use client";
-
 import { Dormitory } from "@/features/dormitory";
 import { descriptionJsonToText, parseDescription } from "@/lib/text";
+
 import {
   X,
   MapPin,
@@ -15,6 +15,7 @@ import {
   Save,
   CheckCircle2,
 } from "lucide-react";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOnClickOutside } from "usehooks-ts";
 import { DormFormData } from "@/features/dormitory";
@@ -60,9 +61,7 @@ export default function DormsDialog({
   useHotkeys("esc", onClose);
   const closeRef = useRef<HTMLDivElement>(null!);
   useOnClickOutside(closeRef, onClose);
-
   const [initialData, setInitialData] = useState<DormFormData | null>(null);
-
   const isEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
 
   const [formData, setFormData] = useState<DormFormData>({
@@ -81,11 +80,16 @@ export default function DormsDialog({
   });
 
   useEffect(() => {
-    setInitialData({ ...formData });
+    setInitialData({
+      ...formData,
+    });
   }, []);
 
   const updateField = useCallback((field: keyof DormFormData, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   }, []);
 
   const handleSave = async () => {
@@ -106,6 +110,7 @@ export default function DormsDialog({
         success: "บันทึกข้อมูลเรียบร้อย",
         error: "เกิดข้อผิดพลาดในการบันทึก",
       });
+
       onEdit?.();
       onClose();
     } catch (error: any) {
@@ -135,7 +140,6 @@ export default function DormsDialog({
               <X size={20} />
             </button>
           </div>
-
           <div className="flex-1 overflow-y-auto bg-slate-50/50">
             <form
               className="space-y-6 p-6"
@@ -146,7 +150,8 @@ export default function DormsDialog({
             >
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
-                  <Home size={16} /> ข้อมูลพื้นฐาน
+                  <Home size={16} />
+                  ข้อมูลพื้นฐาน
                 </h3>
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <div className="md:col-span-2">
@@ -191,10 +196,10 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
-                  <MapPin size={16} /> ที่ตั้งและแผนที่
+                  <MapPin size={16} />
+                  ที่ตั้งและแผนที่
                 </h3>
                 <div className="grid grid-cols-1 gap-5">
                   <div>
@@ -220,10 +225,10 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
-                  <Zap size={16} /> ค่าสาธารณูปโภค & ค่าธรรมเนียม
+                  <Zap size={16} />
+                  ค่าสาธารณูปโภค & ค่าธรรมเนียม
                 </h3>
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
                   <div>
@@ -264,10 +269,10 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
-                  <Calendar size={16} /> รอบบิลและการชำระเงิน
+                  <Calendar size={16} />
+                  รอบบิลและการชำระเงิน
                 </h3>
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   <div>
@@ -314,10 +319,10 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
-                  <CheckCircle2 size={16} /> รูปภาพหอพัก
+                  <CheckCircle2 size={16} />
+                  รูปภาพหอพัก
                 </h3>
                 <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
                   <ImageSection dormId={dorm.id} />
@@ -325,7 +330,6 @@ export default function DormsDialog({
               </div>
             </form>
           </div>
-
           <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
             <button
               onClick={onClose}

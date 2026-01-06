@@ -1,5 +1,4 @@
 "use client";
-
 import { Plus, Building, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import TenantList from "./TenantList";
@@ -12,7 +11,6 @@ import { showBackendError } from "@/lib/backendErrorMsg";
 export default function TenantContainer() {
   const [dorms, setDorms] = useState<Dormitory[]>([]);
   const [selectedDorm, setSelectedDorm] = useState<string>();
-
   const [tenants, setTenants] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -28,6 +26,7 @@ export default function TenantContainer() {
     try {
       const res = await DormService.getDorm();
       setDorms(res);
+
       if (res.length > 0) {
         setSelectedDorm(res[0].id);
       }
@@ -49,6 +48,7 @@ export default function TenantContainer() {
       });
 
       setTenants(res.items);
+
       setMeta({
         total: res.total,
         totalPages: res.totalPages,
@@ -97,14 +97,12 @@ export default function TenantContainer() {
           </select>
           <Building className="pointer-events-none absolute top-1/2 right-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
         </div>
-
         <div className="order-2 col-span-12 sm:col-span-6 md:order-3 md:col-span-4">
           <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-md transition hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             <Plus className="h-5 w-5" />
             เพิ่มผู้เช่า
           </button>
         </div>
-
         <div className="relative order-3 col-span-12 md:order-1 md:col-span-4">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
@@ -115,17 +113,14 @@ export default function TenantContainer() {
           />
         </div>
       </div>
-
       <div className="relative flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="absolute inset-0 overflow-auto">
           <TenantList tenants={tenants} />
         </div>
       </div>
-
       {meta.totalPages > 1 && (
         <div className="flex items-center justify-between pt-2 text-sm text-gray-600">
-          <span>ทั้งหมด {meta.total} รายการ</span>
-
+          <span>ทั้งหมด {meta.total}รายการ</span>
           <div className="flex items-center gap-2">
             <button
               disabled={page === 1}
@@ -134,11 +129,9 @@ export default function TenantContainer() {
             >
               ก่อนหน้า
             </button>
-
             <span>
-              หน้า {page} / {meta.totalPages}
+              หน้า {page}/ {meta.totalPages}
             </span>
-
             <button
               disabled={page === meta.totalPages}
               onClick={() => setPage((p) => p + 1)}

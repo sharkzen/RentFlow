@@ -44,7 +44,6 @@ export default function RoomCard({
   const itemsPerPage = 10;
   const startItem = (page - 1) * itemsPerPage + 1;
   const endItem = Math.min(page * itemsPerPage, totalItems);
-
   const gridLayout = "grid grid-cols-12 gap-4 items-center px-6 py-4";
 
   return (
@@ -61,7 +60,6 @@ export default function RoomCard({
             <div className="col-span-2">ชั้น</div>
             <div className="col-span-2 text-right">จัดการ</div>
           </div>
-
           <div className="flex-1 overflow-y-auto">
             {rooms.map((room) => (
               <div
@@ -73,11 +71,9 @@ export default function RoomCard({
                     {room.roomNumber}
                   </span>
                 </div>
-
                 <div className="col-span-2">
                   <StatusBadge status={room.status} />
                 </div>
-
                 <div className="col-span-2">
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     {room.type === "AIR" || room.isAir ? (
@@ -97,17 +93,14 @@ export default function RoomCard({
                     )}
                   </div>
                 </div>
-
                 <div className="col-span-2">
                   <span className="font-semibold text-gray-700">
                     ฿{room.basePrice?.toLocaleString() ?? 0}
                   </span>
                 </div>
-
                 <div className="col-span-2 text-sm text-gray-500">
                   ชั้น {room.floor}
                 </div>
-
                 <div className="col-span-2 flex justify-end gap-2">
                   <button className="cursor-pointer rounded-lg border border-gray-200 p-2 text-gray-400 transition hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 active:scale-95">
                     <Edit size={16} />
@@ -118,7 +111,6 @@ export default function RoomCard({
           </div>
         </div>
       </div>
-
       <div className="relative z-20 flex shrink-0 flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-gray-500">
           แสดง{" "}
@@ -131,7 +123,6 @@ export default function RoomCard({
           </span>{" "}
           ห้อง
         </p>
-
         <div className="flex items-center gap-1">
           <button
             onClick={() => setPage(page - 1)}
@@ -140,11 +131,9 @@ export default function RoomCard({
           >
             ก่อนหน้า
           </button>
-
           <span className="flex min-w-20 justify-center px-2 text-sm font-medium text-gray-700">
-            หน้า {page} / {totalPages}
+            หน้า {page}/ {totalPages}
           </span>
-
           <button
             onClick={() => setPage(page + 1)}
             disabled={page === totalPages || totalPages === 0}

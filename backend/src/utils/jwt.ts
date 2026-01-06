@@ -1,6 +1,5 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import "dotenv/config";
-
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
 
@@ -26,14 +25,13 @@ export function signRefreshToken(payload: RefreshTokenPayload) {
 }
 
 export function verifyRefreshToken(
-  token: string
+  token: string,
 ): RefreshTokenPayload & JwtPayload {
   try {
     const payload = jwt.verify(
       token,
-      REFRESH_TOKEN_SECRET
+      REFRESH_TOKEN_SECRET,
     ) as RefreshTokenPayload & JwtPayload;
-
     return payload;
   } catch (err) {
     throw new Error("INVALID_REFRESH_TOKEN");

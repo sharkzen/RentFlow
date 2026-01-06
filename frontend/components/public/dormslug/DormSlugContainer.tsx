@@ -25,6 +25,7 @@ const DormSlugSkeleton = () => (
 
 export default function DormSlugContainer() {
   const { slug } = useParams<{ slug: string }>();
+
   const decodedSlug = decodeURIComponent(slug);
   const [dorm, setDorm] = useState<DormSlugResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,6 +38,7 @@ export default function DormSlugContainer() {
     try {
       setLoading(true);
       const res = await DormService.getDormBySlug(decodedSlug);
+
       if (res) {
         setDorm(res);
       }
@@ -59,11 +61,9 @@ export default function DormSlugContainer() {
         <section className="mb-8 w-full overflow-hidden rounded-3xl shadow-sm">
           <DormHeroSlider images={dorm.images} />
         </section>
-
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-12">
           <div className="order-2 space-y-10 lg:order-1 lg:col-span-2">
             <DormContent data={dorm} />
-
             <DormMap
               latitude={dorm.latitude}
               longitude={dorm.longitude}
@@ -71,7 +71,6 @@ export default function DormSlugContainer() {
               address={dorm.address}
             />
           </div>
-
           <div className="order-1 lg:order-2 lg:col-span-1">
             <div className="sticky top-24 z-10">
               <DormSidebar data={dorm} />

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { X, ImagePlus, Star } from "lucide-react";
+
 import {
   DndContext,
   closestCenter,
@@ -10,6 +11,7 @@ import {
   useSensors,
   DragEndEvent,
 } from "@dnd-kit/core";
+
 import {
   arrayMove,
   SortableContext,
@@ -22,6 +24,7 @@ import { DormService } from "@/features/dormitory/services/dorm.service";
 import { DormitoryImage } from "@/features/dormitory";
 import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendErrorMsg";
+
 interface ImageSectionProps {
   dormId: string;
 }
@@ -44,9 +47,16 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
   }, [dormId]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(TouchSensor, {
-      activationConstraint: { delay: 100, tolerance: 5 },
+      activationConstraint: {
+        delay: 100,
+        tolerance: 5,
+      },
     }),
   );
 
@@ -54,8 +64,8 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
     if (!e.target.files || e.target.files.length === 0) return;
 
     const selectedFiles = Array.from(e.target.files);
-
     const remainingSlots = 5 - images.length;
+
     if (selectedFiles.length > remainingSlots) {
       toast.error(`เพิ่มได้อีก ${remainingSlots} รูปเท่านั้น`);
       e.target.value = "";
@@ -96,6 +106,7 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+
     if (!over || active.id === over.id) return;
 
     const oldIndex = images.findIndex((img) => img.id === active.id);
@@ -106,6 +117,7 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
       order: idx,
       isCover: idx === 0,
     }));
+
     setImages(newOrder);
 
     try {
@@ -132,13 +144,8 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
           รูปภาพ ({images.length}/5){" "}
           <span className="text-xs text-red-500">* ขนาดไม่เกิน 10MB/รูป</span>
         </label>
-
         <label
-          className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-            images.length >= 5
-              ? "cursor-not-allowed bg-gray-100 text-gray-400"
-              : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-          }`}
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${images.length >= 5 ? "cursor-not-allowed bg-gray-100 text-gray-400" : "bg-blue-50 text-blue-600 hover:bg-blue-100"}`}
         >
           <ImagePlus size={16} />
           <span>เพิ่มรูปภาพ</span>
@@ -152,7 +159,6 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
           />
         </label>
       </div>
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -194,7 +200,9 @@ function SortableImage({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id });
+  } = useSortable({
+    id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -202,17 +210,14 @@ function SortableImage({
     zIndex: isDragging ? 50 : "auto",
     opacity: isDragging ? 0.5 : 1,
   };
+
   const isCover = index === 0;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative aspect-square overflow-hidden rounded-xl border-2 bg-white shadow-sm transition-colors ${
-        isCover
-          ? "border-blue-500 ring-2 ring-blue-100"
-          : "border-gray-200 hover:border-blue-300"
-      }`}
+      className={`group relative aspect-square overflow-hidden rounded-xl border-2 bg-white shadow-sm transition-colors ${isCover ? "border-blue-500 ring-2 ring-blue-100" : "border-gray-200 hover:border-blue-300"}`}
     >
       <img
         src={img.url}
@@ -220,11 +225,7 @@ function SortableImage({
         className="pointer-events-none h-full w-full object-cover select-none"
       />
       <div
-        className={`absolute top-1 left-1 z-10 rounded-full px-2 py-1 text-xs font-bold ${
-          isCover
-            ? "flex items-center gap-1 bg-blue-600 text-white"
-            : "bg-gray-700 text-white"
-        }`}
+        className={`absolute top-1 left-1 z-10 rounded-full px-2 py-1 text-xs font-bold ${isCover ? "flex items-center gap-1 bg-blue-600 text-white" : "bg-gray-700 text-white"}`}
       >
         {isCover ? (
           <>
@@ -235,7 +236,6 @@ function SortableImage({
           index + 1
         )}
       </div>
-
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -245,7 +245,6 @@ function SortableImage({
       >
         <X size={14} />
       </button>
-
       <div
         {...attributes}
         {...listeners}

@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import { Phone, User, Droplets, Zap, Banknote, Facebook } from "lucide-react";
 import { DormSlugResponse } from "@/features/dormitory/types";
@@ -16,14 +15,14 @@ const LineIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
+export const DormSidebar: React.FC<{
+  data: DormSlugResponse;
+}> = ({ data }) => {
   const { settings, owner } = data;
 
   return (
     <div className="space-y-6">
-      {/* --- Price & Utilities Card --- */}
       <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
-        {/* Header Price Section */}
         <div className="bg-gradient-to-r from-blue-600 to-cyan-500 p-6 text-white">
           <p className="mb-1 text-xs font-semibold tracking-wider uppercase opacity-80">
             ราคาเริ่มต้น
@@ -35,14 +34,11 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             <span className="text-lg font-medium opacity-90">บาท / เดือน</span>
           </div>
         </div>
-
-        {/* Utilities Section */}
         <div className="p-6">
           <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-slate-800 uppercase">
             <Banknote size={16} className="text-slate-400" />
             ค่าใช้จ่ายเพิ่มเติม
           </h3>
-
           <div className="space-y-4">
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 transition-colors hover:bg-slate-100">
               <span className="flex items-center gap-3 text-sm text-slate-600">
@@ -52,10 +48,9 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
                 ค่าน้ำ
               </span>
               <span className="text-sm font-bold text-slate-900">
-                {settings.waterRate} บ./หน่วย
+                {settings.waterRate}บ./หน่วย
               </span>
             </div>
-
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 transition-colors hover:bg-slate-100">
               <span className="flex items-center gap-3 text-sm text-slate-600">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100 text-yellow-600">
@@ -64,10 +59,9 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
                 ค่าไฟ
               </span>
               <span className="text-sm font-bold text-slate-900">
-                {settings.electricRate} บ./หน่วย
+                {settings.electricRate}บ./หน่วย
               </span>
             </div>
-
             <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 transition-colors hover:bg-slate-100">
               <span className="flex items-center gap-3 text-sm text-slate-600">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
@@ -82,8 +76,6 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
           </div>
         </div>
       </div>
-
-      {/* --- Owner Contact Card --- */}
       <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-lg shadow-slate-200/40">
         <div className="mb-6 flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-slate-500 shadow-inner">
@@ -96,7 +88,6 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             </p>
           </div>
         </div>
-
         <div className="space-y-3">
           <a
             href={`tel:${owner.phone}`}
@@ -105,7 +96,6 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             <Phone size={18} className="fill-current" />
             <span>โทร {owner.phone}</span>
           </a>
-
           <div className="grid grid-cols-2 gap-3">
             {owner.lineId && (
               <a
@@ -118,7 +108,6 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
                 <span>Line</span>
               </a>
             )}
-
             {owner.facebook && (
               <a
                 href={owner.facebook}

@@ -1,10 +1,11 @@
 "use client";
-
 import React from "react";
 import { Check } from "lucide-react";
 import { DormSlugResponse } from "@/features/dormitory/types";
 
-export const DormContent: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
+export const DormContent: React.FC<{
+  data: DormSlugResponse;
+}> = ({ data }) => {
   const renderSection = (section: any) => {
     switch (section.type) {
       case "text":
@@ -46,13 +47,11 @@ export const DormContent: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
           {data.name}
         </h1>
       </div>
-
       <div>
         <h3 className="mb-4 flex items-center gap-2 text-xl font-bold text-slate-900">
           <span className="inline-block h-6 w-1 rounded-full bg-blue-500"></span>
           รายละเอียดหอพัก
         </h3>
-
         <div className="prose prose-slate max-w-none text-slate-600">
           {data.description?.sections
             ?.sort((a: any, b: any) => a.order - b.order)

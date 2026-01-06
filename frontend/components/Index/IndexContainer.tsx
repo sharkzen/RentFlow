@@ -15,7 +15,6 @@ const DormSkeleton = () => (
         className="flex flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm"
       >
         <div className="aspect-4/3 w-full animate-pulse bg-slate-200" />
-
         <div className="space-y-3 p-4">
           <div className="h-5 w-3/4 animate-pulse rounded-full bg-slate-200" />
           <div className="h-4 w-1/2 animate-pulse rounded-full bg-slate-100" />
@@ -32,11 +31,15 @@ const DormSkeleton = () => (
 export default function IndexContainer() {
   const searchParams = useSearchParams();
   const router = useRouter();
-
   const [dorms, setDorms] = useState<any[]>([]);
-  const [meta, setMeta] = useState({ page: 1, totalPages: 1, total: 0 });
-  const [loading, setLoading] = useState(true);
 
+  const [meta, setMeta] = useState({
+    page: 1,
+    totalPages: 1,
+    total: 0,
+  });
+
+  const [loading, setLoading] = useState(true);
   const page = Number(searchParams.get("page")) || 1;
   const search = searchParams.get("search");
   const landmarkId = searchParams.get("landmarkId");
@@ -46,6 +49,7 @@ export default function IndexContainer() {
   useEffect(() => {
     const fetchDorms = async () => {
       setLoading(true);
+
       try {
         const res = await DormService.getAllDroms({
           page,
@@ -56,6 +60,7 @@ export default function IndexContainer() {
         });
 
         setDorms(res.data);
+
         setMeta({
           page: res.meta.page,
           totalPages: res.meta.totalPages,
@@ -75,7 +80,9 @@ export default function IndexContainer() {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage.toString());
 
-    router.push(`/?${params.toString()}`, { scroll: false });
+    router.push(`/?${params.toString()}`, {
+      scroll: false,
+    });
 
     setTimeout(() => {
       scroller.scrollTo("dorm-results", {
@@ -93,7 +100,6 @@ export default function IndexContainer() {
         <div className="py-6">
           <DormFilter />
         </div>
-
         <div className="min-h-125">
           {loading ? (
             <div className="py-4">
@@ -106,7 +112,6 @@ export default function IndexContainer() {
           ) : (
             <>
               <Dormitory dorms={dorms} total={meta.total} />
-
               {dorms.length > 0 && (
                 <div className="mt-12 flex justify-center">
                   <Pagination

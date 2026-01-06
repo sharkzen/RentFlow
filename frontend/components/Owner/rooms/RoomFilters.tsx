@@ -38,9 +38,7 @@ export default function RoomFilters({
           </button>
         )}
       </div>
-
       <div className="hidden h-6 w-px bg-gray-200 sm:block"></div>
-
       <div className="flex gap-2">
         <div className="relative">
           <select
@@ -55,8 +53,6 @@ export default function RoomFilters({
           </select>
           <Filter className="pointer-events-none absolute top-1/2 right-2.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
         </div>
-
-        {/* Type Filter */}
         <div className="relative">
           <select
             value={typeFilter}

@@ -16,6 +16,7 @@ import { shuffleArray } from "./lib/dorm.lib";
 export const dormService = {
   async getAllDorms(query: GetDormsQueryDto) {
     const { search, minPrice, maxPrice, landmarkId, page = 1 } = query;
+
     const limit = 15;
     const skip = (Number(page) - 1) * limit;
 
@@ -28,7 +29,6 @@ export const dormService = {
     const hasPriceFilter =
       (minPrice && !isNaN(Number(minPrice))) ||
       (maxPrice && !isNaN(Number(maxPrice)));
-
     const cleanLandmarkId =
       landmarkId &&
       landmarkId !== "null" &&
@@ -38,13 +38,17 @@ export const dormService = {
         : undefined;
 
     if (hasSearch) {
-      whereCondition.name = { contains: search, mode: "insensitive" };
+      whereCondition.name = {
+        contains: search,
+        mode: "insensitive",
+      };
     }
 
     const parsedMin =
       minPrice && !isNaN(Number(minPrice)) ? Number(minPrice) : undefined;
     const parsedMax =
       maxPrice && !isNaN(Number(maxPrice)) ? Number(maxPrice) : undefined;
+
     if (parsedMin !== undefined || parsedMax !== undefined) {
       whereCondition.settings = {
         roomPrice: {
@@ -59,22 +63,40 @@ export const dormService = {
 
     if (cleanLandmarkId) {
       const targetLandmark = await prisma.landmark.findUnique({
-        where: { id: cleanLandmarkId },
+        where: {
+          id: cleanLandmarkId,
+        },
       });
 
       if (!targetLandmark)
-        return { data: [], meta: { page: 1, limit, total: 0, totalPages: 0 } };
+        return {
+          data: [],
+
+          meta: {
+            page: 1,
+            limit,
+            total: 0,
+            totalPages: 0,
+          },
+        };
 
       const allMatchingDorms = await prisma.dormitory.findMany({
         where: whereCondition,
+
         include: {
-          images: { where: { isCover: true } },
+          images: {
+            where: {
+              isCover: true,
+            },
+          },
+
           settings: true,
         },
       });
 
       const dormsWithDistance = allMatchingDorms.map((dorm) => {
         let dist = Infinity;
+
         if (
           dorm.latitude &&
           dorm.longitude &&
@@ -85,10 +107,15 @@ export const dormService = {
             dorm.latitude,
             dorm.longitude,
             targetLandmark.latitude,
-            targetLandmark.longitude
+            targetLandmark.longitude,
           );
         }
-        return { ...dorm, _distance: dist, _targetLandmark: targetLandmark };
+
+        return {
+          ...dorm,
+          _distance: dist,
+          _targetLandmark: targetLandmark,
+        };
       });
 
       dormsWithDistance.sort((a, b) => a._distance - b._distance);
@@ -97,36 +124,47 @@ export const dormService = {
     } else if (!hasSearch && !hasPriceFilter) {
       const allDormIds = await prisma.dormitory.findMany({
         where: whereCondition,
+
         select: {
           id: true,
+
           images: {
-            select: { id: true },
+            select: {
+              id: true,
+            },
+
             take: 1,
           },
         },
       });
 
       totalItems = allDormIds.length;
-
       const dormsWithImages = allDormIds.filter((d) => d.images.length > 0);
       const dormsWithoutImages = allDormIds.filter(
-        (d) => d.images.length === 0
+        (d) => d.images.length === 0,
       );
-
       shuffleArray(dormsWithImages);
       shuffleArray(dormsWithoutImages);
-
       const sortedIds = [...dormsWithImages, ...dormsWithoutImages].map(
-        (d) => d.id
+        (d) => d.id,
       );
-
       const pageIds = sortedIds.slice(skip, skip + limit);
 
       if (pageIds.length > 0) {
         const fetchedDorms = await prisma.dormitory.findMany({
-          where: { id: { in: pageIds } },
+          where: {
+            id: {
+              in: pageIds,
+            },
+          },
+
           include: {
-            images: { where: { isCover: true } },
+            images: {
+              where: {
+                isCover: true,
+              },
+            },
+
             settings: true,
           },
         });
@@ -136,15 +174,27 @@ export const dormService = {
           .filter(Boolean);
       }
     } else {
-      totalItems = await prisma.dormitory.count({ where: whereCondition });
+      totalItems = await prisma.dormitory.count({
+        where: whereCondition,
+      });
 
       resultDorms = await prisma.dormitory.findMany({
         where: whereCondition,
+
         include: {
-          images: { where: { isCover: true } },
+          images: {
+            where: {
+              isCover: true,
+            },
+          },
+
           settings: true,
         },
-        orderBy: { createdAt: "desc" },
+
+        orderBy: {
+          createdAt: "desc",
+        },
+
         skip: skip,
         take: limit,
       });
@@ -156,7 +206,7 @@ export const dormService = {
           dorm.images.map(async (img: any) => ({
             ...img,
             url: await generateSignedUrl(img.objectKey),
-          }))
+          })),
         );
 
         let nearbyData = null;
@@ -172,23 +222,30 @@ export const dormService = {
         } else {
           if (hasValidLocation) {
             const landmarks = await prisma.landmark.findMany({
-              where: { status: Status.ACTIVE },
+              where: {
+                status: Status.ACTIVE,
+              },
             });
+
             let minDistance = Infinity;
             let nearest = null;
+
             for (const lm of landmarks) {
               if (!lm.latitude || !lm.longitude) continue;
+
               const dist = getDistance(
                 dorm.latitude,
                 dorm.longitude,
                 lm.latitude,
-                lm.longitude
+                lm.longitude,
               );
+
               if (dist < minDistance) {
                 minDistance = dist;
                 nearest = lm;
               }
             }
+
             if (nearest) {
               nearbyData = {
                 name: nearest.name,
@@ -207,11 +264,12 @@ export const dormService = {
           images: imagesWithUrl,
           nearby: nearbyData,
         };
-      })
+      }),
     );
 
     return {
       data: finalData,
+
       meta: {
         page: Number(page),
         limit: limit,
@@ -220,14 +278,27 @@ export const dormService = {
       },
     };
   },
+
   async getDormSlug(slug: string) {
     const dorm = await prisma.dormitory.findUnique({
-      where: { slug: slug },
+      where: {
+        slug: slug,
+      },
+
       include: {
         settings: true,
+
         images: {
-          orderBy: [{ isCover: "desc" }, { order: "asc" }],
+          orderBy: [
+            {
+              isCover: "desc",
+            },
+            {
+              order: "asc",
+            },
+          ],
         },
+
         owner: true,
       },
     });
@@ -240,7 +311,7 @@ export const dormService = {
           ...img,
           url: await generateSignedUrl(img.objectKey),
         };
-      })
+      }),
     );
 
     return {
@@ -273,22 +344,32 @@ export const dormService = {
 
     return dorm;
   },
+
   async getDormImageById(imageId: string) {
     return await prisma.file.findUnique({
-      where: { id: imageId },
+      where: {
+        id: imageId,
+      },
     });
   },
+
   async updateDormStatus(dormId: string, isPublished: boolean, userId: string) {
     if (!dormId) {
       throw new Error("INVALID_DORM_ID");
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: {
+        id: userId,
+      },
+
       select: {
         status: true,
+
         ownerProfile: {
-          select: { id: true },
+          select: {
+            id: true,
+          },
         },
       },
     });
@@ -302,7 +383,10 @@ export const dormService = {
     }
 
     const dorm = await prisma.dormitory.findUnique({
-      where: { id: dormId },
+      where: {
+        id: dormId,
+      },
+
       select: {
         id: true,
         ownerId: true,
@@ -318,10 +402,14 @@ export const dormService = {
     }
 
     return await prisma.dormitory.update({
-      where: { id: dormId },
+      where: {
+        id: dormId,
+      },
+
       data: {
         isPublished,
       },
+
       select: {
         id: true,
         isPublished: true,
@@ -329,14 +417,20 @@ export const dormService = {
       },
     });
   },
+
   async updateDorm(dorm: DormFormDataDto, userId: string) {
     const ownerProfile = await prisma.ownerProfile.findUnique({
-      where: { userId },
+      where: {
+        userId,
+      },
     });
+
     if (!ownerProfile) throw new Error("FORBIDDEN");
 
     const existingDorm = await prisma.dormitory.findUnique({
-      where: { id: dorm.id },
+      where: {
+        id: dorm.id,
+      },
     });
 
     if (!existingDorm || existingDorm.ownerId !== ownerProfile.id) {
@@ -345,9 +439,13 @@ export const dormService = {
 
     const slug = generateSlug(dorm.name);
     const latLng = await getLatLngFromUrl(dorm.mapUrl ?? 0);
+
     return await prisma.$transaction(async (tx) => {
       const updatedDorm = await tx.dormitory.update({
-        where: { id: dorm.id },
+        where: {
+          id: dorm.id,
+        },
+
         data: {
           name: dorm.name,
           slug: slug,
@@ -361,7 +459,10 @@ export const dormService = {
       });
 
       const setting = await tx.dormitorySetting.upsert({
-        where: { dormitoryId: dorm.id },
+        where: {
+          dormitoryId: dorm.id,
+        },
+
         update: {
           roomPrice: Number(dorm.roomPrice),
           waterRate: Number(dorm.waterRate),
@@ -371,6 +472,7 @@ export const dormService = {
           dueDay: Number(dorm.dueDay),
           dueMonthOffset: Number(dorm.dueMonthOffset ?? 1),
         },
+
         create: {
           dormitoryId: dorm.id,
           roomPrice: Number(dorm.roomPrice),
@@ -389,48 +491,79 @@ export const dormService = {
       };
     });
   },
+
   async getOwnerDorm(dormId: string, userId: string) {
     const ownerProfile = await prisma.ownerProfile.findUnique({
-      where: { userId },
+      where: {
+        userId,
+      },
     });
+
     if (!ownerProfile) return null;
 
     const dorm = await prisma.dormitory.findUnique({
-      where: { id: dormId },
+      where: {
+        id: dormId,
+      },
     });
 
     if (!dorm) return null;
+
     if (dorm.ownerId !== ownerProfile.id) return null;
 
     return dorm;
   },
+
   async isOwnerOfDorm(dormId: string, userId: string) {
     const ownerProfile = await prisma.ownerProfile.findUnique({
-      where: { userId },
+      where: {
+        userId,
+      },
     });
+
     if (!ownerProfile) return false;
 
     const dorm = await prisma.dormitory.findUnique({
-      where: { id: dormId },
-      select: { ownerId: true },
+      where: {
+        id: dormId,
+      },
+
+      select: {
+        ownerId: true,
+      },
     });
 
     return dorm?.ownerId === ownerProfile.id;
   },
+
   async getDorms(user: UserDecodedDto) {
     const owner = await prisma.ownerProfile.findUnique({
-      where: { userId: user.sub },
+      where: {
+        userId: user.sub,
+      },
     });
+
     if (!owner) throw new Error("UNAUTHORIZED");
 
     const dorms = await prisma.dormitory.findMany({
-      where: { ownerId: owner.id },
+      where: {
+        ownerId: owner.id,
+      },
+
       include: {
         settings: true,
         images: true,
         owner: true,
       },
-      orderBy: [{ isPublished: "desc" }, { createdAt: "asc" }],
+
+      orderBy: [
+        {
+          isPublished: "desc",
+        },
+        {
+          createdAt: "asc",
+        },
+      ],
     });
 
     if (dorms.length === 0) return [];
@@ -441,24 +574,25 @@ export const dormService = {
           dorm.images.map(async (img) => ({
             ...img,
             url: await generateSignedUrl(img.objectKey),
-          }))
+          })),
         );
 
         return {
           ...dorm,
           images: imagesWithUrl,
         };
-      })
+      }),
     );
 
     return dormsWithUrl;
   },
+
   async uploadDormImage(
     file: Buffer,
     dormId: string,
     objectKey: string,
     mimeType: string,
-    size: number
+    size: number,
   ) {
     const existingCount = await prisma.file.count({
       where: {
@@ -494,8 +628,11 @@ export const dormService = {
 
   async deleteDormImage(imageId: string) {
     const image = await prisma.file.findUnique({
-      where: { id: imageId },
+      where: {
+        id: imageId,
+      },
     });
+
     if (!image) throw new Error("Image not found");
 
     try {
@@ -503,7 +640,7 @@ export const dormService = {
         new DeleteObjectCommand({
           Bucket: env.BUCKET,
           Key: image.objectKey,
-        })
+        }),
       );
     } catch (err: any) {
       if (err?.name !== "NoSuchKey" && err?.Code !== "NoSuchKey") {
@@ -512,29 +649,51 @@ export const dormService = {
     }
 
     await prisma.file.delete({
-      where: { id: imageId },
+      where: {
+        id: imageId,
+      },
     });
 
     return true;
   },
+
   async getDormImages(dormId: string) {
     const images = await prisma.file.findMany({
-      where: { dormitoryId: dormId, category: "DORMITORY" },
-      orderBy: [{ isCover: "desc" }, { order: "asc" }, { createdAt: "asc" }],
+      where: {
+        dormitoryId: dormId,
+        category: "DORMITORY",
+      },
+
+      orderBy: [
+        {
+          isCover: "desc",
+        },
+        {
+          order: "asc",
+        },
+        {
+          createdAt: "asc",
+        },
+      ],
     });
 
     const imagesWithUrl = await Promise.all(
       images.map(async (img) => ({
         ...img,
         url: await generateSignedUrl(img.objectKey),
-      }))
+      })),
     );
 
     return imagesWithUrl;
   },
+
   async reorderDormImages(
     dormId: string,
-    images: { id: string; order: number; isCover: boolean }[]
+    images: {
+      id: string;
+      order: number;
+      isCover: boolean;
+    }[],
   ) {
     const existingImages = await prisma.file.findMany({
       where: {
@@ -544,13 +703,14 @@ export const dormService = {
     });
 
     const existingIds = existingImages.map((img) => img.id);
-
     const invalid = images.filter((img) => !existingIds.includes(img.id));
+
     if (invalid.length > 0) {
       throw new Error("Some images do not belong to this dormitory");
     }
 
     const coverCount = images.filter((img) => img.isCover).length;
+
     if (coverCount !== 1) {
       throw new Error("Dormitory must have exactly one cover image");
     }
@@ -560,6 +720,7 @@ export const dormService = {
         dormitoryId: dormId,
         category: "DORMITORY",
       },
+
       data: {
         isCover: false,
       },
@@ -567,16 +728,18 @@ export const dormService = {
 
     const updatePromises = images.map((img) =>
       prisma.file.update({
-        where: { id: img.id },
+        where: {
+          id: img.id,
+        },
+
         data: {
           order: img.order,
           isCover: img.isCover,
         },
-      })
+      }),
     );
 
     await Promise.all(updatePromises);
-
     return true;
   },
 
@@ -584,14 +747,25 @@ export const dormService = {
     dormId: string,
     userId: string,
     month: number,
-    year: number
+    year: number,
   ) {
-    const owner = await prisma.ownerProfile.findUnique({ where: { userId } });
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId,
+      },
+    });
+
     if (!owner) throw new Error("FORBIDDEN");
 
     const dorm = await prisma.dormitory.findUnique({
-      where: { id: dormId },
-      select: { id: true, ownerId: true },
+      where: {
+        id: dormId,
+      },
+
+      select: {
+        id: true,
+        ownerId: true,
+      },
     });
 
     if (!dorm || dorm.ownerId !== owner.id) {
@@ -605,80 +779,132 @@ export const dormService = {
       totalRooms,
       occupiedRooms,
       availableRooms,
-
       billsPaid,
       billsPending,
       billsOverdue,
-
       maintTotal,
       maintOpen,
       maintInProgress,
       maintCompleted,
     ] = await Promise.all([
-      prisma.room.count({ where: { dormitoryId: dormId } }),
-      prisma.room.count({ where: { dormitoryId: dormId, status: "OCCUPIED" } }),
       prisma.room.count({
-        where: { dormitoryId: dormId, status: "AVAILABLE" },
+        where: {
+          dormitoryId: dormId,
+        },
       }),
-
+      prisma.room.count({
+        where: {
+          dormitoryId: dormId,
+          status: "OCCUPIED",
+        },
+      }),
+      prisma.room.count({
+        where: {
+          dormitoryId: dormId,
+          status: "AVAILABLE",
+        },
+      }),
       prisma.bill.aggregate({
         where: {
-          room: { dormitoryId: dormId },
+          room: {
+            dormitoryId: dormId,
+          },
+
           status: "PAID",
-          billingMonth: { gte: startDate, lte: endDate },
+
+          billingMonth: {
+            gte: startDate,
+            lte: endDate,
+          },
         },
-        _sum: { total: true },
+
+        _sum: {
+          total: true,
+        },
+
         _count: true,
       }),
-
       prisma.bill.aggregate({
         where: {
-          room: { dormitoryId: dormId },
+          room: {
+            dormitoryId: dormId,
+          },
+
           status: "PENDING",
-          billingMonth: { gte: startDate, lte: endDate },
+
+          billingMonth: {
+            gte: startDate,
+            lte: endDate,
+          },
         },
-        _sum: { total: true },
+
+        _sum: {
+          total: true,
+        },
+
         _count: true,
       }),
-
       prisma.bill.aggregate({
         where: {
-          room: { dormitoryId: dormId },
+          room: {
+            dormitoryId: dormId,
+          },
+
           status: "OVERDUE",
-          billingMonth: { gte: startDate, lte: endDate },
+
+          billingMonth: {
+            gte: startDate,
+            lte: endDate,
+          },
         },
-        _sum: { total: true },
+
+        _sum: {
+          total: true,
+        },
+
         _count: true,
       }),
-
       prisma.maintenanceRequest.count({
         where: {
           dormitoryId: dormId,
-          createdAt: { gte: startDate, lte: endDate },
+
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
         },
       }),
-
       prisma.maintenanceRequest.count({
         where: {
           dormitoryId: dormId,
           status: "OPEN",
-          createdAt: { gte: startDate, lte: endDate },
+
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
         },
       }),
-
       prisma.maintenanceRequest.count({
         where: {
           dormitoryId: dormId,
           status: "IN_PROGRESS",
-          createdAt: { gte: startDate, lte: endDate },
+
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
         },
       }),
-
       prisma.maintenanceRequest.count({
         where: {
           dormitoryId: dormId,
           status: "COMPLETED",
-          createdAt: { gte: startDate, lte: endDate },
+
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
         },
       }),
     ]);
@@ -687,22 +913,30 @@ export const dormService = {
       dormId,
       month,
       year,
+
       rooms: {
         total: totalRooms,
         occupied: occupiedRooms,
         available: availableRooms,
       },
+
       bills: {
-        paid: { count: billsPaid._count, amount: billsPaid._sum.total ?? 0 },
+        paid: {
+          count: billsPaid._count,
+          amount: billsPaid._sum.total ?? 0,
+        },
+
         pending: {
           count: billsPending._count,
           amount: billsPending._sum.total ?? 0,
         },
+
         overdue: {
           count: billsOverdue._count,
           amount: billsOverdue._sum.total ?? 0,
         },
       },
+
       maintenance: {
         total: maintTotal,
         open: maintOpen,
@@ -711,15 +945,20 @@ export const dormService = {
       },
     };
   },
+
   async deleteDorm(dormId: string, userId: string) {
     const ownerProfile = await prisma.ownerProfile.findUnique({
-      where: { userId },
+      where: {
+        userId,
+      },
     });
 
     if (!ownerProfile) throw new Error("FORBIDDEN");
 
     const dorm = await prisma.dormitory.findUnique({
-      where: { id: dormId },
+      where: {
+        id: dormId,
+      },
     });
 
     if (!dorm) {
@@ -731,7 +970,10 @@ export const dormService = {
     }
 
     return await prisma.dormitory.update({
-      where: { id: dormId },
+      where: {
+        id: dormId,
+      },
+
       data: {
         deletedAt: new Date(),
         status: "BANNED",

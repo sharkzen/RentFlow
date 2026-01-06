@@ -17,8 +17,11 @@ export const roomService = {
     const skip = (page - 1) * limit;
 
     const owner = await prisma.ownerProfile.findUnique({
-      where: { userId: user.sub },
+      where: {
+        userId: user.sub,
+      },
     });
+
     if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
 
     const where: Prisma.RoomWhereInput = {
@@ -29,27 +32,41 @@ export const roomService = {
     };
 
     if (search) {
-      where.OR = [{ roomNumber: { contains: search } }];
+      where.OR = [
+        {
+          roomNumber: {
+            contains: search,
+          },
+        },
+      ];
     }
+
     if (status && status !== "ALL") {
       where.status = status as any;
     }
+
     if (type && type !== "ALL") {
       where.type = type as any;
     }
 
     const [total, rooms] = await prisma.$transaction([
-      prisma.room.count({ where }),
+      prisma.room.count({
+        where,
+      }),
       prisma.room.findMany({
         where,
         take: Number(limit),
         skip: Number(skip),
-        orderBy: { roomNumber: "asc" },
+
+        orderBy: {
+          roomNumber: "asc",
+        },
       }),
     ]);
 
     return {
       data: rooms,
+
       meta: {
         total,
         page: Number(page),

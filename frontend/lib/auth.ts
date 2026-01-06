@@ -4,7 +4,6 @@ import type { User } from "@/features/auth";
 export async function getCurrentUser(): Promise<User | null> {
   try {
     const cookieStore = await cookies();
-
     const token = cookieStore.get("access_token")?.value;
 
     if (!token) return null;
@@ -18,6 +17,7 @@ export async function getCurrentUser(): Promise<User | null> {
       headers: {
         Cookie: cookieHeader,
       },
+
       cache: "no-store",
     });
 

@@ -1,5 +1,6 @@
 import { axios } from "@/lib/api-client";
 import { GetTenantDormParams } from "../types";
+
 export const TenantService = {
   getTenantDorm: async ({
     dormId,
