@@ -14,6 +14,7 @@ import {
   Home,
   Save,
   CheckCircle2,
+  Trash2,
 } from "lucide-react";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -26,6 +27,7 @@ import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendErrorMsg";
 import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 interface DormsDialogProps {
   dorm: Dormitory;
@@ -56,9 +58,24 @@ export default function DormsDialog({
   onClose,
   onEdit,
 }: DormsDialogProps) {
-  useHotkeys("esc", onClose);
+  // State ย้ายขึ้นมาด้านบนเพื่อให้ Hook มองเห็น
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // --- แก้จุดที่ 1: ปิด ESC เฉพาะตอนที่ Dialog ลบ "ปิด" อยู่ ---
+  useHotkeys("esc", () => {
+    if (!isDeleteDialogOpen) onClose();
+  });
+
   const closeRef = useRef<HTMLDivElement>(null!);
-  useOnClickOutside(closeRef, onClose);
+
+  // --- แก้จุดที่ 2: คลิกข้างนอกจะปิดได้ก็ต่อเมื่อ Dialog ลบ "ไม่ได้เปิดอยู่" ---
+  useOnClickOutside(closeRef, () => {
+    if (!isDeleteDialogOpen) {
+      onClose();
+    }
+  });
+
   const [initialData, setInitialData] = useState<DormFormData | null>(null);
   const isEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -117,6 +134,46 @@ export default function DormsDialog({
     }
   };
 
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await toast.promise(DormService.deleteDorm(dorm.id), {
+        pending: "กําลังลบหอพัก...",
+        success: "ลบหอพักเรียบร้อย",
+        error: {
+          render({ data }: any) {
+            const errorData = data?.response?.data;
+            const errorCode = errorData?.code;
+
+            log.error("Delete Error:", errorData);
+
+            if (errorCode === "DORM_HAS_DEPENDENCIES") {
+              return "ไม่สามารถลบได้: เนื่องจากยังมีห้องพักหรือผู้เช่าอยู่ในระบบ";
+            }
+
+            if (errorCode === "FORBIDDEN_ACCESS") {
+              return "คุณไม่มีสิทธิ์ลบหอพักนี้";
+            }
+
+            if (errorCode === "DORM_NOT_FOUND") {
+              return "ไม่พบข้อมูลหอพัก อาจถูกลบไปแล้ว";
+            }
+
+            return errorData?.message || "เกิดข้อผิดพลาดในการลบหอพัก";
+          },
+        },
+      });
+
+      onEdit?.();
+      onClose();
+    } catch (error: any) {
+      log.error(error);
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <RemoveScroll>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
@@ -133,7 +190,7 @@ export default function DormsDialog({
             </div>
             <button
               onClick={onClose}
-              className="rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
+              className="cursor-pointer rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
             >
               <X size={20} />
             </button>
@@ -328,22 +385,50 @@ export default function DormsDialog({
               </div>
             </form>
           </div>
-          <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4">
+
+          <div className="flex items-center justify-between border-t border-slate-100 bg-white px-6 py-4">
             <button
-              onClick={onClose}
-              className="cursor-pointer rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 focus:outline-none"
+              type="button"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              className="group flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-red-500 transition hover:bg-red-50 hover:text-red-600 max-sm:text-xs"
             >
-              ยกเลิก
+              <Trash2 size={18} className="transition group-hover:scale-110" />
+              <span>ลบหอพัก</span>
             </button>
-            <button
-              onClick={handleSave}
-              className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
-            >
-              <Save size={18} />
-              บันทึกข้อมูล
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="cursor-pointer rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 focus:outline-none max-sm:text-xs"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none max-sm:text-xs"
+              >
+                <Save size={18} />
+                บันทึกข้อมูล
+              </button>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* --- แก้จุดที่ 3: เอา ref={closeRef} ที่ครอบตัวนี้ออก --- */}
+      <div>
+        <ConfirmDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          onConfirm={handleDelete}
+          title="ต้องการลบหอพักนี้?"
+          description={`คุณแน่ใจหรือไม่ที่จะลบข้อมูล "${formData.name}" การดำเนินการนี้ไม่สามารถเรียกคืนข้อมูลกลับมาได้`}
+          type="error"
+          confirmText="ยืนยันลบ"
+          cancelText="ไม่, เก็บไว้"
+          isLoading={isDeleting}
+        />
       </div>
     </RemoveScroll>
   );

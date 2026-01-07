@@ -21,3 +21,15 @@ export interface CreateBulkRoomsDto {
   dormitoryId: string;
   rooms: CreateRoomItemDto[];
 }
+
+export interface Rooms {
+  id: string;
+  floor: number;
+  dormitoryId: string;
+  roomNumber: string;
+  basePrice: number;
+  type: RoomType;
+  status: RoomStatus;
+  deletedAt: string | null;
+  createdAt: string;
+}

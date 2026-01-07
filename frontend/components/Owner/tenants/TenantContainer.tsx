@@ -7,7 +7,7 @@ import { TenantService } from "@/features/tenant/services/tenant.service";
 import { Dormitory } from "@/features/dormitory";
 import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendErrorMsg";
-
+import AddTenantDialog from "./AddTenantDialog";
 export default function TenantContainer() {
   const [dorms, setDorms] = useState<Dormitory[]>([]);
   const [selectedDorm, setSelectedDorm] = useState<string>();
@@ -80,6 +80,7 @@ export default function TenantContainer() {
     return () => clearTimeout(timer);
   }, [search]);
 
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   return (
     <div className="flex h-[calc(90vh-2rem)] flex-col gap-6 overflow-hidden bg-white py-1">
       <div className="col-span-12 grid grid-cols-12 gap-3 md:col-span-8">
@@ -98,7 +99,10 @@ export default function TenantContainer() {
           <Building className="pointer-events-none absolute top-1/2 right-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
         </div>
         <div className="order-2 col-span-12 sm:col-span-6 md:order-3 md:col-span-4">
-          <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-md transition hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-md transition hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
             <Plus className="h-5 w-5" />
             เพิ่มผู้เช่า
           </button>
@@ -141,6 +145,16 @@ export default function TenantContainer() {
             </button>
           </div>
         </div>
+      )}
+      {selectedDorm && (
+        <AddTenantDialog
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          dormId={selectedDorm}
+          onSuccess={() => {
+            getTenants();
+          }}
+        />
       )}
     </div>
   );

@@ -193,7 +193,7 @@ export const DormController = {
       const result = await dormService.updateDormStatus(
         dormId,
         isPublished,
-        user.sub,
+        user.sub
       );
       return reply.send(result);
     } catch (error: any) {
@@ -316,7 +316,7 @@ export const DormController = {
           dormId,
           objectKey,
           fileData.mimetype,
-          optimizedBuffer.length,
+          optimizedBuffer.length
         );
       });
 
@@ -359,7 +359,7 @@ export const DormController = {
 
       const isOwner = await dormService.isOwnerOfDorm(
         image.dormitoryId,
-        user.sub,
+        user.sub
       );
 
       if (!isOwner)
@@ -460,7 +460,7 @@ export const DormController = {
         dormId,
         user.sub,
         targetMonth,
-        targetYear,
+        targetYear
       );
       return reply.send(overview);
     } catch (error: any) {
@@ -481,10 +481,12 @@ export const DormController = {
   async deleteDorm(request: FastifyRequest, reply: FastifyReply) {
     const user = request.user as UserDecodedDto;
 
-    if (!user)
+    if (!user) {
       return reply.status(401).send({
-        message: "UNAUTHORIZED",
+        code: "UNAUTHORIZED",
+        message: "User not authenticated",
       });
+    }
 
     const { dormId } = request.params as {
       dormId: string;
@@ -492,7 +494,8 @@ export const DormController = {
 
     if (!dormId) {
       return reply.status(400).send({
-        message: "DORM_ID_REQUIRED",
+        code: "DORM_ID_REQUIRED",
+        message: "Dormitory ID is required",
       });
     }
 
@@ -501,26 +504,45 @@ export const DormController = {
 
       return reply.send({
         success: true,
-        message: "DORM_DELETED",
+        code: "DORM_DELETED_SUCCESS",
+        message: "Dormitory has been permanently deleted",
       });
     } catch (error: any) {
-      logger.error(error.message);
+      logger.error(`Delete Dorm Error: ${error.message}`);
 
-      if (error.message === "FORBIDDEN") {
-        return reply.status(403).send({
-          message: "FORBIDDEN",
-        });
+      switch (error.message) {
+        // เพิ่ม Case นี้สำหรับหอที่ไม่ว่าง
+        case "DORM_NOT_EMPTY":
+          return reply.status(409).send({
+            code: "DORM_HAS_DEPENDENCIES",
+            message:
+              "Cannot delete dormitory because it contains rooms or active tenants. Please delete all rooms first.",
+          });
+
+        case "FORBIDDEN":
+          return reply.status(403).send({
+            code: "FORBIDDEN_ACCESS",
+            message: "You don't have permission to delete this dormitory",
+          });
+
+        case "NOT_FOUND":
+          return reply.status(404).send({
+            code: "DORM_NOT_FOUND",
+            message: "Dormitory not found",
+          });
+
+        case "OWNER_PROFILE_NOT_FOUND":
+          return reply.status(403).send({
+            code: "OWNER_PROFILE_NOT_FOUND",
+            message: "Owner profile not found",
+          });
+
+        default:
+          return reply.status(500).send({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "An unexpected error occurred",
+          });
       }
-
-      if (error.message === "NOT_FOUND") {
-        return reply.status(404).send({
-          message: "DORM_NOT_FOUND",
-        });
-      }
-
-      return reply.status(500).send({
-        message: "DELETE_FAILED",
-      });
     }
   },
 };

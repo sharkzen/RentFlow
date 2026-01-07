@@ -183,7 +183,7 @@ export const roomService = {
       basePrice?: number;
       description?: string;
       status?: RoomStatus;
-    },
+    }
   ) {
     const room = await prisma.room.findUnique({
       where: {
@@ -250,5 +250,33 @@ export const roomService = {
     });
 
     return updatedRoom;
+  },
+  async getAllAvailableRooms(user: UserDecodedDto, dormId: string) {
+    // 1. เช็คว่าเป็นเจ้าของหอ
+    const owner = await prisma.ownerProfile.findUnique({
+      where: { userId: user.sub },
+    });
+
+    if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
+
+    // 2. ดึงห้องทั้งหมดที่ AVAILABLE ของหอนี้ (ไม่ใส่ take/skip = ไม่ limit)
+    const rooms = await prisma.room.findMany({
+      where: {
+        dormitoryId: dormId,
+        dormitory: { ownerId: owner.id }, // Security Check
+        status: "AVAILABLE",
+      },
+      // เลือกเฉพาะ field ที่จำเป็นสำหรับ Dropdown เพื่อลดภาระ server
+      select: {
+        id: true,
+        roomNumber: true,
+        floor: true,
+        basePrice: true,
+        type: true,
+      },
+      orderBy: [{ floor: "asc" }, { roomNumber: "asc" }],
+    });
+
+    return rooms;
   },
 };

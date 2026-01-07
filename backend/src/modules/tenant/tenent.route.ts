@@ -11,8 +11,9 @@ export async function tenantRoute(app: FastifyInstance) {
     routeRoles.addHook("preHandler", authMiddleware);
     routeRoles.addHook(
       "preHandler",
-      authRoleMiddleware([Role.ADMIN, Role.OWNER, Role.TENANT]),
+      authRoleMiddleware([Role.ADMIN, Role.OWNER, Role.TENANT])
     );
+    routeRoles.post("/", TenantController.createTenant);
     routeRoles.get("/:dormId", TenantController.getTenantDorm);
   });
 }

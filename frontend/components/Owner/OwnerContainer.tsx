@@ -64,7 +64,7 @@ const CustomSelect = ({
     <div className={`relative ${className}`} ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-full w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold transition-all hover:border-blue-400 focus:ring-2 focus:ring-blue-100 ${isOpen ? "border-blue-500 ring-2 ring-blue-100" : ""}`}
+        className={`flex h-full w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold transition-all hover:border-blue-400 focus:ring-2 focus:ring-blue-100 ${isOpen ? "border-blue-500 ring-2 ring-blue-100" : ""}`}
       >
         <div className="flex items-center gap-2 truncate">
           {icon && <span className="text-gray-400">{icon}</span>}
@@ -81,7 +81,7 @@ const CustomSelect = ({
       </button>
 
       {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-[160px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 duration-200">
+        <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-40 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 duration-200">
           <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent max-h-60 overflow-y-auto py-1">
             {options.map((option) => {
               const isActive = option.value === value;
@@ -93,7 +93,7 @@ const CustomSelect = ({
                     onChange(option.value);
                     setIsOpen(false);
                   }}
-                  className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors ${isActive ? "bg-blue-50 font-semibold text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}
+                  className={`flex w-full cursor-pointer items-center justify-between px-4 py-2.5 text-left text-sm transition-colors ${isActive ? "bg-blue-50 font-semibold text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}
                 >
                   <span className="truncate">{option.label}</span>
                   {isActive && <Check size={14} className="shrink-0" />}

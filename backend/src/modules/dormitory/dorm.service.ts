@@ -107,7 +107,7 @@ export const dormService = {
             dorm.latitude,
             dorm.longitude,
             targetLandmark.latitude,
-            targetLandmark.longitude,
+            targetLandmark.longitude
           );
         }
 
@@ -141,12 +141,12 @@ export const dormService = {
       totalItems = allDormIds.length;
       const dormsWithImages = allDormIds.filter((d) => d.images.length > 0);
       const dormsWithoutImages = allDormIds.filter(
-        (d) => d.images.length === 0,
+        (d) => d.images.length === 0
       );
       shuffleArray(dormsWithImages);
       shuffleArray(dormsWithoutImages);
       const sortedIds = [...dormsWithImages, ...dormsWithoutImages].map(
-        (d) => d.id,
+        (d) => d.id
       );
       const pageIds = sortedIds.slice(skip, skip + limit);
 
@@ -206,7 +206,7 @@ export const dormService = {
           dorm.images.map(async (img: any) => ({
             ...img,
             url: await generateSignedUrl(img.objectKey),
-          })),
+          }))
         );
 
         let nearbyData = null;
@@ -237,7 +237,7 @@ export const dormService = {
                 dorm.latitude,
                 dorm.longitude,
                 lm.latitude,
-                lm.longitude,
+                lm.longitude
               );
 
               if (dist < minDistance) {
@@ -264,7 +264,7 @@ export const dormService = {
           images: imagesWithUrl,
           nearby: nearbyData,
         };
-      }),
+      })
     );
 
     return {
@@ -311,7 +311,7 @@ export const dormService = {
           ...img,
           url: await generateSignedUrl(img.objectKey),
         };
-      }),
+      })
     );
 
     return {
@@ -574,14 +574,14 @@ export const dormService = {
           dorm.images.map(async (img) => ({
             ...img,
             url: await generateSignedUrl(img.objectKey),
-          })),
+          }))
         );
 
         return {
           ...dorm,
           images: imagesWithUrl,
         };
-      }),
+      })
     );
 
     return dormsWithUrl;
@@ -592,7 +592,7 @@ export const dormService = {
     dormId: string,
     objectKey: string,
     mimeType: string,
-    size: number,
+    size: number
   ) {
     const existingCount = await prisma.file.count({
       where: {
@@ -640,7 +640,7 @@ export const dormService = {
         new DeleteObjectCommand({
           Bucket: env.BUCKET,
           Key: image.objectKey,
-        }),
+        })
       );
     } catch (err: any) {
       if (err?.name !== "NoSuchKey" && err?.Code !== "NoSuchKey") {
@@ -681,7 +681,7 @@ export const dormService = {
       images.map(async (img) => ({
         ...img,
         url: await generateSignedUrl(img.objectKey),
-      })),
+      }))
     );
 
     return imagesWithUrl;
@@ -693,7 +693,7 @@ export const dormService = {
       id: string;
       order: number;
       isCover: boolean;
-    }[],
+    }[]
   ) {
     const existingImages = await prisma.file.findMany({
       where: {
@@ -736,7 +736,7 @@ export const dormService = {
           order: img.order,
           isCover: img.isCover,
         },
-      }),
+      })
     );
 
     await Promise.all(updatePromises);
@@ -747,7 +747,7 @@ export const dormService = {
     dormId: string,
     userId: string,
     month: number,
-    year: number,
+    year: number
   ) {
     const owner = await prisma.ownerProfile.findUnique({
       where: {
@@ -948,16 +948,17 @@ export const dormService = {
 
   async deleteDorm(dormId: string, userId: string) {
     const ownerProfile = await prisma.ownerProfile.findUnique({
-      where: {
-        userId,
-      },
+      where: { userId },
     });
 
-    if (!ownerProfile) throw new Error("FORBIDDEN");
+    if (!ownerProfile) throw new Error("OWNER_PROFILE_NOT_FOUND");
 
     const dorm = await prisma.dormitory.findUnique({
-      where: {
-        id: dormId,
+      where: { id: dormId },
+      include: {
+        _count: {
+          select: { rooms: true },
+        },
       },
     });
 
@@ -969,15 +970,13 @@ export const dormService = {
       throw new Error("FORBIDDEN");
     }
 
-    return await prisma.dormitory.update({
+    if (dorm._count.rooms > 0) {
+      throw new Error("DORM_NOT_EMPTY");
+    }
+
+    return await prisma.dormitory.delete({
       where: {
         id: dormId,
-      },
-
-      data: {
-        deletedAt: new Date(),
-        status: "BANNED",
-        isPublished: false,
       },
     });
   },

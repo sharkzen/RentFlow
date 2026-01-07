@@ -18,4 +18,8 @@ export const TenantService = {
 
     return res.data;
   },
+  createTenant: async (data: any) => {
+    const res = await axios.post(`/api/tenants`, data);
+    return res.data;
+  },
 };

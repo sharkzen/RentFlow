@@ -135,4 +135,21 @@ export const RoomController = {
       });
     }
   },
+  async getAvailableRooms(request: FastifyRequest, reply: FastifyReply) {
+    const user = request.user as UserDecodedDto;
+
+    if (!user) return reply.status(401).send({ message: "UNAUTHORIZED" });
+
+    const { dormId } = request.params as { dormId: string };
+
+    try {
+      const rooms = await roomService.getAllAvailableRooms(user, dormId);
+      return reply.send(rooms);
+    } catch (error: any) {
+      if (error.message === "OWNER_PROFILE_NOT_FOUND") {
+        return reply.status(403).send({ message: "FORBIDDEN" });
+      }
+      return reply.status(500).send({ message: "INTERNAL_SERVER_ERROR" });
+    }
+  },
 };
