@@ -33,7 +33,6 @@ interface DormsDialogProps {
   onEdit?: () => void;
 }
 
-// Reusable Label Component
 const Label = ({ icon: Icon, children, required }: any) => (
   <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
     {Icon && <Icon size={16} className="text-slate-400" />}
@@ -42,7 +41,6 @@ const Label = ({ icon: Icon, children, required }: any) => (
   </label>
 );
 
-// Reusable Input Component
 const Input = ({
   className,
   ...props

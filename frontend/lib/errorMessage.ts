@@ -22,4 +22,13 @@ export const errorMessageMap: Record<string, string> = {
   NOT_FOUND: "ไม่พบข้อมูลที่ร้องขอ",
   TENANTS_NOT_FOUND: "ไม่พบข้อมูลผู้เช่า",
   NAME_REQUIRED: "กรุณากรอกชื่อหอพัก",
+  CREATE_SUCCESS: "สร้างห้องพักสำเร็จ 🎉",
+  CREATE_PARTIAL_SUCCESS: "บางห้องถูกสร้างไม่สำเร็จ",
+  DUPLICATE_ROOMS: "มีห้องซ้ำในระบบ",
+  DUPLICATE_ROOM_NUMBER: "เลขห้องนี้มีอยู่ในระบบแล้ว กรุณาใช้เลขอื่น",
+  ROOM_NOT_FOUND: "ไม่พบข้อมูลห้องพัก",
+  CANNOT_CHANGE_STATUS_OCCUPIED:
+    "ห้องมีผู้เช่าอยู่ ไม่สามารถเปลี่ยนสถานะได้ กรุณาแจ้งย้ายออกก่อน",
+  CANNOT_SET_STATUS_TO_OCCUPIED_MANUALLY:
+    "ไม่สามารถตั้งสถานะมีผู้เช่าโดยตรงได้ กรุณาไปที่เมนูจัดการผู้เช่า",
 };

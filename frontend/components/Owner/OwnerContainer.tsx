@@ -62,7 +62,6 @@ const CustomSelect = ({
 
   return (
     <div className={`relative ${className}`} ref={containerRef}>
-      {}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`flex h-full w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold transition-all hover:border-blue-400 focus:ring-2 focus:ring-blue-100 ${isOpen ? "border-blue-500 ring-2 ring-blue-100" : ""}`}
@@ -80,10 +79,9 @@ const CustomSelect = ({
           className={`shrink-0 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-      {}
+
       {isOpen && (
         <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-[160px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 duration-200">
-          {}
           <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent max-h-60 overflow-y-auto py-1">
             {options.map((option) => {
               const isActive = option.value === value;
@@ -226,7 +224,6 @@ export default function OwnerContainer() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {}
           <CustomSelect
             options={dormOptions}
             value={selectedDormId}
@@ -235,7 +232,7 @@ export default function OwnerContainer() {
             icon={<Home size={16} className="text-blue-500" />}
             className="w-full sm:w-56"
           />
-          {}
+
           <CustomSelect
             options={monthOptions}
             value={month}
@@ -243,7 +240,7 @@ export default function OwnerContainer() {
             icon={<Calendar size={16} className="text-gray-400" />}
             className="w-full sm:w-40"
           />
-          {}
+
           <CustomSelect
             options={yearOptions}
             value={year}
@@ -261,7 +258,6 @@ export default function OwnerContainer() {
         </div>
       ) : (
         <div className="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
-          {}
           <div>
             <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-800">
               <DollarSign className="text-green-500" size={20} />
@@ -298,14 +294,13 @@ export default function OwnerContainer() {
               />
             </div>
           </div>
-          {}
+
           <div>
             <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-800">
               <Wrench className="text-orange-500" size={20} />
               การแจ้งซ่อม ({monthOptions[month - 1].label} {year})
             </h2>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {}
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">
@@ -320,7 +315,7 @@ export default function OwnerContainer() {
                   <div className="h-1.5 w-full rounded-full bg-gray-400"></div>
                 </div>
               </div>
-              {}
+
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">
@@ -340,7 +335,7 @@ export default function OwnerContainer() {
                   ></div>
                 </div>
               </div>
-              {}
+
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">
@@ -360,7 +355,7 @@ export default function OwnerContainer() {
                   ></div>
                 </div>
               </div>
-              {}
+
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">

@@ -15,7 +15,7 @@ interface DormsCardProps {
 export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
   const [published, setPublished] = useState(dorm.isPublished);
   const cover =
-    dorm.images?.find((i) => i.isCover)?.url ?? dorm.images?.[0]?.url ?? null; // ⬅️ เปลี่ยนให้รู้ว่าจริง ๆ ไม่มีรูป
+    dorm.images?.find((i) => i.isCover)?.url ?? dorm.images?.[0]?.url ?? null;
 
   const togglePublish = async () => {
     const next = !published;

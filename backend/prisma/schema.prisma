@@ -191,6 +191,7 @@ model Room {
   id                  String               @id @default(uuid())
   dormitoryId         String
   roomNumber          String
+  floor               Int
   type                RoomType?
   description         String?
   images              File[]               @relation("RoomImages")
@@ -216,7 +217,7 @@ model Room {
 model TenantProfile {
   id                 String  @id @default(uuid())
   userId             String
-  roomId             String
+  roomId             String?
   firstName          String
   lastName           String
   phone              String?
@@ -236,7 +237,7 @@ model TenantProfile {
 
   maintenanceRequests MaintenanceRequest[]
   user                User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
-  room                Room                 @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  room                Room?                 @relation(fields: [roomId], references: [id], onDelete: Restrict)
   bills               Bill[]
 
   createdAt DateTime @default(now())

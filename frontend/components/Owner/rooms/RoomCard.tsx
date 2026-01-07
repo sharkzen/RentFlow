@@ -1,5 +1,6 @@
 import React from "react";
 import { Edit, Trash2, Wind, Snowflake, Loader2 } from "lucide-react";
+import EditRoomDialog from "./EditRoomDialog";
 
 interface RoomCardProps {
   rooms: any[];
@@ -8,6 +9,7 @@ interface RoomCardProps {
   setPage: (page: number) => void;
   totalPages: number;
   totalItems: number;
+  onRefresh?: () => void;
 }
 
 export default function RoomCard({
@@ -17,8 +19,8 @@ export default function RoomCard({
   setPage,
   totalPages,
   totalItems,
+  onRefresh,
 }: RoomCardProps) {
-  // --- Loading State ---
   if (loading) {
     return (
       <div className="flex h-[70vh] w-full items-center justify-center rounded-xl border border-gray-200 bg-white">
@@ -30,7 +32,6 @@ export default function RoomCard({
     );
   }
 
-  // --- Empty State ---
   if (!rooms || rooms.length === 0) {
     return (
       <div className="flex h-[70vh] w-full items-center justify-center rounded-xl border border-gray-200 bg-white">
@@ -102,9 +103,7 @@ export default function RoomCard({
                   ชั้น {room.floor}
                 </div>
                 <div className="col-span-2 flex justify-end gap-2">
-                  <button className="cursor-pointer rounded-lg border border-gray-200 p-2 text-gray-400 transition hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600 active:scale-95">
-                    <Edit size={16} />
-                  </button>
+                  <EditRoomDialog room={room} onSuccess={() => onRefresh?.()} />
                 </div>
               </div>
             ))}

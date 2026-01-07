@@ -49,7 +49,6 @@ export const tenantService = {
       deletedAt: null,
     };
 
-    // 🔍 global search (ตรง schema จริง)
     if (search) {
       where.OR = [
         {

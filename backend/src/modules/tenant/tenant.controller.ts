@@ -11,7 +11,6 @@ interface GetTenantDormQuery {
 export const TenantController = {
   getTenantDorm: async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      // 1️⃣ params
       const { dormId } = request.params as {
         dormId?: string;
       };
@@ -22,7 +21,6 @@ export const TenantController = {
         });
       }
 
-      // 2️⃣ auth
       const { sub } = request.user as {
         sub?: string;
       };
@@ -33,10 +31,8 @@ export const TenantController = {
         });
       }
 
-      // 3️⃣ query
       const { page, limit, search } = request.query as GetTenantDormQuery;
 
-      // 4️⃣ call service
       const result = await tenantService.getTenantDorm({
         dormId,
         sub,
@@ -45,7 +41,6 @@ export const TenantController = {
         search: search?.trim() || undefined,
       });
 
-      // 5️⃣ response
       return reply.status(200).send(result);
     } catch (error: any) {
       logger.error(error);

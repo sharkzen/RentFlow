@@ -4,15 +4,16 @@ import { ChevronDown, Check } from "lucide-react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { RoomService } from "@/features/room/services/room.service";
 import { Dormitory } from "@/features/dormitory";
-import CreateRoomWithDialog from "./CreateRoom";
+import CreateRoomWithDialog from "./CreateRoomWithDialog";
 import RoomCard from "./RoomCard";
-import RoomFilters from "./RoomFilters"; // Import Component ใหม่
+import RoomFilters from "./RoomFilters";
 import log from "@/lib/logger";
 
 export default function RoomContainer() {
   const [open, setOpen] = useState(false);
   const [dorms, setDorms] = useState<Dormitory[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
+  const [floorFilter, setFloorFilter] = useState("");
   const [selectedDormId, setSelectedDormId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
@@ -45,20 +46,15 @@ export default function RoomContainer() {
     setIsLoading(true);
 
     try {
-      // ส่ง page ไปด้วย
       const res = await RoomService.getRoomsByDormitory(selectedDormId, {
         search: search,
         status: statusFilter,
         type: typeFilter,
-
-        // ส่งหน้าปัจจุบัน
+        floor: floorFilter,
         page: page,
-
-        // กำหนดจำนวนต่อหน้า (เช่น 10)
         limit: 10,
       });
 
-      // API ส่งกลับมาเป็น { data, meta }
       setRooms(res.data);
 
       setMeta({
@@ -71,7 +67,7 @@ export default function RoomContainer() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedDormId, search, statusFilter, typeFilter, page]);
+  }, [selectedDormId, search, statusFilter, typeFilter, page, floorFilter]);
 
   useEffect(() => {
     setPage(1);
@@ -148,6 +144,7 @@ export default function RoomContainer() {
               onSuccess={() => {
                 fetchRooms();
               }}
+              onClose={() => setOpen(false)}
             />
           </div>
         </div>
@@ -158,6 +155,8 @@ export default function RoomContainer() {
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
         typeFilter={typeFilter}
+        floorFilter={floorFilter}
+        setFloorFilter={setFloorFilter}
         setTypeFilter={setTypeFilter}
       />
       <div className="min-w-0">
@@ -168,6 +167,7 @@ export default function RoomContainer() {
           setPage={setPage}
           totalPages={meta.totalPages}
           totalItems={meta.total}
+          onRefresh={fetchRooms}
         />
       </div>
     </div>

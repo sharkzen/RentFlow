@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthProvider";
 import useLogout from "@/features/auth/hooks/useLogout";
 import { toast } from "react-toastify";
-import { LayoutDashboard, LogOut, ChevronDown } from "lucide-react";
+import { LayoutDashboard, LogOut, ChevronDown, Home } from "lucide-react";
 import { Role } from "@/features/auth";
 import Skeleton from "@/components/ui/Skeleton";
 
@@ -136,6 +136,13 @@ export default function Header() {
                           </p>
                         </div>
                         <div className="space-y-1">
+                          <Link
+                            href={"/"}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600"
+                          >
+                            <Home size={16} />
+                            หน้าหลัก
+                          </Link>
                           <Link
                             href={dashbaordRole(user.role)}
                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600"

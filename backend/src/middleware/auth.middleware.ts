@@ -1,6 +1,4 @@
-// src/middleware/auth.middleware.ts
 import { FastifyRequest, FastifyReply } from "fastify";
-
 import jwt from "jsonwebtoken";
 import logger from "@/utils/logger";
 import { Role } from "@/types/role.type";

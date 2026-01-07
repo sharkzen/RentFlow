@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, Layers, ChevronDown } from "lucide-react";
 
 interface RoomFiltersProps {
   search: string;
@@ -8,6 +8,8 @@ interface RoomFiltersProps {
   setStatusFilter: (val: string) => void;
   typeFilter: string;
   setTypeFilter: (val: string) => void;
+  floorFilter: string;
+  setFloorFilter: (val: string) => void;
 }
 
 export default function RoomFilters({
@@ -17,6 +19,8 @@ export default function RoomFilters({
   setStatusFilter,
   typeFilter,
   setTypeFilter,
+  floorFilter,
+  setFloorFilter,
 }: RoomFiltersProps) {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-gray-100 bg-white p-3 sm:flex-row sm:items-center">
@@ -39,7 +43,17 @@ export default function RoomFilters({
         )}
       </div>
       <div className="hidden h-6 w-px bg-gray-200 sm:block"></div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+        <div className="relative w-24 sm:w-28">
+          <Layers className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            value={floorFilter}
+            onChange={(e) => setFloorFilter(e.target.value)}
+            placeholder="ชั้น"
+            className="h-full w-full rounded-lg border border-gray-200 pr-3 pl-9 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
         <div className="relative">
           <select
             value={statusFilter}
@@ -67,24 +81,5 @@ export default function RoomFilters({
         </div>
       </div>
     </div>
-  );
-}
-
-function ChevronDown({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
   );
 }
