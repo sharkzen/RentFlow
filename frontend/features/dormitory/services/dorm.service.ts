@@ -100,9 +100,4 @@ export const DormService = {
     const res = await axios.delete(`/api/dorms/${dormId}`);
     return res.data;
   },
-
-  getAvailableRooms: async (dormId: string) => {
-    const res = await axios.get(`/api/rooms/${dormId}/rooms/available`);
-    return res.data;
-  },
 };

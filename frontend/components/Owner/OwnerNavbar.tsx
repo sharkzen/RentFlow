@@ -82,7 +82,6 @@ export default function OwnerNavbar() {
               </h1>
               <p className="text-xs font-medium text-slate-400">Owner Panel</p>
             </div>
-
             <button
               className="ml-auto cursor-pointer p-2 text-gray-600 hover:text-gray-500 min-[960px]:hidden"
               onClick={() => setSidebarOpen(false)}
@@ -109,7 +108,6 @@ export default function OwnerNavbar() {
           </div>
         </div>
       </aside>
-
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/30 min-[960px]:hidden"

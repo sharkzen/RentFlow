@@ -13,10 +13,7 @@ export async function roomRoute(app: FastifyInstance) {
       "preHandler",
       authRoleMiddleware([Role.OWNER, Role.ADMIN]),
     );
-    routeRoles.get(
-      "/:dormId/rooms/available",
-      RoomController.getAvailableRooms,
-    );
+    routeRoles.get("/:dormId/rooms", RoomController.getRooms);
     routeRoles.post("/bulk", RoomController.createBulk);
     routeRoles.get("/:dormId", RoomController.getRoom);
     routeRoles.patch("/:roomId", RoomController.updateRoom);

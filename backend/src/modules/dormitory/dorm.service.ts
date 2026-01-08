@@ -84,12 +84,7 @@ export const dormService = {
         where: whereCondition,
 
         include: {
-          images: {
-            where: {
-              isCover: true,
-            },
-          },
-
+          images: true,
           settings: true,
         },
       });
@@ -159,12 +154,7 @@ export const dormService = {
           },
 
           include: {
-            images: {
-              where: {
-                isCover: true,
-              },
-            },
-
+            images: true,
             settings: true,
           },
         });
@@ -182,12 +172,7 @@ export const dormService = {
         where: whereCondition,
 
         include: {
-          images: {
-            where: {
-              isCover: true,
-            },
-          },
-
+          images: true,
           settings: true,
         },
 
@@ -594,14 +579,28 @@ export const dormService = {
     mimeType: string,
     size: number,
   ) {
-    const existingCount = await prisma.file.count({
+    const hasCover = await prisma.file.findFirst({
+      where: {
+        dormitoryId: dormId,
+        category: "DORMITORY",
+        isCover: true,
+      },
+    });
+
+    const isCover = !hasCover;
+
+    const lastImage = await prisma.file.findFirst({
       where: {
         dormitoryId: dormId,
         category: "DORMITORY",
       },
+
+      orderBy: {
+        order: "desc",
+      },
     });
 
-    const isCover = existingCount === 0;
+    const newOrder = (lastImage?.order ?? -1) + 1;
 
     const command = new PutObjectCommand({
       Bucket: env.BUCKET,
@@ -621,25 +620,25 @@ export const dormService = {
         size,
         category: "DORMITORY",
         isCover,
-        order: existingCount,
+        order: newOrder,
       },
     });
   },
 
   async deleteDormImage(imageId: string) {
-    const image = await prisma.file.findUnique({
+    const imageToDelete = await prisma.file.findUnique({
       where: {
         id: imageId,
       },
     });
 
-    if (!image) throw new Error("Image not found");
+    if (!imageToDelete) throw new Error("Image not found");
 
     try {
       await minioClient.send(
         new DeleteObjectCommand({
           Bucket: env.BUCKET,
-          Key: image.objectKey,
+          Key: imageToDelete.objectKey,
         }),
       );
     } catch (err: any) {
@@ -653,6 +652,31 @@ export const dormService = {
         id: imageId,
       },
     });
+
+    if (imageToDelete.isCover) {
+      const nextCoverCandidate = await prisma.file.findFirst({
+        where: {
+          dormitoryId: imageToDelete.dormitoryId,
+          category: "DORMITORY",
+        },
+
+        orderBy: {
+          order: "asc",
+        },
+      });
+
+      if (nextCoverCandidate) {
+        await prisma.file.update({
+          where: {
+            id: nextCoverCandidate.id,
+          },
+
+          data: {
+            isCover: true,
+          },
+        });
+      }
+    }
 
     return true;
   },
@@ -966,19 +990,35 @@ export const dormService = {
             rooms: true,
           },
         },
+
+        images: true,
       },
     });
 
-    if (!dorm) {
-      throw new Error("NOT_FOUND");
-    }
+    if (!dorm) throw new Error("NOT_FOUND");
 
-    if (dorm.ownerId !== ownerProfile.id) {
-      throw new Error("FORBIDDEN");
-    }
+    if (dorm.ownerId !== ownerProfile.id) throw new Error("FORBIDDEN");
 
-    if (dorm._count.rooms > 0) {
-      throw new Error("DORM_NOT_EMPTY");
+    if (dorm._count.rooms > 0) throw new Error("DORM_NOT_EMPTY");
+
+    if (dorm.images && dorm.images.length > 0) {
+      const deletePromises = dorm.images.map((img) =>
+        minioClient
+          .send(
+            new DeleteObjectCommand({
+              Bucket: env.BUCKET,
+              Key: img.objectKey,
+            }),
+          )
+          .catch((err) => {
+            console.error(
+              `Failed to delete image ${img.objectKey} from MinIO:`,
+              err,
+            );
+          }),
+      );
+
+      await Promise.all(deletePromises);
     }
 
     return await prisma.dormitory.delete({

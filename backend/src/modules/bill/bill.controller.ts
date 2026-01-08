@@ -38,11 +38,16 @@ export const BillController = {
     try {
       const user = request.user as UserDecodedDto;
       const body = request.body as any;
-      const result = await billService.createBills(user.sub, body);
+
+      if (!body.dormId) {
+        return reply.status(400).send({
+          message: "Dormitory ID is required",
+        });
+      }
+
+      const result = await billService.createBills(body.dormId, body);
       return reply.status(201).send(result);
     } catch (error: any) {
-      logger.error(error);
-
       return reply.status(500).send({
         message: error.message,
       });

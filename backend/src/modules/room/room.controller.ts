@@ -3,6 +3,11 @@ import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import { roomService } from "./room.service";
 import logger from "@/utils/logger";
 import { CreateBulkRoomsDto } from "./dtos/room.dto";
+import { RoomStatus } from "@prisma/client";
+
+interface GetRoomsQuery {
+  status?: RoomStatus;
+}
 
 export const RoomController = {
   async getRoom(request: FastifyRequest, reply: FastifyReply) {
@@ -136,20 +141,23 @@ export const RoomController = {
     }
   },
 
-  async getAvailableRooms(request: FastifyRequest, reply: FastifyReply) {
+  async getRooms(request: FastifyRequest, reply: FastifyReply) {
     const user = request.user as UserDecodedDto;
 
-    if (!user)
+    if (!user) {
       return reply.status(401).send({
         message: "UNAUTHORIZED",
       });
+    }
 
     const { dormId } = request.params as {
       dormId: string;
     };
 
+    const query = request.query as GetRoomsQuery;
+
     try {
-      const rooms = await roomService.getAllAvailableRooms(user, dormId);
+      const rooms = await roomService.getRooms(user, dormId, query.status);
       return reply.send(rooms);
     } catch (error: any) {
       if (error.message === "OWNER_PROFILE_NOT_FOUND") {

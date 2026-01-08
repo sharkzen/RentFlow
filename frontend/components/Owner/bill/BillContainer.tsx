@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-
 import {
   Plus,
   Search,
@@ -8,11 +7,8 @@ import {
   Building,
   ChevronDown,
   Check,
-  Calendar,
-  X,
-  CreditCard,
 } from "lucide-react";
-
+import { toast } from "react-toastify";
 import BillTable from "./BillTable";
 import CreateBillDialog from "./CreateBillDialog";
 import BillDetailDialog from "./BillDetailDialog";
@@ -20,7 +16,6 @@ import MonthYearPicker from "@/components/ui/MonthYearPicker";
 import { BillService } from "@/features/bill/services/bill.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Bill } from "@/features/bill/types";
-import { toast } from "react-toastify";
 
 export default function BillContainer() {
   const [dorms, setDorms] = useState<any[]>([]);
@@ -35,37 +30,31 @@ export default function BillContainer() {
   const [isDormDropdownOpen, setIsDormDropdownOpen] = useState(false);
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [rooms, setRooms] = useState<any[]>([]);
 
   const statusOptions = [
     {
       label: "ทั้งหมด",
       value: "ALL",
-      desc: "แสดงทุกรายการ",
       color: "text-gray-600",
     },
     {
       label: "รอชำระ",
       value: "PENDING",
-      desc: "ยังไม่จ่ายเงิน",
       color: "text-yellow-600",
     },
     {
       label: "ชำระแล้ว",
       value: "PAID",
-      desc: "ยืนยันยอดแล้ว",
       color: "text-green-600",
     },
     {
       label: "เกินกำหนด",
       value: "OVERDUE",
-      desc: "เลยวันครบกำหนด",
       color: "text-red-600",
     },
     {
       label: "ยกเลิก",
       value: "CANCELLED",
-      desc: "บิลถูกยกเลิก",
       color: "text-gray-400",
     },
   ];
@@ -94,7 +83,6 @@ export default function BillContainer() {
     if (!selectedDorm) return;
 
     fetchBills();
-    fetchRooms();
   }, [selectedDorm, statusFilter, selectedMonth]);
 
   useEffect(() => {
@@ -128,23 +116,6 @@ export default function BillContainer() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchRooms = async () => {
-    setRooms([
-      {
-        id: "r1",
-        roomNumber: "101",
-      },
-      {
-        id: "r2",
-        roomNumber: "102",
-      },
-      {
-        id: "r3",
-        roomNumber: "103",
-      },
-    ]);
   };
 
   const handleCreateBill = async (data: any) => {
@@ -189,7 +160,7 @@ export default function BillContainer() {
           <div className="relative min-w-40">
             <button
               onClick={() => setIsDormDropdownOpen(!isDormDropdownOpen)}
-              className="flex w-full items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium shadow-sm transition-all hover:bg-gray-50 focus:ring-2 focus:ring-indigo-100"
+              className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium shadow-sm transition-all hover:bg-gray-50 focus:ring-2 focus:ring-indigo-100"
             >
               <div className="flex items-center gap-2 truncate">
                 <Building size={16} className="text-indigo-600" />
@@ -217,7 +188,7 @@ export default function BillContainer() {
                         setSelectedDorm(dorm.id);
                         setIsDormDropdownOpen(false);
                       }}
-                      className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-sm transition-colors ${selectedDorm === dorm.id ? "bg-indigo-50 text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-2 text-sm transition-colors ${selectedDorm === dorm.id ? "bg-indigo-50 text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
                     >
                       <span>{dorm.name}</span>
                       {selectedDorm === dorm.id && <Check size={14} />}
@@ -227,10 +198,9 @@ export default function BillContainer() {
               </>
             )}
           </div>
-
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow active:scale-95"
+            className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow active:scale-95"
           >
             <Plus size={18} />
             <span>สร้างบิล</span>
@@ -274,7 +244,7 @@ export default function BillContainer() {
                   className="fixed inset-0"
                   onClick={() => setIsStatusDropdownOpen(false)}
                 />
-                <div className="absolute right-0 mt-1 w-48 rounded-lg border bg-white p-1 shadow-lg">
+                <div className="absolute right-0 z-10 mt-1 w-48 rounded-lg border bg-white p-1 shadow-lg">
                   {statusOptions.map((opt) => (
                     <button
                       key={opt.value}
@@ -296,6 +266,7 @@ export default function BillContainer() {
           </div>
         </div>
       </div>
+
       <div className="flex h-[65vh] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="flex-1 overflow-auto">
           <div className="min-w-200">
@@ -310,8 +281,7 @@ export default function BillContainer() {
             />
           </div>
         </div>
-
-        <div className="border-t bg-gray-50 p-2 text-center text-xs text-gray-500">
+        <div className="bg-gray-50 p-2 text-center text-xs text-gray-500">
           แสดงทั้งหมด {bills.length}รายการ
         </div>
       </div>
@@ -325,11 +295,13 @@ export default function BillContainer() {
         }}
         onUpdateStatus={handleUpdateStatus}
       />
+
       <CreateBillDialog
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSubmit={handleCreateBill}
-        rooms={rooms}
+        selectedDormId={selectedDorm}
+        dormName={currentDormName}
       />
     </div>
   );

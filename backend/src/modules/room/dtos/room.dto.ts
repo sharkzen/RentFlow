@@ -3,12 +3,7 @@ export enum RoomType {
   FAN = "FAN",
 }
 
-export enum RoomStatus {
-  AVAILABLE = "AVAILABLE",
-  OCCUPIED = "OCCUPIED",
-  MAINTENANCE = "MAINTENANCE",
-  DISABLED = "DISABLED",
-}
+export { RoomStatus } from "@prisma/client";
 
 export interface CreateRoomItemDto {
   roomNumber: string;

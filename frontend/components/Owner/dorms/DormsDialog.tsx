@@ -105,16 +105,15 @@ export default function DormsDialog({
   }, []);
 
   const handleSave = async () => {
+    if (initialData && isEqual(initialData, formData)) {
+      onClose();
+      return;
+    }
+
     const payload: DormFormData = {
       ...formData,
       description: parseDescription(formData.description),
     };
-
-    if (initialData && isEqual(initialData, payload)) {
-      toast.info("ไม่มีการเปลี่ยนแปลงข้อมูล");
-      onClose();
-      return;
-    }
 
     try {
       await toast.promise(DormService.updateDorm(payload), {
@@ -184,7 +183,6 @@ export default function DormsDialog({
               <h2 className="text-xl font-bold text-slate-800">
                 แก้ไขข้อมูลหอพัก
               </h2>
-              <p className="text-xs text-slate-500">ID: {dorm.id}</p>
             </div>
             <button
               onClick={onClose}
@@ -289,12 +287,13 @@ export default function DormsDialog({
                       ค่าไฟ (บาท/หน่วย)
                     </Label>
                     <Input
+                      min="0"
                       type="number"
                       value={formData.electricRate}
                       onChange={(e) =>
                         updateField("electricRate", parseFloat(e.target.value))
                       }
-                      step="0.01"
+                      step="1"
                     />
                   </div>
                   <div>
@@ -302,17 +301,19 @@ export default function DormsDialog({
                       ค่าน้ำ (บาท/หน่วย)
                     </Label>
                     <Input
+                      min="0"
                       type="number"
                       value={formData.waterRate}
                       onChange={(e) =>
                         updateField("waterRate", parseFloat(e.target.value))
                       }
-                      step="0.01"
+                      step="1"
                     />
                   </div>
                   <div>
                     <Label icon={Info}>ส่วนกลาง (บาท/เดือน)</Label>
                     <Input
+                      min="0"
                       type="number"
                       value={formData.commonFee}
                       onChange={(e) =>
@@ -350,6 +351,7 @@ export default function DormsDialog({
                   <div>
                     <Label icon={AlertCircle}>ค่าปรับล่าช้า (บาท/วัน)</Label>
                     <Input
+                      min="0"
                       type="number"
                       value={formData.lateFee}
                       onChange={(e) =>

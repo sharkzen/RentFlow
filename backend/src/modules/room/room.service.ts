@@ -252,7 +252,7 @@ export const roomService = {
     return updatedRoom;
   },
 
-  async getAllAvailableRooms(user: UserDecodedDto, dormId: string) {
+  async getRooms(user: UserDecodedDto, dormId: string, status?: RoomStatus) {
     const owner = await prisma.ownerProfile.findUnique({
       where: {
         userId: user.sub,
@@ -261,23 +261,51 @@ export const roomService = {
 
     if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
 
-    const rooms = await prisma.room.findMany({
+    const dormSettings = await prisma.dormitorySetting.findUnique({
       where: {
         dormitoryId: dormId,
+      },
+    });
 
-        dormitory: {
-          ownerId: owner.id,
-        },
+    const whereCondition: Prisma.RoomWhereInput = {
+      dormitoryId: dormId,
 
-        status: "AVAILABLE",
+      dormitory: {
+        ownerId: owner.id,
       },
 
-      select: {
-        id: true,
-        roomNumber: true,
-        floor: true,
-        basePrice: true,
-        type: true,
+      ...(status
+        ? {
+            status: status,
+          }
+        : {}),
+    };
+
+    const rooms = await prisma.room.findMany({
+      where: whereCondition,
+
+      include: {
+        tenants: {
+          where: {
+            isActive: true,
+          },
+
+          take: 1,
+        },
+
+        bills: {
+          orderBy: {
+            billingMonth: "desc",
+          },
+
+          take: 1,
+
+          where: {
+            status: {
+              not: "CANCELLED",
+            },
+          },
+        },
       },
 
       orderBy: [
@@ -290,7 +318,27 @@ export const roomService = {
       ],
     });
 
-    return rooms;
+    return rooms.map((room) => {
+      const currentTenant = room.tenants[0];
+      const lastBill = room.bills[0];
+
+      return {
+        id: room.id,
+        roomNumber: room.roomNumber,
+        floor: room.floor,
+        type: room.type,
+        basePrice: room.basePrice,
+        status: room.status,
+        tenantName: currentTenant
+          ? `${currentTenant.firstName} ${currentTenant.lastName}`
+          : null,
+        tenantId: currentTenant?.id || null,
+        lastWaterUnit: lastBill?.currentWaterUnitSnapshot ?? 0,
+        lastElectricUnit: lastBill?.currentElectricUnitSnapshot ?? 0,
+        hasLastBill: !!lastBill,
+        commonFee: dormSettings?.commonFee ?? 0,
+      };
+    });
   },
 
   async deleteRoom(user: UserDecodedDto, roomId: string) {

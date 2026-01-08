@@ -1,5 +1,4 @@
-# minio runtime data
-minio-data/
+
 
 # docker volumes (เผื่อในอนาคต)
 *.volume/

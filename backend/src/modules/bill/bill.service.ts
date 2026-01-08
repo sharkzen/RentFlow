@@ -95,100 +95,82 @@ export const billService = {
     };
   },
 
-  createBills: async (sub: string, data: CreateBillDto) => {
-    const owner = await prisma.ownerProfile.findUnique({
+  async createBills(dormId: string, data: any) {
+    const { billingMonth, items } = data;
+
+    const billingDate = new Date(billingMonth);
+
+    const dormSettings = await prisma.dormitorySetting.findUnique({
       where: {
-        userId: sub,
+        dormitoryId: dormId,
       },
     });
 
-    if (!owner) throw new Error("OWNER_NOT_FOUND");
+    if (!dormSettings) throw new Error("ไม่พบการตั้งค่าหอพัก");
 
-    const settings = await prisma.dormitorySetting.findUnique({
-      where: {
-        dormitoryId: data.dormId,
-      },
-    });
+    const createdBills = [];
 
-    if (!settings) throw new Error("DORM_SETTINGS_NOT_FOUND");
+    for (const item of items) {
+      const room = await prisma.room.findUnique({
+        where: {
+          id: item.roomId,
+        },
 
-    const billingDate = new Date(data.billingMonth);
-    const dueDate = new Date(billingDate);
-    dueDate.setDate(dueDate.getDate() + settings.dueDay);
-    const results: Bill[] = [];
-
-    await prisma.$transaction(async (tx) => {
-      for (const item of data.items) {
-        const room = await tx.room.findUnique({
-          where: {
-            id: item.roomId,
-          },
-
-          include: {
-            tenants: {
-              where: {
-                isActive: true,
-              },
+        include: {
+          tenants: {
+            where: {
+              isActive: true,
             },
           },
-        });
+        },
+      });
 
-        if (!room || room.tenants.length === 0) continue;
+      if (!room || room.tenants.length === 0) continue;
 
-        const tenant = room.tenants[0];
+      const tenant = room.tenants[0];
+      const waterUsed = item.currentWater - item.prevWater;
+      const electricUsed = item.currentElectric - item.prevElectric;
+      const waterFee = waterUsed * dormSettings.waterRate;
+      const electricFee = electricUsed * dormSettings.electricRate;
+      const total =
+        (tenant.roomPriceSnapshot || room.basePrice) +
+        waterFee +
+        electricFee +
+        Number(item.commonFee);
+      const dueDate = new Date(billingDate);
+      dueDate.setDate(dormSettings.dueDay);
+      dueDate.setMonth(dueDate.getMonth() + dormSettings.dueMonthOffset);
 
-        const lastBill = await tx.bill.findFirst({
-          where: {
-            roomId: item.roomId,
+      const newBill = await prisma.bill.create({
+        data: {
+          roomId: room.id,
+          tenantId: tenant.id,
+          billingMonth: billingDate,
+          dueDate: dueDate,
+          tenantNameSnapshot: `${tenant.firstName} ${tenant.lastName}`,
+          roomNumberSnapshot: room.roomNumber,
+          roomPriceSnapshot: tenant.roomPriceSnapshot || room.basePrice,
+          prevWaterUnitSnapshot: Number(item.prevWater),
+          currentWaterUnitSnapshot: Number(item.currentWater),
+          waterUsedSnapshot: waterUsed,
+          waterRateSnapshot: dormSettings.waterRate,
+          waterFeeSnapshot: waterFee,
+          prevElectricUnitSnapshot: Number(item.prevElectric),
+          currentElectricUnitSnapshot: Number(item.currentElectric),
+          electricUsedSnapshot: electricUsed,
+          electricRateSnapshot: dormSettings.electricRate,
+          electricFeeSnapshot: electricFee,
+          commonFeeSnapshot: Number(item.commonFee),
+          lateFeeSnapshot: dormSettings.lateFee,
+          total: total,
+          status: "PENDING",
+        },
+      });
 
-            status: {
-              not: "CANCELLED",
-            },
-          },
+      createdBills.push(newBill);
+    }
 
-          orderBy: {
-            billingMonth: "desc",
-          },
-        });
-
-        const prevWater = lastBill ? lastBill.waterUnitSnapshot : 0;
-        const prevElectric = lastBill ? lastBill.electricUnitSnapshot : 0;
-        const waterUsage = Math.max(0, item.waterUnit - prevWater);
-        const electricUsage = Math.max(0, item.electricUnit - prevElectric);
-        const waterCost = waterUsage * settings.waterRate;
-        const electricCost = electricUsage * settings.electricRate;
-        const total =
-          room.basePrice +
-          waterCost +
-          electricCost +
-          (item.commonFee || settings.commonFee) +
-          (item.otherFee || 0);
-
-        const bill = await tx.bill.create({
-          data: {
-            roomId: item.roomId,
-            tenantId: tenant.id,
-            billingMonth: billingDate,
-            dueDate: dueDate,
-            tenantNameSnapshot: `${tenant.firstName} ${tenant.lastName}`,
-            roomNumberSnapshot: room.roomNumber,
-            roomPriceSnapshot: room.basePrice,
-            waterUnitSnapshot: item.waterUnit,
-            electricUnitSnapshot: item.electricUnit,
-            waterRateSnapshot: settings.waterRate,
-            electricRateSnapshot: settings.electricRate,
-            commonFeeSnapshot: item.commonFee || settings.commonFee,
-            lateFeeSnapshot: settings.lateFee,
-            total: total,
-            status: "PENDING",
-          },
-        });
-
-        results.push(bill);
-      }
-    });
-
-    return results;
+    return createdBills;
   },
 
   updateStatus: async (sub: string, billId: string, status: BillStatus) => {

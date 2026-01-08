@@ -267,9 +267,6 @@ model Bill {
   roomId   String
   tenantId String
 
-  // =====================
-  // SNAPSHOT ข้อมูลสัญญา
-  // =====================
   tenantNameSnapshot String
   roomNumberSnapshot String
   roomPriceSnapshot  Float
@@ -277,40 +274,26 @@ model Bill {
   billingMonth DateTime
   dueDate      DateTime
 
-  // =====================
-  // WATER METER
-  // =====================
   prevWaterUnitSnapshot     Float
   currentWaterUnitSnapshot  Float
   waterUsedSnapshot         Float
   waterRateSnapshot         Float
   waterFeeSnapshot          Float
 
-  // =====================
-  // ELECTRIC METER
-  // =====================
   prevElectricUnitSnapshot     Float
   currentElectricUnitSnapshot  Float
   electricUsedSnapshot         Float
   electricRateSnapshot         Float
   electricFeeSnapshot          Float
 
-  // =====================
-  // OTHER FEES
-  // =====================
   commonFeeSnapshot Float
   lateFeeSnapshot   Float
 
-  // =====================
-  // TOTAL
-  // =====================
   total    Float
+  note String?
   status   BillStatus @default(PENDING)
   archived Boolean    @default(false)
 
-  // =====================
-  // RELATIONS
-  // =====================
   room    Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
   tenant  TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   payment Payment?

@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 
 import { Rooms } from "@/features/room/types";
-import { DormService } from "@/features/dormitory/services/dorm.service";
+import { RoomService } from "@/features/room/services/room.service";
 import { TenantService } from "@/features/tenant/services/tenant.service";
 import log from "@/lib/logger";
 import { toast } from "react-toastify";
@@ -93,7 +93,7 @@ export default function AddTenantDialog({
     if (isOpen && dormId) {
       const fetchRooms = async () => {
         try {
-          const res = await DormService.getAvailableRooms(dormId);
+          const res = await RoomService.getRooms(dormId, "AVAILABLE");
           setRooms(res);
         } catch (error) {
           log.error("Failed to fetch rooms", error);

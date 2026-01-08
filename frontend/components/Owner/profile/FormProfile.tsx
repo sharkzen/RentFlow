@@ -229,7 +229,6 @@ export default function FormProfile() {
           </button>
         )}
       </div>
-
       <div className="p-6 md:p-8">
         <div className="grid grid-cols-1 gap-x-8 gap-y-6 lg:grid-cols-2">
           <div className="group">
@@ -254,7 +253,6 @@ export default function FormProfile() {
               <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>
             )}
           </div>
-
           <div className="group">
             <label className="mb-1.5 block text-xs font-semibold text-gray-700">
               เบอร์โทรศัพท์{" "}
@@ -277,7 +275,6 @@ export default function FormProfile() {
               <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
             )}
           </div>
-
           <div className="group">
             <label className="mb-1.5 block text-xs font-semibold text-gray-700">
               Line ID
@@ -329,7 +326,6 @@ export default function FormProfile() {
             )}
           </div>
         </div>
-
         {isEditing && (
           <div className="animate-in fade-in slide-in-from-bottom-2 mt-10 flex items-center justify-end gap-3 border-t border-gray-50 pt-6 duration-300">
             <button

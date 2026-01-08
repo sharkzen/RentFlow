@@ -151,14 +151,12 @@ export default function TenantContainer() {
                 className={`shrink-0 text-gray-400 transition-transform duration-200 ${isDormDropdownOpen ? "rotate-180 text-indigo-500" : ""}`}
               />
             </button>
-
             {isDormDropdownOpen && (
               <div
                 className="fixed inset-0 z-10 cursor-default"
                 onClick={() => setIsDormDropdownOpen(false)}
               />
             )}
-
             {isDormDropdownOpen && (
               <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-50 overflow-hidden rounded-lg border border-gray-100 bg-white p-1 shadow-lg ring-1 ring-black/5 duration-100">
                 <div className="custom-scrollbar max-h-60 overflow-y-auto">
@@ -187,7 +185,6 @@ export default function TenantContainer() {
             )}
           </div>
         </div>
-
         <div className="relative order-3 col-span-12 sm:col-span-8 md:order-2 md:col-span-4">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
@@ -197,7 +194,6 @@ export default function TenantContainer() {
             className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pr-4 pl-9 text-sm transition hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
           />
         </div>
-
         <div className="relative order-4 col-span-12 sm:col-span-6 md:order-3 md:col-span-3">
           <div className="relative h-full">
             <button
@@ -222,7 +218,6 @@ export default function TenantContainer() {
                 onClick={() => setIsFilterOpen(false)}
               />
             )}
-
             {isFilterOpen && (
               <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-45 overflow-hidden rounded-lg border border-gray-100 bg-white p-1 shadow-lg ring-1 ring-black/5 duration-100">
                 {filterOptions.map((option) => (
@@ -255,7 +250,6 @@ export default function TenantContainer() {
             )}
           </div>
         </div>
-
         <div className="order-2 col-span-12 sm:col-span-6 md:order-4 md:col-span-2">
           <button
             onClick={() => setIsAddModalOpen(true)}
@@ -267,7 +261,6 @@ export default function TenantContainer() {
           </button>
         </div>
       </div>
-
       <div className="relative flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="absolute inset-0 overflow-auto">
           <TenantList
@@ -277,7 +270,6 @@ export default function TenantContainer() {
           />
         </div>
       </div>
-
       {meta.totalPages > 1 && (
         <div className="flex items-center justify-between pt-2 text-sm text-gray-600">
           <span>ทั้งหมด {meta.total}รายการ</span>

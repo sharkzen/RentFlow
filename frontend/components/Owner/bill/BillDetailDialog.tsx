@@ -1,17 +1,13 @@
+"use client";
 import { useState } from "react";
-
 import {
   X,
-  CheckCircle,
-  XCircle,
   FileText,
   Image as ImageIcon,
-  Calendar,
   Droplets,
   Zap,
-  DollarSign,
+  CheckCircle,
 } from "lucide-react";
-
 import { Bill } from "@/features/bill/types";
 
 interface Props {
@@ -63,7 +59,6 @@ export default function BillDetailDialog({
               <X size={20} />
             </button>
           </div>
-
           <div className="custom-scrollbar flex-1 overflow-y-auto p-6">
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -103,7 +98,7 @@ export default function BillDetailDialog({
                     <div>
                       <p className="text-xs text-gray-500">มิเตอร์น้ำ</p>
                       <p className="font-mono font-bold text-gray-800">
-                        {bill.waterUnitSnapshot.toLocaleString()}{" "}
+                        {bill.waterUnitSnapshot?.toLocaleString() ?? 0}{" "}
                         <span className="text-xs font-normal text-gray-400">
                           หน่วย
                         </span>
@@ -117,7 +112,7 @@ export default function BillDetailDialog({
                     <div>
                       <p className="text-xs text-gray-500">มิเตอร์ไฟ</p>
                       <p className="font-mono font-bold text-gray-800">
-                        {bill.electricUnitSnapshot.toLocaleString()}{" "}
+                        {bill.electricUnitSnapshot?.toLocaleString() ?? 0}{" "}
                         <span className="text-xs font-normal text-gray-400">
                           หน่วย
                         </span>
@@ -138,18 +133,27 @@ export default function BillDetailDialog({
                       ฿{bill.roomPriceSnapshot.toLocaleString()}
                     </span>
                   </div>
-
                   <div className="flex justify-between border-b border-dashed border-gray-100 py-2">
                     <span className="text-gray-600">
                       ค่าน้ำ ({bill.waterRateSnapshot}บ./หน่วย)
+                      <span className="ml-1 text-xs text-gray-400">
+                        ({bill.waterUnitSnapshot}หน่วย)
+                      </span>
                     </span>
-                    <span className="font-medium text-gray-900">-</span>
+                    <span className="font-medium text-gray-900">
+                      ฿{bill.lateFeeSnapshot?.toLocaleString() ?? 0}
+                    </span>
                   </div>
                   <div className="flex justify-between border-b border-dashed border-gray-100 py-2">
                     <span className="text-gray-600">
                       ค่าไฟ ({bill.electricRateSnapshot}บ./หน่วย)
+                      <span className="ml-1 text-xs text-gray-400">
+                        ({bill.electricUnitSnapshot}หน่วย)
+                      </span>
                     </span>
-                    <span className="font-medium text-gray-900">-</span>
+                    <span className="font-medium text-gray-900">
+                      ฿{bill.electricRateSnapshot?.toLocaleString() ?? 0}
+                    </span>
                   </div>
                   <div className="flex justify-between border-b border-dashed border-gray-100 py-2">
                     <span className="text-gray-600">ค่าส่วนกลาง</span>
@@ -194,6 +198,11 @@ export default function BillDetailDialog({
                 ชำระเรียบร้อยแล้ว
               </button>
             )}
+            {bill.status === "CANCELLED" && (
+              <button className="flex cursor-default items-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-500">
+                ยกเลิกแล้ว
+              </button>
+            )}
           </div>
         </div>
 
@@ -230,7 +239,6 @@ export default function BillDetailDialog({
               </div>
             )}
           </div>
-
           {bill.payment && (
             <div className="space-y-2 border-t bg-white p-4 text-xs text-gray-500">
               <p>
@@ -244,6 +252,7 @@ export default function BillDetailDialog({
           )}
         </div>
       </div>
+
       {isPreviewImageOpen && slipUrl && (
         <div
           className="fixed inset-0 z-60 flex items-center justify-center bg-black/90 p-4"

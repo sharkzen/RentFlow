@@ -81,16 +81,33 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
       return;
     }
 
-    try {
+    const uploadProcess = async () => {
       await DormService.uploadImages(dormId, selectedFiles);
-      toast.success(`อัพโหลด ${selectedFiles.length} รูปสำเร็จ`);
       await fetchImages();
-    } catch (error: any) {
-      log.error(error);
-      showBackendError(error);
-    } finally {
-      e.target.value = "";
-    }
+    };
+
+    await toast.promise(uploadProcess(), {
+      pending: "กำลังอัพโหลดรูปภาพ...",
+
+      success: {
+        render() {
+          return `อัพโหลด ${selectedFiles.length} รูปสำเร็จ`;
+        },
+      },
+
+      error: {
+        render({ data }: any) {
+          log.error(data);
+          const msg =
+            data?.response?.data?.message ||
+            data?.message ||
+            "เกิดข้อผิดพลาดในการอัพโหลด";
+          return `อัพโหลดไม่สำเร็จ: ${msg} ❌`;
+        },
+      },
+    });
+
+    e.target.value = "";
   };
 
   const handleRemove = async (id: string) => {
@@ -131,7 +148,7 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
       );
 
       await fetchImages();
-    } catch (error) {
+    } catch (error: any) {
       log.error(error);
       showBackendError(error);
     }
@@ -237,6 +254,7 @@ function SortableImage({
         )}
       </div>
       <button
+        type="button"
         onClick={(e) => {
           e.stopPropagation();
           onRemove(id);

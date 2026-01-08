@@ -1,42 +1,41 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import DormsCard from "./DormsCard";
 import DormsDialog from "./DormsDialog";
-import { Dormitory } from "@/features/dormitory";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Plus, Building2 } from "lucide-react";
 import DromCreate from "./DromCreate";
 import { Spinner } from "@/components/ui/Spinner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Dormitory } from "@/features/dormitory";
 
 export default function DormsContainer() {
-  const [dorms, setDorms] = useState<Dormitory[]>([]);
+  const queryClient = useQueryClient();
   const [selectedDorm, setSelectedDorm] = useState<Dormitory | null>(null);
   const [onCreate, setOnCreate] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  const fetchDorms = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await DormService.getDorm();
-      setDorms(data);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data: dorms = [], isLoading } = useQuery<Dormitory[]>({
+    queryKey: ["dorms"],
+    queryFn: () => DormService.getDorm(),
+  });
 
-  useEffect(() => {
-    fetchDorms();
-  }, [fetchDorms]);
+  const refreshDorms = () => {
+    queryClient.invalidateQueries({
+      queryKey: ["dorms"],
+    });
+  };
 
   const handleCloseDialog = () => {
     setSelectedDorm(null);
-    fetchDorms();
   };
 
   return (
-    <div className="container mx-auto max-w-7xl px-4 py-8">
+    <div className="container mx-auto">
       {onCreate && (
-        <DromCreate onClose={() => setOnCreate(false)} onSuccess={fetchDorms} />
+        <DromCreate
+          onClose={() => setOnCreate(false)}
+          onSuccess={refreshDorms}
+        />
       )}
       <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
@@ -55,7 +54,7 @@ export default function DormsContainer() {
           <span>เพิ่มหอพักใหม่</span>
         </button>
       </div>
-      {loading ? (
+      {isLoading ? (
         <div className="flex h-64 items-center justify-center">
           <Spinner />
         </div>
@@ -90,7 +89,7 @@ export default function DormsContainer() {
         <DormsDialog
           dorm={selectedDorm}
           onClose={handleCloseDialog}
-          onEdit={fetchDorms}
+          onEdit={refreshDorms}
         />
       )}
     </div>

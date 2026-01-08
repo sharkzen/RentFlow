@@ -1,5 +1,6 @@
 import { axios } from "@/lib/api-client";
 import { CreateBulkRoomsDto } from "../types";
+export type RoomStatusQuery = "AVAILABLE" | "OCCUPIED" | "MAINTENANCE" | "ALL";
 
 export const RoomService = {
   getRoomsByDormitory: async (
@@ -33,5 +34,15 @@ export const RoomService = {
   deleteRoom: async (roomId: string) => {
     const response = await axios.delete(`/api/rooms/${roomId}`);
     return response.data;
+  },
+
+  getRooms: async (dormId: string, status: RoomStatusQuery = "ALL") => {
+    const res = await axios.get(`/api/rooms/${dormId}/rooms`, {
+      params: {
+        status: status === "ALL" ? undefined : status,
+      },
+    });
+
+    return res.data;
   },
 };
