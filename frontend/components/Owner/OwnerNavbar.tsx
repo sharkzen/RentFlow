@@ -6,10 +6,10 @@ import {
   Building2,
   Users,
   Wrench,
-  BarChart3,
   BedDoubleIcon,
   ChevronRight,
   X,
+  ReceiptText,
   User2,
 } from "lucide-react";
 
@@ -30,6 +30,11 @@ export default function OwnerNavbar() {
       name: "จัดการหอพัก",
       icon: <Building2 size={20} />,
       href: "/owner/dorms",
+    },
+    {
+      name: "จัดการบิล",
+      icon: <ReceiptText size={20} />,
+      href: "/owner/bills",
     },
     {
       name: "จัดการห้องพัก",
@@ -57,17 +62,16 @@ export default function OwnerNavbar() {
     <>
       {!sidebarOpen && (
         <button
-          className="fixed top-11 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-r from-blue-600 to-cyan-500 text-white hover:cursor-pointer md:hidden"
+          className="fixed top-11 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-r from-blue-600 to-cyan-500 text-white hover:cursor-pointer min-[960px]:hidden"
           onClick={() => setSidebarOpen(true)}
         >
           <ChevronRight size={35} />
         </button>
       )}
       <aside
-        className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden bg-white transition-transform duration-300 ease-in-out md:sticky ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+        className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} /* Desktop (>960px): ให้เป็น Sticky และเลื่อนกลับมาแสดงผลเสมอ */ min-[960px]:sticky min-[960px]:translate-x-0`}
       >
         <div className="flex h-full flex-col">
-          {" "}
           <div className="flex items-center gap-3 px-6 py-8">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">
               <Building2 size={20} />
@@ -78,8 +82,9 @@ export default function OwnerNavbar() {
               </h1>
               <p className="text-xs font-medium text-slate-400">Owner Panel</p>
             </div>
+
             <button
-              className="ml-auto cursor-pointer p-2 text-gray-600 hover:text-gray-500 md:hidden"
+              className="ml-auto cursor-pointer p-2 text-gray-600 hover:text-gray-500 min-[960px]:hidden"
               onClick={() => setSidebarOpen(false)}
             >
               <X />
@@ -104,9 +109,10 @@ export default function OwnerNavbar() {
           </div>
         </div>
       </aside>
+
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/30 md:hidden"
+          className="fixed inset-0 z-30 bg-black/30 min-[960px]:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

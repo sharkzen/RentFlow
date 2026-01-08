@@ -9,10 +9,8 @@ import {
   Edit2,
   Save,
   X,
-  Info,
-  CheckCircle2,
+  Loader2,
   ExternalLink,
-  AlertCircle,
 } from "lucide-react";
 
 import { toast } from "react-toastify";
@@ -20,8 +18,9 @@ import { OwnerService } from "@/features/owner/services/owner.service";
 import log from "@/lib/logger";
 import { OwnerProfile } from "@/features/owner/types";
 
-export default function FormProfileColorful() {
+export default function FormProfile() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   const [formData, setFormData] = useState<OwnerProfile>({
@@ -36,7 +35,7 @@ export default function FormProfileColorful() {
 
   const fetchProfile = async () => {
     try {
-      setIsSaving(true);
+      setIsLoading(true);
       const data = await OwnerService.getOwnerProfile();
 
       const mappedData = {
@@ -52,7 +51,7 @@ export default function FormProfileColorful() {
       toast.error("ไม่สามารถโหลดข้อมูลโปรไฟล์ได้");
       log.error("Error fetching profile:", error);
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
@@ -61,15 +60,26 @@ export default function FormProfileColorful() {
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
 
-    if (errors[e.target.name as keyof OwnerProfile]) {
+    if (name === "phone") {
+      const numericValue = value.replace(/[^0-9-]/g, "");
+
+      setFormData({
+        ...formData,
+        [name]: numericValue,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
+
+    if (errors[name as keyof OwnerProfile]) {
       setErrors({
         ...errors,
-        [e.target.name]: "",
+        [name]: "",
       });
     }
   };
@@ -90,29 +100,24 @@ export default function FormProfileColorful() {
     }
 
     const phoneRegex = /^0[0-9]{8,9}$/;
+    const phoneClean = formData.phone?.replace(/-/g, "") || "";
 
     if (!formData.phone?.trim()) {
       newErrors.phone = "กรุณากรอกเบอร์โทรศัพท์";
       isValid = false;
-    } else if (!phoneRegex.test(formData.phone.replace(/-/g, ""))) {
-      newErrors.phone = "เบอร์โทรศัพท์ไม่ถูกต้อง (ตัวเลข 9-10 หลัก)";
+    } else if (!phoneRegex.test(phoneClean)) {
+      newErrors.phone = "เบอร์โทรศัพท์ไม่ถูกต้อง (9-10 หลัก)";
       isValid = false;
     }
 
     if (formData.lineId && formData.lineId.trim() !== "") {
       const lineValue = formData.lineId.trim();
-      const hasThaiCharacter = /[\u0E00-\u0E7F]/.test(lineValue);
-      const validLineFormat = /^[a-zA-Z0-9@._-]+$/;
 
-      if (hasThaiCharacter) {
-        newErrors.lineId =
-          "Line ID ต้องเป็นภาษาอังกฤษหรือตัวเลขเท่านั้น (ห้ามมีภาษาไทย)";
+      if (/[\u0E00-\u0E7F]/.test(lineValue)) {
+        newErrors.lineId = "Line ID ต้องเป็นภาษาอังกฤษหรือตัวเลข";
         isValid = false;
       } else if (/\s/.test(lineValue)) {
-        newErrors.lineId = "Line ID ห้ามมีการเว้นวรรค";
-        isValid = false;
-      } else if (!validLineFormat.test(lineValue)) {
-        newErrors.lineId = "Line ID มีตัวอักษรที่ไม่ได้รับอนุญาต";
+        newErrors.lineId = "Line ID ห้ามมีเว้นวรรค";
         isValid = false;
       }
     }
@@ -122,15 +127,15 @@ export default function FormProfileColorful() {
         new URL(formData.facebook);
 
         if (
-          !formData.facebook.includes("facebook.com") &&
-          !formData.facebook.includes("fb.me")
+          !formData.facebook.toLowerCase().includes("facebook.com") &&
+          !formData.facebook.toLowerCase().includes("fb.me")
         ) {
-          newErrors.facebook = "ลิงก์ต้องเป็นของ Facebook";
+          newErrors.facebook = "ลิงก์ต้องเป็นของ Facebook เท่านั้น";
           isValid = false;
         }
       } catch (_) {
         newErrors.facebook =
-          "รูปแบบลิงก์ไม่ถูกต้อง (ต้องขึ้นต้นด้วย http:// หรือ https://)";
+          "รูปแบบลิงก์ไม่ถูกต้อง (ต้องมี http:// หรือ https://)";
         isValid = false;
       }
     }
@@ -152,18 +157,19 @@ export default function FormProfileColorful() {
       formData.facebook !== originalData.facebook;
 
     if (!hasChanges) {
-      toast.success("บันทึกข้อมูลโปรไฟล์สำเร็จ");
       setIsEditing(false);
       return;
     }
+
+    setIsSaving(true);
 
     try {
       const updatedData = await toast.promise(
         OwnerService.updateOwnerProfile(formData),
         {
-          pending: "กำลังบันทึกข้อมูลโปรไฟล์...",
-          success: "บันทึกข้อมูลโปรไฟล์สำเร็จ",
-          error: "เกิดข้อผิดพลาด ไม่สามารถบันทึกข้อมูลโปรไฟล์ได้",
+          pending: "กำลังบันทึก...",
+          success: "บันทึกข้อมูลเรียบร้อย ✅",
+          error: "เกิดข้อผิดพลาดในการบันทึก ❌",
         },
       );
 
@@ -174,107 +180,176 @@ export default function FormProfileColorful() {
         facebook: updatedData.facebook,
       });
 
-      setOriginalData({
-        fullName: updatedData.fullName,
-        phone: updatedData.phone,
-        lineId: updatedData.lineId,
-        facebook: updatedData.facebook,
-      });
-
+      setOriginalData(formData);
       setIsEditing(false);
     } catch (error: any) {
       log.error("Error updating profile:", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
+  const inputBaseClass =
+    "w-full h-10 rounded-lg border px-3 pl-10 text-sm outline-none transition-all placeholder:text-gray-400";
+  const editClass =
+    "border-gray-300 bg-white text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200";
+  const viewClass = "border-gray-200 bg-gray-50 text-gray-500 cursor-default";
+  const iconClass = `absolute top-3 left-3 h-4 w-4 ${isEditing ? "text-gray-500" : "text-gray-400"} pointer-events-none transition-colors`;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 w-full flex-col items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white shadow-sm">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <span className="text-sm text-gray-500">กำลังโหลดข้อมูล...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-xl border border-slate-100 bg-white font-sans shadow-sm">
-      <div className="flex items-start gap-3 border-b border-indigo-100 bg-indigo-50 px-6 py-4">
-        <div className="mt-0.5 rounded-full bg-indigo-100 p-2 text-indigo-600">
-          <Info size={18} />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-sm font-semibold text-indigo-900">
-            ข้อมูลส่วนตัวและช่องทางติดต่อ
+    <div className="relative h-full w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
+        <div>
+          <h3 className="text-base font-semibold text-gray-800">
+            ข้อมูลส่วนตัว
           </h3>
-          <p className="mt-0.5 text-sm text-indigo-600/80">
-            ข้อมูลเหล่านี้จะถูกแสดงให้ผู้เช่าเห็นเพื่อให้ติดต่อคุณได้ง่ายขึ้น
+          <p className="text-xs text-gray-500">
+            ข้อมูลนี้จะแสดงให้ผู้เช่าเห็นเพื่อใช้ในการติดต่อ
           </p>
         </div>
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="flex cursor-pointer items-center gap-2 rounded-lg border border-indigo-100 bg-white px-4 py-2 text-sm font-medium text-indigo-600 shadow-sm transition-all hover:bg-indigo-500 hover:text-white"
+            className="group flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95"
           >
-            <Edit2 size={16} />
+            <Edit2
+              size={16}
+              className="transition-transform group-hover:-rotate-12"
+            />
             แก้ไขข้อมูล
           </button>
         )}
       </div>
-      <div className="p-6 md:p-10">
-        <div className="grid grid-cols-1 gap-x-12 gap-y-10 lg:grid-cols-2">
-          <ColorInput
-            label="ชื่อ-นามสกุล (เช่น สมชาย ใจดี (ชาย) )"
-            name="fullName"
-            value={formData.fullName}
-            icon={User}
-            theme="indigo"
-            isEditing={isEditing}
-            onChange={handleChange}
-            required
-            error={errors.fullName}
-          />
-          <ColorInput
-            label="เบอร์โทรศัพท์"
-            name="phone"
-            value={formData.phone}
-            icon={Phone}
-            theme="orange"
-            isEditing={isEditing}
-            onChange={handleChange}
-            required
-            error={errors.phone}
-          />
-          <ColorInput
-            label="Line ID"
-            name="lineId"
-            value={formData.lineId}
-            icon={MessageCircle}
-            theme="green"
-            isEditing={isEditing}
-            onChange={handleChange}
-            placeholder="เช่น my.line.id"
-            error={errors.lineId}
-          />
-          <ColorInput
-            label="Facebook Link"
-            name="facebook"
-            value={formData.facebook}
-            icon={Facebook}
-            theme="blue"
-            isEditing={isEditing}
-            onChange={handleChange}
-            isLink
-            placeholder="https://facebook.com/..."
-            error={errors.facebook}
-          />
+
+      <div className="p-6 md:p-8">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-6 lg:grid-cols-2">
+          <div className="group">
+            <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+              ชื่อ-นามสกุล{" "}
+              <span className="font-normal text-gray-400">(แสดงหน้าหอพัก)</span>{" "}
+              {isEditing && <span className="text-red-500">*</span>}
+            </label>
+            <div className="relative">
+              <User className={iconClass} />
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleChange}
+                disabled={!isEditing}
+                placeholder="ระบุชื่อ-นามสกุล"
+                className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.fullName ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
+              />
+            </div>
+            {errors.fullName && (
+              <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>
+            )}
+          </div>
+
+          <div className="group">
+            <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+              เบอร์โทรศัพท์{" "}
+              {isEditing && <span className="text-red-500">*</span>}
+            </label>
+            <div className="relative">
+              <Phone className={iconClass} />
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone || ""}
+                onChange={handleChange}
+                disabled={!isEditing}
+                maxLength={10}
+                placeholder="0xxxxxxxxx"
+                className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.phone ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
+              />
+            </div>
+            {errors.phone && (
+              <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
+            )}
+          </div>
+
+          <div className="group">
+            <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+              Line ID
+            </label>
+            <div className="relative">
+              <MessageCircle className={iconClass} />
+              <input
+                type="text"
+                name="lineId"
+                value={formData.lineId || ""}
+                onChange={handleChange}
+                disabled={!isEditing}
+                placeholder="ระบุ Line ID"
+                className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.lineId ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
+              />
+            </div>
+            {errors.lineId && (
+              <p className="mt-1 text-xs text-red-500">{errors.lineId}</p>
+            )}
+          </div>
+          <div className="group">
+            <label className="mb-1.5 flex justify-between text-xs font-semibold text-gray-700">
+              <span>Facebook Link</span>
+              {!isEditing && formData.facebook && (
+                <a
+                  href={formData.facebook}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex cursor-pointer items-center text-blue-600 hover:underline"
+                >
+                  เปิดลิงก์ <ExternalLink size={10} className="ml-1" />
+                </a>
+              )}
+            </label>
+            <div className="relative">
+              <Facebook className={iconClass} />
+              <input
+                type="text"
+                name="facebook"
+                value={formData.facebook || ""}
+                onChange={handleChange}
+                disabled={!isEditing}
+                placeholder="https://facebook.com/..."
+                className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.facebook ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
+              />
+            </div>
+            {errors.facebook && (
+              <p className="mt-1 text-xs text-red-500">{errors.facebook}</p>
+            )}
+          </div>
         </div>
+
         {isEditing && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 mt-12 flex items-center justify-end gap-4 border-t border-slate-50 pt-6">
+          <div className="animate-in fade-in slide-in-from-bottom-2 mt-10 flex items-center justify-end gap-3 border-t border-gray-50 pt-6 duration-300">
             <button
               onClick={handleCancel}
-              className="flex cursor-pointer items-center gap-2 rounded-lg px-6 py-2.5 font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-700"
+              disabled={isSaving}
+              className="cursor-pointer rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 active:scale-95 disabled:opacity-50"
             >
-              <X size={18} />
               ยกเลิก
             </button>
             <button
-              disabled={isSaving}
               onClick={handleSubmit}
-              className={`${isSaving ? "pointer-events-none opacity-50" : ""} flex transform cursor-pointer items-center gap-2 rounded-lg bg-linear-to-r from-indigo-600 to-violet-600 px-8 py-2.5 font-medium text-white shadow-lg transition-all hover:shadow-indigo-500/30 active:scale-95`}
+              disabled={isSaving}
+              className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-indigo-400"
             >
-              <Save size={18} />
-              บันทึกการเปลี่ยนแปลง
+              {isSaving ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <Save size={18} />
+              )}
+              {isSaving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
             </button>
           </div>
         )}
@@ -282,105 +357,3 @@ export default function FormProfileColorful() {
     </div>
   );
 }
-
-const ColorInput = ({
-  label,
-  name,
-  value,
-  onChange,
-  isEditing,
-  icon: Icon,
-  theme,
-  isLink,
-  placeholder,
-  required,
-  error,
-}: any) => {
-  const themeStyles: any = {
-    indigo: {
-      bg: "bg-indigo-100",
-      text: "text-indigo-600",
-      border: "focus:border-indigo-500",
-      ring: "focus:ring-indigo-100",
-    },
-
-    orange: {
-      bg: "bg-orange-100",
-      text: "text-orange-600",
-      border: "focus:border-orange-500",
-      ring: "focus:ring-orange-100",
-    },
-
-    green: {
-      bg: "bg-emerald-100",
-      text: "text-emerald-600",
-      border: "focus:border-emerald-500",
-      ring: "focus:ring-emerald-100",
-    },
-
-    blue: {
-      bg: "bg-blue-100",
-      text: "text-blue-600",
-      border: "focus:border-blue-500",
-      ring: "focus:ring-blue-100",
-    },
-  };
-
-  const currentTheme = themeStyles[theme] || themeStyles.indigo;
-
-  return (
-    <div className="group">
-      <label className="mb-2 ml-1 block text-xs font-semibold text-slate-400">
-        {label} {required && <span className="text-red-400">*</span>}
-      </label>
-      <div className="relative flex items-center">
-        <div
-          className={`mr-3 flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-300 ${isEditing ? `${currentTheme.bg} ${currentTheme.text} shadow-sm` : "bg-slate-50 text-slate-400"} `}
-        >
-          <Icon size={20} strokeWidth={isEditing ? 2.5 : 2} />
-        </div>
-        <div className="relative flex-1">
-          {isEditing ? (
-            <>
-              <input
-                type="text"
-                name={name}
-                value={value}
-                onChange={onChange}
-                placeholder={placeholder}
-                className={`w-full rounded-lg border bg-slate-50 px-4 py-2.5 text-base text-slate-800 transition-all outline-none ${error ? "border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-100" : `border-slate-200 ${currentTheme.border} focus:ring-4 ${currentTheme.ring}`}`}
-              />
-              {error && (
-                <div className="animate-in fade-in slide-in-from-top-1 absolute -bottom-6 left-0 flex items-center gap-1 text-xs text-red-500">
-                  <AlertCircle size={12} />
-                  <span>{error}</span>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="flex items-center gap-2 truncate px-2 py-2 text-base font-medium text-slate-700">
-              {isLink && value ? (
-                <a
-                  href={value}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1 hover:text-blue-600 hover:underline"
-                >
-                  {value} <ExternalLink size={14} className="opacity-50" />
-                </a>
-              ) : (
-                <span>{value || "-"}</span>
-              )}
-              {value && !isLink && (
-                <CheckCircle2
-                  size={14}
-                  className="text-emerald-500 opacity-0 transition-opacity group-hover:opacity-100"
-                />
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};

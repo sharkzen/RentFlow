@@ -29,4 +29,9 @@ export const RoomService = {
     const response = await axios.patch(`/api/rooms/${roomId}`, payload);
     return response.data;
   },
+
+  deleteRoom: async (roomId: string) => {
+    const response = await axios.delete(`/api/rooms/${roomId}`);
+    return response.data;
+  },
 };

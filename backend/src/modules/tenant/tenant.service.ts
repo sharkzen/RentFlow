@@ -1,12 +1,14 @@
 import prisma from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/modules/auth/lib/password";
 import { RoomStatus, UserRole, Status } from "@prisma/client";
+
 interface GetTenantDormParams {
   dormId: string;
   sub: string;
   page?: number;
   limit?: number;
   search?: string;
+  status?: string;
 }
 
 export const tenantService = {
@@ -16,6 +18,7 @@ export const tenantService = {
     page = 1,
     limit = 10,
     search,
+    status = "active",
   }: GetTenantDormParams) => {
     const owner = await prisma.ownerProfile.findUnique({
       where: {
@@ -50,6 +53,12 @@ export const tenantService = {
       deletedAt: null,
     };
 
+    if (status === "active") {
+      where.isActive = true;
+    } else if (status === "moved_out") {
+      where.isActive = false;
+    }
+
     if (search) {
       where.OR = [
         {
@@ -60,6 +69,18 @@ export const tenantService = {
         },
         {
           lastName: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          phone: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          idCard: {
             contains: search,
             mode: "insensitive",
           },
@@ -110,6 +131,7 @@ export const tenantService = {
             select: {
               id: true,
               email: true,
+              status: true,
             },
           },
         },
@@ -127,50 +149,54 @@ export const tenantService = {
       totalPages: Math.ceil(total / limit),
     };
   },
+
   createTenant: async (userId: string, data: any) => {
-    // 1. เช็คว่าเป็น Owner จริงไหม
     const owner = await prisma.ownerProfile.findUnique({
-      where: { userId },
+      where: {
+        userId,
+      },
     });
+
     if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
 
-    // 2. เช็คว่าห้องว่างจริงไหม และเป็นของ Owner คนนี้ไหม
     const room = await prisma.room.findUnique({
-      where: { id: data.roomId },
-      include: { dormitory: true },
+      where: {
+        id: data.roomId,
+      },
+
+      include: {
+        dormitory: true,
+      },
     });
 
     if (!room) throw new Error("ROOM_NOT_FOUND");
+
     if (room.dormitory.ownerId !== owner.id) throw new Error("DORM_NOT_OWNED");
+
     if (room.status !== RoomStatus.AVAILABLE)
       throw new Error("ROOM_NOT_AVAILABLE");
 
-    // 3. เช็ค Email ซ้ำ
     const existingUser = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: {
+        email: data.email,
+      },
     });
+
     if (existingUser) throw new Error("EMAIL_ALREADY_EXISTS");
 
-    // 4. เตรียม Password (เปลี่ยนมาใช้ hashPassword ของ Argon2)
-    // ถ้าไม่ได้ส่ง password มา ให้ใช้เบอร์โทร หรือ default 12345678
     const rawPassword = data.password || data.phone || "12345678";
-
-    // *** เรียกใช้ function hashPassword ที่คุณ import มา ***
     const hashedPassword = await hashPassword(rawPassword);
 
-    // 5. เริ่ม Transaction
     return await prisma.$transaction(async (tx) => {
-      // 5.1 สร้าง User Account
       const newUser = await tx.user.create({
         data: {
           email: data.email,
-          password: hashedPassword, // เก็บ Argon2 hash
-          role: UserRole.TENANT, // ใช้ Enum UserRole ตาม schema
-          status: Status.ACTIVE, // ใช้ Enum Status ตาม schema
+          password: hashedPassword,
+          role: UserRole.TENANT,
+          status: Status.ACTIVE,
         },
       });
 
-      // 5.2 สร้าง Tenant Profile
       const newTenant = await tx.tenantProfile.create({
         data: {
           userId: newUser.id,
@@ -180,26 +206,281 @@ export const tenantService = {
           phone: data.phone,
           idCard: data.idCard,
           email: data.email,
-
-          // Snapshot ข้อมูล
+          address: data.address,
+          numberOfResidents: Number(data.numberOfResidents) || 1,
           roomPriceSnapshot: room.basePrice,
           tenantNameSnapshot: `${data.firstName} ${data.lastName}`,
-
           moveInDate: data.moveInDate ? new Date(data.moveInDate) : new Date(),
-
+          contractStartDate: data.contractStartDate
+            ? new Date(data.contractStartDate)
+            : new Date(),
+          contractEndDate: data.contractEndDate
+            ? new Date(data.contractEndDate)
+            : null,
+          securityDeposit: Number(data.securityDeposit) || 0,
+          advancePayment: Number(data.advancePayment) || 0,
+          entranceFee: Number(data.entranceFee) || 0,
           emergencyContactName: data.emergencyContactName,
           emergencyContactPhone: data.emergencyContactPhone,
           notes: data.notes,
         },
       });
 
-      // 5.3 อัปเดตสถานะห้องเป็น ไม่ว่าง (OCCUPIED)
       await tx.room.update({
-        where: { id: data.roomId },
-        data: { status: RoomStatus.OCCUPIED },
+        where: {
+          id: data.roomId,
+        },
+
+        data: {
+          status: RoomStatus.OCCUPIED,
+        },
       });
 
       return newTenant;
+    });
+  },
+
+  getTenantById: async (sub: string, tenantId: string) => {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: sub,
+      },
+    });
+
+    if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
+
+    const tenant = await prisma.tenantProfile.findUnique({
+      where: {
+        id: tenantId,
+      },
+
+      include: {
+        user: {
+          select: {
+            email: true,
+            status: true,
+          },
+        },
+
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+      },
+    });
+
+    if (!tenant) throw new Error("TENANT_NOT_FOUND");
+
+    if (tenant.room && tenant.room.dormitory.ownerId !== owner.id) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    return tenant;
+  },
+
+  updateTenant: async (sub: string, tenantId: string, data: any) => {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: sub,
+      },
+    });
+
+    if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
+
+    const tenant = await prisma.tenantProfile.findUnique({
+      where: {
+        id: tenantId,
+      },
+
+      include: {
+        user: true,
+
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+      },
+    });
+
+    if (!tenant) throw new Error("TENANT_NOT_FOUND");
+
+    if (tenant.room && tenant.room.dormitory.ownerId !== owner.id) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    if (!tenant.isActive) {
+      throw new Error("TENANT_ALREADY_MOVED_OUT");
+    }
+
+    const userUpdatePayload: any = {};
+
+    if (data.email && data.email !== tenant.email) {
+      const duplicateUser = await prisma.user.findUnique({
+        where: {
+          email: data.email,
+        },
+      });
+
+      if (duplicateUser) throw new Error("EMAIL_ALREADY_EXISTS");
+
+      userUpdatePayload.email = data.email;
+    }
+
+    if (data.password && data.password.trim() !== "") {
+      const hashedPassword = await hashPassword(data.password);
+      userUpdatePayload.password = hashedPassword;
+    }
+
+    if (data.isActive !== undefined) {
+      userUpdatePayload.status = data.isActive ? "ACTIVE" : "BANNED";
+    }
+
+    const tenantUpdatePayload: any = {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone,
+      idCard: data.idCard,
+      address: data.address,
+      email: data.email || undefined,
+      securityDeposit:
+        data.securityDeposit !== undefined
+          ? Number(data.securityDeposit)
+          : undefined,
+      advancePayment:
+        data.advancePayment !== undefined
+          ? Number(data.advancePayment)
+          : undefined,
+      entranceFee:
+        data.entranceFee !== undefined ? Number(data.entranceFee) : undefined,
+      numberOfResidents:
+        data.numberOfResidents !== undefined
+          ? Number(data.numberOfResidents)
+          : undefined,
+      emergencyContactName: data.emergencyContactName,
+      emergencyContactPhone: data.emergencyContactPhone,
+      notes: data.notes,
+    };
+
+    if (data.moveInDate)
+      tenantUpdatePayload.moveInDate = new Date(data.moveInDate);
+
+    if (data.contractStartDate)
+      tenantUpdatePayload.contractStartDate = new Date(data.contractStartDate);
+
+    if (data.contractEndDate)
+      tenantUpdatePayload.contractEndDate = new Date(data.contractEndDate);
+
+    Object.keys(tenantUpdatePayload).forEach(
+      (key) =>
+        tenantUpdatePayload[key] === undefined &&
+        delete tenantUpdatePayload[key],
+    );
+
+    return await prisma.$transaction(async (tx) => {
+      if (Object.keys(userUpdatePayload).length > 0) {
+        await tx.user.update({
+          where: {
+            id: tenant.userId,
+          },
+
+          data: userUpdatePayload,
+        });
+      }
+
+      const updatedTenant = await tx.tenantProfile.update({
+        where: {
+          id: tenantId,
+        },
+
+        data: tenantUpdatePayload,
+      });
+
+      return updatedTenant;
+    });
+  },
+
+  moveOut: async (sub: string, tenantId: string) => {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: sub,
+      },
+    });
+
+    if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
+
+    const tenant = await prisma.tenantProfile.findUnique({
+      where: {
+        id: tenantId,
+      },
+
+      include: {
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+
+        bills: {
+          where: {
+            status: {
+              in: ["PENDING", "OVERDUE"],
+            },
+          },
+        },
+      },
+    });
+
+    if (!tenant) throw new Error("TENANT_NOT_FOUND");
+
+    if (tenant.room && tenant.room.dormitory.ownerId !== owner.id) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    if (!tenant.isActive && tenant.moveOutDate) {
+      throw new Error("ALREADY_MOVED_OUT");
+    }
+
+    if (tenant.bills.length > 0) {
+      throw new Error("OUTSTANDING_BILLS_EXIST");
+    }
+
+    return await prisma.$transaction(async (tx) => {
+      const updatedTenant = await tx.tenantProfile.update({
+        where: {
+          id: tenantId,
+        },
+
+        data: {
+          moveOutDate: new Date(),
+          isActive: false,
+        },
+      });
+
+      if (tenant.roomId) {
+        await tx.room.update({
+          where: {
+            id: tenant.roomId,
+          },
+
+          data: {
+            status: RoomStatus.AVAILABLE,
+          },
+        });
+      }
+
+      await tx.user.update({
+        where: {
+          id: tenant.userId,
+        },
+
+        data: {
+          status: "INACTIVE",
+        },
+      });
+
+      return updatedTenant;
     });
   },
 };

@@ -135,21 +135,71 @@ export const RoomController = {
       });
     }
   },
+
   async getAvailableRooms(request: FastifyRequest, reply: FastifyReply) {
     const user = request.user as UserDecodedDto;
 
-    if (!user) return reply.status(401).send({ message: "UNAUTHORIZED" });
+    if (!user)
+      return reply.status(401).send({
+        message: "UNAUTHORIZED",
+      });
 
-    const { dormId } = request.params as { dormId: string };
+    const { dormId } = request.params as {
+      dormId: string;
+    };
 
     try {
       const rooms = await roomService.getAllAvailableRooms(user, dormId);
       return reply.send(rooms);
     } catch (error: any) {
       if (error.message === "OWNER_PROFILE_NOT_FOUND") {
-        return reply.status(403).send({ message: "FORBIDDEN" });
+        return reply.status(403).send({
+          message: "FORBIDDEN",
+        });
       }
-      return reply.status(500).send({ message: "INTERNAL_SERVER_ERROR" });
+
+      return reply.status(500).send({
+        message: "INTERNAL_SERVER_ERROR",
+      });
+    }
+  },
+
+  async deleteRoom(request: FastifyRequest, reply: FastifyReply) {
+    const user = request.user as UserDecodedDto;
+
+    if (!user)
+      return reply.status(401).send({
+        message: "UNAUTHORIZED",
+      });
+
+    try {
+      const { roomId } = request.params as {
+        roomId: string;
+      };
+
+      const result = await roomService.deleteRoom(user, roomId);
+      return reply.send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      if (error.message === "ROOM_NOT_FOUND")
+        return reply.status(404).send({
+          message: "ROOM_NOT_FOUND",
+        });
+
+      if (error.message === "FORBIDDEN_ACCESS")
+        return reply.status(403).send({
+          message: "FORBIDDEN",
+        });
+
+      if (error.message === "CANNOT_DELETE_OCCUPIED_ROOM")
+        return reply.status(400).send({
+          message: "CANNOT_DELETE_OCCUPIED_ROOM",
+        });
+
+      return reply.status(500).send({
+        message: "INTERNAL_SERVER_ERROR",
+      });
     }
   },
 };

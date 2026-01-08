@@ -4,6 +4,7 @@ import { tenantRoute } from "@/modules/tenant/tenent.route";
 import { landmarkRoute } from "@/modules/landmark/landmark.route";
 import { roomRoute } from "@/modules/room/room.route";
 import { ownerRoute } from "@/modules/owner/owner.route";
+import { billRoute } from "./modules/bill/bill.route";
 import { FastifyInstance } from "fastify";
 
 export async function indexRoute(app: FastifyInstance) {
@@ -29,5 +30,9 @@ export async function indexRoute(app: FastifyInstance) {
 
   app.register(landmarkRoute, {
     prefix: "/landmarks",
+  });
+
+  app.register(billRoute, {
+    prefix: "/bills",
   });
 }

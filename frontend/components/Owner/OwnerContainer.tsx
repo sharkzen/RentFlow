@@ -79,7 +79,6 @@ const CustomSelect = ({
           className={`shrink-0 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-
       {isOpen && (
         <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-40 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 duration-200">
           <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent max-h-60 overflow-y-auto py-1">
@@ -232,7 +231,6 @@ export default function OwnerContainer() {
             icon={<Home size={16} className="text-blue-500" />}
             className="w-full sm:w-56"
           />
-
           <CustomSelect
             options={monthOptions}
             value={month}
@@ -240,7 +238,6 @@ export default function OwnerContainer() {
             icon={<Calendar size={16} className="text-gray-400" />}
             className="w-full sm:w-40"
           />
-
           <CustomSelect
             options={yearOptions}
             value={year}
@@ -294,7 +291,6 @@ export default function OwnerContainer() {
               />
             </div>
           </div>
-
           <div>
             <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-800">
               <Wrench className="text-orange-500" size={20} />
@@ -315,7 +311,6 @@ export default function OwnerContainer() {
                   <div className="h-1.5 w-full rounded-full bg-gray-400"></div>
                 </div>
               </div>
-
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">
@@ -335,7 +330,6 @@ export default function OwnerContainer() {
                   ></div>
                 </div>
               </div>
-
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">
@@ -355,7 +349,6 @@ export default function OwnerContainer() {
                   ></div>
                 </div>
               </div>
-
               <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-500">

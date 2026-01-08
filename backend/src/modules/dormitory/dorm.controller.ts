@@ -193,7 +193,7 @@ export const DormController = {
       const result = await dormService.updateDormStatus(
         dormId,
         isPublished,
-        user.sub
+        user.sub,
       );
       return reply.send(result);
     } catch (error: any) {
@@ -316,7 +316,7 @@ export const DormController = {
           dormId,
           objectKey,
           fileData.mimetype,
-          optimizedBuffer.length
+          optimizedBuffer.length,
         );
       });
 
@@ -359,7 +359,7 @@ export const DormController = {
 
       const isOwner = await dormService.isOwnerOfDorm(
         image.dormitoryId,
-        user.sub
+        user.sub,
       );
 
       if (!isOwner)
@@ -460,7 +460,7 @@ export const DormController = {
         dormId,
         user.sub,
         targetMonth,
-        targetYear
+        targetYear,
       );
       return reply.send(overview);
     } catch (error: any) {
@@ -511,32 +511,27 @@ export const DormController = {
       logger.error(`Delete Dorm Error: ${error.message}`);
 
       switch (error.message) {
-        // เพิ่ม Case นี้สำหรับหอที่ไม่ว่าง
         case "DORM_NOT_EMPTY":
           return reply.status(409).send({
             code: "DORM_HAS_DEPENDENCIES",
             message:
               "Cannot delete dormitory because it contains rooms or active tenants. Please delete all rooms first.",
           });
-
         case "FORBIDDEN":
           return reply.status(403).send({
             code: "FORBIDDEN_ACCESS",
             message: "You don't have permission to delete this dormitory",
           });
-
         case "NOT_FOUND":
           return reply.status(404).send({
             code: "DORM_NOT_FOUND",
             message: "Dormitory not found",
           });
-
         case "OWNER_PROFILE_NOT_FOUND":
           return reply.status(403).send({
             code: "OWNER_PROFILE_NOT_FOUND",
             message: "Owner profile not found",
           });
-
         default:
           return reply.status(500).send({
             code: "INTERNAL_SERVER_ERROR",

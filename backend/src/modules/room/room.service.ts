@@ -183,7 +183,7 @@ export const roomService = {
       basePrice?: number;
       description?: string;
       status?: RoomStatus;
-    }
+    },
   ) {
     const room = await prisma.room.findUnique({
       where: {
@@ -251,22 +251,27 @@ export const roomService = {
 
     return updatedRoom;
   },
+
   async getAllAvailableRooms(user: UserDecodedDto, dormId: string) {
-    // 1. เช็คว่าเป็นเจ้าของหอ
     const owner = await prisma.ownerProfile.findUnique({
-      where: { userId: user.sub },
+      where: {
+        userId: user.sub,
+      },
     });
 
     if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
 
-    // 2. ดึงห้องทั้งหมดที่ AVAILABLE ของหอนี้ (ไม่ใส่ take/skip = ไม่ limit)
     const rooms = await prisma.room.findMany({
       where: {
         dormitoryId: dormId,
-        dormitory: { ownerId: owner.id }, // Security Check
+
+        dormitory: {
+          ownerId: owner.id,
+        },
+
         status: "AVAILABLE",
       },
-      // เลือกเฉพาะ field ที่จำเป็นสำหรับ Dropdown เพื่อลดภาระ server
+
       select: {
         id: true,
         roomNumber: true,
@@ -274,9 +279,56 @@ export const roomService = {
         basePrice: true,
         type: true,
       },
-      orderBy: [{ floor: "asc" }, { roomNumber: "asc" }],
+
+      orderBy: [
+        {
+          floor: "asc",
+        },
+        {
+          roomNumber: "asc",
+        },
+      ],
     });
 
     return rooms;
+  },
+
+  async deleteRoom(user: UserDecodedDto, roomId: string) {
+    const room = await prisma.room.findUnique({
+      where: {
+        id: roomId,
+      },
+
+      include: {
+        dormitory: true,
+      },
+    });
+
+    if (!room) throw new Error("ROOM_NOT_FOUND");
+
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: user.sub,
+      },
+    });
+
+    if (!owner || room.dormitory.ownerId !== owner.id) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    if (room.status === RoomStatus.OCCUPIED) {
+      throw new Error("CANNOT_DELETE_OCCUPIED_ROOM");
+    }
+
+    await prisma.room.delete({
+      where: {
+        id: roomId,
+      },
+    });
+
+    return {
+      success: true,
+      message: "Room deleted successfully",
+    };
   },
 };

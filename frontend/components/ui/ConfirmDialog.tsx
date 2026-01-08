@@ -1,5 +1,4 @@
 "use client";
-
 import {
   AlertCircle,
   AlertTriangle,
@@ -9,7 +8,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
-
 export type ConfirmDialogType = "success" | "warning" | "error" | "info";
 
 interface ConfirmDialogProps {
@@ -37,18 +35,17 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // Close on Esc key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (isOpen && e.key === "Escape") onClose();
     };
+
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  // Config สีและไอคอนตาม Type
   const variants = {
     success: {
       bgIcon: "bg-green-100",
@@ -56,18 +53,21 @@ export default function ConfirmDialog({
       btnConfirm: "bg-green-600 hover:bg-green-700 focus:ring-green-500",
       icon: CheckCircle2,
     },
+
     warning: {
       bgIcon: "bg-amber-100",
       textIcon: "text-amber-600",
       btnConfirm: "bg-amber-600 hover:bg-amber-700 focus:ring-amber-500",
       icon: AlertTriangle,
     },
+
     error: {
       bgIcon: "bg-red-100",
       textIcon: "text-red-600",
       btnConfirm: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
       icon: AlertCircle,
     },
+
     info: {
       bgIcon: "bg-blue-100",
       textIcon: "text-blue-600",
@@ -81,15 +81,11 @@ export default function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-slate-900/50 transition-opacity"
         onClick={!isLoading ? onClose : undefined}
       />
-
-      {/* Dialog Content */}
       <div className="relative w-full max-w-md scale-100 transform overflow-hidden rounded-2xl bg-white p-6 shadow-2xl transition-all">
-        {/* Close Button (Optional) */}
         {!isLoading && (
           <button
             onClick={onClose}
@@ -98,20 +94,14 @@ export default function ConfirmDialog({
             <X size={20} />
           </button>
         )}
-
         <div className="flex flex-col items-center text-center">
-          {/* Icon */}
           <div className={`mb-4 rounded-full p-3 ${style.bgIcon}`}>
             <Icon className={`h-8 w-8 ${style.textIcon}`} />
           </div>
-
-          {/* Text */}
           <h3 className="mb-2 text-lg font-bold text-slate-900">{title}</h3>
           {description && (
             <p className="mb-6 text-sm text-slate-500">{description}</p>
           )}
-
-          {/* Buttons */}
           <div className="flex w-full gap-3">
             <button
               type="button"

@@ -66,9 +66,10 @@ enum FileCategory {
 }
 
 enum Status {
-  PENDING
-  ACTIVE
-  BANNED
+  PENDING   // รออนุมัติ
+  ACTIVE    // ใช้งานปกติ
+  BANNED    // ระงับการใช้งาน (ทำผิดกฎ)
+  INACTIVE  // ย้ายออกแล้ว / เลิกใช้งาน
 }
 
 //  
@@ -223,21 +224,33 @@ model TenantProfile {
   phone              String?
   email              String?
   idCard             String?
+  
+  
+  address            String?  
+  numberOfResidents  Int      @default(1) 
+
   tenantNameSnapshot String?
   roomPriceSnapshot  Float?
 
-  moveInDate  DateTime?
-  moveOutDate DateTime?
-  isActive    Boolean   @default(true)
-  deletedAt   DateTime?
-  notes       String?
+  securityDeposit    Float   @default(0)
+  advancePayment     Float   @default(0)
+  entranceFee        Float   @default(0)
+  
+  contractStartDate  DateTime?
+  contractEndDate    DateTime?
+
+  moveInDate   DateTime?
+  moveOutDate  DateTime?
+  isActive     Boolean   @default(true)
+  deletedAt    DateTime?
+  notes        String?
 
   emergencyContactName  String?
   emergencyContactPhone String?
 
   maintenanceRequests MaintenanceRequest[]
   user                User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
-  room                Room?                 @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  room                Room?                @relation(fields: [roomId], references: [id], onDelete: Restrict)
   bills               Bill[]
 
   createdAt DateTime @default(now())
@@ -254,6 +267,9 @@ model Bill {
   roomId   String
   tenantId String
 
+  // =====================
+  // SNAPSHOT ข้อมูลสัญญา
+  // =====================
   tenantNameSnapshot String
   roomNumberSnapshot String
   roomPriceSnapshot  Float
@@ -261,17 +277,40 @@ model Bill {
   billingMonth DateTime
   dueDate      DateTime
 
-  waterUnitSnapshot    Float
-  electricUnitSnapshot Float
-  waterRateSnapshot    Float
-  electricRateSnapshot Float
-  commonFeeSnapshot    Float
-  lateFeeSnapshot      Float
+  // =====================
+  // WATER METER
+  // =====================
+  prevWaterUnitSnapshot     Float
+  currentWaterUnitSnapshot  Float
+  waterUsedSnapshot         Float
+  waterRateSnapshot         Float
+  waterFeeSnapshot          Float
 
+  // =====================
+  // ELECTRIC METER
+  // =====================
+  prevElectricUnitSnapshot     Float
+  currentElectricUnitSnapshot  Float
+  electricUsedSnapshot         Float
+  electricRateSnapshot         Float
+  electricFeeSnapshot          Float
+
+  // =====================
+  // OTHER FEES
+  // =====================
+  commonFeeSnapshot Float
+  lateFeeSnapshot   Float
+
+  // =====================
+  // TOTAL
+  // =====================
   total    Float
   status   BillStatus @default(PENDING)
   archived Boolean    @default(false)
 
+  // =====================
+  // RELATIONS
+  // =====================
   room    Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
   tenant  TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Restrict)
   payment Payment?
@@ -280,6 +319,7 @@ model Bill {
 
   @@unique([roomId, billingMonth])
 }
+
 
 /**
  * =======================

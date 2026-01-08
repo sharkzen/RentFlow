@@ -7,6 +7,7 @@ interface GetTenantDormQuery {
   page?: string;
   limit?: string;
   search?: string;
+  status?: string;
 }
 
 export const TenantController = {
@@ -32,7 +33,8 @@ export const TenantController = {
         });
       }
 
-      const { page, limit, search } = request.query as GetTenantDormQuery;
+      const { page, limit, search, status } =
+        request.query as GetTenantDormQuery;
 
       const result = await tenantService.getTenantDorm({
         dormId,
@@ -40,6 +42,7 @@ export const TenantController = {
         page: page ? Number(page) : 1,
         limit: limit ? Number(limit) : 10,
         search: search?.trim() || undefined,
+        status: status || "active",
       });
 
       return reply.status(200).send(result);
@@ -51,15 +54,17 @@ export const TenantController = {
       });
     }
   },
+
   createTenant: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
     try {
-      const body = request.body as any; // หรือสร้าง DTO มา validate
+      const body = request.body as any;
 
-      // Validate เบื้องต้น
       if (!body.email || !body.roomId || !body.firstName) {
-        return reply.status(400).send({ message: "MISSING_REQUIRED_FIELDS" });
+        return reply.status(400).send({
+          message: "MISSING_REQUIRED_FIELDS",
+        });
       }
 
       const result = await tenantService.createTenant(user.sub, body);
@@ -67,7 +72,6 @@ export const TenantController = {
     } catch (error: any) {
       logger.error(error);
 
-      // Map Error Message เป็น Code เพื่อให้ Frontend เอาไป render
       switch (error.message) {
         case "EMAIL_ALREADY_EXISTS":
           return reply.status(409).send({
@@ -93,6 +97,149 @@ export const TenantController = {
           return reply.status(500).send({
             code: "INTERNAL_SERVER_ERROR",
             message: "Internal Server Error",
+          });
+      }
+    }
+  },
+
+  getTenantById: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    try {
+      const { tenantId } = request.params as {
+        tenantId: string;
+      };
+
+      if (!tenantId)
+        return reply.status(400).send({
+          message: "TENANT_ID_REQUIRED",
+        });
+
+      const result = await tenantService.getTenantById(user.sub, tenantId);
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      switch (error.message) {
+        case "OWNER_PROFILE_NOT_FOUND":
+        case "FORBIDDEN_ACCESS":
+          return reply.status(403).send({
+            message: "FORBIDDEN",
+          });
+        case "TENANT_NOT_FOUND":
+          return reply.status(404).send({
+            message: "TENANT_NOT_FOUND",
+          });
+        default:
+          return reply.status(500).send({
+            message: "INTERNAL_SERVER_ERROR",
+          });
+      }
+    }
+  },
+
+  updateTenant: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    try {
+      const { tenantId } = request.params as {
+        tenantId: string;
+      };
+
+      const body = request.body as any;
+
+      if (!tenantId)
+        return reply.status(400).send({
+          message: "TENANT_ID_REQUIRED",
+        });
+
+      const result = await tenantService.updateTenant(user.sub, tenantId, body);
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      switch (error.message) {
+        case "OWNER_PROFILE_NOT_FOUND":
+        case "FORBIDDEN_ACCESS":
+          return reply.status(403).send({
+            code: "FORBIDDEN",
+            message: "Permission denied.",
+          });
+        case "TENANT_NOT_FOUND":
+          return reply.status(404).send({
+            code: "TENANT_NOT_FOUND",
+            message: "Tenant not found.",
+          });
+        case "TENANT_ALREADY_MOVED_OUT":
+          return reply.status(400).send({
+            code: "TENANT_ALREADY_MOVED_OUT",
+            message: "Cannot update tenant who has already moved out.",
+          });
+        case "EMAIL_ALREADY_EXISTS":
+          return reply.status(409).send({
+            code: "EMAIL_ALREADY_EXISTS",
+            message: "Email taken.",
+          });
+        default:
+          return reply.status(500).send({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Something went wrong.",
+          });
+      }
+    }
+  },
+
+  moveOut: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    try {
+      const { tenantId } = request.params as {
+        tenantId: string;
+      };
+
+      if (!tenantId) {
+        return reply.status(400).send({
+          message: "TENANT_ID_REQUIRED",
+        });
+      }
+
+      const result = await tenantService.moveOut(user.sub, tenantId);
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      switch (error.message) {
+        case "OWNER_PROFILE_NOT_FOUND":
+        case "FORBIDDEN_ACCESS":
+          return reply.status(403).send({
+            code: "FORBIDDEN",
+            message: "You don't have permission to perform this action.",
+          });
+        case "TENANT_NOT_FOUND":
+          return reply.status(404).send({
+            code: "TENANT_NOT_FOUND",
+            message: "Tenant not found.",
+          });
+        case "ALREADY_MOVED_OUT":
+          return reply.status(400).send({
+            code: "ALREADY_MOVED_OUT",
+            message: "This tenant has already moved out.",
+          });
+        case "ALREADY_MOVED_OUT":
+          return reply.status(400).send({
+            code: "ALREADY_MOVED_OUT",
+            message: "This tenant has already moved out.",
+          });
+        case "OUTSTANDING_BILLS_EXIST":
+          return reply.status(400).send({
+            code: "OUTSTANDING_BILLS_EXIST",
+            message:
+              "Tenant has unpaid bills. Please clear bills before moving out.",
+          });
+        default:
+          return reply.status(500).send({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Something went wrong.",
           });
       }
     }

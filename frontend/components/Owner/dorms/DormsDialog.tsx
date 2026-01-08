@@ -58,18 +58,15 @@ export default function DormsDialog({
   onClose,
   onEdit,
 }: DormsDialogProps) {
-  // State ย้ายขึ้นมาด้านบนเพื่อให้ Hook มองเห็น
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // --- แก้จุดที่ 1: ปิด ESC เฉพาะตอนที่ Dialog ลบ "ปิด" อยู่ ---
   useHotkeys("esc", () => {
     if (!isDeleteDialogOpen) onClose();
   });
 
   const closeRef = useRef<HTMLDivElement>(null!);
 
-  // --- แก้จุดที่ 2: คลิกข้างนอกจะปิดได้ก็ต่อเมื่อ Dialog ลบ "ไม่ได้เปิดอยู่" ---
   useOnClickOutside(closeRef, () => {
     if (!isDeleteDialogOpen) {
       onClose();
@@ -136,15 +133,16 @@ export default function DormsDialog({
 
   const handleDelete = async () => {
     setIsDeleting(true);
+
     try {
       await toast.promise(DormService.deleteDorm(dorm.id), {
         pending: "กําลังลบหอพัก...",
         success: "ลบหอพักเรียบร้อย",
+
         error: {
           render({ data }: any) {
             const errorData = data?.response?.data;
             const errorCode = errorData?.code;
-
             log.error("Delete Error:", errorData);
 
             if (errorCode === "DORM_HAS_DEPENDENCIES") {
@@ -385,7 +383,6 @@ export default function DormsDialog({
               </div>
             </form>
           </div>
-
           <div className="flex items-center justify-between border-t border-slate-100 bg-white px-6 py-4">
             <button
               type="button"
@@ -415,8 +412,6 @@ export default function DormsDialog({
           </div>
         </div>
       </div>
-
-      {/* --- แก้จุดที่ 3: เอา ref={closeRef} ที่ครอบตัวนี้ออก --- */}
       <div>
         <ConfirmDialog
           isOpen={isDeleteDialogOpen}

@@ -1,19 +1,33 @@
 "use client";
-import { Plus, Building, Search } from "lucide-react";
+import {
+  Plus,
+  Building,
+  Search,
+  Filter,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import TenantList from "./TenantList";
 import { DormService } from "@/features/dormitory/services/dorm.service";
-import { TenantService } from "@/features/tenant/services/tenant.service";
-import { Dormitory } from "@/features/dormitory";
 import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendErrorMsg";
 import AddTenantDialog from "./AddTenantDialog";
+import { Tenant } from "@/features/tenant";
+import { TenantService } from "@/features/tenant/services/tenant.service";
+import { Dormitory } from "@/features/dormitory";
+
 export default function TenantContainer() {
   const [dorms, setDorms] = useState<Dormitory[]>([]);
   const [selectedDorm, setSelectedDorm] = useState<string>();
-  const [tenants, setTenants] = useState<any[]>([]);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
   const [search, setSearch] = useState("");
+  type FilterStatus = "active" | "moved_out" | "all";
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("active");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isDormDropdownOpen, setIsDormDropdownOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   const [meta, setMeta] = useState({
     total: 0,
@@ -21,6 +35,28 @@ export default function TenantContainer() {
   });
 
   const LIMIT = 10;
+
+  const filterOptions: {
+    label: string;
+    value: FilterStatus;
+    desc?: string;
+  }[] = [
+    {
+      label: "พักอาศัยอยู่",
+      value: "active",
+      desc: "ผู้เช่าปัจจุบัน",
+    },
+    {
+      label: "ย้ายออกแล้ว",
+      value: "moved_out",
+      desc: "ประวัติเก่า",
+    },
+    {
+      label: "ทั้งหมด",
+      value: "all",
+      desc: "รวมทุกสถานะ",
+    },
+  ];
 
   const getDorms = async () => {
     try {
@@ -39,12 +75,15 @@ export default function TenantContainer() {
   const getTenants = async () => {
     if (!selectedDorm) return;
 
+    setLoading(true);
+
     try {
       const res = await TenantService.getTenantDorm({
         dormId: selectedDorm,
         page,
         limit: LIMIT,
         search: search || undefined,
+        status: filterStatus,
       });
 
       setTenants(res.items);
@@ -56,6 +95,8 @@ export default function TenantContainer() {
     } catch (error: any) {
       log.error(error);
       showBackendError(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,11 +106,11 @@ export default function TenantContainer() {
 
   useEffect(() => {
     setPage(1);
-  }, [selectedDorm]);
+  }, [selectedDorm, filterStatus]);
 
   useEffect(() => {
     getTenants();
-  }, [selectedDorm, page]);
+  }, [selectedDorm, page, filterStatus]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -81,47 +122,162 @@ export default function TenantContainer() {
   }, [search]);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const currentFilterLabel = filterOptions.find(
+    (opt) => opt.value === filterStatus,
+  )?.label;
+  const currentDormName =
+    dorms.find((d) => d.id === selectedDorm)?.name || "เลือกหอพัก";
+
   return (
     <div className="flex h-[calc(90vh-2rem)] flex-col gap-6 overflow-hidden bg-white py-1">
       <div className="col-span-12 grid grid-cols-12 gap-3 md:col-span-8">
-        <div className="relative order-1 col-span-12 sm:col-span-6 md:order-2 md:col-span-4">
-          <select
-            value={selectedDorm}
-            onChange={(e) => setSelectedDorm(e.target.value)}
-            className="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2.5 pr-10 pl-4 text-sm font-medium text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
-          >
-            {dorms.map((dorm) => (
-              <option key={dorm.id} value={dorm.id}>
-                {dorm.name}
-              </option>
-            ))}
-          </select>
-          <Building className="pointer-events-none absolute top-1/2 right-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
+        <div className="relative order-1 col-span-12 sm:col-span-4 md:order-1 md:col-span-3">
+          <div className="relative h-full">
+            <button
+              onClick={() => setIsDormDropdownOpen(!isDormDropdownOpen)}
+              className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border bg-white px-3 py-2.5 text-sm font-medium shadow-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:outline-none ${isDormDropdownOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+            >
+              <div className="flex items-center gap-2 overflow-hidden">
+                <Building
+                  size={18}
+                  className={
+                    isDormDropdownOpen ? "text-indigo-500" : "text-gray-400"
+                  }
+                />
+                <span className="truncate">{currentDormName}</span>
+              </div>
+              <ChevronDown
+                size={16}
+                className={`shrink-0 text-gray-400 transition-transform duration-200 ${isDormDropdownOpen ? "rotate-180 text-indigo-500" : ""}`}
+              />
+            </button>
+
+            {isDormDropdownOpen && (
+              <div
+                className="fixed inset-0 z-10 cursor-default"
+                onClick={() => setIsDormDropdownOpen(false)}
+              />
+            )}
+
+            {isDormDropdownOpen && (
+              <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-50 overflow-hidden rounded-lg border border-gray-100 bg-white p-1 shadow-lg ring-1 ring-black/5 duration-100">
+                <div className="custom-scrollbar max-h-60 overflow-y-auto">
+                  {dorms.map((dorm) => (
+                    <button
+                      key={dorm.id}
+                      onClick={() => {
+                        setSelectedDorm(dorm.id);
+                        setIsDormDropdownOpen(false);
+                      }}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${selectedDorm === dorm.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                    >
+                      <span className="truncate pr-2">{dorm.name}</span>
+                      {selectedDorm === dorm.id && (
+                        <Check size={14} className="shrink-0 text-indigo-600" />
+                      )}
+                    </button>
+                  ))}
+                  {dorms.length === 0 && (
+                    <div className="px-3 py-4 text-center text-xs text-gray-400">
+                      ไม่มีข้อมูลหอพัก
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="order-2 col-span-12 sm:col-span-6 md:order-3 md:col-span-4">
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-md transition hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            <Plus className="h-5 w-5" />
-            เพิ่มผู้เช่า
-          </button>
-        </div>
-        <div className="relative order-3 col-span-12 md:order-1 md:col-span-4">
+
+        <div className="relative order-3 col-span-12 sm:col-span-8 md:order-2 md:col-span-4">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="ค้นหาผู้เช่า / ห้อง / อีเมล"
-            className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pr-4 pl-9 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+            placeholder="ค้นหาชื่อ / ห้อง / เบอร์โทร"
+            className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pr-4 pl-9 text-sm transition hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+          />
+        </div>
+
+        <div className="relative order-4 col-span-12 sm:col-span-6 md:order-3 md:col-span-3">
+          <div className="relative h-full">
+            <button
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border bg-white px-3 py-2.5 text-sm font-medium shadow-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:outline-none ${isFilterOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+            >
+              <div className="flex items-center gap-2">
+                <Filter
+                  size={16}
+                  className={isFilterOpen ? "text-indigo-500" : "text-gray-400"}
+                />
+                <span>{currentFilterLabel}</span>
+              </div>
+              <ChevronDown
+                size={16}
+                className={`shrink-0 text-gray-400 transition-transform duration-200 ${isFilterOpen ? "rotate-180 text-indigo-500" : ""}`}
+              />
+            </button>
+            {isFilterOpen && (
+              <div
+                className="fixed inset-0 z-10 cursor-default"
+                onClick={() => setIsFilterOpen(false)}
+              />
+            )}
+
+            {isFilterOpen && (
+              <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-45 overflow-hidden rounded-lg border border-gray-100 bg-white p-1 shadow-lg ring-1 ring-black/5 duration-100">
+                {filterOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setFilterStatus(option.value);
+                      setIsFilterOpen(false);
+                    }}
+                    className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${filterStatus === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span>{option.label}</span>
+                      </div>
+                      {option.desc && (
+                        <span
+                          className={`block text-[10px] ${filterStatus === option.value ? "text-indigo-400" : "text-gray-400"}`}
+                        >
+                          {option.desc}
+                        </span>
+                      )}
+                    </div>
+                    {filterStatus === option.value && (
+                      <Check size={14} className="shrink-0 text-indigo-600" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="order-2 col-span-12 sm:col-span-6 md:order-4 md:col-span-2">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-md transition hover:bg-indigo-700 hover:shadow-lg focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95"
+          >
+            <Plus className="h-5 w-5" />
+            <span className="hidden xl:inline">เพิ่มผู้เช่า</span>
+            <span className="inline xl:hidden">เพิ่ม</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="relative flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="absolute inset-0 overflow-auto">
+          <TenantList
+            isLoading={loading}
+            tenants={tenants}
+            onEditSuccess={getTenants}
           />
         </div>
       </div>
-      <div className="relative flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="absolute inset-0 overflow-auto">
-          <TenantList tenants={tenants} />
-        </div>
-      </div>
+
       {meta.totalPages > 1 && (
         <div className="flex items-center justify-between pt-2 text-sm text-gray-600">
           <span>ทั้งหมด {meta.total}รายการ</span>
@@ -129,7 +285,7 @@ export default function TenantContainer() {
             <button
               disabled={page === 1}
               onClick={() => setPage((p) => p - 1)}
-              className="rounded-md border px-3 py-1 disabled:opacity-40"
+              className="rounded-md border border-gray-300 bg-white px-3 py-1 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               ก่อนหน้า
             </button>
@@ -139,7 +295,7 @@ export default function TenantContainer() {
             <button
               disabled={page === meta.totalPages}
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-md border px-3 py-1 disabled:opacity-40"
+              className="rounded-md border border-gray-300 bg-white px-3 py-1 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               ถัดไป
             </button>
