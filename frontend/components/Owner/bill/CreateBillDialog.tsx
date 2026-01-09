@@ -275,15 +275,17 @@ export default function CreateBillDialog({
         <div className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 shadow-sm">
-              <Calendar size={24} />
+              <Calendar size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-800">
+              <h2 className="font-bold text-gray-800 sm:text-xl">
                 สร้างบิลค่าเช่า
               </h2>
               <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Building size={14} />
-                <span className="font-medium text-gray-700">{dormName}</span>
+                <Building />
+                <span className="line-clamp-1 font-medium text-gray-700">
+                  {dormName}
+                </span>
               </div>
             </div>
           </div>
@@ -328,7 +330,6 @@ export default function CreateBillDialog({
                       ))}
                     </div>
                   </div>
-
                   <div>
                     <label className="mb-2 block text-xs font-semibold text-gray-500">
                       เลือกเดือน
@@ -359,7 +360,6 @@ export default function CreateBillDialog({
             </button>
           </div>
         </div>
-
         <div className="custom-scrollbar flex-1 overflow-y-auto bg-slate-50/50 p-4 lg:p-6">
           <div className="hidden grid-cols-12 gap-4 px-4 pb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase lg:grid">
             <div className="col-span-3">ห้องพัก / ผู้เช่า</div>
@@ -433,7 +433,6 @@ export default function CreateBillDialog({
                       </div>
                     )}
                   </div>
-
                   <div className="col-span-1 rounded-lg border border-blue-100/50 bg-blue-50/30 p-3 lg:col-span-3">
                     <div className="mb-2 flex items-center gap-2">
                       <div className="rounded bg-blue-100 p-1 text-blue-600">
@@ -496,7 +495,6 @@ export default function CreateBillDialog({
                       </div>
                     )}
                   </div>
-
                   <div className="col-span-1 rounded-lg border border-amber-100/50 bg-amber-50/30 p-3 lg:col-span-3">
                     <div className="mb-2 flex items-center gap-2">
                       <div className="rounded bg-amber-100 p-1 text-amber-600">
@@ -563,7 +561,6 @@ export default function CreateBillDialog({
                       </div>
                     )}
                   </div>
-
                   <div className="col-span-1 space-y-2 pt-1 lg:col-span-2">
                     <label className="text-xs font-bold text-gray-700 lg:hidden">
                       เพิ่มเติม
@@ -584,7 +581,7 @@ export default function CreateBillDialog({
                     </div>
                     <input
                       type="text"
-                      placeholder="หมายเหตุ (ถ้ามี)"
+                      placeholder="หมายเหตุ (ถ้ามี) เช่น +ค่าของ"
                       value={item.note}
                       onChange={(e) =>
                         handleChange(index, "note", e.target.value)
@@ -592,7 +589,6 @@ export default function CreateBillDialog({
                       className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs transition-all outline-none placeholder:text-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                     />
                   </div>
-
                   <div className="col-span-1 flex justify-center lg:pt-4">
                     <button
                       onClick={() => handleRemoveItem(item.id)}
@@ -615,7 +611,6 @@ export default function CreateBillDialog({
             เพิ่มรายการห้อง
           </button>
         </div>
-
         <div className="flex items-center justify-between border-t border-gray-100 bg-white px-6 py-4">
           <div className="hidden text-sm text-gray-500 sm:block">
             <span className="font-medium text-gray-900">{items.length}</span>{" "}

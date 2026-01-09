@@ -1,4 +1,9 @@
-export type BillStatus = "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
+export type BillStatus =
+  | "PENDING"
+  | "WAITING_FOR_VERIFICATION"
+  | "PAID"
+  | "OVERDUE"
+  | "CANCELLED";
 export type PaymentStatus = "WAITING_VERIFY" | "VERIFIED" | "REJECTED";
 
 export interface Bill {
@@ -10,13 +15,20 @@ export interface Bill {
   roomPriceSnapshot: number;
   billingMonth: string;
   dueDate: string;
-  waterUnitSnapshot: number;
-  electricUnitSnapshot: number;
+  prevWaterUnitSnapshot: number;
+  currentWaterUnitSnapshot: number;
+  waterUsedSnapshot: number;
   waterRateSnapshot: number;
+  waterFeeSnapshot: number;
+  prevElectricUnitSnapshot: number;
+  currentElectricUnitSnapshot: number;
+  electricUsedSnapshot: number;
   electricRateSnapshot: number;
+  electricFeeSnapshot: number;
   commonFeeSnapshot: number;
   lateFeeSnapshot: number;
   total: number;
+  note?: string | null;
   status: BillStatus;
   archived: boolean;
   createdAt: string;
@@ -47,6 +59,7 @@ export interface Payment {
   verifiedBy: string | null;
   verifiedAt: string | null;
   slips: PaymentSlip[];
+  updatedAt: string;
   createdAt: string;
 }
 
@@ -72,16 +85,17 @@ export interface GetBillsParams {
   page?: number;
   limit?: number;
   search?: string;
-  status?: BillStatus;
+  status?: BillStatus | "ALL";
   month?: string;
 }
 
 export interface CreateBillItem {
   roomId: string;
-  waterUnit: number;
-  electricUnit: number;
+  prevWater: number;
+  currentWater: number;
+  prevElectric: number;
+  currentElectric: number;
   commonFee?: number;
-  otherFee?: number;
   note?: string;
 }
 

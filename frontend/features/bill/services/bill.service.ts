@@ -36,4 +36,17 @@ export const BillService = {
 
     return res.data;
   },
+
+  uploadSlip: async (billId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await axios.post(`/api/bills/${billId}/upload-slip`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return res.data;
+  },
 };

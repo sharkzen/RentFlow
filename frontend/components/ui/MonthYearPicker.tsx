@@ -79,7 +79,7 @@ export default function MonthYearPicker({
         <button
           type="button"
           onClick={() => setIsMonthOpen(!isMonthOpen)}
-          className={`flex h-full min-w-35 items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium shadow-sm transition-all focus:outline-none ${isMonthOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+          className={`flex h-full min-w-36 items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-all focus:outline-none ${isMonthOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
         >
           <div className="flex items-center gap-2">
             <Calendar
@@ -110,13 +110,14 @@ export default function MonthYearPicker({
           </div>
         )}
       </div>
+
       <div className="relative h-full" ref={yearRef}>
         <button
           type="button"
           onClick={() => setIsYearOpen(!isYearOpen)}
-          className={`flex h-full min-w-25 items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium shadow-sm transition-all focus:outline-none ${isYearOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+          className={`flex h-full min-w-28 items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-all focus:outline-none ${isYearOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
         >
-          <span>{currentYear}</span>{" "}
+          <span>{currentYear + 543}</span>
           <ChevronDown
             size={16}
             className={`text-gray-400 transition-transform duration-200 ${isYearOpen ? "rotate-180 text-indigo-500" : ""}`}
@@ -130,7 +131,7 @@ export default function MonthYearPicker({
                 onClick={() => handleYearChange(year)}
                 className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${currentYear === year ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
               >
-                <span>{year}</span>
+                <span>{year + 543}</span>
                 {currentYear === year && (
                   <Check size={14} className="text-indigo-600" />
                 )}

@@ -40,6 +40,7 @@ enum RoomStatus {
 
 enum BillStatus {
   PENDING
+  WAITING_FOR_VERIFICATION
   PAID
   OVERDUE
   CANCELLED
@@ -309,6 +310,10 @@ model Bill {
  * PAYMENT
  * =======================
  */
+enum PaymentMethod {
+  CASH
+  TRANSFER
+}
 
 model Payment {
   id     String @id @default(uuid())
@@ -318,9 +323,9 @@ model Payment {
   status     PaymentStatus @default(WAITING_VERIFY)
   verifiedBy String?
   verifiedAt DateTime?
-
+  paymentMethod PaymentMethod?
   bill Bill @relation(fields: [billId], references: [id], onDelete: Restrict)
-
+  updatedAt DateTime @default(now()) @updatedAt
   createdAt DateTime @default(now())
 }
 
