@@ -6,7 +6,7 @@ const PUBLIC_ROUTES: string[] = [
   "/auth/register",
   "/api/auth/login",
   "/api/auth/refresh",
-  "/dorms"
+  "/dorms",
 ];
 
 function isTokenExpired(token: string) {
@@ -19,32 +19,44 @@ function isTokenExpired(token: string) {
 }
 
 export async function proxy(request: NextRequest) {
-  const {
-    pathname
-  } = request.nextUrl;
+  const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith("/_next") || pathname.startsWith("/favicon.ico") || pathname.startsWith("/images/") || isPublicRoute(pathname)) {
+  // 1️⃣ public + asset → ผ่านทันที
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon.ico") ||
+    pathname.startsWith("/images") ||
+    isPublicRoute(pathname)
+  ) {
     const accessToken = request.cookies.get("access_token")?.value;
 
-    if (accessToken && !isTokenExpired(accessToken) && (pathname === "/auth/login" || pathname === "/auth/register")) {
+    // login/register แต่มี token → เด้งกลับ home
+    if (
+      accessToken &&
+      !isTokenExpired(accessToken) &&
+      (pathname === "/auth/login" || pathname === "/auth/register")
+    ) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 
     return NextResponse.next();
   }
 
+  // 2️⃣ protected route
   const accessToken = request.cookies.get("access_token")?.value;
   const refreshToken = request.cookies.get("refresh_token")?.value;
 
   if ((!accessToken || isTokenExpired(accessToken)) && refreshToken) {
     try {
-      const refreshRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`, {
-        method: "POST",
-
-        headers: {
-          Cookie: `refresh_token=${refreshToken}`
-        }
-      });
+      const refreshRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
+        {
+          method: "POST",
+          headers: {
+            Cookie: `refresh_token=${refreshToken}`,
+          },
+        },
+      );
 
       if (refreshRes.ok) {
         const response = NextResponse.next();
@@ -52,28 +64,23 @@ export async function proxy(request: NextRequest) {
 
         if (setCookie) {
           const tokenMatch = setCookie.match(/access_token=([^;]+)/);
-          const newToken = tokenMatch ? tokenMatch[1] : null;
+          const newToken = tokenMatch?.[1];
 
           if (newToken) {
             response.cookies.set("access_token", newToken, {
               httpOnly: true,
-              secure: process.env.NODE_ENV === "production",
               sameSite: "lax",
               path: "/",
-              maxAge: 60 * 15
+              maxAge: 60 * 15,
             });
-
-            if (pathname === "/auth/login" || pathname === "/auth/register") {
-              return NextResponse.redirect(new URL("/", request.url));
-            }
-
             return response;
           }
         }
       }
-    } catch (error) {}
+    } catch {}
   }
 
+  // 3️⃣ ❗ redirect เฉพาะ protected route เท่านั้น
   if (!accessToken && !refreshToken) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
@@ -82,9 +89,11 @@ export async function proxy(request: NextRequest) {
 }
 
 function isPublicRoute(pathname: string) {
-  return PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + "/"));
+  return PUBLIC_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + "/"),
+  );
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|images/).*)"]
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|images/).*)"],
 };

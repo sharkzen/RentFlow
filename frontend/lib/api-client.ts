@@ -3,28 +3,26 @@ import axiosClient from "axios";
 export const axios = axiosClient.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
-
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 let isRefreshing = false;
 let queue: (() => void)[] = [];
 
 axios.interceptors.response.use(
-  (response) => response,
+  (res) => res,
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // ❗ ถ้า refresh เองแล้ว → ห้ามเข้าอีก
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url.includes("/auth/refresh")
+    ) {
       originalRequest._retry = true;
 
       if (isRefreshing) {
-        await new Promise<void>((resolve) => {
-          queue.push(resolve);
-        });
-
+        await new Promise<void>((resolve) => queue.push(resolve));
         return axios(originalRequest);
       }
 
@@ -35,10 +33,10 @@ axios.interceptors.response.use(
         queue.forEach((cb) => cb());
         queue = [];
         return axios(originalRequest);
-      } catch (refreshError) {
+      } catch {
         queue = [];
-        window.location.href = "/auth/login";
-        return Promise.reject(refreshError);
+        // ❗ สำคัญ: ห้ามยิงซ้ำอีก
+        return Promise.reject(error);
       } finally {
         isRefreshing = false;
       }

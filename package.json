@@ -3,16 +3,18 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "db:backup": "powershell -Command \"if (!(Test-Path backups)) { New-Item backups -ItemType Directory } ; $ts = Get-Date -Format yyyyMMdd_HHmmss ; docker exec rentflow-postgres pg_dump -U rentflow -F c -f /tmp/rentflow_$ts.backup rentflow ; docker cp rentflow-postgres:/tmp/rentflow_$ts.backup backups/rentflow_$ts.backup\"",
-    "db:restore": "powershell -Command \"$f = Get-ChildItem backups\\rentflow_*.backup | Sort-Object LastWriteTime -Descending | Select-Object -First 1 ; docker cp $f.FullName rentflow-postgres:/tmp/rentflow.backup ; docker exec rentflow-postgres pg_restore -U rentflow -d rentflow --clean --if-exists /tmp/rentflow.backup\"",
-    "minio:backup": "powershell -Command \"if (!(Test-Path backups)) { New-Item backups -ItemType Directory } ; $ts = Get-Date -Format yyyyMMdd_HHmmss ; Compress-Archive -Path minio-data\\* -DestinationPath backups\\minio_$ts.zip\"",
-    "minio:restore": "powershell -Command \"$f = Get-ChildItem backups\\minio_*.tar.gz | Sort-Object LastWriteTime -Descending | Select-Object -First 1 ; docker stop rentflow-minio ; docker rm rentflow-minio ; docker volume rm rentflow_minio-data ; docker compose up -d minio ; docker cp $f.FullName rentflow-minio:/tmp/minio.tar.gz ; docker exec rentflow-minio sh -c 'rm -rf /data/* && tar xzf /tmp/minio.tar.gz -C /data' ; docker restart rentflow-minio\"",
-    "backup:all": "npm run db:backup && npm run minio:backup",
-    "restore:all": "npm run minio:restore && npm run db:restore",
-    "clean:comments": "npx jscodeshift -t ./scripts/remove-all-comments.js frontend/app frontend/components frontend/features frontend/lib frontend/hooks frontend/context frontend/middlewares backend/src --extensions=js,jsx,ts,tsx --parser=tsx --run-in-band --ignore-pattern \"**/.next/**\" --ignore-pattern \"**/node_modules/**\" --ignore-pattern \"**/public/**\" --ignore-pattern \"**/prisma/**\"",
-    "clean:all": "npm run clean:comments && prettier --write frontend/app frontend/components frontend/features frontend/lib frontend/hooks frontend/context frontend/middlewares backend/src"
-  },
+  "db:backup": "powershell -Command \"if (!(Test-Path backups)) { New-Item backups -ItemType Directory } ; $ts = Get-Date -Format yyyyMMdd_HHmmss ; docker exec rentflow-postgres pg_dump -U rentflow -F c -f /tmp/rentflow_$ts.backup rentflow ; docker cp rentflow-postgres:/tmp/rentflow_$ts.backup backups/rentflow_$ts.backup\"",
+
+  "db:restore": "powershell -Command \"$f = Get-ChildItem backups\\rentflow_*.backup | Sort-Object LastWriteTime -Descending | Select-Object -First 1 ; docker cp $f.FullName rentflow-postgres:/tmp/rentflow.backup ; docker exec rentflow-postgres pg_restore -U rentflow -d rentflow --clean --if-exists /tmp/rentflow.backup\"",
+
+  "minio:backup": "powershell -Command \"if (!(Test-Path backups)) { New-Item backups -ItemType Directory } ; $ts = Get-Date -Format yyyyMMdd_HHmmss ; Compress-Archive -Path minio-data\\* -DestinationPath backups\\minio_$ts.zip\"",
+
+  "minio:restore": "powershell -Command \"$f = Get-ChildItem backups\\minio_*.zip | Sort-Object LastWriteTime -Descending | Select-Object -First 1 ; if (-not $f) { Write-Error 'No MinIO backup found' ; exit 1 } ; docker stop rentflow-minio ; if (Test-Path minio-data) { Remove-Item -Recurse -Force minio-data\\* } ; Expand-Archive -Path $f.FullName -DestinationPath minio-data ; docker start rentflow-minio\"",
+
+  "backup:all": "npm run db:backup && npm run minio:backup",
+  "restore:all": "npm run minio:restore && npm run db:restore"
+}
+,
   "devDependencies": {
     "@babel/generator": "^7.28.5",
     "@babel/parser": "^7.28.5",

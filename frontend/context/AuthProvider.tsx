@@ -1,4 +1,5 @@
 "use client";
+
 import {
   createContext,
   useContext,
@@ -8,6 +9,7 @@ import {
 } from "react";
 import type { User } from "@/features/auth";
 import { authService } from "@/features/auth/services/auth.service";
+import { usePathname } from "next/navigation";
 
 type AuthContextType = {
   user: User | null;
@@ -21,11 +23,24 @@ const AuthContext = createContext<AuthContextType>({
   setUser: () => {},
 });
 
+const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
   useEffect(() => {
+    const isPublicRoute = PUBLIC_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(route + "/"),
+    );
+
+    // ✅ public → ไม่ยิง /me
+    if (isPublicRoute) {
+      setLoading(false);
+      return;
+    }
+
     const fetchMe = async () => {
       try {
         const res = await authService.getMe();
@@ -38,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     fetchMe();
-  }, []);
+  }, [pathname]);
 
   return (
     <AuthContext.Provider

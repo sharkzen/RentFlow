@@ -1,9 +1,16 @@
 "use client";
 import React from "react";
-import { Phone, User, Droplets, Zap, Banknote, Facebook } from "lucide-react";
+import {
+  Phone,
+  MessageCircle,
+  Facebook,
+  Droplets,
+  Zap,
+  Sparkles,
+} from "lucide-react";
 import { DormSlugResponse } from "@/features/dormitory/types";
 
-// Line Icon SVG Component
+// ใช้ SVG Line Icon เดิม
 const LineIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 24 24"
@@ -15,97 +22,88 @@ const LineIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export const DormSidebar: React.FC<{
-  data: DormSlugResponse;
-}> = ({ data }) => {
+export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
   const { settings, owner } = data;
 
   return (
-    <div className="space-y-6">
-      <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xl shadow-slate-200/50">
-        <div className="bg-gradient-to-r from-blue-600 to-cyan-500 p-6 text-white">
-          <p className="mb-1 text-xs font-semibold tracking-wider uppercase opacity-80">
-            ราคาเริ่มต้น
-          </p>
-          <div className="flex items-baseline gap-2">
-            <h2 className="text-4xl font-extrabold tracking-tight">
-              {settings.roomPrice.toLocaleString()}
-            </h2>
-            <span className="text-lg font-medium opacity-90">บาท / เดือน</span>
-          </div>
+    // Single Unified Card with subtle shadow
+    <div className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] ring-1 ring-slate-100">
+      {/* Price Section: Clean & Bold */}
+      <div className="p-6 pb-4">
+        <p className="mb-1 text-sm font-medium text-slate-500">ราคาเริ่มต้น</p>
+        <div className="flex items-baseline gap-2">
+          <h2 className="text-4xl font-bold text-slate-900">
+            {settings.roomPrice.toLocaleString()}
+          </h2>
+          <span className="text-base font-medium text-slate-500">
+            บาท/เดือน
+          </span>
         </div>
-        <div className="p-6">
-          <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wide text-slate-800 uppercase">
-            <Banknote size={16} className="text-slate-400" />
-            ค่าใช้จ่ายเพิ่มเติม
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 transition-colors hover:bg-slate-100">
-              <span className="flex items-center gap-3 text-sm text-slate-600">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                  <Droplets size={14} />
-                </div>
-                ค่าน้ำ
-              </span>
-              <span className="text-sm font-bold text-slate-900">
-                {settings.waterRate}บ./หน่วย
-              </span>
-            </div>
-            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 transition-colors hover:bg-slate-100">
-              <span className="flex items-center gap-3 text-sm text-slate-600">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-100 text-yellow-600">
-                  <Zap size={14} />
-                </div>
-                ค่าไฟ
-              </span>
-              <span className="text-sm font-bold text-slate-900">
-                {settings.electricRate}บ./หน่วย
-              </span>
-            </div>
-            <div className="flex items-center justify-between rounded-xl bg-slate-50 p-3 transition-colors hover:bg-slate-100">
-              <span className="flex items-center gap-3 text-sm text-slate-600">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
-                  <Banknote size={14} />
-                </div>
-                ส่วนกลาง
-              </span>
-              <span className="text-sm font-bold text-slate-900">
-                {settings.commonFee || "ฟรี"}
-              </span>
-            </div>
+      </div>
+
+      {/* Utilities Section: Minimal List */}
+      <div className="mx-6 border-t border-slate-100 py-5">
+        <h3 className="mb-4 text-sm font-semibold text-slate-900">
+          ค่าใช้จ่ายเพิ่มเติม
+        </h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-2 text-slate-600">
+              <Droplets size={16} className="text-blue-400" /> ค่าน้ำ
+            </span>
+            <span className="font-medium text-slate-900">
+              {settings.waterRate} บ./หน่วย
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-2 text-slate-600">
+              <Zap size={16} className="text-yellow-400" /> ค่าไฟ
+            </span>
+            <span className="font-medium text-slate-900">
+              {settings.electricRate} บ./หน่วย
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-2 text-slate-600">
+              <Sparkles size={16} className="text-purple-400" /> ส่วนกลาง
+            </span>
+            <span className="font-medium text-slate-900">
+              {settings.commonFee || "ฟรี"}
+            </span>
           </div>
         </div>
       </div>
-      <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-lg shadow-slate-200/40">
-        <div className="mb-6 flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-slate-500 shadow-inner">
-            <User size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-slate-500">ติดต่อเจ้าของหอพัก</p>
-            <p className="line-clamp-1 text-lg font-bold text-slate-900">
-              {owner.fullName}
-            </p>
-          </div>
+
+      {/* Contact Owner Section: Soft Background */}
+      <div className="bg-slate-50/80 p-6">
+        <div className="mb-4">
+          <p className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
+            ติดต่อเจ้าของหอพัก
+          </p>
+          <p className="mt-1 text-lg font-bold text-slate-900">
+            {owner.fullName}
+          </p>
         </div>
-        <div className="space-y-3">
+
+        <div className="flex flex-col gap-3">
           <a
             href={`tel:${owner.phone}`}
-            className="group flex w-full items-center justify-center gap-3 rounded-xl bg-blue-600 px-4 py-3.5 font-bold text-white shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-300 active:scale-95"
+            className="group flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-slate-800"
           >
-            <Phone size={18} className="fill-current" />
-            <span>โทร {owner.phone}</span>
+            <Phone size={18} />
+            โทร {owner.phone}
           </a>
+
           <div className="grid grid-cols-2 gap-3">
             {owner.lineId && (
               <a
                 href={`https://line.me/ti/p/~${owner.lineId.replace("@", "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#06C755] px-4 py-3 text-sm font-bold text-white shadow-md shadow-green-200 transition-all hover:-translate-y-0.5 hover:bg-[#05b34c] hover:shadow-green-300 active:scale-95"
+                className="flex items-center justify-center gap-2 rounded-xl bg-[#06C755]/10 px-4 py-3 text-sm font-semibold text-[#06C755] transition-colors hover:bg-[#06C755]/20"
               >
-                <LineIcon className="h-4 w-4" />
-                <span>Line</span>
+                <LineIcon className="h-5 w-5" />
+                Line
               </a>
             )}
             {owner.facebook && (
@@ -113,10 +111,10 @@ export const DormSidebar: React.FC<{
                 href={owner.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#1877F2] px-4 py-3 text-sm font-bold text-white shadow-md shadow-blue-200 transition-all hover:-translate-y-0.5 hover:bg-[#166fe5] hover:shadow-blue-300 active:scale-95"
+                className="flex items-center justify-center gap-2 rounded-xl bg-[#1877F2]/10 px-4 py-3 text-sm font-semibold text-[#1877F2] transition-colors hover:bg-[#1877F2]/20"
               >
-                <Facebook size={18} className="fill-current" />
-                <span>Facebook</span>
+                <Facebook size={18} />
+                Facebook
               </a>
             )}
           </div>
