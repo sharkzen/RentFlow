@@ -28,6 +28,7 @@ import { showBackendError } from "@/lib/backendErrorMsg";
 import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import Link from "next/link";
 
 interface DormsDialogProps {
   dorm: Dormitory;
@@ -179,10 +180,17 @@ export default function DormsDialog({
           className="flex h-full max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5"
         >
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-            <div>
+            <div className="flex flex-col">
               <h2 className="text-xl font-bold text-slate-800">
                 แก้ไขข้อมูลหอพัก
               </h2>
+              <Link
+                href={`/dorms/${dorm.slug}`}
+                target="_blank"
+                className="text-sm text-blue-500 underline"
+              >
+                ดูห้องพัก
+              </Link>
             </div>
             <button
               onClick={onClose}
@@ -241,7 +249,7 @@ export default function DormsDialog({
                         updateField("description", e.target.value)
                       }
                       rows={4}
-                      className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+                      className="h-80 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
                       placeholder="รายละเอียดเกี่ยวกับหอพัก สิ่งอำนวยความสะดวก..."
                     />
                   </div>

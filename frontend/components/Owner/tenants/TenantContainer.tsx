@@ -130,6 +130,14 @@ export default function TenantContainer() {
 
   return (
     <div className="flex h-[calc(90vh-2rem)] flex-col gap-6 overflow-hidden bg-white py-1">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+          จัดการผู้เช่า
+        </h2>
+        <p className="text-sm text-gray-500 sm:text-base">
+          จัดการรายชื่อผู้เช่าในหอพัก
+        </p>
+      </div>
       <div className="col-span-12 grid grid-cols-12 gap-3 md:col-span-8">
         <div className="relative order-1 col-span-12 sm:col-span-4 md:order-1 md:col-span-3">
           <div className="relative h-full">

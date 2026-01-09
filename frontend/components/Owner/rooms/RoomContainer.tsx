@@ -89,7 +89,7 @@ export default function RoomContainer() {
     <div className="flex w-full max-w-full flex-col gap-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h2 className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text py-1 text-3xl font-bold text-transparent sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
             ห้องพัก
           </h2>
           <p className="text-sm text-gray-500 sm:text-base">
@@ -103,7 +103,7 @@ export default function RoomContainer() {
               className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 shadow-sm transition hover:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
             >
               <div className="flex flex-col items-start">
-                <span className="text-[10px] text-gray-400">หอพักปัจจุบัน</span>
+                <span className="text-[10px] text-gray-400">หอพักที่เลือก</span>
                 <span className="truncate font-semibold text-blue-600">
                   {dorms.find((d) => d.id === selectedDormId)?.name ??
                     "เลือกหอพัก"}

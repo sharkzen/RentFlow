@@ -612,9 +612,9 @@ export default function CreateBillDialog({
           </button>
         </div>
         <div className="flex items-center justify-between border-t border-gray-100 bg-white px-6 py-4">
-          <div className="hidden text-sm text-gray-500 sm:block">
+          <div className="block text-sm text-gray-500">
             <span className="font-medium text-gray-900">{items.length}</span>{" "}
-            รายการในบิล
+            รายการ
           </div>
           <div className="flex flex-1 justify-end gap-3 sm:flex-none">
             <button

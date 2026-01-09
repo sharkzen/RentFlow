@@ -200,7 +200,7 @@ export default function TenantList({
                   )}
                 </td>
                 <td className="px-3 py-4">
-                  <span className="font-mono text-xs text-gray-600">
+                  <span className="text-xs text-gray-600">
                     {tenant.phone || "-"}
                   </span>
                 </td>

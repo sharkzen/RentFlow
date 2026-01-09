@@ -180,7 +180,7 @@ export default function BillContainer() {
   };
 
   return (
-    <div className="relative flex h-[calc(100dvh-2rem)] w-full flex-col gap-4 pb-20 sm:h-auto sm:pb-0">
+    <div className="relative flex h-[calc(100dvh-2rem)] w-full flex-col gap-4">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-xl font-bold text-gray-800 sm:text-2xl">
@@ -198,7 +198,7 @@ export default function BillContainer() {
           />
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="hidden cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow active:scale-95 sm:flex"
+            className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow active:scale-95"
           >
             <Plus size={18} />
             <span>สร้างบิล</span>
@@ -229,14 +229,6 @@ export default function BillContainer() {
         <div className="border-t border-gray-100 bg-gray-50 p-2 text-center text-xs text-gray-500">
           แสดงทั้งหมด {bills.length}รายการ
         </div>
-      </div>
-      <div className="fixed right-6 bottom-6 z-40 sm:hidden">
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 transition-transform active:scale-90"
-        >
-          <Plus size={28} />
-        </button>
       </div>
       <BillDetailDialog
         onRefresh={fetchBills}
