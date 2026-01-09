@@ -1,5 +1,4 @@
 "use client";
-
 import {
   createContext,
   useContext,
@@ -35,7 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (route) => pathname === route || pathname.startsWith(route + "/"),
     );
 
-    // ✅ public → ไม่ยิง /me
     if (isPublicRoute) {
       setLoading(false);
       return;

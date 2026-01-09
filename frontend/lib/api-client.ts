@@ -13,7 +13,6 @@ axios.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // ❗ ถ้า refresh เองแล้ว → ห้ามเข้าอีก
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
@@ -35,7 +34,6 @@ axios.interceptors.response.use(
         return axios(originalRequest);
       } catch {
         queue = [];
-        // ❗ สำคัญ: ห้ามยิงซ้ำอีก
         return Promise.reject(error);
       } finally {
         isRefreshing = false;

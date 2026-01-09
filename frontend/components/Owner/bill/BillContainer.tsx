@@ -214,7 +214,6 @@ export default function BillContainer() {
         onStatusChange={setStatusFilter}
         statusOptions={statusOptions}
       />
-
       <div className="flex h-[65vh] w-full flex-col">
         <div className="w-full flex-1 overflow-hidden">
           <BillTable

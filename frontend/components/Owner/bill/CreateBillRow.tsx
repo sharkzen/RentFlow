@@ -93,7 +93,6 @@ export default function CreateBillRow({
           </div>
         )}
       </div>
-
       <div className="col-span-1 rounded-lg border border-blue-100/50 bg-blue-50/30 p-3 lg:col-span-3">
         <div className="mb-2 flex items-center gap-2">
           <div className="rounded bg-blue-100 p-1 text-blue-600">
@@ -121,7 +120,6 @@ export default function CreateBillRow({
             />
           </div>
         </div>
-
         {item.currentWater !== "" && (
           <div
             className={`mt-2 text-right text-xs font-medium ${isWaterError ? "text-red-500" : "text-blue-600"}`}
@@ -132,7 +130,6 @@ export default function CreateBillRow({
           </div>
         )}
       </div>
-
       <div className="col-span-1 rounded-lg border border-amber-100/50 bg-amber-50/30 p-3 lg:col-span-3">
         <div className="mb-2 flex items-center gap-2">
           <div className="rounded bg-amber-100 p-1 text-amber-600">
@@ -171,7 +168,6 @@ export default function CreateBillRow({
           </div>
         )}
       </div>
-
       <div className="col-span-1 space-y-2 pt-1 lg:col-span-2">
         <div className="relative">
           <Coins size={14} className="absolute top-2.5 left-3 text-gray-400" />
@@ -191,7 +187,6 @@ export default function CreateBillRow({
           className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs"
         />
       </div>
-
       <div className="col-span-1 flex justify-center lg:pt-4">
         <button
           onClick={() => onRemove(item.id)}

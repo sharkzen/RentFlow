@@ -73,7 +73,6 @@ export default function BillSlipSidebar({
           หลักฐานการโอน
         </h4>
       </div>
-
       <div
         className={`flex-1 p-4 ${!isMobile ? "custom-scrollbar overflow-y-auto" : ""}`}
       >
@@ -92,14 +91,12 @@ export default function BillSlipSidebar({
                   className={`w-full object-contain ${isMobile ? "h-auto" : "max-h-[40vh]"}`}
                 />
               </div>
-
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
                 <span className="rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-900 shadow-lg backdrop-blur-sm">
                   🔍 แตะเพื่อดูรูปใหญ่
                 </span>
               </div>
             </div>
-
             {canUpload && (
               <button
                 onClick={() => fileInputRef.current?.click()}
@@ -114,7 +111,6 @@ export default function BillSlipSidebar({
                 {isUploading ? "กำลังอัปโหลด..." : "เปลี่ยนรูปสลิปใหม่"}
               </button>
             )}
-
             {isPreviewOpen && (
               <div
                 className="animate-in fade-in zoom-in fixed inset-0 z-100 flex items-center justify-center bg-black/95 p-0 duration-200 sm:p-4"
@@ -172,7 +168,6 @@ export default function BillSlipSidebar({
                   <ImageIcon size={28} className="opacity-40" />
                 </div>
                 <p className="text-sm font-medium">ไม่มีหลักฐานการโอน</p>
-
                 {isPaymentClosed && (
                   <p className="mt-1 text-xs text-gray-400">
                     (สถานะปิดการอัปโหลด)
@@ -190,7 +185,6 @@ export default function BillSlipSidebar({
           onChange={handleFileChange}
         />
       </div>
-
       {payment && (
         <div
           className={`border-t border-gray-200 bg-white p-4 ${isMobile ? "" : "mt-auto"}`}
