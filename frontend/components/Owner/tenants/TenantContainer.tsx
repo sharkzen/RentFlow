@@ -63,9 +63,7 @@ export default function TenantContainer() {
       const res = await DormService.getDorm();
       setDorms(res);
 
-      if (res.length > 0) {
-        setSelectedDorm(res[0].id);
-      }
+      if (res.length > 0) setSelectedDorm(res[0].id);
     } catch (error: any) {
       log.error(error);
       showBackendError(error);
@@ -129,7 +127,7 @@ export default function TenantContainer() {
     dorms.find((d) => d.id === selectedDorm)?.name || "เลือกหอพัก";
 
   return (
-    <div className="flex h-[calc(90vh-2rem)] flex-col gap-6 overflow-hidden bg-white py-1">
+    <div className="flex w-full max-w-full flex-col gap-6 bg-white py-1">
       <div className="flex flex-col gap-1">
         <h2 className="text-3xl font-bold tracking-tight text-slate-900">
           จัดการผู้เช่า
@@ -138,6 +136,7 @@ export default function TenantContainer() {
           จัดการรายชื่อผู้เช่าในหอพัก
         </p>
       </div>
+
       <div className="col-span-12 grid grid-cols-12 gap-3 md:col-span-8">
         <div className="relative order-1 col-span-12 sm:col-span-4 md:order-1 md:col-span-3">
           <div className="relative h-full">
@@ -160,36 +159,34 @@ export default function TenantContainer() {
               />
             </button>
             {isDormDropdownOpen && (
-              <div
-                className="fixed inset-0 z-10 cursor-default"
-                onClick={() => setIsDormDropdownOpen(false)}
-              />
-            )}
-            {isDormDropdownOpen && (
-              <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-50 overflow-hidden rounded-lg border border-gray-100 bg-white p-1 shadow-lg ring-1 ring-black/5 duration-100">
-                <div className="custom-scrollbar max-h-60 overflow-y-auto">
-                  {dorms.map((dorm) => (
-                    <button
-                      key={dorm.id}
-                      onClick={() => {
-                        setSelectedDorm(dorm.id);
-                        setIsDormDropdownOpen(false);
-                      }}
-                      className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${selectedDorm === dorm.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
-                    >
-                      <span className="truncate pr-2">{dorm.name}</span>
-                      {selectedDorm === dorm.id && (
-                        <Check size={14} className="shrink-0 text-indigo-600" />
-                      )}
-                    </button>
-                  ))}
-                  {dorms.length === 0 && (
-                    <div className="px-3 py-4 text-center text-xs text-gray-400">
-                      ไม่มีข้อมูลหอพัก
-                    </div>
-                  )}
+              <>
+                <div
+                  className="fixed inset-0 z-10 cursor-default"
+                  onClick={() => setIsDormDropdownOpen(false)}
+                />
+                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-50 overflow-hidden rounded-lg border border-gray-100 bg-white p-1 shadow-lg ring-1 ring-black/5 duration-100">
+                  <div className="custom-scrollbar max-h-60 overflow-y-auto">
+                    {dorms.map((dorm) => (
+                      <button
+                        key={dorm.id}
+                        onClick={() => {
+                          setSelectedDorm(dorm.id);
+                          setIsDormDropdownOpen(false);
+                        }}
+                        className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${selectedDorm === dorm.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                      >
+                        <span className="truncate pr-2">{dorm.name}</span>
+                        {selectedDorm === dorm.id && (
+                          <Check
+                            size={14}
+                            className="shrink-0 text-indigo-600"
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </div>
@@ -221,40 +218,40 @@ export default function TenantContainer() {
               />
             </button>
             {isFilterOpen && (
-              <div
-                className="fixed inset-0 z-10 cursor-default"
-                onClick={() => setIsFilterOpen(false)}
-              />
-            )}
-            {isFilterOpen && (
-              <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-45 overflow-hidden rounded-lg border border-gray-100 bg-white p-1 shadow-lg ring-1 ring-black/5 duration-100">
-                {filterOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => {
-                      setFilterStatus(option.value);
-                      setIsFilterOpen(false);
-                    }}
-                    className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${filterStatus === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span>{option.label}</span>
+              <>
+                <div
+                  className="fixed inset-0 z-10 cursor-default"
+                  onClick={() => setIsFilterOpen(false)}
+                />
+                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-45 rounded-lg border border-gray-100 bg-white p-1 shadow-lg ring-1 ring-black/5 duration-100">
+                  {filterOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setFilterStatus(option.value);
+                        setIsFilterOpen(false);
+                      }}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${filterStatus === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span>{option.label}</span>
+                        </div>
+                        {option.desc && (
+                          <span
+                            className={`block text-[10px] ${filterStatus === option.value ? "text-indigo-400" : "text-gray-400"}`}
+                          >
+                            {option.desc}
+                          </span>
+                        )}
                       </div>
-                      {option.desc && (
-                        <span
-                          className={`block text-[10px] ${filterStatus === option.value ? "text-indigo-400" : "text-gray-400"}`}
-                        >
-                          {option.desc}
-                        </span>
+                      {filterStatus === option.value && (
+                        <Check size={14} className="shrink-0 text-indigo-600" />
                       )}
-                    </div>
-                    {filterStatus === option.value && (
-                      <Check size={14} className="shrink-0 text-indigo-600" />
-                    )}
-                  </button>
-                ))}
-              </div>
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -269,8 +266,8 @@ export default function TenantContainer() {
           </button>
         </div>
       </div>
-      <div className="relative flex-1 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="absolute inset-0 overflow-auto">
+      <div className="min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="h-[60vh] overflow-x-auto">
           <TenantList
             isLoading={loading}
             tenants={tenants}
@@ -302,7 +299,7 @@ export default function TenantContainer() {
           </div>
         </div>
       )}
-      {selectedDorm && (
+      {isAddModalOpen && selectedDorm && (
         <AddTenantDialog
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}

@@ -17,6 +17,7 @@ import {
   MapPin,
   Users,
   Coins,
+  Calendar,
 } from "lucide-react";
 
 import { Rooms } from "@/features/room/types";
@@ -217,14 +218,14 @@ export default function AddTenantDialog({
     });
   };
 
-  if (!isOpen) return null;
-
   const inputBaseClass =
     "w-full h-10 rounded-lg border border-gray-300 bg-white text-sm text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all placeholder:text-gray-400";
   const inputClass = `${inputBaseClass} px-3`;
   const inputWithIconClass = `${inputBaseClass} pl-10 pr-3`;
   const iconClass =
     "absolute top-3 left-3 h-4 w-4 text-gray-400 pointer-events-none";
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4 transition-all duration-200">
@@ -248,7 +249,7 @@ export default function AddTenantDialog({
             />
           </button>
         </div>
-        <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto bg-gray-50/30 p-6">
+        <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto bg-gray-50/30 p-2">
           <form
             id="add-tenant-form"
             onSubmit={handleSubmit}
@@ -331,7 +332,7 @@ export default function AddTenantDialog({
                         </div>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
                         <DatePickerTh
                           label="วันเริ่มสัญญา"
@@ -351,7 +352,7 @@ export default function AddTenantDialog({
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
                         <DatePickerTh
                           label="เข้าพัก (Move In)"
@@ -369,12 +370,14 @@ export default function AddTenantDialog({
                         <div className="relative">
                           <Users className={iconClass} />
                           <input
+                            inputMode={"numeric"}
+                            pattern="[0-9]*"
                             type="number"
                             min="1"
                             name="numberOfResidents"
                             value={formData.numberOfResidents}
                             onChange={handleChange}
-                            className={inputWithIconClass}
+                            className={`${inputWithIconClass} appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
                           />
                         </div>
                       </div>
@@ -391,7 +394,7 @@ export default function AddTenantDialog({
                       <label className="mb-1.5 block text-xs font-semibold text-gray-700">
                         เงินประกันความเสียหาย
                       </label>
-                      <div className="relative">
+                      <div className="relative w-full">
                         <span className="absolute top-2.5 left-3 font-sans text-sm text-gray-400">
                           ฿
                         </span>

@@ -767,11 +767,11 @@ export const dormService = {
     return true;
   },
 
-  async getDormOverview(
+  async getDashboard(
     dormId: string,
     userId: string,
-    month: number,
-    year: number,
+    monthStr?: string,
+    yearStr?: string,
   ) {
     const owner = await prisma.ownerProfile.findUnique({
       where: {
@@ -781,23 +781,218 @@ export const dormService = {
 
     if (!owner) throw new Error("FORBIDDEN");
 
-    const dorm = await prisma.dormitory.findUnique({
-      where: {
-        id: dormId,
-      },
+    if (dormId !== "ALL") {
+      const dorm = await prisma.dormitory.findUnique({
+        where: {
+          id: dormId,
+        },
 
-      select: {
-        id: true,
-        ownerId: true,
-      },
-    });
+        select: {
+          id: true,
+          ownerId: true,
+        },
+      });
 
-    if (!dorm || dorm.ownerId !== owner.id) {
-      throw new Error("FORBIDDEN");
+      if (!dorm || dorm.ownerId !== owner.id) throw new Error("FORBIDDEN");
     }
 
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+    const baseBillWhere =
+      dormId === "ALL"
+        ? {
+            room: {
+              dormitory: {
+                ownerId: owner.id,
+              },
+            },
+          }
+        : {
+            room: {
+              dormitoryId: dormId,
+            },
+          };
+
+    const roomWhere =
+      dormId === "ALL"
+        ? {
+            dormitory: {
+              ownerId: owner.id,
+            },
+          }
+        : {
+            dormitoryId: dormId,
+          };
+
+    const maintenanceWhere =
+      dormId === "ALL"
+        ? {
+            dormitory: {
+              ownerId: owner.id,
+            },
+          }
+        : {
+            dormitoryId: dormId,
+          };
+
+    const now = new Date();
+    const isAllYears = !yearStr || yearStr === "ALL";
+
+    let graphData: {
+      name: string;
+      total: number;
+      isCurrent?: boolean;
+    }[] = [];
+
+    if (isAllYears) {
+      const currentYear = now.getFullYear();
+
+      const oldestBill = await prisma.bill.findFirst({
+        where: {
+          ...baseBillWhere,
+          status: "PAID",
+        },
+
+        orderBy: {
+          billingMonth: "asc",
+        },
+
+        select: {
+          billingMonth: true,
+        },
+      });
+
+      const firstBillYear = oldestBill
+        ? oldestBill.billingMonth.getFullYear()
+        : currentYear;
+      const startYear = Math.min(currentYear - 4, firstBillYear);
+      const yearMap: Record<string, number> = {};
+
+      for (let y = startYear; y <= currentYear; y++) {
+        yearMap[y.toString()] = 0;
+      }
+
+      const bills = await prisma.bill.findMany({
+        where: {
+          ...baseBillWhere,
+          status: "PAID",
+
+          billingMonth: {
+            gte: new Date(startYear, 0, 1),
+            lte: new Date(currentYear, 11, 31, 23, 59, 59),
+          },
+        },
+
+        select: {
+          total: true,
+          billingMonth: true,
+        },
+      });
+
+      bills.forEach((bill) => {
+        const y = bill.billingMonth.getFullYear().toString();
+
+        if (yearMap[y] !== undefined) {
+          yearMap[y] += bill.total;
+        }
+      });
+
+      graphData = Object.entries(yearMap)
+        .map(([yearKey, total]) => {
+          const buddhistYear = parseInt(yearKey) + 543;
+
+          return {
+            name: `${buddhistYear}`,
+            total,
+            isCurrent: yearKey === currentYear.toString(),
+          };
+        })
+        .sort((a, b) => parseInt(a.name) - parseInt(b.name));
+    } else {
+      const selectedYear = parseInt(yearStr!);
+      const selectedMonthInt =
+        monthStr && monthStr !== "ALL" ? parseInt(monthStr) : null;
+
+      const thaiMonths = [
+        "ม.ค.",
+        "ก.พ.",
+        "มี.ค.",
+        "เม.ย.",
+        "พ.ค.",
+        "มิ.ย.",
+        "ก.ค.",
+        "ส.ค.",
+        "ก.ย.",
+        "ต.ค.",
+        "พ.ย.",
+        "ธ.ค.",
+      ];
+
+      const shortYearThai = (selectedYear + 543).toString().slice(-2);
+
+      const monthlyData = await Promise.all(
+        Array.from(
+          {
+            length: 12,
+          },
+          (_, i) => {
+            const mStart = new Date(selectedYear, i, 1);
+            const mEnd = new Date(selectedYear, i + 1, 0, 23, 59, 59, 999);
+
+            return prisma.bill
+              .aggregate({
+                where: {
+                  ...baseBillWhere,
+                  status: "PAID",
+
+                  billingMonth: {
+                    gte: mStart,
+                    lte: mEnd,
+                  },
+                },
+
+                _sum: {
+                  total: true,
+                },
+              })
+              .then((res) => res._sum.total || 0);
+          },
+        ),
+      );
+
+      graphData = monthlyData.map((total, index) => {
+        const monthIndex = index + 1;
+        const label = `${thaiMonths[index]} ${shortYearThai}`;
+
+        return {
+          name: label,
+          total: total,
+          isCurrent: selectedMonthInt
+            ? monthIndex === selectedMonthInt
+            : index === now.getMonth() && selectedYear === now.getFullYear(),
+        };
+      });
+    }
+
+    let dateFilterForStats: any = {};
+
+    if (isAllYears) {
+      dateFilterForStats = {};
+    } else {
+      const year = parseInt(yearStr!);
+
+      if (!monthStr || monthStr === "ALL") {
+        dateFilterForStats = {
+          gte: new Date(year, 0, 1),
+          lte: new Date(year, 11, 31, 23, 59, 59),
+        };
+      } else {
+        const month = parseInt(monthStr);
+
+        dateFilterForStats = {
+          gte: new Date(year, month - 1, 1),
+          lte: new Date(year, month, 0, 23, 59, 59),
+        };
+      }
+    }
 
     const [
       totalRooms,
@@ -812,34 +1007,25 @@ export const dormService = {
       maintCompleted,
     ] = await Promise.all([
       prisma.room.count({
-        where: {
-          dormitoryId: dormId,
-        },
+        where: roomWhere,
       }),
       prisma.room.count({
         where: {
-          dormitoryId: dormId,
+          ...roomWhere,
           status: "OCCUPIED",
         },
       }),
       prisma.room.count({
         where: {
-          dormitoryId: dormId,
+          ...roomWhere,
           status: "AVAILABLE",
         },
       }),
       prisma.bill.aggregate({
         where: {
-          room: {
-            dormitoryId: dormId,
-          },
-
+          ...baseBillWhere,
           status: "PAID",
-
-          billingMonth: {
-            gte: startDate,
-            lte: endDate,
-          },
+          billingMonth: dateFilterForStats,
         },
 
         _sum: {
@@ -850,16 +1036,9 @@ export const dormService = {
       }),
       prisma.bill.aggregate({
         where: {
-          room: {
-            dormitoryId: dormId,
-          },
-
+          ...baseBillWhere,
           status: "PENDING",
-
-          billingMonth: {
-            gte: startDate,
-            lte: endDate,
-          },
+          billingMonth: dateFilterForStats,
         },
 
         _sum: {
@@ -870,16 +1049,9 @@ export const dormService = {
       }),
       prisma.bill.aggregate({
         where: {
-          room: {
-            dormitoryId: dormId,
-          },
-
+          ...baseBillWhere,
           status: "OVERDUE",
-
-          billingMonth: {
-            gte: startDate,
-            lte: endDate,
-          },
+          billingMonth: dateFilterForStats,
         },
 
         _sum: {
@@ -890,53 +1062,38 @@ export const dormService = {
       }),
       prisma.maintenanceRequest.count({
         where: {
-          dormitoryId: dormId,
-
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
+          ...maintenanceWhere,
+          createdAt: dateFilterForStats,
         },
       }),
       prisma.maintenanceRequest.count({
         where: {
-          dormitoryId: dormId,
+          ...maintenanceWhere,
           status: "OPEN",
-
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
+          createdAt: dateFilterForStats,
         },
       }),
       prisma.maintenanceRequest.count({
         where: {
-          dormitoryId: dormId,
+          ...maintenanceWhere,
           status: "IN_PROGRESS",
-
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
+          createdAt: dateFilterForStats,
         },
       }),
       prisma.maintenanceRequest.count({
         where: {
-          dormitoryId: dormId,
+          ...maintenanceWhere,
           status: "COMPLETED",
-
-          createdAt: {
-            gte: startDate,
-            lte: endDate,
-          },
+          createdAt: dateFilterForStats,
         },
       }),
     ]);
 
     return {
       dormId,
-      month,
-      year,
+      month: monthStr,
+      year: yearStr,
+      monthlyRevenue: graphData,
 
       rooms: {
         total: totalRooms,

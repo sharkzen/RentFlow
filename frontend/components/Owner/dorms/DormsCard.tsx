@@ -6,6 +6,7 @@ import { useState } from "react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendErrorMsg";
+import Link from "next/link";
 
 interface DormsCardProps {
   dorm: Dormitory;
@@ -34,7 +35,7 @@ export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
   };
 
   return (
-    <div className="flex h-full min-h-[280px] flex-col overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
+    <div className="flex h-full min-h-70 flex-col overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
       <div className="relative aspect-video bg-slate-100">
         {cover ? (
           <Image
@@ -75,8 +76,19 @@ export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
           </button>
         </div>
         <div className="mt-auto flex items-center justify-between pt-2">
-          <span className="text-xs text-slate-500">
+          <span className="flex items-center gap-3 text-xs text-slate-500">
             สถานะ: {published ? "เผยแพร่" : "ร่าง"}
+            {published && (
+              <span className="text-xs text-slate-500">
+                <Link
+                  href={`/dorms/${dorm.slug}`}
+                  className="text-blue-500 underline"
+                  target="_blank"
+                >
+                  ดูหอพัก
+                </Link>
+              </span>
+            )}
           </span>
           <button
             onClick={(e) => {

@@ -18,8 +18,12 @@ export const DormService = {
     return res.data;
   },
 
-  getOverview: async (dormId: string, month?: number, year?: number) => {
-    const res = await axios.get(`/api/dorms/${dormId}/overview`, {
+  getDashboard: async (
+    dormId: string,
+    month?: string | number,
+    year?: string | number,
+  ) => {
+    const res = await axios.get(`/api/dorms/${dormId}/dashboard`, {
       params: {
         month,
         year,

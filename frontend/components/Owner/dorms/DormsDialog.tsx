@@ -278,8 +278,13 @@ export default function DormsDialog({
                       onChange={(e) => updateField("mapUrl", e.target.value)}
                       placeholder="https://maps.google.com/..."
                     />
-                    <p className="mt-1.5 text-xs text-slate-500">
-                      คัดลอกลิงก์จาก Google Maps มาวางเพื่อแสดงแผนที่
+                    <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-relaxed text-slate-500">
+                      <span className="select-none">📍</span>
+                      <span className="text-red-500">
+                        เปิด Google Maps → ซูมแผนที่ให้ใกล้หอพักที่สุด →
+                        ให้ตำแหน่งหอพักอยู่กลางหน้าจอ →
+                        จากนั้นคัดลอกลิงก์มาวางที่นี่ เพื่อความแม่นยำ
+                      </span>
                     </p>
                   </div>
                 </div>

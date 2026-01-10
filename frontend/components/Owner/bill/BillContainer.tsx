@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "react-toastify";
 import BillTable from "./BillTable";
 import CreateBillDialog from "./CreateBillDialog";
@@ -19,7 +19,11 @@ export default function BillContainer() {
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [selectedMonth, setSelectedMonth] = useState<Date | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const LIMIT = 10;
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
@@ -78,7 +82,11 @@ export default function BillContainer() {
     if (!selectedDorm) return;
 
     fetchBills();
-  }, [selectedDorm, statusFilter, selectedMonth]);
+  }, [selectedDorm, statusFilter, selectedMonth, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, statusFilter, selectedMonth, selectedDorm]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -94,6 +102,8 @@ export default function BillContainer() {
     try {
       const params: any = {
         search,
+        page,
+        limit: LIMIT,
       };
 
       if (statusFilter !== "ALL") params.status = statusFilter;
@@ -106,15 +116,15 @@ export default function BillContainer() {
 
       const res = await BillService.getBills(selectedDorm, params);
       setBills(res.items);
+      setTotalPages(res.totalPages);
+      setTotalItems(res.total);
 
       if (selectedBill) {
         const updatedSelectedBill = res.items.find(
           (b: Bill) => b.id === selectedBill.id,
         );
 
-        if (updatedSelectedBill) {
-          setSelectedBill(updatedSelectedBill);
-        }
+        if (updatedSelectedBill) setSelectedBill(updatedSelectedBill);
       }
     } catch (err) {
       console.error(err);
@@ -123,61 +133,8 @@ export default function BillContainer() {
     }
   };
 
-  const handleCreateBill = async (data: any) => {
-    const createPromise = BillService.createBills({
-      ...data,
-      dormId: selectedDorm,
-    });
-
-    toast.promise(createPromise, {
-      pending: "กำลังสร้างบิล...",
-      success: "สร้างบิลเรียบร้อยแล้ว",
-
-      error: {
-        render({ data }: any) {
-          const errorMsg =
-            data?.response?.data?.message ||
-            data?.message ||
-            "เกิดข้อผิดพลาดในการสร้างบิล";
-          return `เกิดข้อผิดพลาด: ${errorMsg}`;
-        },
-      },
-    });
-
-    try {
-      await createPromise;
-      setIsCreateOpen(false);
-      fetchBills();
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleUpdateStatus = async (id: string, status: string) => {
-    const updatePromise = BillService.updateStatus(id, status);
-
-    toast.promise(updatePromise, {
-      pending: "กำลังอัปเดตสถานะ...",
-      success: "อัปเดตสถานะเรียบร้อย",
-
-      error: {
-        render({ data }: any) {
-          const errorMsg =
-            data?.response?.data?.message ||
-            data?.message ||
-            "อัปเดตสถานะไม่สำเร็จ";
-          return `เกิดข้อผิดพลาด: ${errorMsg}`;
-        },
-      },
-    });
-
-    try {
-      await updatePromise;
-      fetchBills();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const handleCreateBill = async (data: any) => {};
+  const handleUpdateStatus = async (id: string, status: string) => {};
 
   return (
     <div className="relative flex h-[calc(100dvh-2rem)] w-full flex-col gap-4">
@@ -226,8 +183,31 @@ export default function BillContainer() {
             }}
           />
         </div>
-        <div className="border-t border-gray-100 bg-gray-50 p-2 text-center text-xs text-gray-500">
-          แสดงทั้งหมด {bills.length}รายการ
+
+        <div className="flex items-center justify-between border-t border-gray-100 bg-white p-2">
+          <div className="text-xs text-gray-500">
+            แสดง {(page - 1) * LIMIT + 1}ถึง{" "}
+            {Math.min(page * LIMIT, totalItems)}จาก {totalItems}รายการ
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="rounded-lg p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <span className="text-sm text-gray-600">
+              หน้า {page}/ {totalPages}
+            </span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className="rounded-lg p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </div>
       </div>
       <BillDetailDialog

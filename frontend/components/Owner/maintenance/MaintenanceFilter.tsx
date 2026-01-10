@@ -175,7 +175,6 @@ export default function MaintenanceFilter({
           )}
         </div>
       </div>
-
       <div className="col-span-12 sm:col-span-8 md:col-span-4 lg:col-span-5">
         <div className="relative h-full">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -261,7 +260,6 @@ export default function MaintenanceFilter({
           )}
         </div>
       </div>
-
       <div
         className="col-span-6 sm:col-span-6 md:col-span-2 lg:col-span-2"
         ref={statusRef}
@@ -279,7 +277,6 @@ export default function MaintenanceFilter({
               <span className="truncate">{currentStatusLabel}</span>
             </div>
           </button>
-
           {isStatusOpen && (
             <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] right-0 z-20 w-full min-w-[160px] rounded-lg border border-gray-100 bg-white p-1 shadow-lg">
               {statusOptions.map((option) => (
@@ -291,7 +288,7 @@ export default function MaintenanceFilter({
                   }}
                   className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${statusValue === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex cursor-pointer items-center gap-2">
                     <span className={option.colorClass}>{option.label}</span>
                   </div>
                   {statusValue === option.value && (

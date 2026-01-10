@@ -86,14 +86,19 @@ export const billService = {
           },
         },
 
-        orderBy: {
-          room: {
-            roomNumber: "asc",
+        orderBy: [
+          {
+            billingMonth: "desc",
           },
-        },
+          {
+            room: {
+              roomNumber: "asc",
+            },
+          },
+        ],
 
         skip,
-        take: limit,
+        take: Number(limit),
       }),
       prisma.bill.count({
         where,
@@ -125,8 +130,8 @@ export const billService = {
     return {
       items: itemsWithSignedUrl,
       total,
-      page,
-      limit,
+      page: Number(page),
+      limit: Number(limit),
       totalPages: Math.ceil(total / limit),
     };
   },

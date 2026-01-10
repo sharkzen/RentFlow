@@ -38,7 +38,6 @@ export default function EditTenantDialog({
   tenantId,
   onSuccess,
 }: EditTenantDialogProps) {
-  useScrollLock();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
   const [isMoveOutOpen, setIsMoveOutOpen] = useState(false);
@@ -254,6 +253,7 @@ export default function EditTenantDialog({
 
   if (!isOpen) return null;
 
+  useScrollLock();
   const inputBaseClass =
     "w-full h-10 rounded-lg border border-gray-300 bg-white text-sm text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all placeholder:text-gray-400";
   const inputClass = `${inputBaseClass} px-3`;
@@ -299,7 +299,7 @@ export default function EditTenantDialog({
             </button>
           </div>
         </div>
-        <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto bg-gray-50/30 p-6">
+        <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto bg-gray-50/30 p-2">
           {isFetching ? (
             <div className="flex h-64 w-full flex-col items-center justify-center gap-3">
               <div className="flex space-x-2">
@@ -342,7 +342,7 @@ export default function EditTenantDialog({
                           <Lock className="absolute top-3 right-3 h-4 w-4 text-gray-400" />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                           <DatePickerTh
                             label="วันเริ่มสัญญา"
@@ -362,7 +362,7 @@ export default function EditTenantDialog({
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                           <DatePickerTh
                             label="เข้าพัก (Move In)"
@@ -518,7 +518,7 @@ export default function EditTenantDialog({
                       ข้อมูลส่วนตัวผู้เช่า
                     </h3>
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                           <label className="mb-1.5 block text-xs font-semibold text-gray-700">
                             ชื่อจริง
@@ -544,7 +544,7 @@ export default function EditTenantDialog({
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                           <label className="mb-1.5 block text-xs font-semibold text-gray-700">
                             เบอร์โทรศัพท์

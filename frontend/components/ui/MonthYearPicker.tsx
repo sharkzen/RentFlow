@@ -79,7 +79,7 @@ export default function MonthYearPicker({
         <button
           type="button"
           onClick={() => setIsMonthOpen(!isMonthOpen)}
-          className={`flex h-full min-w-36 items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-all focus:outline-none ${isMonthOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+          className={`flex h-full min-w-36 cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-all focus:outline-none ${isMonthOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
         >
           <div className="flex items-center gap-2">
             <Calendar
@@ -99,7 +99,7 @@ export default function MonthYearPicker({
               <button
                 key={month}
                 onClick={() => handleMonthChange(index)}
-                className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${currentMonth === index ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${currentMonth === index ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
               >
                 <span>{month}</span>
                 {currentMonth === index && (
@@ -114,7 +114,7 @@ export default function MonthYearPicker({
         <button
           type="button"
           onClick={() => setIsYearOpen(!isYearOpen)}
-          className={`flex h-full min-w-28 items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-all focus:outline-none ${isYearOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+          className={`flex h-full min-w-28 cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-all focus:outline-none ${isYearOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
         >
           <span>{currentYear + 543}</span>
           <ChevronDown
@@ -128,7 +128,7 @@ export default function MonthYearPicker({
               <button
                 key={year}
                 onClick={() => handleYearChange(year)}
-                className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${currentYear === year ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${currentYear === year ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
               >
                 <span>{year + 543}</span>
                 {currentYear === year && (

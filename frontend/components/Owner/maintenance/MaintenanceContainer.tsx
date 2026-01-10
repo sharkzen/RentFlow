@@ -131,7 +131,6 @@ export default function MaintenanceContainer() {
         onRefresh={fetchMaintenance}
         onChangeFilterStatus={handleActionComplete}
       />
-
       {!isLoading && meta.totalPages > 0 && (
         <div className="flex items-center justify-between border-t border-gray-200 pt-4">
           <div className="hidden text-sm text-gray-500 sm:block">

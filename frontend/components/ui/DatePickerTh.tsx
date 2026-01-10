@@ -1,12 +1,12 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { th } from "date-fns/locale/th";
-import { Calendar } from "lucide-react";
 import dayjs from "dayjs";
 import "dayjs/locale/th";
 import buddhistEra from "dayjs/plugin/buddhistEra";
+import { Calendar } from "lucide-react";
 dayjs.extend(buddhistEra);
 dayjs.locale("th");
 registerLocale("th", th);
@@ -26,11 +26,23 @@ export default function DatePickerTh({
   required,
 }: DatePickerThProps) {
   const selectedDate = value ? new Date(value) : null;
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div className="w-full">
-      <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+      <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-gray-700">
         {label} {required && <span className="text-red-500">*</span>}
+        <Calendar size={15} />
       </label>
       <div className="relative">
         <DatePicker
@@ -45,10 +57,14 @@ export default function DatePickerTh({
               onChange("");
             }
           }}
+          wrapperClassName="w-full"
           dateFormat="d MMMM yyyy"
           locale="th"
           placeholderText="เลือกวันที่"
-          className="h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white pr-3 pl-10 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+          withPortal={isMobile}
+          fixedHeight
+          popperPlacement="bottom-start"
+          className="h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white pr-3 pl-5 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
           renderCustomHeader={({
             date,
             changeYear,
@@ -63,17 +79,17 @@ export default function DatePickerTh({
                 onClick={decreaseMonth}
                 disabled={prevMonthButtonDisabled}
                 type="button"
-                className="rounded p-1 text-gray-600 hover:bg-gray-100"
+                className="rounded p-1 text-gray-600 hover:bg-gray-100 disabled:opacity-30"
               >
                 {"<"}
               </button>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <select
                   value={date.getFullYear()}
                   onChange={({ target: { value } }) =>
                     changeYear(Number(value))
                   }
-                  className="rounded border bg-white p-1 text-sm"
+                  className="cursor-pointer rounded border border-gray-200 bg-white p-1 text-xs font-medium focus:border-indigo-500 focus:outline-none sm:text-sm"
                 >
                   {Array.from(
                     {
@@ -91,7 +107,7 @@ export default function DatePickerTh({
                   onChange={({ target: { value } }) =>
                     changeMonth(Number(value))
                   }
-                  className="rounded border bg-white p-1 text-sm"
+                  className="cursor-pointer rounded border border-gray-200 bg-white p-1 text-xs font-medium focus:border-indigo-500 focus:outline-none sm:text-sm"
                 >
                   {[
                     "มกราคม",
@@ -117,14 +133,13 @@ export default function DatePickerTh({
                 onClick={increaseMonth}
                 disabled={nextMonthButtonDisabled}
                 type="button"
-                className="rounded p-1 text-gray-600 hover:bg-gray-100"
+                className="rounded p-1 text-gray-600 hover:bg-gray-100 disabled:opacity-30"
               >
                 {">"}
               </button>
             </div>
           )}
         />
-        <Calendar className="pointer-events-none absolute top-3 left-3 h-4 w-4 text-gray-400" />
       </div>
     </div>
   );

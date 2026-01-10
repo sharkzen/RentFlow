@@ -1,4 +1,4 @@
-import OwnerContainer from "@/components/Owner/OwnerContainer";
+import OwnerContainer from "@/components/Owner/dashbaord/DashbaordContainer";
 
 export default function page() {
   return <OwnerContainer />;

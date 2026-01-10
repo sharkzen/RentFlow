@@ -64,8 +64,8 @@ export default function TenantList({
 
   if (isLoading) {
     return (
-      <div className="w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <table className="w-full min-w-max table-auto text-left text-sm">
+      <div className="w-full rounded-xl border border-gray-200 bg-white shadow-sm">
+        <table className="h-full w-full min-w-max table-auto text-left text-sm">
           <thead className="bg-gray-50/50 text-gray-500">
             <tr className="border-b border-gray-100">
               <th className="py-4 pr-3 pl-6 text-xs font-semibold tracking-wider uppercase">
@@ -141,13 +141,15 @@ export default function TenantList({
 
   return (
     <>
-      <EditTenantDialog
-        isOpen={!!editingTenantId}
-        tenantId={editingTenantId}
-        onClose={() => setEditingTenantId(null)}
-        onSuccess={handleEditSuccess}
-      />
-      <div className="r w-full overflow-hidden bg-white transition-all">
+      {editingTenantId && (
+        <EditTenantDialog
+          isOpen={!!editingTenantId}
+          tenantId={editingTenantId}
+          onClose={() => setEditingTenantId(null)}
+          onSuccess={handleEditSuccess}
+        />
+      )}
+      <div className="w-full bg-white transition-all">
         <table className="w-full min-w-max table-auto text-left text-sm">
           <thead className="bg-gray-50/80 text-gray-600 backdrop-blur-sm">
             <tr className="border-b border-gray-200">

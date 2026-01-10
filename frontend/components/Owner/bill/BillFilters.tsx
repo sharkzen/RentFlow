@@ -1,12 +1,12 @@
-import { Search, Filter, ChevronDown, Check } from "lucide-react";
+import { Search, Filter, ChevronDown, Check, X } from "lucide-react";
 import MonthYearPicker from "@/components/ui/MonthYearPicker";
 import { useState } from "react";
 
 interface Props {
   search: string;
   onSearchChange: (val: string) => void;
-  selectedMonth: Date;
-  onMonthChange: (date: Date) => void;
+  selectedMonth: Date | null;
+  onMonthChange: (date: Date | null) => void;
   statusFilter: string;
   onStatusChange: (val: string) => void;
   statusOptions: {
@@ -41,14 +41,33 @@ export default function BillFilters({
         />
       </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="w-full sm:w-auto">
-          <MonthYearPicker value={selectedMonth} onChange={onMonthChange} />
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          {selectedMonth ? (
+            <div className="flex items-center gap-1">
+              <MonthYearPicker value={selectedMonth} onChange={onMonthChange} />
+              <button
+                onClick={() => onMonthChange(null)}
+                className="p-2 text-gray-400 transition-colors hover:text-red-500"
+                title="แสดงทั้งหมด (ล้างตัวเลือก)"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => onMonthChange(new Date())}
+              className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 text-sm text-gray-500 transition-all hover:border-indigo-500 hover:text-indigo-600"
+            >
+              <span>📅 กรองตามเดือน</span>
+            </button>
+          )}
         </div>
         <div className="hidden h-6 w-px bg-gray-200 sm:block"></div>
+
         <div className="relative w-full min-w-35 sm:w-auto">
           <button
             onClick={() => setIsStatusOpen(!isStatusOpen)}
-            className="flex h-10 w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 text-sm hover:border-gray-300 focus:ring-2 focus:ring-indigo-100"
+            className="flex h-10 w-full cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white px-3 text-sm hover:border-gray-300 focus:ring-2 focus:ring-indigo-100"
           >
             <div className="flex items-center gap-2">
               <Filter size={14} className="text-gray-500" />
@@ -62,7 +81,7 @@ export default function BillFilters({
                 className="fixed inset-0 z-10"
                 onClick={() => setIsStatusOpen(false)}
               />
-              <div className="absolute right-0 z-20 mt-1 w-48 rounded-lg bg-white p-1">
+              <div className="absolute right-0 z-20 mt-1 w-48 rounded-lg border border-gray-100 bg-white p-1 shadow-lg">
                 {statusOptions.map((opt) => (
                   <button
                     key={opt.value}
@@ -70,7 +89,7 @@ export default function BillFilters({
                       onStatusChange(opt.value);
                       setIsStatusOpen(false);
                     }}
-                    className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-gray-50"
+                    className="flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm hover:bg-gray-50"
                   >
                     <span className={opt.color}>{opt.label}</span>
                     {statusFilter === opt.value && (

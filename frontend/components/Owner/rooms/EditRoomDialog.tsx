@@ -384,7 +384,7 @@ export default function EditRoomDialog({ room, onSuccess }: EditRoomProps) {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-gray-600">
-                      ราคาเริ่มต้น
+                      ราคา
                     </label>
                     <div className="relative">
                       <DollarSign className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />

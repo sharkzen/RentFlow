@@ -20,6 +20,7 @@ import { maintenanceService } from "@/features/maintenance/services/maintenance.
 import { toast } from "react-toastify";
 import { MaintenanceFilterStatus } from "./MaintenanceFilter";
 import log from "@/lib/logger";
+import { Spinner } from "@/components/ui/Spinner";
 
 const getStatusBadge = (status: MaintenanceStatus) => {
   switch (status) {
@@ -207,11 +208,11 @@ export default function MaintenanceTable({
 
   if (loading) {
     return (
-      <div className="flex h-64 w-full items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
-          <span className="text-sm text-gray-500">กำลังโหลดข้อมูล...</span>
-        </div>
+      <div className="flex h-96 w-full flex-col items-center justify-center rounded-3xl bg-white">
+        <Spinner className="text-blue-500" />
+        <p className="mt-3 animate-pulse text-sm text-gray-400">
+          กำลังโหลดข้อมูล...
+        </p>
       </div>
     );
   }
@@ -236,7 +237,7 @@ export default function MaintenanceTable({
 
   return (
     <>
-      <div className="relative h-[calc(100vh-280px)] min-h-[500px] w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="relative h-full min-h-125 w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="custom-scrollbar h-full w-full overflow-auto">
           <table className="min-w-full border-separate border-spacing-0">
             <thead className="bg-gray-50">
@@ -382,20 +383,22 @@ export default function MaintenanceTable({
           </table>
         </div>
       </div>
-      <MaintenanceDetailDialog
-        isOpen={!!selectedItem}
-        onClose={() => setSelectedItem(null)}
-        data={selectedItem}
-        onUpdateStatus={(id, status) => {
-          let actionType: "ACCEPT" | "CANCEL" | "COMPLETE" = "COMPLETE";
+      {selectedItem && (
+        <MaintenanceDetailDialog
+          isOpen={!!selectedItem}
+          onClose={() => setSelectedItem(null)}
+          data={selectedItem}
+          onUpdateStatus={(id, status) => {
+            let actionType: "ACCEPT" | "CANCEL" | "COMPLETE" = "COMPLETE";
 
-          if (status === "IN_PROGRESS") actionType = "ACCEPT";
-          else if (status === "CANCELLED") actionType = "CANCEL";
-          else if (status === "COMPLETED") actionType = "COMPLETE";
+            if (status === "IN_PROGRESS") actionType = "ACCEPT";
+            else if (status === "CANCELLED") actionType = "CANCEL";
+            else if (status === "COMPLETED") actionType = "COMPLETE";
 
-          initiateAction(null, id, actionType);
-        }}
-      />
+            initiateAction(null, id, actionType);
+          }}
+        />
+      )}
       <ConfirmDialog
         isOpen={!!pendingAction}
         onClose={() => setPendingAction(null)}

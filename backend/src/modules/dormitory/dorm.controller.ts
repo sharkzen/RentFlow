@@ -429,7 +429,7 @@ export const DormController = {
     }
   },
 
-  async getDormOverview(request: FastifyRequest, reply: FastifyReply) {
+  async getDashboard(request: FastifyRequest, reply: FastifyReply) {
     const user = request.user as UserDecodedDto;
 
     if (!user)
@@ -453,14 +453,11 @@ export const DormController = {
     }
 
     try {
-      const now = new Date();
-      const targetMonth = month ? parseInt(month) : now.getMonth() + 1;
-      const targetYear = year ? parseInt(year) : now.getFullYear();
-      const overview = await dormService.getDormOverview(
+      const overview = await dormService.getDashboard(
         dormId,
         user.sub,
-        targetMonth,
-        targetYear,
+        month,
+        year,
       );
       return reply.send(overview);
     } catch (error: any) {

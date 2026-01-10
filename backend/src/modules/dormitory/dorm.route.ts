@@ -18,7 +18,7 @@ export async function dormRoute(app: FastifyInstance) {
     );
     routeRoles.post("/", DormController.createDorm);
     routeRoles.get("/", DormController.getDorms);
-    routeRoles.get("/:dormId/overview", DormController.getDormOverview);
+    routeRoles.get("/:dormId/dashboard", DormController.getDashboard);
     routeRoles.put("/", DormController.updateDorms);
     routeRoles.patch("/:dormId/status", DormController.updateDormStatus);
     routeRoles.delete("/:dormId", DormController.deleteDorm);
