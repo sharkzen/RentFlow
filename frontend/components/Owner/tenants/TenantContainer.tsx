@@ -136,7 +136,6 @@ export default function TenantContainer() {
           จัดการรายชื่อผู้เช่าในหอพัก
         </p>
       </div>
-
       <div className="col-span-12 grid grid-cols-12 gap-3 md:col-span-8">
         <div className="relative order-1 col-span-12 sm:col-span-4 md:order-1 md:col-span-3">
           <div className="relative h-full">

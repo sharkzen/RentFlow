@@ -45,12 +45,13 @@ export default function RoomCard({
   const itemsPerPage = 10;
   const startItem = (page - 1) * itemsPerPage + 1;
   const endItem = Math.min(page * itemsPerPage, totalItems);
-  const gridLayout = "grid grid-cols-12 gap-4 items-center px-6 py-4";
+  const gridLayout =
+    "grid grid-cols-12 gap-4 items-center px-6 py-4 whitespace-nowrap";
 
   return (
     <div className="flex h-[65vh] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
-        <div className="flex h-full min-w-250 flex-col">
+      <div className="flex-1 overflow-x-auto">
+        <div className="flex h-full min-w-[1000px] flex-col">
           <div
             className={`flex-none border-b border-gray-100 bg-gray-50 text-xs font-semibold tracking-wider text-gray-500 uppercase ${gridLayout}`}
           >

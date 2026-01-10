@@ -63,7 +63,6 @@ export default function BillFilters({
           )}
         </div>
         <div className="hidden h-6 w-px bg-gray-200 sm:block"></div>
-
         <div className="relative w-full min-w-35 sm:w-auto">
           <button
             onClick={() => setIsStatusOpen(!isStatusOpen)}

@@ -183,7 +183,6 @@ export default function BillContainer() {
             }}
           />
         </div>
-
         <div className="flex items-center justify-between border-t border-gray-100 bg-white p-2">
           <div className="text-xs text-gray-500">
             แสดง {(page - 1) * LIMIT + 1}ถึง{" "}
