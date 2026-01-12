@@ -63,7 +63,6 @@ export default function OwnerRegisterForm() {
 
   const onRegisterSuccess = () => {
     setSuccess(true);
-    toast.success("ลงทะเบียนสำเร็จ");
 
     setForm({
       fullName: "",
@@ -111,17 +110,32 @@ export default function OwnerRegisterForm() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      try {
-        await toast.promise(mutation.mutateAsync(form), {
-          pending: "กำลังลงทะเบียน...",
-          success: "ลงทะเบียนสำเร็จ",
-        });
+      await toast.promise(mutation.mutateAsync(form), {
+        pending: "กำลังบันทึกข้อมูล...",
+        success: "ลงทะเบียนสำเร็จ",
 
-        onRegisterSuccess();
-      } catch (error: any) {
-        log.error(error);
-        showBackendError(error);
-      }
+        error: {
+          render({ data }: any) {
+            const errorMsg = data?.response?.data?.message || data?.message;
+
+            if (errorMsg === "INVALID_MAP_URL") {
+              return "ลิงก์แผนที่ใช้ไม่ได้ กรุณาเปลี่ยนลิงก์ (ลองใช้ลิงก์ปักหมุด)";
+            }
+
+            if (errorMsg === "EMAIL_ALREADY_EXISTS") {
+              return "อีเมลนี้ถูกใช้งานไปแล้ว";
+            }
+
+            if (errorMsg === "DATA_ARE_NOT_VALID") {
+              return "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง";
+            }
+
+            return `เกิดข้อผิดพลาด: ${errorMsg || "โปรดลองใหม่อีกครั้ง"}`;
+          },
+        },
+      });
+
+      onRegisterSuccess();
     }
   };
 

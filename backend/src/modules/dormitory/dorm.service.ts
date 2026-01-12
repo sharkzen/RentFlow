@@ -1038,6 +1038,11 @@ export const dormService = {
         where: {
           ...baseBillWhere,
           status: "PENDING",
+
+          dueDate: {
+            gte: now,
+          },
+
           billingMonth: dateFilterForStats,
         },
 
@@ -1050,8 +1055,20 @@ export const dormService = {
       prisma.bill.aggregate({
         where: {
           ...baseBillWhere,
-          status: "OVERDUE",
           billingMonth: dateFilterForStats,
+
+          OR: [
+            {
+              status: "OVERDUE",
+            },
+            {
+              status: "PENDING",
+
+              dueDate: {
+                lt: now,
+              },
+            },
+          ],
         },
 
         _sum: {

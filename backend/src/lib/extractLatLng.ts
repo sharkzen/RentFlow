@@ -1,39 +1,173 @@
 import fetch from "node-fetch";
 
-function extractLatLng(url: string) {
-  const match = url.match(/@([-.\d]+),([-.\d]+)/);
-
-  if (!match) return null;
-
-  return {
-    lat: parseFloat(match[1]),
-    lng: parseFloat(match[2]),
-  };
+interface LatLng {
+  lat: number;
+  lng: number;
 }
 
-async function resolveShortLink(url: string) {
+function isValidLatLng(lat: number, lng: number): boolean {
+  return (
+    !isNaN(lat) &&
+    !isNaN(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
+}
+
+function extractCoords(text: string): LatLng | null {
+  if (!text) return null;
+
+  const urlMatch = text.match(
+    /[?&](?:center|markers|ll|q)= (-?\d+\.\d+)(?:,|%2C)(-?\d+\.\d+)/i,
+  );
+
+  if (
+    urlMatch &&
+    isValidLatLng(parseFloat(urlMatch[1]), parseFloat(urlMatch[2]))
+  ) {
+    return {
+      lat: parseFloat(urlMatch[1]),
+      lng: parseFloat(urlMatch[2]),
+    };
+  }
+
+  const atMatch = text.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+
+  if (
+    atMatch &&
+    isValidLatLng(parseFloat(atMatch[1]), parseFloat(atMatch[2]))
+  ) {
+    return {
+      lat: parseFloat(atMatch[1]),
+      lng: parseFloat(atMatch[2]),
+    };
+  }
+
+  const dataLat = text.match(/!3d(-?\d+\.\d+)/);
+  const dataLng = text.match(/!4d(-?\d+\.\d+)/);
+
+  if (
+    dataLat &&
+    dataLng &&
+    isValidLatLng(parseFloat(dataLat[1]), parseFloat(dataLng[1]))
+  ) {
+    return {
+      lat: parseFloat(dataLat[1]),
+      lng: parseFloat(dataLng[1]),
+    };
+  }
+
+  return null;
+}
+
+function deepScanHtmlForCoords(html: string): LatLng | null {
+  const regex = /\[\s*(-?\d{1,3}\.\d{4,})\s*,\s*(-?\d{1,3}\.\d{4,})\s*\]/g;
+  let match;
+
+  while ((match = regex.exec(html)) !== null) {
+    const lat = parseFloat(match[1]);
+    const lng = parseFloat(match[2]);
+
+    if (isValidLatLng(lat, lng)) {
+      if (lat !== 0 && lng !== 0) {
+        return {
+          lat,
+          lng,
+        };
+      }
+    }
+  }
+
+  const jsonMatch = html.match(
+    /["']?lat["']?\s*:\s*(-?\d+\.\d+)\s*,\s*["']?lng["']?\s*:\s*(-?\d+\.\d+)/i,
+  );
+
+  if (
+    jsonMatch &&
+    isValidLatLng(parseFloat(jsonMatch[1]), parseFloat(jsonMatch[2]))
+  ) {
+    return {
+      lat: parseFloat(jsonMatch[1]),
+      lng: parseFloat(jsonMatch[2]),
+    };
+  }
+
+  return null;
+}
+
+export async function getLatLngFromUrl(url: string): Promise<LatLng | null> {
+  console.log("------------------------------------------------");
+  console.log("[Map Helper] Processing URL:", url);
+
   try {
-    const res = await fetch(url, {
-      method: "HEAD",
-      redirect: "manual",
+    if (!url) return null;
+
+    let coords = extractCoords(url);
+
+    if (coords) return coords;
+
+    const response = await fetch(url, {
+      method: "GET",
+      redirect: "follow",
+
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
     });
 
-    const location = res.headers.get("location");
+    if (response.status !== 200) {
+      console.log(`[Map Helper] Error status: ${response.status}`);
+      return null;
+    }
 
-    if (!location) return null;
+    const finalUrl = response.url;
+    console.log("[Map Helper] Final URL:", finalUrl);
+    coords = extractCoords(finalUrl);
 
-    return extractLatLng(location);
-  } catch (err) {
+    if (coords) return coords;
+
+    const html = await response.text();
+    const metaImageMatch =
+      html.match(/meta\s+content="([^"]+)"\s+property="og:image"/i) ||
+      html.match(/meta\s+property="og:image"\s+content="([^"]+)"/i);
+
+    if (metaImageMatch && metaImageMatch[1]) {
+      const imageCoords = extractCoords(metaImageMatch[1]);
+
+      if (imageCoords) {
+        console.log("[Map Helper] Found in og:image");
+        return imageCoords;
+      }
+    }
+
+    const metaUrlMatch = html.match(
+      /meta\s+content="([^"]+)"\s+property="og:url"/i,
+    );
+
+    if (metaUrlMatch && metaUrlMatch[1]) {
+      const urlCoords = extractCoords(metaUrlMatch[1]);
+
+      if (urlCoords) {
+        console.log("[Map Helper] Found in og:url");
+        return urlCoords;
+      }
+    }
+
+    console.log("[Map Helper] Attempting Deep Scan in HTML body...");
+    coords = deepScanHtmlForCoords(html);
+
+    if (coords) {
+      console.log("[Map Helper] Found via Deep Scan:", coords);
+      return coords;
+    }
+
+    console.log("[Map Helper] Coordinates not found anywhere.");
     return null;
-  }
-}
-
-export async function getLatLngFromUrl(url: string) {
-  if (url.includes("maps.app.goo.gl")) {
-    return await resolveShortLink(url);
-  } else if (url.includes("google.com/maps")) {
-    return extractLatLng(url);
-  } else {
+  } catch (error: any) {
+    console.error("[Map Helper] Critical Error:", error.message);
     return null;
   }
 }

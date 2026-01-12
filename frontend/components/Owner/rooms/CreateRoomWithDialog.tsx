@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
+
 import {
   Plus,
   X,
@@ -10,7 +11,10 @@ import {
   Snowflake,
   Trash2,
   Layers,
+  ChevronDown,
+  Check,
 } from "lucide-react";
+
 import { RoomService } from "@/features/room/services/room.service";
 import { toast } from "react-toastify";
 import log from "@/lib/logger";
@@ -22,6 +26,88 @@ enum RoomType {
   AIR = "AIR",
   FAN = "FAN",
 }
+
+interface RoomTypeDropdownProps {
+  value: RoomType;
+  onChange: (value: RoomType) => void;
+}
+
+const RoomTypeDropdown = ({ value, onChange }: RoomTypeDropdownProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const options = [
+    {
+      value: RoomType.AIR,
+      label: "ห้องแอร์ (AIR)",
+      icon: <Snowflake className="h-4 w-4 text-blue-500" />,
+      bg: "bg-blue-50 text-blue-700",
+    },
+    {
+      value: RoomType.FAN,
+      label: "ห้องพัดลม (FAN)",
+      icon: <Wind className="h-4 w-4 text-orange-500" />,
+      bg: "bg-orange-50 text-orange-700",
+    },
+  ];
+
+  const selected = options.find((o) => o.value === value) || options[0];
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm transition-all focus:ring-2 focus:ring-blue-100 focus:outline-none ${isOpen ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"}`}
+      >
+        <div className="flex items-center gap-2">
+          {selected.icon}
+          <span className="font-medium text-slate-700">{selected.label}</span>
+        </div>
+        <ChevronDown
+          className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+      {isOpen && (
+        <div className="animate-in fade-in zoom-in-95 absolute z-10 mt-1 w-full rounded-lg border border-slate-100 bg-white p-1 shadow-lg">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              className={`flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-2 text-sm transition-colors ${value === option.value ? "bg-slate-100 font-semibold text-slate-800" : "text-slate-600 hover:bg-slate-50"}`}
+            >
+              <div className="flex items-center gap-2">
+                {option.icon}
+                <span>{option.label}</span>
+              </div>
+              {value === option.value && (
+                <Check className="h-4 w-4 text-blue-600" />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface RoomFormItem {
   floor: string;
@@ -55,6 +141,7 @@ export default function CreateRoomWithDialog({
     handleSubmit,
     reset,
     watch,
+    setValue,
 
     formState: { errors, isSubmitting },
   } = useForm<RoomFormValues>({
@@ -195,7 +282,7 @@ export default function CreateRoomWithDialog({
         <button
           onClick={toggleModal}
           disabled={!dormId}
-          className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all active:scale-95 ${!dormId ? "cursor-not-allowed bg-gray-400 opacity-70" : "cursor-pointer bg-linear-to-r from-blue-600 to-blue-500 shadow-blue-200 hover:from-blue-700 hover:to-blue-600 hover:shadow-lg"}`}
+          className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-all active:scale-95 ${!dormId ? "cursor-not-allowed bg-gray-400 opacity-70" : "cursor-pointer bg-linear-to-r from-blue-600 to-blue-500 shadow-blue-200 hover:from-blue-700 hover:to-blue-600 hover:shadow-lg"}`}
         >
           <Plus className="h-5 w-5" />
           <span>สร้างห้องพัก</span>
@@ -251,7 +338,7 @@ export default function CreateRoomWithDialog({
                           <button
                             type="button"
                             onClick={() => remove(index)}
-                            className="text-slate-400 transition-colors hover:text-red-500"
+                            className="cursor-pointer text-slate-400 transition-colors hover:text-red-500"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -284,6 +371,7 @@ export default function CreateRoomWithDialog({
                             />
                           </div>
                         </div>
+
                         <div className="md:col-span-3">
                           <label className="mb-1 block text-xs font-medium text-slate-600">
                             เลขห้อง <span className="text-red-500">*</span>
@@ -296,31 +384,19 @@ export default function CreateRoomWithDialog({
                             className={`w-full rounded-lg border px-3 py-2 text-sm transition-all outline-none focus:ring-2 ${errors.rooms?.[index]?.roomNumber ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"}`}
                           />
                         </div>
+
                         <div className="md:col-span-3">
                           <label className="mb-1 block text-xs font-medium text-slate-600">
                             ประเภท
                           </label>
-                          <div className="relative">
-                            <select
-                              {...register(`rooms.${index}.type`)}
-                              className="w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                            >
-                              <option value={RoomType.AIR}>
-                                ห้องแอร์ (AIR)
-                              </option>
-                              <option value={RoomType.FAN}>
-                                ห้องพัดลม (FAN)
-                              </option>
-                            </select>
-                            <div className="pointer-events-none absolute top-2.5 right-3">
-                              {watch(`rooms.${index}.type`) === RoomType.AIR ? (
-                                <Snowflake className="h-4 w-4 text-blue-400" />
-                              ) : (
-                                <Wind className="h-4 w-4 text-orange-400" />
-                              )}
-                            </div>
-                          </div>
+                          <RoomTypeDropdown
+                            value={watch(`rooms.${index}.type`)}
+                            onChange={(val) =>
+                              setValue(`rooms.${index}.type`, val)
+                            }
+                          />
                         </div>
+
                         <div className="md:col-span-2">
                           <label className="mb-1 block text-xs font-medium text-slate-600">
                             ราคา <span className="text-red-500">*</span>
@@ -349,9 +425,10 @@ export default function CreateRoomWithDialog({
                             />
                           </div>
                         </div>
+
                         <div className="md:col-span-2">
                           <label className="mb-1 block text-xs font-medium text-slate-600">
-                            รายละเอียด
+                            รายละเอียด(ถ้ามี)
                           </label>
                           <input
                             {...register(`rooms.${index}.description`)}
@@ -365,10 +442,10 @@ export default function CreateRoomWithDialog({
                   <button
                     type="button"
                     onClick={handleAddRoom}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-white py-4 text-sm font-semibold text-slate-500 transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-white py-4 text-sm font-semibold text-slate-500 transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
                   >
                     <Plus className="h-5 w-5" />
-                    เพิ่มห้องพักในชั้นนี้
+                    เพิ่มห้อง
                   </button>
                 </div>
               </div>

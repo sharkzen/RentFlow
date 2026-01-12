@@ -38,6 +38,7 @@ export default function BillDetailDialog({
   onRefresh,
 }: Props) {
   useScrollLock();
+  console.log(bill);
   const detailRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(detailRef as RefObject<HTMLDivElement>, () => {
@@ -202,7 +203,7 @@ export default function BillDetailDialog({
                   <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
                     <div className="mb-3 flex items-center gap-2 border-b border-blue-50 pb-2 font-bold text-blue-700">
                       <Droplets size={18} />
-                      มิเตอร์น้ำ
+                      มิเตอร์น้ำ {bill?.waterRateSnapshot}/หน่วย
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between text-gray-500">
@@ -222,7 +223,7 @@ export default function BillDetailDialog({
                   <div className="rounded-xl border border-amber-100 bg-white p-4 shadow-sm">
                     <div className="mb-3 flex items-center gap-2 border-b border-amber-50 pb-2 font-bold text-amber-700">
                       <Zap size={18} />
-                      มิเตอร์ไฟ
+                      มิเตอร์ไฟ {bill?.electricRateSnapshot}/หน่วย
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between text-gray-500">

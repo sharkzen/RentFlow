@@ -147,7 +147,7 @@ export const billService = {
       },
     });
 
-    if (!dormSettings) throw new Error("ไม่พบการตั้งค่าหอพัก");
+    if (!dormSettings) throw new Error("DORM_SETTINGS_NOT_FOUND");
 
     const createdBills = [];
 

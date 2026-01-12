@@ -133,8 +133,69 @@ export default function BillContainer() {
     }
   };
 
-  const handleCreateBill = async (data: any) => {};
-  const handleUpdateStatus = async (id: string, status: string) => {};
+  const handleCreateBill = async (data: any) => {
+    if (!selectedDorm) {
+      console.error("No dorm selected");
+      toast.error("กรุณาเลือกหอพักก่อน");
+      return;
+    }
+
+    const payload = {
+      ...data,
+      dormId: selectedDorm,
+    };
+
+    return toast
+      .promise(BillService.createBills(payload), {
+        pending: "กำลังสร้างบิล...",
+        success: "สร้างบิลสำเร็จเรียบร้อย",
+
+        error: {
+          render({ data }: any) {
+            console.log("API Error Data:", data);
+            const errorMsg = data?.response?.data?.message;
+
+            if (errorMsg === "DORM_SETTINGS_NOT_FOUND") {
+              return "กรุณาตั้งค่า 'ค่าน้ำ/ค่าไฟ' ของหอพักก่อนสร้างบิล";
+            }
+
+            if (errorMsg === "Dormitory ID is required") {
+              return "ไม่พบข้อมูลหอพัก กรุณาลองใหม่อีกครั้ง";
+            }
+
+            return errorMsg || "เกิดข้อผิดพลาดในการสร้างบิล";
+          },
+        },
+      })
+      .then((res) => {
+        console.log("API Success:", res);
+        setIsCreateOpen(false);
+        fetchBills();
+      })
+      .catch((err) => {
+        console.error("Create Bill Catch Error:", err);
+      });
+  };
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    await toast
+      .promise(BillService.updateStatus(id, status), {
+        pending: "กำลังอัปเดตสถานะ...",
+        success: "อัปเดตสถานะสำเร็จ ✅",
+
+        error: {
+          render({ data }: any) {
+            return data?.response?.data?.message || "อัปเดตสถานะไม่สำเร็จ ❌";
+          },
+        },
+      })
+      .then(() => {
+        fetchBills();
+      })
+      .catch((err) => {
+        console.error("Update Status Error:", err);
+      });
+  };
 
   return (
     <div className="relative flex h-[calc(100dvh-2rem)] w-full flex-col gap-4">
