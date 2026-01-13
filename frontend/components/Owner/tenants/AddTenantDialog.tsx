@@ -173,7 +173,7 @@ export default function AddTenantDialog({
         }),
         {
           pending: "กำลังบันทึกข้อมูล...",
-          success: "เพิ่มผู้เช่าเรียบร้อยแล้ว ✅",
+          success: "เพิ่มผู้เช่าเรียบร้อยแล้ว",
 
           error: {
             render({ data }: any) {

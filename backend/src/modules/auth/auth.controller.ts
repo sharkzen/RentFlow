@@ -97,7 +97,7 @@ export const AuthController = {
       const result = await authService.registerOwner(dto);
       return reply.status(201).send(result);
     } catch (error: any) {
-      console.error(error.message);
+      logger.error(error.message);
 
       if (error.message === "DATA_ARE_NOT_VALID") {
         return reply.status(400).send({

@@ -1,4 +1,5 @@
 import fetch from "node-fetch";
+import logger from "@/utils/logger";
 
 interface LatLng {
   lat: number;
@@ -98,9 +99,6 @@ function deepScanHtmlForCoords(html: string): LatLng | null {
 }
 
 export async function getLatLngFromUrl(url: string): Promise<LatLng | null> {
-  console.log("------------------------------------------------");
-  console.log("[Map Helper] Processing URL:", url);
-
   try {
     if (!url) return null;
 
@@ -119,12 +117,11 @@ export async function getLatLngFromUrl(url: string): Promise<LatLng | null> {
     });
 
     if (response.status !== 200) {
-      console.log(`[Map Helper] Error status: ${response.status}`);
+      logger.warn(`[Map Helper] Error status: ${response.status}`);
       return null;
     }
 
     const finalUrl = response.url;
-    console.log("[Map Helper] Final URL:", finalUrl);
     coords = extractCoords(finalUrl);
 
     if (coords) return coords;
@@ -138,7 +135,6 @@ export async function getLatLngFromUrl(url: string): Promise<LatLng | null> {
       const imageCoords = extractCoords(metaImageMatch[1]);
 
       if (imageCoords) {
-        console.log("[Map Helper] Found in og:image");
         return imageCoords;
       }
     }
@@ -151,23 +147,18 @@ export async function getLatLngFromUrl(url: string): Promise<LatLng | null> {
       const urlCoords = extractCoords(metaUrlMatch[1]);
 
       if (urlCoords) {
-        console.log("[Map Helper] Found in og:url");
         return urlCoords;
       }
     }
 
-    console.log("[Map Helper] Attempting Deep Scan in HTML body...");
     coords = deepScanHtmlForCoords(html);
 
     if (coords) {
-      console.log("[Map Helper] Found via Deep Scan:", coords);
       return coords;
     }
 
-    console.log("[Map Helper] Coordinates not found anywhere.");
     return null;
   } catch (error: any) {
-    console.error("[Map Helper] Critical Error:", error.message);
     return null;
   }
 }

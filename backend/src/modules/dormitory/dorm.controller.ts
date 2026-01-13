@@ -48,7 +48,7 @@ export const DormController = {
 
       return reply.send(dorm);
     } catch (error: any) {
-      console.error(error);
+      logger.error(error);
 
       return reply.status(500).send({
         message: "INTERNAL_SERVER_ERROR",
@@ -266,7 +266,7 @@ export const DormController = {
           });
         } catch (error: any) {
           if (error.code === "FST_REQ_FILE_TOO_LARGE") {
-            console.warn(`⚠️ File too large skipped: ${part.filename}`);
+            logger.warn(`⚠️ File too large skipped: ${part.filename}`);
 
             return reply.status(413).send({
               message: `FILE_TOO_LARGE`,
@@ -274,7 +274,7 @@ export const DormController = {
             });
           }
 
-          console.error("Error reading stream part:", error);
+          logger.error("Error reading stream part:", error);
         }
       }
 
@@ -304,8 +304,8 @@ export const DormController = {
               })
               .toBuffer();
           }
-        } catch (e) {
-          console.error("Optimization failed, using original", e);
+        } catch (error: any) {
+          logger.error("Optimization failed, using original", error);
         }
 
         const extension = extname(fileData.filename);
@@ -322,8 +322,8 @@ export const DormController = {
 
       const uploadedImages = await Promise.all(uploadPromises);
       return reply.send(uploadedImages);
-    } catch (error) {
-      console.error("💥 UPLOAD ERROR:", error);
+    } catch (error: any) {
+      logger.error("UPLOAD ERROR:", error);
 
       return reply.status(500).send({
         message: "UPLOAD_FAILED",
@@ -461,7 +461,7 @@ export const DormController = {
       );
       return reply.send(overview);
     } catch (error: any) {
-      console.error(error);
+      logger.error(error);
 
       if (error.message === "FORBIDDEN") {
         return reply.status(403).send({

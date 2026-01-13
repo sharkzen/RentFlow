@@ -168,8 +168,8 @@ export default function FormProfile() {
         OwnerService.updateOwnerProfile(formData),
         {
           pending: "กำลังบันทึก...",
-          success: "บันทึกข้อมูลเรียบร้อย ✅",
-          error: "เกิดข้อผิดพลาดในการบันทึก ❌",
+          success: "บันทึกข้อมูลเรียบร้อย",
+          error: "เกิดข้อผิดพลาดในการบันทึก",
         },
       );
 

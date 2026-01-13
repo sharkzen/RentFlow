@@ -73,7 +73,6 @@ function FilterDropdown({
           className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-
       {isOpen && (
         <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-[160px] rounded-xl border border-gray-100 bg-white p-1 shadow-lg duration-100">
           {options.map((option) => (
@@ -173,7 +172,6 @@ export default function RoomFilters({
         )}
       </div>
       <div className="hidden h-8 w-px bg-gray-200 sm:block"></div>
-
       <div className="flex flex-wrap gap-2 sm:flex-nowrap">
         <div className="relative w-24 sm:w-28">
           <Layers className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -185,7 +183,6 @@ export default function RoomFilters({
             className="h-10 w-full rounded-lg border border-gray-200 pr-3 pl-9 text-sm transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           />
         </div>
-
         <FilterDropdown
           value={statusFilter}
           onChange={setStatusFilter}
@@ -193,7 +190,6 @@ export default function RoomFilters({
           placeholder="สถานะ"
           icon={<Filter className="h-4 w-4" />}
         />
-
         <FilterDropdown
           value={typeFilter}
           onChange={setTypeFilter}

@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { LayoutDashboard, LogOut, ChevronDown, Home } from "lucide-react";
 import { Role } from "@/features/auth";
 import Skeleton from "@/components/ui/Skeleton";
+import log from "@/lib/logger";
 
 export default function Header() {
   const { user, loading: authLoading, setUser } = useAuth();
@@ -29,12 +30,23 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      await logoutMutation.mutateAsync();
+      await toast.promise(logoutMutation.mutateAsync(), {
+        pending: "กำลังออกจากระบบ...",
+
+        error: {
+          render({ data }: { data: any }) {
+            const backendMsg = data?.response?.data?.message;
+            return backendMsg
+              ? `เกิดข้อผิดพลาด: ${backendMsg}`
+              : "เกิดข้อผิดพลาดในการออกจากระบบ";
+          },
+        },
+      });
+
       setUser(null);
-      toast.success("ออกจากระบบสำเร็จ");
-      router.push("/auth/login");
+      router.replace("/");
     } catch (error) {
-      toast.error("เกิดข้อผิดพลาดในการออกจากระบบ");
+      log.error("Logout error:", error);
     }
   };
 

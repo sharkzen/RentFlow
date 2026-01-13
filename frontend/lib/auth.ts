@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import type { User } from "@/features/auth";
+import log from "@/lib/logger";
 
 export async function getCurrentUser(): Promise<User | null> {
   try {
@@ -25,7 +26,7 @@ export async function getCurrentUser(): Promise<User | null> {
 
     return await res.json();
   } catch (err) {
-    console.error("getCurrentUser error:", err);
+    log.error("getCurrentUser error:", err);
     return null;
   }
 }

@@ -371,7 +371,6 @@ export default function CreateRoomWithDialog({
                             />
                           </div>
                         </div>
-
                         <div className="md:col-span-3">
                           <label className="mb-1 block text-xs font-medium text-slate-600">
                             เลขห้อง <span className="text-red-500">*</span>
@@ -384,7 +383,6 @@ export default function CreateRoomWithDialog({
                             className={`w-full rounded-lg border px-3 py-2 text-sm transition-all outline-none focus:ring-2 ${errors.rooms?.[index]?.roomNumber ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"}`}
                           />
                         </div>
-
                         <div className="md:col-span-3">
                           <label className="mb-1 block text-xs font-medium text-slate-600">
                             ประเภท
@@ -396,7 +394,6 @@ export default function CreateRoomWithDialog({
                             }
                           />
                         </div>
-
                         <div className="md:col-span-2">
                           <label className="mb-1 block text-xs font-medium text-slate-600">
                             ราคา <span className="text-red-500">*</span>
@@ -425,7 +422,6 @@ export default function CreateRoomWithDialog({
                             />
                           </div>
                         </div>
-
                         <div className="md:col-span-2">
                           <label className="mb-1 block text-xs font-medium text-slate-600">
                             รายละเอียด(ถ้ามี)

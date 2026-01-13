@@ -6,6 +6,7 @@ import { DormService } from "@/features/dormitory/services/dorm.service";
 import Dormitory from "@/features/dormitory/components/Dormitory";
 import Pagination from "@/components/ui/Pagination";
 import DormFilter from "@/features/dormitory/components/DormFilter";
+import log from "@/lib/logger";
 
 const DormSkeleton = () => (
   <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
@@ -67,7 +68,7 @@ export default function IndexContainer() {
           total: res.meta.total,
         });
       } catch (error) {
-        console.error(error);
+        log.error(error);
       } finally {
         setLoading(false);
       }

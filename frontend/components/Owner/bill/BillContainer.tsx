@@ -10,6 +10,7 @@ import BillFilters from "./BillFilters";
 import { BillService } from "@/features/bill/services/bill.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Bill } from "@/features/bill/types";
+import log from "@/lib/logger";
 
 export default function BillContainer() {
   const [dorms, setDorms] = useState<any[]>([]);
@@ -71,7 +72,7 @@ export default function BillContainer() {
 
         if (res.length > 0) setSelectedDorm(res[0].id);
       } catch (err) {
-        console.error(err);
+        log.error(err);
       }
     };
 
@@ -127,7 +128,7 @@ export default function BillContainer() {
         if (updatedSelectedBill) setSelectedBill(updatedSelectedBill);
       }
     } catch (err) {
-      console.error(err);
+      log.error(err);
     } finally {
       setLoading(false);
     }
@@ -135,7 +136,7 @@ export default function BillContainer() {
 
   const handleCreateBill = async (data: any) => {
     if (!selectedDorm) {
-      console.error("No dorm selected");
+      log.error("No dorm selected");
       toast.error("กรุณาเลือกหอพักก่อน");
       return;
     }
@@ -152,7 +153,7 @@ export default function BillContainer() {
 
         error: {
           render({ data }: any) {
-            console.log("API Error Data:", data);
+            log.log("API Error Data:", data);
             const errorMsg = data?.response?.data?.message;
 
             if (errorMsg === "DORM_SETTINGS_NOT_FOUND") {
@@ -168,12 +169,12 @@ export default function BillContainer() {
         },
       })
       .then((res) => {
-        console.log("API Success:", res);
+        log.log("API Success:", res);
         setIsCreateOpen(false);
         fetchBills();
       })
       .catch((err) => {
-        console.error("Create Bill Catch Error:", err);
+        log.error("Create Bill Catch Error:", err);
       });
   };
 
@@ -181,11 +182,11 @@ export default function BillContainer() {
     await toast
       .promise(BillService.updateStatus(id, status), {
         pending: "กำลังอัปเดตสถานะ...",
-        success: "อัปเดตสถานะสำเร็จ ✅",
+        success: "อัปเดตสถานะสำเร็จ",
 
         error: {
           render({ data }: any) {
-            return data?.response?.data?.message || "อัปเดตสถานะไม่สำเร็จ ❌";
+            return data?.response?.data?.message || "อัปเดตสถานะไม่สำเร็จ";
           },
         },
       })
@@ -193,7 +194,7 @@ export default function BillContainer() {
         fetchBills();
       })
       .catch((err) => {
-        console.error("Update Status Error:", err);
+        log.error("Update Status Error:", err);
       });
   };
 

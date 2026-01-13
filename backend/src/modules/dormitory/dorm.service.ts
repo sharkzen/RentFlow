@@ -12,6 +12,7 @@ import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { formatDistance, getDistance } from "@/utils/geo";
 import { Prisma, Status } from "@prisma/client";
 import { shuffleArray } from "./lib/dorm.lib";
+import logger from "@/utils/logger";
 
 export const dormService = {
   async getAllDorms(query: GetDormsQueryDto) {
@@ -1185,7 +1186,7 @@ export const dormService = {
             }),
           )
           .catch((err) => {
-            console.error(
+            logger.error(
               `Failed to delete image ${img.objectKey} from MinIO:`,
               err,
             );

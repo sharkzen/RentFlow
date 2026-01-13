@@ -9,7 +9,6 @@ import useLogin from "@/features/auth/hooks/useLogin";
 import { authService } from "../services/auth.service";
 import { useAuth } from "@/context/AuthProvider";
 import log from "@/lib/logger";
-import { showBackendError } from "@/lib/backendErrorMsg";
 
 export default function LoginForm() {
   const { setUser } = useAuth();
@@ -41,6 +40,13 @@ export default function LoginForm() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
+      const errorMessages: Record<string, string> = {
+        INVALID_EMAIL_OR_PASSWORD: "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+        DATA_ARE_NOT_VALID: "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
+        UNAUTHORIZED: "ไม่มีสิทธิ์เข้าใช้งาน",
+        INTERNAL_SERVER_ERROR: "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์",
+      };
+
       try {
         const response = await toast.promise(
           mutation.mutateAsync({
@@ -50,6 +56,17 @@ export default function LoginForm() {
           {
             pending: "กำลังเข้าสู่ระบบ...",
             success: "เข้าสู่ระบบสำเร็จ",
+
+            error: {
+              render({ data }: { data: any }) {
+                const backendErrorCode =
+                  data?.response?.data?.message || data?.message;
+                return (
+                  errorMessages[backendErrorCode] ||
+                  "เข้าสู่ระบบไม่สำเร็จ โปรดลองอีกครั้ง"
+                );
+              },
+            },
           },
         );
 
@@ -62,8 +79,7 @@ export default function LoginForm() {
           router.replace("/tenant/dashboard");
         else if (response.role === "ADMIN") router.replace("/admin/dashboard");
       } catch (error: any) {
-        log.error(error);
-        showBackendError(error);
+        log.error("Login failed:", error);
       }
     }
   };

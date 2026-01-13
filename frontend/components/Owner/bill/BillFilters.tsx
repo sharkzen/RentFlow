@@ -47,7 +47,7 @@ export default function BillFilters({
               <MonthYearPicker value={selectedMonth} onChange={onMonthChange} />
               <button
                 onClick={() => onMonthChange(null)}
-                className="p-2 text-gray-400 transition-colors hover:text-red-500"
+                className="cursor-pointer p-2 text-gray-400 transition-colors hover:text-red-500"
                 title="แสดงทั้งหมด (ล้างตัวเลือก)"
               >
                 <X size={16} />

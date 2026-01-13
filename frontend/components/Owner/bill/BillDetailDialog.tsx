@@ -38,7 +38,6 @@ export default function BillDetailDialog({
   onRefresh,
 }: Props) {
   useScrollLock();
-  console.log(bill);
   const detailRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(detailRef as RefObject<HTMLDivElement>, () => {

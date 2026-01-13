@@ -148,7 +148,7 @@ export const BillController = {
             .toBuffer();
         }
       } catch (e) {
-        console.error("Optimization failed");
+        logger.error("Optimization failed");
       }
 
       const extension = extname(fileData.filename);

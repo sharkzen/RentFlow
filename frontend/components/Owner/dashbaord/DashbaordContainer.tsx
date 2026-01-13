@@ -9,6 +9,7 @@ import { FinancialSection } from "./FinancialSection";
 import { MaintenanceSection } from "./MaintenanceSection";
 import { RevenueChart } from "./RevenueChart";
 import { MaintenancePieChart } from "./MaintenancePieChart";
+import log from "@/lib/logger";
 
 export default function DashboardContainer() {
   const [dorms, setDorms] = useState<Dormitory[]>([]);
@@ -23,7 +24,7 @@ export default function DashboardContainer() {
       const data = await DormService.getDorm();
       setDorms(data);
     } catch (error) {
-      console.error("Failed to fetch dorms", error);
+      log.error("Failed to fetch dorms", error);
     }
   }, []);
 
@@ -39,7 +40,7 @@ export default function DashboardContainer() {
       );
       setOverview(data);
     } catch (error) {
-      console.error("Failed to fetch dashboard data", error);
+      log.error("Failed to fetch dashboard data", error);
     } finally {
       setLoading(false);
     }

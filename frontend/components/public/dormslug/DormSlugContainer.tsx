@@ -7,10 +7,11 @@ import { DormHeroSlider } from "./DormHeroSlider";
 import { DormContent } from "./DormContent";
 import { DormSidebar } from "./DormSidebar";
 import { DormMap } from "./DormMap";
+import log from "@/lib/logger";
 
 const DormSlugSkeleton = () => (
   <div className="mx-auto max-w-7xl animate-pulse space-y-8 p-4 pt-8">
-    <div className="h-[500px] w-full rounded-2xl bg-slate-100" />
+    <div className="h-125 w-full rounded-2xl bg-slate-100" />
     <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
       <div className="space-y-6 lg:col-span-2">
         <div className="h-8 w-1/2 rounded-full bg-slate-100" />
@@ -41,7 +42,7 @@ export default function DormSlugContainer() {
       const res = await DormService.getDormBySlug(decodedSlug);
       if (res) setDorm(res);
     } catch (error) {
-      console.error(error);
+      log.error(error);
     } finally {
       setLoading(false);
     }

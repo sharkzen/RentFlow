@@ -14,6 +14,7 @@ import {
   LandmarkService,
   Landmark,
 } from "@/features/dormitory/services/landmark.service";
+import log from "@/lib/logger";
 
 export default function DormFilter() {
   const router = useRouter();
@@ -36,7 +37,7 @@ export default function DormFilter() {
         const data = await LandmarkService.getAllLandmarks();
         setLandmarks(data);
       } catch (error) {
-        console.error("Failed to fetch landmarks", error);
+        log.error("Failed to fetch landmarks", error);
       }
     };
 

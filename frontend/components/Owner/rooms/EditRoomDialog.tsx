@@ -27,6 +27,7 @@ import { toast } from "react-toastify";
 import { AxiosError } from "axios";
 import { showBackendError } from "@/lib/backendErrorMsg";
 import { useClickOutsideModal } from "@/lib/useClickOutsideModal";
+import log from "@/lib/logger";
 
 enum RoomType {
   AIR = "AIR",
@@ -280,12 +281,12 @@ export default function EditRoomDialog({ room, onSuccess }: EditRoomProps) {
 
     try {
       await toast.promise(RoomService.deleteRoom(room.id), {
-        pending: "กำลังลบข้อมูลห้องพัก... ⏳",
-        success: "ลบห้องพักเรียบร้อยแล้ว ✅",
+        pending: "กำลังลบข้อมูลห้องพัก...",
+        success: "ลบห้องพักเรียบร้อยแล้ว",
 
         error: {
           render({ data }: any) {
-            return `❌ ${getErrorMessage(data)}`;
+            return `${getErrorMessage(data)}`;
           },
         },
       });
@@ -293,7 +294,7 @@ export default function EditRoomDialog({ room, onSuccess }: EditRoomProps) {
       setIsOpen(false);
       onSuccess?.();
     } catch (error) {
-      console.error("Failed to delete room:", error);
+      log.error("Failed to delete room:", error);
     }
   };
 

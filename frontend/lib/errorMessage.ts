@@ -22,7 +22,7 @@ export const errorMessageMap: Record<string, string> = {
   NOT_FOUND: "ไม่พบข้อมูลที่ร้องขอ",
   TENANTS_NOT_FOUND: "ไม่พบข้อมูลผู้เช่า",
   NAME_REQUIRED: "กรุณากรอกชื่อหอพัก",
-  CREATE_SUCCESS: "สร้างห้องพักสำเร็จ 🎉",
+  CREATE_SUCCESS: "สร้างห้องพักสำเร็จ",
   CREATE_PARTIAL_SUCCESS: "บางห้องถูกสร้างไม่สำเร็จ",
   DUPLICATE_ROOMS: "มีห้องซ้ำในระบบ",
   DUPLICATE_ROOM_NUMBER: "เลขห้องนี้มีอยู่ในระบบแล้ว กรุณาใช้เลขอื่น",

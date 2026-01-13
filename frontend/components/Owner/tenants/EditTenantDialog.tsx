@@ -233,7 +233,7 @@ export default function EditTenantDialog({
     try {
       await toast.promise(TenantService.updateTenant(tenantId, formData), {
         pending: "กำลังบันทึกการแก้ไข...",
-        success: "อัปเดตข้อมูลเรียบร้อย ✅",
+        success: "อัปเดตข้อมูลเรียบร้อย",
 
         error: {
           render({ data }: any) {

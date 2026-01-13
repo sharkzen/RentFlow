@@ -17,6 +17,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 
+import log from "@/lib/logger";
 import { toast } from "react-toastify";
 import { format, getYear, getMonth, setMonth, setYear } from "date-fns";
 import { th } from "date-fns/locale";
@@ -114,7 +115,7 @@ export default function CreateBillDialog({
       const res = await RoomService.getRooms(selectedDormId, "OCCUPIED");
       setAvailableRooms(res);
     } catch (error) {
-      console.error(error);
+      log.error(error);
       toast.error("ไม่สามารถดึงข้อมูลห้องพักได้");
     } finally {
       setIsLoadingRooms(false);
@@ -196,13 +197,13 @@ export default function CreateBillDialog({
   };
 
   const handleSubmit = async () => {
-    console.log("Submit clicked. Checking validation...");
+    log.log("Submit clicked. Checking validation...");
     const invalidItems = items.filter(
       (i) => !i.roomId || i.currentWater === "" || i.currentElectric === "",
     );
 
     if (invalidItems.length > 0) {
-      console.log("Validation Failed: Missing fields", invalidItems);
+      log.log("Validation Failed: Missing fields", invalidItems);
       toast.error("กรุณาเลือกห้องพัก และกรอกเลขมิเตอร์ให้ครบทุกช่อง");
       return;
     }
@@ -214,12 +215,12 @@ export default function CreateBillDialog({
     );
 
     if (negativeUsage) {
-      console.log("Validation Failed: Negative usage");
+      log.log("Validation Failed: Negative usage");
       toast.error("เลขมิเตอร์ใหม่ ต้องมากกว่าหรือเท่ากับเลขครั้งก่อน");
       return;
     }
 
-    console.log("Validation Passed. Preparing payload...");
+    log.log("Validation Passed. Preparing payload...");
 
     const payload = {
       billingMonth: selectedDate,
@@ -235,14 +236,14 @@ export default function CreateBillDialog({
       })),
     };
 
-    console.log("Payload:", payload);
+    log.log("Payload:", payload);
     setIsSubmitting(true);
 
     try {
       await onSubmit(payload);
-      console.log("onSubmit finished");
+      log.log("onSubmit finished");
     } catch (err) {
-      console.error("Error calling onSubmit:", err);
+      log.error("Error calling onSubmit:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -317,7 +318,6 @@ export default function CreateBillDialog({
               />
             </button>
           </div>
-
           <div className="border-t border-gray-50 bg-gray-50/50 px-4 py-2 sm:border-t-0 sm:bg-transparent sm:px-6 sm:pt-0 sm:pb-4">
             <div
               className="relative w-full sm:ml-auto sm:flex sm:w-auto sm:justify-end"
@@ -382,7 +382,6 @@ export default function CreateBillDialog({
             </div>
           </div>
         </div>
-
         <div className="custom-scrollbar flex-1 overflow-y-auto bg-slate-50/50 p-3 sm:p-6">
           <div className="hidden grid-cols-12 gap-4 px-4 pb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase lg:grid">
             <div className="col-span-3">ห้องพัก / ผู้เช่า</div>
@@ -636,7 +635,6 @@ export default function CreateBillDialog({
             >
               <Save size={16} className="sm:hidden" />
               <Save size={18} className="hidden sm:block" />
-
               <span>{isSubmitting ? "กำลังบันทึก..." : "บันทึก"}</span>
               <span className="hidden sm:inline">{!isSubmitting && "บิล"}</span>
             </button>
