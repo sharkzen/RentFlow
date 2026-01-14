@@ -86,21 +86,21 @@ export default function CreateBillDialog({
     setIsMonthPickerOpen(false),
   );
 
-  const [items, setItems] = useState<BillItem[]>([
-    {
-      id: crypto.randomUUID(),
-      roomId: "",
-      roomNumber: "",
-      tenantName: "",
-      prevWater: 0,
-      currentWater: "",
-      prevElectric: 0,
-      currentElectric: "",
-      commonFee: 0,
-      note: "",
-      isPrevEditable: false,
-    },
-  ]);
+  const createEmptyItem = (): BillItem => ({
+    id: crypto.randomUUID(),
+    roomId: "",
+    roomNumber: "",
+    tenantName: "",
+    prevWater: 0,
+    currentWater: "",
+    prevElectric: 0,
+    currentElectric: "",
+    commonFee: 0,
+    note: "",
+    isPrevEditable: false,
+  });
+
+  const [items, setItems] = useState<BillItem[]>([createEmptyItem()]);
 
   useEffect(() => {
     if (isOpen && selectedDormId) {
@@ -123,22 +123,7 @@ export default function CreateBillDialog({
   };
 
   const handleAddItem = () => {
-    setItems([
-      ...items,
-      {
-        id: crypto.randomUUID(),
-        roomId: "",
-        roomNumber: "",
-        tenantName: "",
-        prevWater: 0,
-        currentWater: "",
-        prevElectric: 0,
-        currentElectric: "",
-        commonFee: 0,
-        note: "",
-        isPrevEditable: false,
-      },
-    ]);
+    setItems([...items, createEmptyItem()]);
   };
 
   const handleRemoveItem = (id: string) => {
@@ -197,13 +182,11 @@ export default function CreateBillDialog({
   };
 
   const handleSubmit = async () => {
-    log.log("Submit clicked. Checking validation...");
     const invalidItems = items.filter(
       (i) => !i.roomId || i.currentWater === "" || i.currentElectric === "",
     );
 
     if (invalidItems.length > 0) {
-      log.log("Validation Failed: Missing fields", invalidItems);
       toast.error("กรุณาเลือกห้องพัก และกรอกเลขมิเตอร์ให้ครบทุกช่อง");
       return;
     }
@@ -215,12 +198,9 @@ export default function CreateBillDialog({
     );
 
     if (negativeUsage) {
-      log.log("Validation Failed: Negative usage");
       toast.error("เลขมิเตอร์ใหม่ ต้องมากกว่าหรือเท่ากับเลขครั้งก่อน");
       return;
     }
-
-    log.log("Validation Passed. Preparing payload...");
 
     const payload = {
       billingMonth: selectedDate,
@@ -236,12 +216,13 @@ export default function CreateBillDialog({
       })),
     };
 
-    log.log("Payload:", payload);
     setIsSubmitting(true);
 
     try {
       await onSubmit(payload);
       log.log("onSubmit finished");
+      setItems([createEmptyItem()]);
+      onClose();
     } catch (err) {
       log.error("Error calling onSubmit:", err);
     } finally {
@@ -301,7 +282,7 @@ export default function CreateBillDialog({
                 </h2>
                 <div className="flex items-center gap-1.5 text-xs text-gray-500 sm:text-sm">
                   <Building size={12} className="shrink-0" />
-                  <span className="line-clamp-1 max-w-[150px] font-medium text-gray-700 sm:max-w-none">
+                  <span className="line-clamp-1 max-w-37.5 font-medium text-gray-700 sm:max-w-none">
                     {dormName}
                   </span>
                 </div>

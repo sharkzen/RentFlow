@@ -76,7 +76,7 @@ export default function BillTable({
 
   if (isLoading) {
     return (
-      <div className="flex h-full min-h-[300px] w-full items-center justify-center bg-gray-50/50">
+      <div className="flex h-full min-h-[300px] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
         <div className="text-center text-gray-500">
           <div className="mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
           กำลังโหลดข้อมูล...
@@ -87,7 +87,7 @@ export default function BillTable({
 
   if (!isLoading && bills.length === 0) {
     return (
-      <div className="flex h-full min-h-[300px] w-full items-center justify-center bg-gray-50/50">
+      <div className="flex h-full min-h-[300px] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
         <div className="text-center text-gray-400">
           <FileSearch className="mx-auto mb-2 h-10 w-10 opacity-50" />
           <p>ไม่พบรายการบิล</p>
@@ -145,100 +145,90 @@ export default function BillTable({
     }
   };
 
+  const gridTemplate = "grid-cols-[2fr_1.5fr_1fr_1fr_100px]";
+
   return (
     <>
-      <div className="custom-scrollbar relative h-full w-full overflow-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-        <table className="min-w-full border-collapse text-left text-sm text-nowrap text-gray-600">
-          <thead className="sticky top-0 z-10 bg-gray-50 text-xs font-medium text-gray-500 uppercase">
-            <tr>
-              <th className="bg-gray-50 px-6 py-4 font-semibold tracking-wider">
-                ห้อง / ผู้เช่า
-              </th>
-              <th className="bg-gray-50 px-6 py-4 font-semibold tracking-wider">
-                ประจำเดือน
-              </th>
-              <th className="bg-gray-50 px-6 py-4 text-right font-semibold tracking-wider">
-                ยอดรวม
-              </th>
-              <th className="bg-gray-50 px-6 py-4 text-center font-semibold tracking-wider">
-                สถานะ
-              </th>
-              <th className="bg-gray-50 px-6 py-4 text-right font-semibold tracking-wider">
-                จัดการ
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
+      <div className="flex h-full max-h-[calc(100vh-200px)] w-full flex-col overflow-hidden rounded-t-xl border border-gray-200 bg-white shadow-sm">
+        <div
+          className={`grid ${gridTemplate} gap-4 border-b border-gray-200 bg-gray-50 px-6 py-4 text-xs font-medium text-gray-500 uppercase`}
+        >
+          <div className="font-semibold tracking-wider">ห้อง / ผู้เช่า</div>
+          <div className="font-semibold tracking-wider">ประจำเดือน</div>
+          <div className="text-right font-semibold tracking-wider">ยอดรวม</div>
+          <div className="text-center font-semibold tracking-wider">สถานะ</div>
+          <div className="text-right font-semibold tracking-wider">จัดการ</div>
+        </div>
+
+        <div className="custom-scrollbar flex-1 overflow-auto bg-white">
+          <div className="min-w-335 text-nowrap">
             {bills.map((bill) => (
-              <tr
+              <div
                 key={bill.id}
                 onClick={() => onViewDetail(bill)}
-                className="group cursor-pointer transition-colors hover:bg-gray-50"
+                className={`group grid ${gridTemplate} cursor-pointer items-center gap-4 border-b border-gray-100 px-6 py-4 transition-colors last:border-0 hover:bg-gray-50`}
               >
-                <td className="px-6 py-4">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-gray-900 transition-colors group-hover:text-indigo-600">
-                      {bill.roomNumberSnapshot}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {bill.tenantNameSnapshot}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
+                <div className="flex flex-col truncate">
+                  <span className="truncate font-bold text-gray-900 transition-colors group-hover:text-indigo-600">
+                    {bill.roomNumberSnapshot}
+                  </span>
+                  <span className="truncate text-xs text-gray-500">
+                    {bill.tenantNameSnapshot}
+                  </span>
+                </div>
+
+                <div className="text-sm text-gray-600">
                   {new Date(bill.billingMonth).toLocaleDateString("th-TH", {
                     month: "long",
                     year: "numeric",
                   })}
-                </td>
-                <td className="px-6 py-4 text-right font-bold text-indigo-600">
+                </div>
+
+                <div className="text-right text-sm font-bold text-indigo-600">
                   ฿{bill.total.toLocaleString()}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <div className="flex justify-center">
-                    {getStatusBadge(bill.status)}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div
-                    className="flex justify-end gap-2"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {(bill.status === "PENDING" ||
-                      bill.status === "WAITING_FOR_VERIFICATION" ||
-                      bill.status === "OVERDUE") && (
-                      <button
-                        onClick={() => handleActionClick(bill.id, "PAID")}
-                        className="flex cursor-pointer items-center gap-1 rounded-lg bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 ring-1 ring-green-600/20 transition-all hover:bg-green-100 hover:shadow-sm active:scale-95"
-                        title="ยืนยันการชำระ"
-                      >
-                        <CheckCircle size={14} />{" "}
-                        <span className="hidden sm:inline">ยืนยัน</span>
-                      </button>
-                    )}
+                </div>
+
+                <div className="flex justify-center">
+                  {getStatusBadge(bill.status)}
+                </div>
+
+                <div
+                  className="flex justify-end gap-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {(bill.status === "PENDING" ||
+                    bill.status === "WAITING_FOR_VERIFICATION" ||
+                    bill.status === "OVERDUE") && (
                     <button
-                      onClick={() => onViewDetail(bill)}
-                      className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-indigo-600 active:scale-95"
-                      title="ดูรายละเอียด"
+                      onClick={() => handleActionClick(bill.id, "PAID")}
+                      className="flex cursor-pointer items-center gap-1 rounded-lg bg-green-50 px-3 py-1.5 text-xs font-medium text-green-700 ring-1 ring-green-600/20 transition-all hover:bg-green-100 hover:shadow-sm active:scale-95"
+                      title="ยืนยันการชำระ"
                     >
-                      <Eye size={18} />
+                      <CheckCircle size={14} />{" "}
+                      <span className="hidden sm:inline">ยืนยัน</span>
                     </button>
-                    {(bill.status === "PENDING" ||
-                      bill.status === "OVERDUE") && (
-                      <button
-                        onClick={() => handleActionClick(bill.id, "CANCELLED")}
-                        className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 active:scale-95"
-                        title="ยกเลิกบิล"
-                      >
-                        <XCircle size={18} />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
+                  )}
+                  <button
+                    onClick={() => onViewDetail(bill)}
+                    className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-indigo-600 active:scale-95"
+                    title="ดูรายละเอียด"
+                  >
+                    <Eye size={18} />
+                  </button>
+                  {(bill.status === "PENDING" || bill.status === "OVERDUE") && (
+                    <button
+                      onClick={() => handleActionClick(bill.id, "CANCELLED")}
+                      className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 active:scale-95"
+                      title="ยกเลิกบิล"
+                    >
+                      <XCircle size={18} />
+                    </button>
+                  )}
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
       </div>
       {confirmConfig && (
         <ConfirmDialog
