@@ -244,4 +244,32 @@ export const TenantController = {
       }
     }
   },
+
+  getDashboard: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    try {
+      const data = await tenantService.getDashboardStats(user.sub);
+      return reply.send(data);
+    } catch (error: any) {
+      request.log.error(error);
+
+      return reply.status(500).send({
+        message: "Failed to fetch tenant dashboard",
+      });
+    }
+  },
+
+  getMyBills: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    try {
+      const bills = await tenantService.getBills(user.sub);
+      return reply.send(bills);
+    } catch (error) {
+      return reply.status(500).send({
+        message: "Failed to fetch bills",
+      });
+    }
+  },
 };

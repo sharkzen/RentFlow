@@ -1,6 +1,5 @@
 "use client";
 import {
-  MapPin,
   Calendar,
   AlertCircle,
   FileImage,
@@ -8,6 +7,8 @@ import {
   CheckCircle2,
   XCircle,
   Check,
+  Loader2,
+  FileSearch,
 } from "lucide-react";
 
 import { MaintenanceRequest, MaintenanceStatus } from "@/features/maintenance";
@@ -20,52 +21,7 @@ import { maintenanceService } from "@/features/maintenance/services/maintenance.
 import { toast } from "react-toastify";
 import { MaintenanceFilterStatus } from "./MaintenanceFilter";
 import log from "@/lib/logger";
-import { Spinner } from "@/components/ui/Spinner";
-
-const getStatusBadge = (status: MaintenanceStatus) => {
-  switch (status) {
-    case "OPEN":
-      return (
-        <span className="inline-flex items-center rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-medium text-yellow-700 ring-1 ring-yellow-600/20 ring-inset">
-          รอรับเรื่อง
-        </span>
-      );
-    case "IN_PROGRESS":
-      return (
-        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 ring-1 ring-blue-700/10 ring-inset">
-          รับเรื่องแล้ว
-        </span>
-      );
-    case "COMPLETED":
-      return (
-        <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
-          ดำเนินการแล้ว
-        </span>
-      );
-    case "CANCELLED":
-      return (
-        <span className="inline-flex items-center rounded-full bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-500/10 ring-inset">
-          ยกเลิก
-        </span>
-      );
-    default:
-      return <span>{status}</span>;
-  }
-};
-
-const formatDate = (dateString: string) => {
-  if (!dateString) return "-";
-
-  const date = new Date(dateString);
-
-  return date.toLocaleDateString("th-TH", {
-    year: "2-digit",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+import MaintenanceStatusBadge from "./MaintenanceStatusBadge";
 
 interface MaintenanceTableProps {
   data: MaintenanceRequest[];
@@ -205,29 +161,28 @@ export default function MaintenanceTable({
   };
 
   const dialogConfig = getDialogConfig();
+  const gridTemplate = "grid-cols-[140px_120px_2fr_1.5fr_1.2fr_120px]";
 
   if (loading) {
     return (
-      <div className="flex h-96 w-full flex-col items-center justify-center rounded-3xl bg-white">
-        <Spinner className="text-blue-500" />
-        <p className="mt-3 animate-pulse text-sm text-gray-400">
-          กำลังโหลดข้อมูล...
-        </p>
+      <div className="flex h-[60vh] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
+        <div className="text-center text-gray-500">
+          <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin text-indigo-600" />
+          กำลังโหลดรายการแจ้งซ่อม...
+        </div>
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex h-64 w-full flex-col items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-        <div className="rounded-full bg-gray-50 p-4">
-          <AlertCircle className="h-8 w-8 text-gray-400" />
-        </div>
-        <div>
+      <div className="flex h-[60vh] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
+        <div className="text-center text-gray-400">
+          <FileSearch className="mx-auto mb-2 h-10 w-10 opacity-50" />
           <h3 className="text-base font-semibold text-gray-900">
             ไม่พบรายการแจ้งซ่อม
           </h3>
-          <p className="text-sm text-gray-500">
+          <p className="mt-1 text-sm">
             ลองปรับตัวกรองหรือคำค้นหาดูใหม่อีกครั้ง
           </p>
         </div>
@@ -237,152 +192,135 @@ export default function MaintenanceTable({
 
   return (
     <>
-      <div className="relative h-full min-h-125 w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex h-[65vh] w-full flex-col overflow-hidden rounded-t-xl border border-gray-200 bg-white">
         <div className="custom-scrollbar h-full w-full overflow-auto">
-          <table className="min-w-full border-separate border-spacing-0">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                  สถานะ
-                </th>
-                <th className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                  ห้อง / พื้นที่
-                </th>
-                <th className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                  หัวข้อการแจ้งซ่อม
-                </th>
-                <th className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                  ผู้แจ้ง
-                </th>
-                <th className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-6 py-3 text-left text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                  วันที่แจ้ง
-                </th>
-                <th className="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-6 py-3 text-right text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                  การจัดการ
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+          <div className="min-w-335">
+            <div
+              className={`sticky top-0 z-10 grid ${gridTemplate} gap-4 border-b border-gray-200 bg-gray-50 px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase`}
+            >
+              <div>สถานะ</div>
+              <div>ห้อง / พื้นที่</div>
+              <div>หัวข้อการแจ้งซ่อม</div>
+              <div>ผู้แจ้ง</div>
+              <div>วันที่แจ้ง</div>
+              <div className="text-right">จัดการ</div>
+            </div>
+
+            <div>
               {data.map((item) => (
-                <tr
+                <div
                   key={item.id}
                   onClick={() => setSelectedItem(item)}
-                  className="group cursor-pointer transition-colors hover:bg-indigo-50/30"
+                  className={`group grid ${gridTemplate} cursor-pointer items-center gap-4 border-b border-gray-100 px-6 py-4 transition-colors last:border-0 hover:bg-gray-50`}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(item.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <div>
+                    <MaintenanceStatusBadge status={item.status} />
+                  </div>
+
+                  <div>
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
                         <span className="text-xs font-bold">
                           {item.room.roomNumber}
                         </span>
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-[10px] text-gray-500">
                           ชั้น {item.room.floor}
                         </span>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="max-w-[200px] lg:max-w-xs">
-                      <div
-                        className="truncate text-sm font-medium text-gray-900"
-                        title={item.title}
-                      >
-                        {item.title}
+                  </div>
+
+                  <div className="min-w-0 pr-4">
+                    <div className="truncate text-sm font-medium text-gray-900">
+                      {item.title}
+                    </div>
+                    <div className="truncate text-xs text-gray-500">
+                      {item.description}
+                    </div>
+                    {item.images.length > 0 && (
+                      <div className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-indigo-600">
+                        <FileImage size={14} />
+                        <span>{item.images.length}รูปภาพ</span>
                       </div>
-                      <div
-                        className="truncate text-xs text-gray-500"
-                        title={item.description}
-                      >
-                        {item.description}
-                      </div>
-                      {item.images.length > 0 && (
-                        <div className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-indigo-600">
-                          <FileImage size={14} />
-                          <span>{item.images.length}รูปภาพ</span>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900">
-                          {item.tenant.firstName} {item.tenant.lastName}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {item.tenant.phone || "-"}
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={14} className="text-gray-400" />
-                      {formatDate(item.createdAt)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-2">
-                      {item.status === "OPEN" && (
-                        <>
-                          <button
-                            onClick={(e) =>
-                              initiateAction(e, item.id, "ACCEPT")
-                            }
-                            className="group/btn flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-green-50 text-green-600 transition-colors hover:bg-green-100 hover:text-green-700 hover:shadow-sm"
-                            title="รับเรื่อง"
-                          >
-                            <CheckCircle2 size={18} />
-                          </button>
-                          <button
-                            onClick={(e) =>
-                              initiateAction(e, item.id, "CANCEL")
-                            }
-                            className="group/btn flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-red-50 text-red-600 transition-colors hover:bg-red-100 hover:text-red-700 hover:shadow-sm"
-                            title="ยกเลิก"
-                          >
-                            <XCircle size={18} />
-                          </button>
-                          <div className="mx-1 h-4 w-px bg-gray-200"></div>
-                        </>
-                      )}
-                      {item.status === "IN_PROGRESS" && (
-                        <>
-                          <button
-                            onClick={(e) =>
-                              initiateAction(e, item.id, "COMPLETE")
-                            }
-                            className="group/btn flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 hover:text-blue-700 hover:shadow-sm"
-                            title="ปิดงานซ่อม"
-                          >
-                            <Check size={18} />
-                          </button>
-                          <div className="mx-1 h-4 w-px bg-gray-200"></div>
-                        </>
-                      )}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedItem(item);
-                        }}
-                        className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-all hover:bg-indigo-50 hover:text-indigo-600 hover:shadow-sm"
-                        title="ดูรายละเอียด"
-                      >
-                        <Eye size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col">
+                    <span className="truncate text-sm font-medium text-gray-900">
+                      {item.tenant.firstName} {item.tenant.lastName}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {item.tenant.phone || "-"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Calendar size={14} className="text-gray-400" />
+                    {item.createdAt
+                      ? new Date(item.createdAt).toLocaleDateString("th-TH", {
+                          year: "2-digit",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : "-"}
+                  </div>
+
+                  <div
+                    className="flex items-center justify-end gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {item.status === "OPEN" && (
+                      <>
+                        <button
+                          onClick={(e) => initiateAction(e, item.id, "ACCEPT")}
+                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-green-50 text-green-600 transition-colors hover:bg-green-100 hover:text-green-700 hover:shadow-sm"
+                          title="รับเรื่อง"
+                        >
+                          <CheckCircle2 size={16} />
+                        </button>
+                        <button
+                          onClick={(e) => initiateAction(e, item.id, "CANCEL")}
+                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-red-50 text-red-600 transition-colors hover:bg-red-100 hover:text-red-700 hover:shadow-sm"
+                          title="ยกเลิก"
+                        >
+                          <XCircle size={16} />
+                        </button>
+                        <div className="mx-1 h-4 w-px bg-gray-200"></div>
+                      </>
+                    )}
+                    {item.status === "IN_PROGRESS" && (
+                      <>
+                        <button
+                          onClick={(e) =>
+                            initiateAction(e, item.id, "COMPLETE")
+                          }
+                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 hover:text-blue-700 hover:shadow-sm"
+                          title="ปิดงานซ่อม"
+                        >
+                          <Check size={16} />
+                        </button>
+                        <div className="mx-1 h-4 w-px bg-gray-200"></div>
+                      </>
+                    )}
+                    <button
+                      onClick={() => setSelectedItem(item)}
+                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-all hover:bg-gray-100 hover:text-indigo-600"
+                      title="ดูรายละเอียด"
+                    >
+                      <Eye size={16} />
+                    </button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
         </div>
       </div>
+
       {selectedItem && (
         <MaintenanceDetailDialog
           isOpen={!!selectedItem}

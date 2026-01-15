@@ -278,7 +278,7 @@ export default function MaintenanceFilter({
             </div>
           </button>
           {isStatusOpen && (
-            <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] right-0 z-20 w-full min-w-[160px] rounded-lg border border-gray-100 bg-white p-1 shadow-lg">
+            <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] right-0 z-20 w-full min-w-40 rounded-lg border border-gray-100 bg-white p-1 shadow-lg">
               {statusOptions.map((option) => (
                 <button
                   key={option.value}

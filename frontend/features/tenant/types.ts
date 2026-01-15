@@ -50,3 +50,55 @@ export interface GetTenantDormParams {
   limit?: number;
   search?: string;
 }
+
+export interface TenantDashboardResponse {
+  tenant: {
+    name: string;
+    roomNumber: string;
+    dormName: string;
+  };
+}
+
+export interface TenantDashboardData {
+  tenant: {
+    id: string;
+    name: string;
+    roomNumber: string;
+    dormName: string;
+  };
+  contactInfo: {
+    name: string;
+    phone: string | null;
+    lineId: string | null;
+    facebook: string | null;
+  };
+  bill: {
+    id: string;
+    status:
+      | "PENDING"
+      | "WAITING_FOR_VERIFICATION"
+      | "PAID"
+      | "OVERDUE"
+      | "CANCELLED";
+    amount: number;
+    dueDate: string | Date;
+    billingMonth: string | Date;
+  } | null;
+  utilities: {
+    water: {
+      used: number;
+      currentUnit: number;
+      prevUnit: number;
+    };
+    electric: {
+      used: number;
+      currentUnit: number;
+      prevUnit: number;
+    };
+  } | null;
+  maintenance: {
+    open: number;
+    inProgress: number;
+    totalActive: number;
+  };
+}

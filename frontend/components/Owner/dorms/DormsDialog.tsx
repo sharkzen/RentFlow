@@ -1,5 +1,5 @@
 "use client";
-import { Dormitory } from "@/features/dormitory";
+import { Dormitory, DormFormData } from "@/features/dormitory";
 import { descriptionJsonToText, parseDescription } from "@/lib/text";
 
 import {
@@ -19,7 +19,6 @@ import {
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useOnClickOutside } from "usehooks-ts";
-import { DormFormData } from "@/features/dormitory";
 import ImageSection from "./ImageSection";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { RemoveScroll } from "react-remove-scroll";
@@ -29,9 +28,12 @@ import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Link from "next/link";
+import DormPaymentSettings from "./DormPaymentSettings";
 
 interface DormsDialogProps {
-  dorm: Dormitory;
+  dorm: Dormitory & {
+    paymentSetting?: any;
+  };
   onClose: () => void;
   onEdit?: () => void;
 }
@@ -90,6 +92,11 @@ export default function DormsDialog({
     lateFee: dorm.settings?.lateFee ?? 0,
     dueDay: dorm.settings?.dueDay ?? 1,
     dueMonthOffset: dorm.settings?.dueMonthOffset ?? 1,
+    bankName: dorm.paymentSetting?.bankName ?? "",
+    bankAccount: dorm.paymentSetting?.bankAccount ?? "",
+    bankHolder: dorm.paymentSetting?.bankHolder ?? "",
+    promptPayType: dorm.paymentSetting?.promptPayType ?? "",
+    promptPayValue: dorm.paymentSetting?.promptPayValue ?? "",
   });
 
   useEffect(() => {
@@ -143,19 +150,12 @@ export default function DormsDialog({
           render({ data }: any) {
             const errorData = data?.response?.data;
             const errorCode = errorData?.code;
-            log.error("Delete Error:", errorData);
 
-            if (errorCode === "DORM_HAS_DEPENDENCIES") {
+            if (errorCode === "DORM_HAS_DEPENDENCIES")
               return "ไม่สามารถลบได้: เนื่องจากยังมีห้องพักหรือผู้เช่าอยู่ในระบบ";
-            }
 
-            if (errorCode === "FORBIDDEN_ACCESS") {
+            if (errorCode === "FORBIDDEN_ACCESS")
               return "คุณไม่มีสิทธิ์ลบหอพักนี้";
-            }
-
-            if (errorCode === "DORM_NOT_FOUND") {
-              return "ไม่พบข้อมูลหอพัก อาจถูกลบไปแล้ว";
-            }
 
             return errorData?.message || "เกิดข้อผิดพลาดในการลบหอพัก";
           },
@@ -199,6 +199,7 @@ export default function DormsDialog({
               <X size={20} />
             </button>
           </div>
+
           <div className="flex-1 overflow-y-auto bg-slate-50/50">
             <form
               className="space-y-6 p-6"
@@ -249,12 +250,13 @@ export default function DormsDialog({
                         updateField("description", e.target.value)
                       }
                       rows={4}
-                      className="h-80 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
-                      placeholder="รายละเอียดเกี่ยวกับหอพัก สิ่งอำนวยความสะดวก..."
+                      className="h-24 w-full resize-none border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+                      placeholder="รายละเอียดเกี่ยวกับหอพัก..."
                     />
                   </div>
                 </div>
               </div>
+
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <MapPin size={16} />
@@ -264,31 +266,25 @@ export default function DormsDialog({
                   <div>
                     <Label required>ที่อยู่</Label>
                     <Input
-                      type="text"
                       value={formData.address}
                       onChange={(e) => updateField("address", e.target.value)}
-                      placeholder="เลขที่ หมู่ ถนน ตำบล อำเภอ จังหวัด"
                     />
                   </div>
                   <div>
                     <Label required>ลิงก์ Google Maps</Label>
                     <Input
-                      type="url"
                       value={formData.mapUrl}
                       onChange={(e) => updateField("mapUrl", e.target.value)}
-                      placeholder="https://maps.google.com/..."
                     />
-                    <p className="mt-1.5 flex items-start gap-1.5 text-xs leading-relaxed text-slate-500">
-                      <span className="select-none">📍</span>
-                      <span className="text-red-500">
-                        เปิด Google Maps → ซูมแผนที่ให้ใกล้หอพักที่สุด →
-                        ให้ตำแหน่งหอพักอยู่กลางหน้าจอ →
-                        จากนั้นคัดลอกลิงก์มาวางที่นี่ เพื่อความแม่นยำ
-                      </span>
-                    </p>
                   </div>
                 </div>
               </div>
+
+              <DormPaymentSettings
+                formData={formData}
+                updateField={updateField}
+              />
+
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <Zap size={16} />
@@ -300,13 +296,11 @@ export default function DormsDialog({
                       ค่าไฟ (บาท/หน่วย)
                     </Label>
                     <Input
-                      min="0"
                       type="number"
                       value={formData.electricRate}
                       onChange={(e) =>
                         updateField("electricRate", parseFloat(e.target.value))
                       }
-                      step="1"
                     />
                   </div>
                   <div>
@@ -314,19 +308,16 @@ export default function DormsDialog({
                       ค่าน้ำ (บาท/หน่วย)
                     </Label>
                     <Input
-                      min="0"
                       type="number"
                       value={formData.waterRate}
                       onChange={(e) =>
                         updateField("waterRate", parseFloat(e.target.value))
                       }
-                      step="1"
                     />
                   </div>
                   <div>
                     <Label icon={Info}>ส่วนกลาง (บาท/เดือน)</Label>
                     <Input
-                      min="0"
                       type="number"
                       value={formData.commonFee}
                       onChange={(e) =>
@@ -336,6 +327,7 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
+
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <Calendar size={16} />
@@ -346,25 +338,17 @@ export default function DormsDialog({
                     <Label required icon={Calendar}>
                       ชำระไม่เกินวันที่
                     </Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-slate-500">วันที่</span>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={31}
-                        value={formData.dueDay}
-                        onChange={(e) =>
-                          updateField("dueDay", parseFloat(e.target.value))
-                        }
-                        className="text-center"
-                      />
-                      <span className="text-sm text-slate-500">ของเดือน</span>
-                    </div>
+                    <Input
+                      type="number"
+                      value={formData.dueDay}
+                      onChange={(e) =>
+                        updateField("dueDay", parseFloat(e.target.value))
+                      }
+                    />
                   </div>
                   <div>
                     <Label icon={AlertCircle}>ค่าปรับล่าช้า (บาท/วัน)</Label>
                     <Input
-                      min="0"
                       type="number"
                       value={formData.lateFee}
                       onChange={(e) =>
@@ -379,7 +363,7 @@ export default function DormsDialog({
                       onChange={(e) =>
                         updateField("dueMonthOffset", parseInt(e.target.value))
                       }
-                      className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none"
                     >
                       <option value={0}>ชำระภายในเดือนที่ออกบิล</option>
                       <option value={1}>ชำระเดือนถัดไป</option>
@@ -387,6 +371,7 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
+
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <CheckCircle2 size={16} />
@@ -398,11 +383,12 @@ export default function DormsDialog({
               </div>
             </form>
           </div>
-          <div className="flex items-center justify-between border-t border-slate-100 bg-white px-6 py-4">
+
+          <div className="flex items-center justify-between border-t border-slate-100 bg-white px-6 py-4 text-xs sm:text-sm">
             <button
               type="button"
               onClick={() => setIsDeleteDialogOpen(true)}
-              className="group flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium text-red-500 transition hover:bg-red-50 hover:text-red-600 max-sm:text-xs"
+              className="group flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 font-medium text-red-500 transition hover:bg-red-50 hover:text-red-600"
             >
               <Trash2 size={18} className="transition group-hover:scale-110" />
               <span>ลบหอพัก</span>
@@ -411,14 +397,14 @@ export default function DormsDialog({
               <button
                 type="button"
                 onClick={onClose}
-                className="cursor-pointer rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-slate-200 focus:outline-none max-sm:text-xs"
+                className="cursor-pointer rounded-lg border border-slate-200 bg-white px-5 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
               >
                 ยกเลิก
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none max-sm:text-xs"
+                className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 font-medium text-white hover:bg-indigo-700"
               >
                 <Save size={18} />
                 บันทึกข้อมูล
@@ -427,19 +413,17 @@ export default function DormsDialog({
           </div>
         </div>
       </div>
-      <div>
-        <ConfirmDialog
-          isOpen={isDeleteDialogOpen}
-          onClose={() => setIsDeleteDialogOpen(false)}
-          onConfirm={handleDelete}
-          title="ต้องการลบหอพักนี้?"
-          description={`คุณแน่ใจหรือไม่ที่จะลบข้อมูล "${formData.name}" การดำเนินการนี้ไม่สามารถเรียกคืนข้อมูลกลับมาได้`}
-          type="error"
-          confirmText="ยืนยันลบ"
-          cancelText="ไม่, เก็บไว้"
-          isLoading={isDeleting}
-        />
-      </div>
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDelete}
+        title="ต้องการลบหอพักนี้?"
+        description={`คุณแน่ใจหรือไม่ที่จะลบข้อมูล "${formData.name}"`}
+        type="error"
+        confirmText="ยืนยันลบ"
+        cancelText="ไม่, เก็บไว้"
+        isLoading={isDeleting}
+      />
     </RemoveScroll>
   );
 }

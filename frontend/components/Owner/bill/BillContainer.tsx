@@ -136,7 +136,6 @@ export default function BillContainer() {
 
   const handleCreateBill = async (data: any) => {
     if (!selectedDorm) {
-      log.error("No dorm selected");
       toast.error("กรุณาเลือกหอพักก่อน");
       return;
     }
@@ -146,8 +145,8 @@ export default function BillContainer() {
       dormId: selectedDorm,
     };
 
-    return toast
-      .promise(BillService.createBills(payload), {
+    try {
+      await toast.promise(BillService.createBills(payload), {
         pending: "กำลังสร้างบิล...",
         success: "สร้างบิลสำเร็จเรียบร้อย",
 
@@ -160,6 +159,10 @@ export default function BillContainer() {
               return "กรุณาตั้งค่า 'ค่าน้ำ/ค่าไฟ' ของหอพักก่อนสร้างบิล";
             }
 
+            if (errorMsg === "PAYMENT_METHOD_REQUIRED") {
+              return "กรุณาตั้งค่า 'วิธีชําระเงิน' ของหอพักก่อนสร้างบิล";
+            }
+
             if (errorMsg === "Dormitory ID is required") {
               return "ไม่พบข้อมูลหอพัก กรุณาลองใหม่อีกครั้ง";
             }
@@ -167,15 +170,14 @@ export default function BillContainer() {
             return errorMsg || "เกิดข้อผิดพลาดในการสร้างบิล";
           },
         },
-      })
-      .then((res) => {
-        log.log("API Success:", res);
-        setIsCreateOpen(false);
-        fetchBills();
-      })
-      .catch((err) => {
-        log.error("Create Bill Catch Error:", err);
       });
+
+      setIsCreateOpen(false);
+      fetchBills();
+    } catch (err) {
+      log.error("Create Bill Error:", err);
+      throw err;
+    }
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {

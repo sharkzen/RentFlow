@@ -1,6 +1,12 @@
 import prisma from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/modules/auth/lib/password";
-import { RoomStatus, UserRole, Status } from "@prisma/client";
+import {
+  RoomStatus,
+  UserRole,
+  Status,
+  BillStatus,
+  MaintenanceStatus,
+} from "@prisma/client";
 
 interface GetTenantDormParams {
   dormId: string;
@@ -481,6 +487,155 @@ export const tenantService = {
       });
 
       return updatedTenant;
+    });
+  },
+
+  getDashboardStats: async (userId: string) => {
+    const tenant = await prisma.tenantProfile.findFirst({
+      where: {
+        userId: userId,
+        isActive: true,
+        deletedAt: null,
+      },
+
+      include: {
+        room: {
+          include: {
+            dormitory: {
+              select: {
+                name: true,
+
+                owner: {
+                  select: {
+                    fullName: true,
+                    phone: true,
+                    lineId: true,
+                    facebook: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!tenant || !tenant.room) {
+      throw new Error("TENANT_NOT_FOUND_OR_NO_ROOM");
+    }
+
+    const latestBill = await prisma.bill.findFirst({
+      where: {
+        tenantId: tenant.id,
+        roomId: tenant.room.id,
+
+        status: {
+          not: BillStatus.CANCELLED,
+        },
+      },
+
+      orderBy: [
+        {
+          status: "asc",
+        },
+        {
+          billingMonth: "desc",
+        },
+      ],
+    });
+
+    const maintenanceStats = await prisma.maintenanceRequest.groupBy({
+      by: ["status"],
+
+      where: {
+        tenantId: tenant.id,
+
+        status: {
+          in: [MaintenanceStatus.OPEN, MaintenanceStatus.IN_PROGRESS],
+        },
+      },
+
+      _count: true,
+    });
+
+    const openMaint =
+      maintenanceStats.find((m) => m.status === MaintenanceStatus.OPEN)
+        ?._count || 0;
+    const progressMaint =
+      maintenanceStats.find((m) => m.status === MaintenanceStatus.IN_PROGRESS)
+        ?._count || 0;
+
+    return {
+      tenant: {
+        id: tenant.id,
+        name: `${tenant.firstName} ${tenant.lastName}`,
+        roomNumber: tenant.room.roomNumber,
+        dormName: tenant.room.dormitory.name,
+      },
+
+      contactInfo: {
+        name: tenant.room.dormitory.owner.fullName,
+        phone: tenant.room.dormitory.owner.phone,
+        lineId: tenant.room.dormitory.owner.lineId,
+        facebook: tenant.room.dormitory.owner.facebook,
+      },
+
+      bill: latestBill
+        ? {
+            id: latestBill.id,
+            status: latestBill.status,
+            amount: latestBill.total,
+            dueDate: latestBill.dueDate,
+            billingMonth: latestBill.billingMonth,
+          }
+        : null,
+
+      utilities: latestBill
+        ? {
+            water: {
+              used: latestBill.waterUsedSnapshot,
+              currentUnit: latestBill.currentWaterUnitSnapshot,
+              prevUnit: latestBill.prevWaterUnitSnapshot,
+            },
+
+            electric: {
+              used: latestBill.electricUsedSnapshot,
+              currentUnit: latestBill.currentElectricUnitSnapshot,
+              prevUnit: latestBill.prevElectricUnitSnapshot,
+            },
+          }
+        : null,
+
+      maintenance: {
+        open: openMaint,
+        inProgress: progressMaint,
+        totalActive: Number(openMaint) + Number(progressMaint),
+      },
+    };
+  },
+
+  getBills: async (userId: string) => {
+    const tenant = await prisma.tenantProfile.findFirst({
+      where: {
+        userId,
+        isActive: true,
+      },
+    });
+
+    if (!tenant) return [];
+
+    return prisma.bill.findMany({
+      where: {
+        tenantId: tenant.id,
+      },
+
+      orderBy: {
+        billingMonth: "desc",
+      },
+
+      include: {
+        payment: true,
+      },
     });
   },
 };

@@ -13,6 +13,11 @@ export interface DormFormDataDto {
   lateFee?: number;
   dueDay: number;
   dueMonthOffset?: number;
+  bankName?: string;
+  bankAccount?: string;
+  bankHolder?: string;
+  promptPayType?: string;
+  promptPayValue?: string;
 }
 
 export interface GetDormsQueryDto {

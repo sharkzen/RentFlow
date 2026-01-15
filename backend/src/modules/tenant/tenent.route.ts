@@ -19,4 +19,11 @@ export async function tenantRoute(app: FastifyInstance) {
     routeRoles.patch("/:tenantId", TenantController.updateTenant);
     routeRoles.post("/:tenantId/move-out", TenantController.moveOut);
   });
+
+  app.register(async (routeRoles) => {
+    routeRoles.addHook("preHandler", authMiddleware);
+    routeRoles.addHook("preHandler", authRoleMiddleware([Role.TENANT]));
+    routeRoles.get("/dashboard", TenantController.getDashboard);
+    routeRoles.get("/bills", TenantController.getMyBills);
+  });
 }

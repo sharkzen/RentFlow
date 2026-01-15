@@ -265,15 +265,11 @@ export default function TenantContainer() {
           </button>
         </div>
       </div>
-      <div className="min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="h-[60vh] overflow-x-auto">
-          <TenantList
-            isLoading={loading}
-            tenants={tenants}
-            onEditSuccess={getTenants}
-          />
-        </div>
-      </div>
+      <TenantList
+        isLoading={loading}
+        tenants={tenants}
+        onEditSuccess={getTenants}
+      />
       {meta.totalPages > 1 && (
         <div className="flex items-center justify-between pt-2 text-sm text-gray-600">
           <span>ทั้งหมด {meta.total}รายการ</span>

@@ -425,6 +425,11 @@ export const dormService = {
 
     const slug = generateSlug(dorm.name);
     const latLng = await getLatLngFromUrl(dorm.mapUrl ?? 0);
+    const validPromptPayType =
+      dorm.promptPayType &&
+      ["PHONE", "ID_CARD", "E_WALLET"].includes(dorm.promptPayType)
+        ? (dorm.promptPayType as any)
+        : null;
 
     return await prisma.$transaction(async (tx) => {
       const updatedDorm = await tx.dormitory.update({
@@ -471,9 +476,34 @@ export const dormService = {
         },
       });
 
+      const paymentSetting = await tx.paymentSetting.upsert({
+        where: {
+          dormitoryId: dorm.id,
+        },
+
+        update: {
+          bankName: dorm.bankName,
+          bankAccount: dorm.bankAccount,
+          bankHolder: dorm.bankHolder,
+          promptPayType: validPromptPayType,
+          promptPayValue: dorm.promptPayValue,
+        },
+
+        create: {
+          dormitoryId: dorm.id,
+          bankName: dorm.bankName,
+          bankAccount: dorm.bankAccount,
+          bankHolder: dorm.bankHolder,
+          promptPayType: validPromptPayType,
+          promptPayValue: dorm.promptPayValue,
+          isActive: true,
+        },
+      });
+
       return {
         ...updatedDorm,
         settings: setting,
+        paymentSetting: paymentSetting,
       };
     });
   },
@@ -540,6 +570,7 @@ export const dormService = {
         settings: true,
         images: true,
         owner: true,
+        paymentSetting: true,
       },
 
       orderBy: [

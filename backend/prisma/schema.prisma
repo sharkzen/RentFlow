@@ -67,10 +67,10 @@ enum FileCategory {
 }
 
 enum Status {
-  PENDING   // รออนุมัติ
-  ACTIVE    // ใช้งานปกติ
-  BANNED    // ระงับการใช้งาน (ทำผิดกฎ)
-  INACTIVE  // ย้ายออกแล้ว / เลิกใช้งาน
+  PENDING // รออนุมัติ
+  ACTIVE // ใช้งานปกติ
+  BANNED // ระงับการใช้งาน (ทำผิดกฎ)
+  INACTIVE // ย้ายออกแล้ว / เลิกใช้งาน
 }
 
 //  
@@ -144,19 +144,20 @@ model OwnerProfile {
  */
 
 model Dormitory {
-  id          String    @id @default(uuid())
-  ownerId     String
-  name        String
-  slug        String    @unique
-  description Json?
-  address     String
-  latitude    Float
-  longitude   Float
-  mapUrl      String
-  images      File[]    @relation("DormitoryImages")
-  status      Status    @default(PENDING)
-  isPublished Boolean   @default(false)
-  deletedAt   DateTime?
+  id             String          @id @default(uuid())
+  ownerId        String
+  name           String
+  slug           String          @unique
+  description    Json?
+  address        String
+  latitude       Float
+  longitude      Float
+  mapUrl         String
+  images         File[]          @relation("DormitoryImages")
+  status         Status          @default(PENDING)
+  isPublished    Boolean         @default(false)
+  deletedAt      DateTime?
+  paymentSetting PaymentSetting?
 
   owner               OwnerProfile         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   settings            DormitorySetting?
@@ -177,6 +178,28 @@ model DormitorySetting {
   dueDay         Int
   dueMonthOffset Int       @default(1)
   dormitory      Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+}
+
+enum PromptPayType {
+  PHONE
+  ID_CARD
+  E_WALLET
+}
+
+model PaymentSetting {
+  id String @id @default(uuid())
+
+  dormitoryId    String         @unique
+  promptPayType  PromptPayType?
+  promptPayValue String?
+
+  bankName    String?
+  bankAccount String?
+  bankHolder  String?
+
+  isActive Boolean @default(true)
+
+  dormitory Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
 }
 
 /**
@@ -217,34 +240,33 @@ model Room {
  */
 
 model TenantProfile {
-  id                 String  @id @default(uuid())
-  userId             String
-  roomId             String?
-  firstName          String
-  lastName           String
-  phone              String?
-  email              String?
-  idCard             String?
-  
-  
-  address            String?  
-  numberOfResidents  Int      @default(1) 
+  id        String  @id @default(uuid())
+  userId    String
+  roomId    String?
+  firstName String
+  lastName  String
+  phone     String?
+  email     String?
+  idCard    String?
+
+  address           String?
+  numberOfResidents Int     @default(1)
 
   tenantNameSnapshot String?
   roomPriceSnapshot  Float?
 
-  securityDeposit    Float   @default(0)
-  advancePayment     Float   @default(0)
-  entranceFee        Float   @default(0)
-  
-  contractStartDate  DateTime?
-  contractEndDate    DateTime?
+  securityDeposit Float @default(0)
+  advancePayment  Float @default(0)
+  entranceFee     Float @default(0)
 
-  moveInDate   DateTime?
-  moveOutDate  DateTime?
-  isActive     Boolean   @default(true)
-  deletedAt    DateTime?
-  notes        String?
+  contractStartDate DateTime?
+  contractEndDate   DateTime?
+
+  moveInDate  DateTime?
+  moveOutDate DateTime?
+  isActive    Boolean   @default(true)
+  deletedAt   DateTime?
+  notes       String?
 
   emergencyContactName  String?
   emergencyContactPhone String?
@@ -275,23 +297,23 @@ model Bill {
   billingMonth DateTime
   dueDate      DateTime
 
-  prevWaterUnitSnapshot     Float
-  currentWaterUnitSnapshot  Float
-  waterUsedSnapshot         Float
-  waterRateSnapshot         Float
-  waterFeeSnapshot          Float
+  prevWaterUnitSnapshot    Float
+  currentWaterUnitSnapshot Float
+  waterUsedSnapshot        Float
+  waterRateSnapshot        Float
+  waterFeeSnapshot         Float
 
-  prevElectricUnitSnapshot     Float
-  currentElectricUnitSnapshot  Float
-  electricUsedSnapshot         Float
-  electricRateSnapshot         Float
-  electricFeeSnapshot          Float
+  prevElectricUnitSnapshot    Float
+  currentElectricUnitSnapshot Float
+  electricUsedSnapshot        Float
+  electricRateSnapshot        Float
+  electricFeeSnapshot         Float
 
   commonFeeSnapshot Float
   lateFeeSnapshot   Float
 
   total    Float
-  note String?
+  note     String?
   status   BillStatus @default(PENDING)
   archived Boolean    @default(false)
 
@@ -303,7 +325,6 @@ model Bill {
 
   @@unique([roomId, billingMonth])
 }
-
 
 /**
  * =======================
@@ -319,14 +340,14 @@ model Payment {
   id     String @id @default(uuid())
   billId String @unique
 
-  slips      File[]        @relation("PaymentSlips")
-  status     PaymentStatus @default(WAITING_VERIFY)
-  verifiedBy String?
-  verifiedAt DateTime?
+  slips         File[]         @relation("PaymentSlips")
+  status        PaymentStatus  @default(WAITING_VERIFY)
+  verifiedBy    String?
+  verifiedAt    DateTime?
   paymentMethod PaymentMethod?
-  bill Bill @relation(fields: [billId], references: [id], onDelete: Restrict)
-  updatedAt DateTime @default(now()) @updatedAt
-  createdAt DateTime @default(now())
+  bill          Bill           @relation(fields: [billId], references: [id], onDelete: Restrict)
+  updatedAt     DateTime       @default(now()) @updatedAt
+  createdAt     DateTime       @default(now())
 }
 
 /**

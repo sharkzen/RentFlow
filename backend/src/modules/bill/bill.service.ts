@@ -149,6 +149,19 @@ export const billService = {
 
     if (!dormSettings) throw new Error("DORM_SETTINGS_NOT_FOUND");
 
+    const paymentSetting = await prisma.paymentSetting.findUnique({
+      where: {
+        dormitoryId: dormId,
+      },
+    });
+
+    const hasBank = paymentSetting?.bankAccount && paymentSetting?.bankName;
+    const hasPromptPay = paymentSetting?.promptPayValue;
+
+    if (!paymentSetting || (!hasBank && !hasPromptPay)) {
+      throw new Error("PAYMENT_METHOD_REQUIRED");
+    }
+
     const createdBills = [];
 
     for (const item of items) {

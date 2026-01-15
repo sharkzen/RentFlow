@@ -1,4 +1,5 @@
 import { axios } from "@/lib/api-client";
+import { TenantDashboardData } from "../types";
 
 interface GetTenantDormParams {
   dormId: string;
@@ -46,5 +47,38 @@ export const TenantService = {
   moveOut: async (tenantId: string) => {
     const response = await axios.post(`/api/tenants/${tenantId}/move-out`);
     return response.data;
+  },
+
+  getDashboard: async (): Promise<Promise<TenantDashboardData>> => {
+    const res = await axios.get(`/api/tenants/dashboard`);
+    return res.data;
+  },
+
+  getMyBills: async (params?: { page?: number; limit?: number }) => {
+    const res = await axios.get(`/api/tenants/bills`, {
+      params,
+    });
+
+    return res.data;
+  },
+
+  getBillDetail: async (billId: string) => {
+    const res = await axios.get(`/api/tenants/bills/${billId}`);
+    return res.data;
+  },
+
+  getMyMaintenanceRequests: async () => {
+    const res = await axios.get(`/api/tenants/maintenance`);
+    return res.data;
+  },
+
+  createMaintenanceRequest: async (data: FormData) => {
+    const res = await axios.post(`/api/tenants/maintenance`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return res.data;
   },
 };

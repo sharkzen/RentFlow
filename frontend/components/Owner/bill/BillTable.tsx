@@ -76,7 +76,7 @@ export default function BillTable({
 
   if (isLoading) {
     return (
-      <div className="flex h-full min-h-[300px] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
+      <div className="flex h-full min-h-75 w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
         <div className="text-center text-gray-500">
           <div className="mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
           กำลังโหลดข้อมูล...
@@ -87,7 +87,7 @@ export default function BillTable({
 
   if (!isLoading && bills.length === 0) {
     return (
-      <div className="flex h-full min-h-[300px] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
+      <div className="flex h-full min-h-75 w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
         <div className="text-center text-gray-400">
           <FileSearch className="mx-auto mb-2 h-10 w-10 opacity-50" />
           <p>ไม่พบรายการบิล</p>
@@ -159,7 +159,6 @@ export default function BillTable({
           <div className="text-center font-semibold tracking-wider">สถานะ</div>
           <div className="text-right font-semibold tracking-wider">จัดการ</div>
         </div>
-
         <div className="custom-scrollbar flex-1 overflow-auto bg-white">
           <div className="min-w-335 text-nowrap">
             {bills.map((bill) => (
@@ -176,22 +175,18 @@ export default function BillTable({
                     {bill.tenantNameSnapshot}
                   </span>
                 </div>
-
                 <div className="text-sm text-gray-600">
                   {new Date(bill.billingMonth).toLocaleDateString("th-TH", {
                     month: "long",
                     year: "numeric",
                   })}
                 </div>
-
                 <div className="text-right text-sm font-bold text-indigo-600">
                   ฿{bill.total.toLocaleString()}
                 </div>
-
                 <div className="flex justify-center">
                   {getStatusBadge(bill.status)}
                 </div>
-
                 <div
                   className="flex justify-end gap-2"
                   onClick={(e) => e.stopPropagation()}
