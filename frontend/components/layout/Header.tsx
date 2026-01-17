@@ -90,7 +90,7 @@ export default function Header() {
                   </Link>
                   <Link
                     href="/auth/register"
-                    className="rounded-full bg-linear-to-r from-blue-600 to-cyan-500 px-5 py-2 text-sm font-semibold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95"
+                    className="rounded-full bg-linear-to-r from-blue-600 to-cyan-500 px-5 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95"
                   >
                     ลงทะเบียนหอพัก
                   </Link>
@@ -102,9 +102,9 @@ export default function Header() {
                       e.stopPropagation();
                       setDropdownOpen(!dropdownOpen);
                     }}
-                    className="flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 pr-3 shadow-sm transition-all hover:cursor-pointer hover:bg-white/80 hover:shadow-md active:scale-95"
+                    className="flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 pr-3 transition-all hover:cursor-pointer hover:bg-white/80 active:scale-95"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white shadow-inner">
+                    <div className="s flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
                       {initial}
                     </div>
                     <span className="hidden text-sm font-semibold text-slate-700 md:block">
@@ -137,7 +137,7 @@ export default function Header() {
                           duration: 0.2,
                           ease: "easeOut",
                         }}
-                        className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl border border-gray-100 bg-white p-2 shadow-xl ring-1 ring-black/5"
+                        className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl border border-gray-100 bg-white p-2 ring-1 ring-black/5"
                       >
                         <div className="mb-1 border-b border-gray-100 px-3 py-2">
                           <p className="truncate text-xs font-medium text-slate-400">

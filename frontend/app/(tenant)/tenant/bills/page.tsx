@@ -1,5 +1,5 @@
-import React from "react";
+import BillContainer from "@/components/Tenant/bill/BillContainer";
 
 export default function page() {
-  return <div>page</div>;
+  return <BillContainer />;
 }

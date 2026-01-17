@@ -1,5 +1,10 @@
 import { axios } from "@/lib/api-client";
 import { TenantDashboardData } from "../types";
+import {
+  BillData,
+  BillStatus,
+  IBillDetail,
+} from "@/components/Tenant/bill/types";
 
 interface GetTenantDormParams {
   dormId: string;
@@ -7,6 +12,25 @@ interface GetTenantDormParams {
   limit?: number;
   search?: string;
   status?: string;
+}
+
+export interface BillsResponse {
+  items: BillData[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  summary: {
+    totalPending: number;
+  };
+}
+
+interface GetMyBillsParams {
+  page?: number;
+  limit?: number;
+  year?: string;
+  status?: BillStatus | string;
+  month?: string;
 }
 
 export const TenantService = {
@@ -49,21 +73,32 @@ export const TenantService = {
     return response.data;
   },
 
-  getDashboard: async (): Promise<Promise<TenantDashboardData>> => {
+  getDashboard: async (): Promise<TenantDashboardData> => {
     const res = await axios.get(`/api/tenants/dashboard`);
     return res.data;
   },
 
-  getMyBills: async (params?: { page?: number; limit?: number }) => {
-    const res = await axios.get(`/api/tenants/bills`, {
-      params,
+  getMyBills: async (params?: GetMyBillsParams) => {
+    const finalParams: Record<string, any> = {};
+
+    if (params?.page) finalParams.page = params.page;
+
+    if (params?.limit) finalParams.limit = params.limit;
+
+    if (params?.year) finalParams.year = params.year;
+
+    if (params?.status && params.status !== "ALL") {
+      finalParams.status = params.status;
+    }
+
+    if (params?.month && params.month !== "ALL") {
+      finalParams.month = params.month;
+    }
+
+    const res = await axios.get<BillsResponse>(`/api/tenants/bills`, {
+      params: finalParams,
     });
 
-    return res.data;
-  },
-
-  getBillDetail: async (billId: string) => {
-    const res = await axios.get(`/api/tenants/bills/${billId}`);
     return res.data;
   },
 
@@ -77,6 +112,28 @@ export const TenantService = {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+    });
+
+    return res.data;
+  },
+
+  getBillDetail: async (billId: string): Promise<IBillDetail> => {
+    const res = await axios.get(`/api/tenants/bills/${billId}`);
+    return res.data;
+  },
+
+  generatePromptPayQR: async (amount: number, dormId: string) => {
+    const res = await axios.post(`/api/payment/generate-qr`, {
+      amount,
+      dormId,
+    });
+
+    return res.data;
+  },
+
+  printBillTenant: async (billId: string) => {
+    const res = await axios.get(`/api/tenants/bills/${billId}/print`, {
+      responseType: "blob",
     });
 
     return res.data;

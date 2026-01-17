@@ -152,22 +152,30 @@ export default function BillContainer() {
 
         error: {
           render({ data }: any) {
-            log.log("API Error Data:", data);
-            const errorMsg = data?.response?.data?.message;
+            const errorResponse = data?.response?.data;
+            const errorMsg = errorResponse?.message;
 
             if (errorMsg === "DORM_SETTINGS_NOT_FOUND") {
               return "กรุณาตั้งค่า 'ค่าน้ำ/ค่าไฟ' ของหอพักก่อนสร้างบิล";
             }
 
             if (errorMsg === "PAYMENT_METHOD_REQUIRED") {
-              return "กรุณาตั้งค่า 'วิธีชําระเงิน' ของหอพักก่อนสร้างบิล";
+              return "กรุณาตั้งค่า 'วิธีชำระเงิน' (บัญชีธนาคาร/PromptPay) ก่อน";
             }
 
-            if (errorMsg === "Dormitory ID is required") {
+            if (errorMsg === "DUPLICATE_BILL_FOUND") {
+              const roomNum = errorResponse?.roomNumber || "";
+              return `บิลของห้อง ${roomNum} ในรอบเดือนนี้ถูกสร้างไปแล้ว`;
+            }
+
+            if (
+              errorMsg === "Dormitory ID is required" ||
+              errorMsg === "DORM_NOT_FOUND"
+            ) {
               return "ไม่พบข้อมูลหอพัก กรุณาลองใหม่อีกครั้ง";
             }
 
-            return errorMsg || "เกิดข้อผิดพลาดในการสร้างบิล";
+            return "เกิดข้อผิดพลาดในการสร้างบิล กรุณาลองใหม่";
           },
         },
       });

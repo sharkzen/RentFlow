@@ -205,7 +205,6 @@ export default function MaintenanceTable({
               <div>วันที่แจ้ง</div>
               <div className="text-right">จัดการ</div>
             </div>
-
             <div>
               {data.map((item) => (
                 <div
@@ -216,7 +215,6 @@ export default function MaintenanceTable({
                   <div>
                     <MaintenanceStatusBadge status={item.status} />
                   </div>
-
                   <div>
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
@@ -231,7 +229,6 @@ export default function MaintenanceTable({
                       </div>
                     </div>
                   </div>
-
                   <div className="min-w-0 pr-4">
                     <div className="truncate text-sm font-medium text-gray-900">
                       {item.title}
@@ -246,7 +243,6 @@ export default function MaintenanceTable({
                       </div>
                     )}
                   </div>
-
                   <div className="flex flex-col">
                     <span className="truncate text-sm font-medium text-gray-900">
                       {item.tenant.firstName} {item.tenant.lastName}
@@ -255,7 +251,6 @@ export default function MaintenanceTable({
                       {item.tenant.phone || "-"}
                     </span>
                   </div>
-
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <Calendar size={14} className="text-gray-400" />
                     {item.createdAt
@@ -268,7 +263,6 @@ export default function MaintenanceTable({
                         })
                       : "-"}
                   </div>
-
                   <div
                     className="flex items-center justify-end gap-1"
                     onClick={(e) => e.stopPropagation()}
@@ -320,7 +314,6 @@ export default function MaintenanceTable({
           </div>
         </div>
       </div>
-
       {selectedItem && (
         <MaintenanceDetailDialog
           isOpen={!!selectedItem}

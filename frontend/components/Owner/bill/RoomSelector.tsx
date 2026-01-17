@@ -81,7 +81,6 @@ export default function RoomSelector({
           className={`shrink-0 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </div>
-
       {isOpen && !disabled && (
         <div className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-1 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5">
           <div className="border-b border-gray-50 p-2">
@@ -100,7 +99,6 @@ export default function RoomSelector({
               />
             </div>
           </div>
-
           <div className="custom-scrollbar max-h-60 overflow-y-auto p-1">
             {filteredRooms.length > 0 ? (
               filteredRooms.map((room) => (

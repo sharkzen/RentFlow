@@ -74,7 +74,6 @@ export default function BillItemRow({
           isLoading={isLoadingRooms}
         />
       </div>
-
       <div className="col-span-1 rounded-lg border border-blue-100/50 bg-blue-50/30 p-3 lg:col-span-3">
         <div className="mb-2 flex items-center gap-2">
           <div className="rounded bg-blue-100 p-1 text-blue-600">
@@ -86,7 +85,6 @@ export default function BillItemRow({
           <div className="flex-1">
             <div className="mb-1 flex items-center justify-between">
               <label className="text-[10px] text-gray-400">ครั้งก่อน</label>
-
               <button
                 type="button"
                 onClick={toggleEditPrev}
@@ -130,7 +128,6 @@ export default function BillItemRow({
           </div>
         )}
       </div>
-
       <div className="col-span-1 rounded-lg border border-amber-100/50 bg-amber-50/30 p-3 lg:col-span-3">
         <div className="mb-2 flex items-center gap-2">
           <div className="rounded bg-amber-100 p-1 text-amber-600">
@@ -142,7 +139,6 @@ export default function BillItemRow({
           <div className="flex-1">
             <div className="mb-1 flex items-center justify-between">
               <label className="text-[10px] text-gray-400">ครั้งก่อน</label>
-
               <button
                 type="button"
                 onClick={toggleEditPrev}
@@ -188,7 +184,6 @@ export default function BillItemRow({
           </div>
         )}
       </div>
-
       <div className="col-span-1 space-y-2 pt-1 lg:col-span-2">
         <label className="text-xs font-bold text-gray-700 lg:hidden">
           เพิ่มเติม
@@ -215,7 +210,6 @@ export default function BillItemRow({
           className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs transition-all outline-none placeholder:text-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-100"
         />
       </div>
-
       <div className="col-span-1 flex justify-center lg:pt-4">
         <button
           onClick={() => onRemove(item.id)}

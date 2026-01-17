@@ -60,7 +60,6 @@ export default function RoomCard({
         <div className="font-semibold">ชั้น</div>
         <div className="font-semibold">จัดการ</div>
       </div>
-
       <div className="custom-scrollbar flex-1 overflow-auto bg-white">
         <div className="min-w-335">
           {rooms.map((room) => (
@@ -73,11 +72,9 @@ export default function RoomCard({
                   {room.roomNumber}
                 </span>
               </div>
-
               <div>
                 <StatusBadge status={room.status} />
               </div>
-
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 {room.type === "AIR" || room.isAir ? (
                   <>
@@ -95,13 +92,10 @@ export default function RoomCard({
                   </>
                 )}
               </div>
-
               <div className="font-medium text-gray-900">
                 ฿{room.basePrice?.toLocaleString() ?? 0}
               </div>
-
               <div className="text-sm text-gray-500">ชั้น {room.floor}</div>
-
               <div className="flex justify-end gap-2">
                 <EditRoomDialog room={room} onSuccess={() => onRefresh?.()} />
               </div>
@@ -109,7 +103,6 @@ export default function RoomCard({
           ))}
         </div>
       </div>
-
       <div className="border-t border-gray-100 bg-white px-6 py-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-gray-500">

@@ -181,6 +181,19 @@ export const billService = {
 
       if (!room || room.tenants.length === 0) continue;
 
+      const existingBill = await prisma.bill.findUnique({
+        where: {
+          roomId_billingMonth: {
+            roomId: room.id,
+            billingMonth: billingDate,
+          },
+        },
+      });
+
+      if (existingBill) {
+        throw new Error(`DUPLICATE_BILL_FOUND:${room.roomNumber}`);
+      }
+
       const tenant = room.tenants[0];
       const waterUsed = item.currentWater - item.prevWater;
       const electricUsed = item.currentElectric - item.prevElectric;

@@ -30,7 +30,6 @@ export default function DormPaymentSettings({
         <CreditCard size={16} />
         ตั้งค่าบัญชีรับเงิน
       </h3>
-
       <div className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-2">
         <div className="md:col-span-2">
           <h4 className="mb-2 text-xs font-bold text-slate-400">บัญชีธนาคาร</h4>
@@ -61,7 +60,6 @@ export default function DormPaymentSettings({
         </div>
       </div>
       <div className="border-t border-slate-100 pt-5"></div>
-
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div className="md:col-span-2">
           <h4 className="mb-2 text-xs font-bold text-slate-400">

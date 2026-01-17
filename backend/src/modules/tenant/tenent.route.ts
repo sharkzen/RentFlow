@@ -25,5 +25,7 @@ export async function tenantRoute(app: FastifyInstance) {
     routeRoles.addHook("preHandler", authRoleMiddleware([Role.TENANT]));
     routeRoles.get("/dashboard", TenantController.getDashboard);
     routeRoles.get("/bills", TenantController.getMyBills);
+    routeRoles.get("/bills/:billId", TenantController.getBillById);
+    routeRoles.get("/bills/:billId/print", TenantController.printBillTenant);
   });
 }

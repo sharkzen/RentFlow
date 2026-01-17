@@ -74,7 +74,6 @@ export default function TenantList({
             <Skeleton key={i} className="h-4 w-20" />
           ))}
         </div>
-
         <div className="flex-1 overflow-hidden p-6">
           <div className="flex h-full flex-col items-center justify-center gap-2 text-gray-400">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
@@ -113,7 +112,6 @@ export default function TenantList({
           onSuccess={handleEditSuccess}
         />
       )}
-
       <div className="flex h-[60vh] w-full flex-col overflow-hidden rounded-t-xl border border-gray-200 bg-white shadow-sm">
         <div
           className={`grid ${gridTemplate} shrink-0 gap-4 border-b border-gray-200 bg-gray-50 px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase`}
@@ -126,7 +124,6 @@ export default function TenantList({
           <div>เข้าพักเมื่อ</div>
           <div className="text-right">จัดการ</div>
         </div>
-
         <div className="custom-scrollbar flex-1 overflow-auto bg-white">
           <div className="min-w-335">
             {" "}
@@ -140,9 +137,7 @@ export default function TenantList({
                     {tenant.firstName} {tenant.lastName}
                   </span>
                 </div>
-
                 <div>{renderStatusBadge(tenant)}</div>
-
                 <div>
                   {tenant.room ? (
                     <span className="inline-flex items-center rounded-md bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-700/10 ring-inset">
@@ -154,11 +149,9 @@ export default function TenantList({
                     </span>
                   )}
                 </div>
-
                 <div className="text-xs text-gray-600">
                   {tenant.phone || "-"}
                 </div>
-
                 <div className="hidden md:block">
                   <span
                     className="block max-w-[180px] truncate text-xs text-gray-500"
@@ -167,7 +160,6 @@ export default function TenantList({
                     {tenant.email || "-"}
                   </span>
                 </div>
-
                 <div className="text-xs text-gray-500">
                   {tenant.moveInDate
                     ? new Date(tenant.moveInDate).toLocaleDateString("th-TH", {
@@ -177,7 +169,6 @@ export default function TenantList({
                       })
                     : "-"}
                 </div>
-
                 <div className="text-right">
                   <button
                     onClick={() => handleEditClick(tenant.id)}

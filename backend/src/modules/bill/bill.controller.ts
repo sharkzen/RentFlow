@@ -51,8 +51,31 @@ export const BillController = {
       const result = await billService.createBills(body.dormId, body);
       return reply.status(201).send(result);
     } catch (error: any) {
+      logger.error(error);
+
+      if (error.message === "DORM_SETTINGS_NOT_FOUND") {
+        return reply.status(400).send({
+          message: "DORM_SETTINGS_NOT_FOUND",
+        });
+      }
+
+      if (error.message === "PAYMENT_METHOD_REQUIRED") {
+        return reply.status(400).send({
+          message: "PAYMENT_METHOD_REQUIRED",
+        });
+      }
+
+      if (error.message.startsWith("DUPLICATE_BILL_FOUND")) {
+        const roomNum = error.message.split(":")[1];
+
+        return reply.status(409).send({
+          message: "DUPLICATE_BILL_FOUND",
+          roomNumber: roomNum,
+        });
+      }
+
       return reply.status(500).send({
-        message: error.message,
+        message: "INTERNAL_SERVER_ERROR",
       });
     }
   },

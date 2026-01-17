@@ -10,6 +10,14 @@ interface GetTenantDormQuery {
   status?: string;
 }
 
+interface GetMyBillsQuery {
+  page?: string;
+  limit?: string;
+  month?: string;
+  year?: string;
+  status?: string;
+}
+
 export const TenantController = {
   getTenantDorm: async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -263,12 +271,81 @@ export const TenantController = {
   getMyBills: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
+    const { page, limit, year, status, month } =
+      request.query as GetMyBillsQuery;
+
     try {
-      const bills = await tenantService.getBills(user.sub);
-      return reply.send(bills);
+      const result = await tenantService.getBills({
+        userId: user.sub,
+        page: page ? Number(page) : 1,
+        limit: limit ? Number(limit) : 10,
+        year: year,
+        status: status,
+        month: month,
+      });
+
+      return reply.send(result);
     } catch (error) {
+      request.log.error(error);
+
       return reply.status(500).send({
         message: "Failed to fetch bills",
+      });
+    }
+  },
+
+  getBillById: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { billId } = request.params as {
+      billId: string;
+    };
+
+    try {
+      const bill = await tenantService.getBillById(user.sub, billId);
+      return reply.send(bill);
+    } catch (error: any) {
+      request.log.error(error);
+
+      if (error.message === "BILL_NOT_FOUND") {
+        return reply.status(404).send({
+          message: "ไม่พบข้อมูลบิล",
+        });
+      }
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        return reply.status(403).send({
+          message: "คุณไม่มีสิทธิ์เข้าถึงบิลนี้",
+        });
+      }
+
+      return reply.status(500).send({
+        message: "Internal Server Error",
+      });
+    }
+  },
+
+  printBillTenant: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { billId } = request.params as {
+      billId: string;
+    };
+
+    try {
+      const pdfBuffer = await tenantService.generateBillPdf(user.sub, billId);
+      return reply
+        .type("application/pdf")
+        .header(
+          "Content-Disposition",
+          `attachment; filename=bill-${billId}.pdf`,
+        )
+        .send(pdfBuffer);
+    } catch (error: any) {
+      request.log.error(error);
+
+      return reply.status(500).send({
+        message: "ไม่สามารถสร้างไฟล์ PDF ได้",
       });
     }
   },

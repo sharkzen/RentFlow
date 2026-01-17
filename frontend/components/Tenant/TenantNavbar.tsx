@@ -71,7 +71,6 @@ export default function TenantNavbar() {
           <ChevronRight size={24} />
         </button>
       )}
-
       <aside
         className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-72 -translate-x-full overflow-hidden border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} /* Desktop (>960px): Sticky */ min-[960px]:sticky min-[960px]:translate-x-0`}
       >
@@ -95,7 +94,6 @@ export default function TenantNavbar() {
               <X size={20} />
             </button>
           </div>
-
           <div className="scrollbar-thin scrollbar-thumb-gray-200 flex-1 overflow-y-auto px-4 py-4">
             <nav className="mb-6 space-y-1">
               <p className="mb-3 px-4 text-xs font-bold tracking-wider text-slate-400 uppercase">
@@ -119,7 +117,6 @@ export default function TenantNavbar() {
                 </Link>
               ))}
             </nav>
-
             <nav className="space-y-1">
               <p className="mb-3 px-4 text-xs font-bold tracking-wider text-slate-400 uppercase">
                 Account

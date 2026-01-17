@@ -1,0 +1,144 @@
+"use client";
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { TenantService } from "@/features/tenant/services/tenant.service";
+import LoadingPage from "@/components/layout/LoadingPage";
+import { ChevronLeft, Printer, CreditCard } from "lucide-react";
+import { InvoiceVoucher } from "./InvoiceVoucher";
+import PaymentModal from "./PaymentModal";
+import { IBillDetail } from "../types";
+import { toast } from "react-toastify";
+
+export default function BillSlugContainer() {
+  const params = useParams();
+  const router = useRouter();
+  const billId = params?.slug as string;
+  const [bill, setBill] = useState<IBillDetail>({} as IBillDetail);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const componentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!billId) return;
+
+    const fetchBill = async () => {
+      try {
+        setLoading(true);
+        const data = await TenantService.getBillDetail(billId);
+        setBill(data);
+      } catch (err: any) {
+        console.error(err);
+        setError("ไม่สามารถโหลดข้อมูลบิลได้ หรือคุณไม่มีสิทธิ์เข้าถึง");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBill();
+  }, [billId]);
+
+  if (loading)
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <LoadingPage />
+      </div>
+    );
+
+  if (error) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4">
+        <p className="text-slate-500">{error}</p>
+        <button
+          onClick={() => router.back()}
+          className="rounded-lg bg-slate-200 px-4 py-2 font-medium transition hover:bg-slate-300"
+        >
+          ย้อนกลับ
+        </button>
+      </div>
+    );
+  }
+
+  const isPaid = bill?.status === "PAID";
+  const isCancel = bill?.status === "CANCELLED";
+  const paymentSetting = bill?.room?.dormitory?.paymentSetting;
+
+  const handlePrint = async (id: string) => {
+    const toastId = toast.loading("กำลังสร้างไฟล์ PDF...");
+
+    try {
+      const data = await TenantService.printBillTenant(id);
+
+      const blob = new Blob([data], {
+        type: "application/pdf",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const printWindow = window.open(url);
+
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+
+      toast.dismiss(toastId);
+    } catch (error) {
+      toast.update(toastId, {
+        render: "เกิดข้อผิดพลาดในการสร้างไฟล์ PDF",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
+    }
+  };
+
+  return (
+    <div className="min-h-screen pt-8 pb-20">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <button
+          onClick={() => router.push("/tenant/bills")}
+          className="group flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition-all group-hover:bg-slate-200 group-hover:text-slate-700">
+            <ChevronLeft size={18} />
+          </div>
+          ย้อนกลับ
+        </button>
+        <div className="flex w-full gap-3 sm:w-auto">
+          <button
+            disabled={isCancel}
+            onClick={() => handlePrint && handlePrint(bill?.id)}
+            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+          >
+            <Printer size={18} />
+            <span className="hidden sm:inline">พิมพ์ / PDF</span>
+            <span className="sm:hidden">พิมพ์</span>
+          </button>
+          {!isPaid && (
+            <button
+              disabled={isCancel}
+              onClick={() => setIsPayModalOpen(true)}
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+            >
+              <CreditCard size={18} />
+              ชำระเงิน
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="flex w-full flex-col">
+        <div className="w-full overflow-auto">
+          <InvoiceVoucher ref={componentRef} data={bill} />
+        </div>
+      </div>
+      <PaymentModal
+        isOpen={isPayModalOpen}
+        onClose={() => setIsPayModalOpen(false)}
+        total={bill.total}
+        dormId={bill.room.dormitory.id}
+        paymentSetting={paymentSetting}
+      />
+    </div>
+  );
+}

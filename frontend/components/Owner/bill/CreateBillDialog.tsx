@@ -253,7 +253,6 @@ export default function CreateBillDialog({
               />
             </button>
           </div>
-
           <div className="border-t border-gray-50 bg-gray-50/50 px-4 py-2 sm:border-t-0 sm:bg-transparent sm:px-6 sm:pt-0 sm:pb-4">
             <MonthYearPicker
               selectedDate={selectedDate}
@@ -272,7 +271,6 @@ export default function CreateBillDialog({
             </button>
           </div>
         )}
-
         <div className="custom-scrollbar flex-1 overflow-y-auto bg-slate-50/50 p-3 sm:p-6">
           <div className="hidden grid-cols-12 gap-4 px-4 pb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase lg:grid">
             <div className="col-span-3">ห้องพัก / ผู้เช่า</div>
@@ -306,7 +304,6 @@ export default function CreateBillDialog({
             เพิ่มรายการห้อง
           </button>
         </div>
-
         <div className="flex items-center justify-between border-t border-gray-100 bg-white px-4 py-3 sm:px-6 sm:py-4">
           <div className="block text-xs text-gray-500 sm:text-sm">
             <span className="font-medium text-gray-900">{items.length}</span>{" "}

@@ -199,7 +199,6 @@ export default function DormsDialog({
               <X size={20} />
             </button>
           </div>
-
           <div className="flex-1 overflow-y-auto bg-slate-50/50">
             <form
               className="space-y-6 p-6"
@@ -256,7 +255,6 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <MapPin size={16} />
@@ -279,12 +277,10 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-
               <DormPaymentSettings
                 formData={formData}
                 updateField={updateField}
               />
-
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <Zap size={16} />
@@ -327,7 +323,6 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <Calendar size={16} />
@@ -371,7 +366,6 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <CheckCircle2 size={16} />
@@ -383,7 +377,6 @@ export default function DormsDialog({
               </div>
             </form>
           </div>
-
           <div className="flex items-center justify-between border-t border-slate-100 bg-white px-6 py-4 text-xs sm:text-sm">
             <button
               type="button"
