@@ -48,7 +48,7 @@ export const BillController = {
         });
       }
 
-      const result = await billService.createBills(body.dormId, body);
+      const result = await billService.createBills(body.dormId, body, user);
       return reply.status(201).send(result);
     } catch (error: any) {
       logger.error(error);

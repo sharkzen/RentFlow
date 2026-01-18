@@ -1,3 +1,5 @@
+export type PaymentMethod = "CASH" | "TRANSFER";
+export type PaymentStatus = "WAITING_VERIFY" | "VERIFIED" | "REJECTED";
 export type BillStatus =
   | "PENDING"
   | "WAITING_FOR_VERIFICATION"
@@ -125,5 +127,33 @@ export interface IBillDetail {
   createdAt: string;
   room: IRoom;
   tenant: ITenantSnapshot;
-  payment: any | null;
+  payment: {
+    id: string;
+    billId: string;
+    paymentMethod: PaymentMethod;
+    status: PaymentStatus;
+    senderName: string | null;
+    transferRef: string | null;
+    transferBank: string | null;
+    transferAmount: number | null;
+    slips: [
+      {
+        id: string;
+        objectKey: string;
+        url: string;
+      },
+    ];
+    paidAt: string;
+    verifiedAt: string | null;
+    verifiedBy: string | null;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export interface QrGenerateResponse {
+  result: string;
+  total: number;
+  refNo: string;
+  promptPayName: string;
 }

@@ -100,7 +100,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
             </div>
           </div>
         </div>
-
         <div className="mt-8 flex justify-between gap-12">
           <div className="flex-1">
             <h3 className="mb-2 border-b border-slate-200 pb-1 text-xs font-bold tracking-wider text-slate-500 uppercase">
@@ -134,7 +133,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
             </div>
           </div>
         </div>
-
         <div className="mt-8 flex-1">
           <table className="w-full border-collapse text-left text-sm">
             <thead>
@@ -167,7 +165,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   {formatMoney(roomPriceSnapshot)}
                 </td>
               </tr>
-
               <tr>
                 <td className="px-3 py-4">
                   <div className="font-semibold text-slate-900">
@@ -186,7 +183,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   {formatMoney(waterFeeSnapshot)}
                 </td>
               </tr>
-
               <tr>
                 <td className="px-3 py-4">
                   <div className="font-semibold text-slate-900">ค่าไฟฟ้า</div>
@@ -205,7 +201,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   {formatMoney(electricFeeSnapshot)}
                 </td>
               </tr>
-
               {commonFeeSnapshot > 0 && (
                 <tr>
                   <td className="px-3 py-4 font-semibold text-slate-900">
@@ -218,7 +213,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   </td>
                 </tr>
               )}
-
               {lateFeeSnapshot > 0 && (
                 <tr>
                   <td className="px-3 py-4 font-semibold text-red-600">
@@ -234,7 +228,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
             </tbody>
           </table>
         </div>
-
         <div className="mt-6 border-t-2 border-slate-900 pt-4">
           <div className="flex flex-col items-end">
             <div className="flex w-full items-center justify-end gap-12">
@@ -249,7 +242,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
               * ราคานี้รวมภาษีมูลค่าเพิ่มแล้ว (หากมี)
             </div>
           </div>
-
           <div className="mt-12 flex items-end justify-between border-t border-slate-100 pt-10">
             <div className="max-w-95 text-sm leading-relaxed text-slate-500">
               <span className="mb-1 block font-bold text-slate-700 italic">
@@ -271,7 +263,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                     />
                   </div>
                 )}
-
                 {isCancel && (
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 rotate-[-13deg] opacity-80 print:opacity-100">
                     <Image

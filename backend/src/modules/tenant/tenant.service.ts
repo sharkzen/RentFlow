@@ -1,16 +1,28 @@
 import prisma from "@/lib/prisma";
+import generatePayload from "promptpay-qr";
+import QRCode from "qrcode";
 import { hashPassword, verifyPassword } from "@/modules/auth/lib/password";
+
 import {
   RoomStatus,
   UserRole,
   Status,
   BillStatus,
   MaintenanceStatus,
+  PaymentStatus,
+  FileCategory,
 } from "@prisma/client";
+
 import puppeteer from "puppeteer";
 import { formatDate, formatLongDate, formatMoney } from "./lib/tenant.lib";
 import path from "path";
 import fs from "fs";
+import { slipOkService } from "@/services/slipok.service";
+import { uuidv4 } from "zod";
+import { deleteFile, generateSignedUrl, uploadFile } from "@/services/minio";
+import { env } from "@/config/env";
+import logger from "@/utils/logger";
+import { SlipApiErrorResponse, VerifiedPaymentData } from "./dto/tenant.dto";
 
 interface GetTenantDormParams {
   dormId: string;
@@ -28,6 +40,15 @@ interface GetBillsParams {
   month?: string;
   year?: string;
   status?: string;
+}
+
+interface ProcessSlipParams {
+  userId: string;
+  billId: string;
+  refNo?: string;
+  fileBuffer: Buffer;
+  mimeType: string;
+  fileName: string;
 }
 
 export const tenantService = {
@@ -660,20 +681,22 @@ export const tenantService = {
       tenantId: tenant.id,
     };
 
-    if (year && year !== "ALL") {
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+
+    if (month && month !== "ALL") {
+      const yearNum =
+        year && year !== "ALL" ? Number(year) : new Date().getFullYear();
+      const monthIndex = Number(month) - 1;
+      startDate = new Date(yearNum, monthIndex, 1);
+      endDate = new Date(yearNum, monthIndex + 1, 1);
+    } else if (year && year !== "ALL") {
       const yearNum = Number(year);
-      let startDate: Date;
-      let endDate: Date;
+      startDate = new Date(yearNum, 0, 1);
+      endDate = new Date(yearNum + 1, 0, 1);
+    }
 
-      if (month && month !== "ALL") {
-        const monthNum = Number(month);
-        startDate = new Date(yearNum, monthNum, 1);
-        endDate = new Date(yearNum, monthNum + 1, 1);
-      } else {
-        startDate = new Date(yearNum, 0, 1);
-        endDate = new Date(yearNum + 1, 0, 1);
-      }
-
+    if (startDate && endDate) {
       where.billingMonth = {
         gte: startDate,
         lt: endDate,
@@ -755,7 +778,16 @@ export const tenantService = {
           },
         },
 
-        payment: true,
+        payment: {
+          include: {
+            slips: {
+              orderBy: {
+                createdAt: "desc",
+              },
+            },
+          },
+        },
+
         tenant: true,
       },
     });
@@ -766,6 +798,21 @@ export const tenantService = {
 
     if (bill.tenant.userId !== userId) {
       throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    if (bill.payment && bill.payment.slips.length > 0) {
+      const slipsWithUrls = await Promise.all(
+        bill.payment.slips.map(async (slip) => {
+          const signedUrl = await generateSignedUrl(slip.objectKey);
+
+          return {
+            ...slip,
+            url: signedUrl,
+          };
+        }),
+      );
+
+      (bill.payment as any).slips = slipsWithUrls;
     }
 
     return bill;
@@ -1060,5 +1107,263 @@ export const tenantService = {
 
     await browser.close();
     return pdfBuffer;
+  },
+
+  generatePromptPayQR: async (userId: string, billId: string) => {
+    const bill = await prisma.bill.findUnique({
+      where: {
+        id: billId,
+      },
+
+      include: {
+        tenant: true,
+
+        room: {
+          include: {
+            dormitory: {
+              include: {
+                paymentSetting: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!bill) {
+      throw new Error("BILL_NOT_FOUND");
+    }
+
+    if (bill.tenant.userId !== userId) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    const paymentSetting = bill.room.dormitory.paymentSetting;
+
+    if (
+      !paymentSetting ||
+      !paymentSetting.isActive ||
+      !paymentSetting.promptPayValue
+    ) {
+      throw new Error("PROMPTPAY_NOT_CONFIGURED");
+    }
+
+    const amount = bill.total;
+
+    const payload = generatePayload(paymentSetting.promptPayValue, {
+      amount,
+    });
+
+    const qrCodeDataUrl = await QRCode.toDataURL(payload);
+
+    return {
+      result: qrCodeDataUrl,
+      total: amount,
+      refNo: bill.id,
+      promptPayName: paymentSetting.bankHolder || "Dormitory Account",
+    };
+  },
+
+  processPaymentSlip: async ({
+    userId,
+    billId,
+    refNo,
+    fileBuffer,
+    mimeType,
+    fileName,
+  }: ProcessSlipParams) => {
+    const bill = await prisma.bill.findUnique({
+      where: {
+        id: billId,
+      },
+
+      include: {
+        tenant: true,
+        room: true,
+      },
+    });
+
+    if (!bill) throw new Error("BILL_NOT_FOUND");
+
+    if (bill.tenant.userId !== userId) throw new Error("FORBIDDEN_ACCESS");
+
+    if (refNo) {
+      const existingPayment = await prisma.payment.findUnique({
+        where: {
+          transferRef: refNo,
+        },
+      });
+
+      if (existingPayment && existingPayment.billId !== billId) {
+        throw new Error("SLIP_DUPLICATE");
+      }
+    }
+
+    let verifiedData: any = null;
+
+    try {
+      verifiedData = await slipOkService.verifySlip(fileBuffer, bill.total);
+    } catch (error: any) {
+      const possibleBody = error?.response?.data || error?.data || error;
+      const rawCode = possibleBody?.code || error?.code || "0";
+      const errCode = parseInt(String(rawCode));
+      const innerData = possibleBody?.data || error?.data;
+
+      if (errCode === 1014 && innerData?.success === true) {
+        const raw = innerData;
+
+        verifiedData = {
+          success: true,
+          refNo: raw.transRef,
+          amount: raw.paidLocalAmount || raw.amount,
+          bankCode: raw.sendingBank,
+          senderName: raw.sender?.displayName || raw.sender?.name,
+          paidAt: raw.transTimestamp
+            ? new Date(raw.transTimestamp)
+            : new Date(),
+        };
+      } else {
+        const statusCode = error?.response?.status || 0;
+        const errorMsg =
+          error?.message || possibleBody?.message || "UNKNOWN_ERROR";
+
+        if (
+          errorMsg === "SLIP_DUPLICATE" ||
+          errorMsg === "SLIP_AMOUNT_MISMATCH" ||
+          errorMsg === "INVALID_SLIP" ||
+          statusCode === 400
+        ) {
+          throw new Error(
+            errorMsg === "UNKNOWN_ERROR" ? "INVALID_SLIP" : errorMsg,
+          );
+        }
+
+        console.warn(
+          `SlipOK unavailable (Status: ${statusCode}). Fallback to manual verify.`,
+        );
+        verifiedData = null;
+      }
+    }
+
+    let paymentStatus: PaymentStatus = PaymentStatus.WAITING_VERIFY;
+    let billStatus: BillStatus = BillStatus.WAITING_FOR_VERIFICATION;
+    let isAutoVerified = false;
+
+    if (verifiedData && verifiedData.amount != null) {
+      const isAmountMatch = Math.abs(verifiedData.amount - bill.total) < 1.0;
+
+      if (isAmountMatch) {
+        paymentStatus = PaymentStatus.VERIFIED;
+        billStatus = BillStatus.PAID;
+        isAutoVerified = true;
+      } else {
+        console.warn(
+          `Amount Mismatch: Bill=${bill.total}, Slip=${verifiedData.amount}`,
+        );
+      }
+    }
+
+    const oldPayment = await prisma.payment.findUnique({
+      where: {
+        billId,
+      },
+
+      include: {
+        slips: true,
+      },
+    });
+
+    const year = new Date().getFullYear();
+    const extension = mimeType ? mimeType.split("/")[1] : "jpg";
+    const objectKey = `slips/${bill.roomId}/${year}/${uuidv4()}.${extension}`;
+    await uploadFile(fileBuffer, objectKey, mimeType);
+
+    return await prisma.$transaction(async (tx) => {
+      if (oldPayment) {
+        await tx.file.deleteMany({
+          where: {
+            paymentId: oldPayment.id,
+            category: "PAYMENT_SLIP",
+          },
+        });
+      }
+
+      const finalRefNo = verifiedData?.refNo || null;
+      const finalAmount = verifiedData?.amount || null;
+      const finalBank = verifiedData?.bankCode || null;
+      const finalSender = verifiedData?.senderName || null;
+      const finalPaidAt = verifiedData?.paidAt || new Date();
+
+      const payment = await tx.payment.upsert({
+        where: {
+          billId,
+        },
+
+        create: {
+          billId,
+          paymentMethod: "TRANSFER",
+          status: paymentStatus,
+          transferRef: finalRefNo,
+          transferAmount: finalAmount,
+          transferBank: finalBank,
+          senderName: finalSender,
+          paidAt: finalPaidAt,
+          verifiedBy: isAutoVerified ? "SYSTEM_AUTO" : null,
+          verifiedAt: isAutoVerified ? new Date() : null,
+        },
+
+        update: {
+          paymentMethod: "TRANSFER",
+          status: paymentStatus,
+          transferRef: finalRefNo,
+          transferAmount: finalAmount ?? undefined,
+          transferBank: finalBank,
+          senderName: finalSender,
+          paidAt: finalPaidAt,
+          verifiedBy: isAutoVerified ? "SYSTEM_AUTO" : null,
+          verifiedAt: isAutoVerified ? new Date() : null,
+        },
+      });
+
+      await tx.file.create({
+        data: {
+          bucket: process.env.BUCKET_NAME || "default-bucket",
+          objectKey: objectKey,
+          mimeType: mimeType,
+          size: fileBuffer.length,
+          category: "PAYMENT_SLIP",
+          paymentId: payment.id,
+          tenantId: bill.tenantId,
+          dormitoryId: bill.room.dormitoryId,
+          roomId: bill.roomId,
+        },
+      });
+
+      await tx.bill.update({
+        where: {
+          id: billId,
+        },
+
+        data: {
+          status: billStatus,
+        },
+      });
+
+      return {
+        success: true,
+        status: paymentStatus,
+        message: isAutoVerified
+          ? "ชำระเงินเรียบร้อยแล้ว (ตรวจสอบอัตโนมัติ)"
+          : "ส่งหลักฐานเรียบร้อย (รอเจ้าหน้าที่ตรวจสอบ)",
+
+        data: {
+          paidAt: finalPaidAt,
+          amount: finalAmount,
+          refNo: finalRefNo,
+          sender: finalSender,
+          bank: finalBank,
+        },
+      };
+    });
   },
 };

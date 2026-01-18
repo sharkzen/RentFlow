@@ -7,6 +7,7 @@ import BillList from "./BillList";
 import { Wallet, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { TenantService } from "@/features/tenant/services/tenant.service";
 import LoadingPage from "@/components/layout/LoadingPage";
+import log from "@/lib/logger";
 
 export default function BillContainer() {
   const router = useRouter();
@@ -41,7 +42,7 @@ export default function BillContainer() {
       setTotalPending(data.summary.totalPending);
       setError(null);
     } catch (err: any) {
-      console.error("Failed to fetch bills:", err);
+      log.error("Failed to fetch bills:", err);
       setError("ไม่สามารถดึงข้อมูลบิลได้ กรุณาลองใหม่อีกครั้ง");
     } finally {
       setLoading(false);
@@ -130,10 +131,8 @@ export default function BillContainer() {
             <Wallet size={32} strokeWidth={1.5} />
           </div>
         </div>
-
         <div className="absolute top-0 right-0 z-0 h-full w-1/3 bg-linear-to-l from-slate-50 to-transparent opacity-50"></div>
       </div>
-
       <div className="space-y-6">
         {loading ? (
           <div className="pointer-events-none space-y-4 opacity-50">

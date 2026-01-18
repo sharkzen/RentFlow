@@ -46,7 +46,6 @@ export default function ContactCard({ contact }: ContactCardProps) {
           <h3 className="text-lg font-bold text-slate-800">{contactName}</h3>
         </div>
       </div>
-
       <div className="grid grid-cols-1 gap-3">
         {contact?.phone ? (
           <button
@@ -66,7 +65,6 @@ export default function ContactCard({ contact }: ContactCardProps) {
                 </p>
               </div>
             </div>
-
             <div className="relative flex h-8 w-24 items-center justify-end pr-2">
               <div
                 className={`absolute flex items-center gap-1 text-xs font-medium text-slate-400 transition-all duration-300 ${copiedField === "phone" ? "translate-y-4 opacity-0" : "translate-y-0 opacity-100 group-hover:text-emerald-500"}`}
@@ -74,7 +72,6 @@ export default function ContactCard({ contact }: ContactCardProps) {
                 <span className="hidden sm:inline">คัดลอก</span>
                 <Copy size={16} />
               </div>
-
               <div
                 className={`absolute flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-bold text-emerald-600 transition-all duration-300 ${copiedField === "phone" ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"}`}
               >

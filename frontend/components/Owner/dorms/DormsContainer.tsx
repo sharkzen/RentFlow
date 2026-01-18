@@ -88,7 +88,10 @@ export default function DormsContainer() {
       {selectedDorm && (
         <DormsDialog
           dorm={selectedDorm}
-          onClose={handleCloseDialog}
+          onClose={() => {
+            handleCloseDialog();
+            refreshDorms();
+          }}
           onEdit={refreshDorms}
         />
       )}

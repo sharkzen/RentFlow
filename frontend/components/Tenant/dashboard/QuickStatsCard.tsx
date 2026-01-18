@@ -25,7 +25,6 @@ export default function QuickStatsCard({ maintenance }: Props) {
         >
           <Wrench size={24} strokeWidth={2.5} />
         </div>
-
         <div className="flex flex-col gap-1">
           <h4 className="text-lg font-bold text-slate-800">แจ้งซ่อม</h4>
           {hasActive ? (
@@ -48,7 +47,6 @@ export default function QuickStatsCard({ maintenance }: Props) {
           )}
         </div>
       </div>
-
       <div className="pr-6">
         <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-100 bg-white text-slate-400 transition-all group-hover:border-slate-200 group-hover:text-slate-600">
           <ChevronRight

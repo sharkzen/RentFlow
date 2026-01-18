@@ -345,9 +345,17 @@ model Payment {
   verifiedBy    String?
   verifiedAt    DateTime?
   paymentMethod PaymentMethod?
-  bill          Bill           @relation(fields: [billId], references: [id], onDelete: Restrict)
-  updatedAt     DateTime       @default(now()) @updatedAt
-  createdAt     DateTime       @default(now())
+
+  transferRef    String?   @unique
+  transferAmount Float?
+  transferBank   String?
+  senderName     String?
+  paidAt         DateTime?
+  // -------------------------------------------
+
+  bill      Bill     @relation(fields: [billId], references: [id], onDelete: Restrict)
+  updatedAt DateTime @default(now()) @updatedAt
+  createdAt DateTime @default(now())
 }
 
 /**

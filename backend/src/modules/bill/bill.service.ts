@@ -1,5 +1,7 @@
 import prisma from "@/lib/prisma";
 import { CreateBillDto, GetBillsQueryDto } from "./dto/bill.dto";
+import { emailQueue } from "@/queues/email.queue";
+import { EmailType } from "@/queues/email.types";
 import {
   BillStatus,
   Bill,
@@ -11,6 +13,7 @@ import { env } from "@/config/env";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { generateSignedUrl, minioClient } from "@/services/minio";
 import logger from "@/utils/logger";
+import { UserDecodedDto } from "../auth/dto/user.dto";
 
 export const billService = {
   getBills: async ({
@@ -136,24 +139,40 @@ export const billService = {
     };
   },
 
-  createBills: async (dormId: string, data: any) => {
+  createBills: async (dormId: string, data: any, user: UserDecodedDto) => {
     const { billingMonth, items } = data;
 
-    const billingDate = new Date(billingMonth);
+    const [dormInfo, dormSettings, paymentSetting, users] = await Promise.all([
+      prisma.dormitory.findUnique({
+        where: {
+          id: dormId,
+        },
 
-    const dormSettings = await prisma.dormitorySetting.findUnique({
-      where: {
-        dormitoryId: dormId,
-      },
-    });
+        include: {
+          owner: true,
+        },
+      }),
+      prisma.dormitorySetting.findUnique({
+        where: {
+          dormitoryId: dormId,
+        },
+      }),
+      prisma.paymentSetting.findUnique({
+        where: {
+          dormitoryId: dormId,
+        },
+      }),
+      prisma.user.findUnique({
+        where: {
+          id: user.sub,
+        },
+      }),
+    ]);
+
+    if (!dormInfo || !dormInfo.owner)
+      throw new Error("DORM_OR_OWNER_NOT_FOUND");
 
     if (!dormSettings) throw new Error("DORM_SETTINGS_NOT_FOUND");
-
-    const paymentSetting = await prisma.paymentSetting.findUnique({
-      where: {
-        dormitoryId: dormId,
-      },
-    });
 
     const hasBank = paymentSetting?.bankAccount && paymentSetting?.bankName;
     const hasPromptPay = paymentSetting?.promptPayValue;
@@ -162,7 +181,14 @@ export const billService = {
       throw new Error("PAYMENT_METHOD_REQUIRED");
     }
 
+    const senderName = dormInfo.name;
+    const ownerEmail = users?.email;
+    const inputDate = new Date(billingMonth);
+    const saveDate = new Date(
+      Date.UTC(inputDate.getFullYear(), inputDate.getMonth(), 1, 0, 0, 0),
+    );
     const createdBills = [];
+    const emailJobs = [];
 
     for (const item of items) {
       const room = await prisma.room.findUnique({
@@ -181,17 +207,25 @@ export const billService = {
 
       if (!room || room.tenants.length === 0) continue;
 
-      const existingBill = await prisma.bill.findUnique({
+      const existingBill = await prisma.bill.findFirst({
         where: {
-          roomId_billingMonth: {
-            roomId: room.id,
-            billingMonth: billingDate,
-          },
+          roomId: room.id,
+          billingMonth: saveDate,
         },
       });
 
       if (existingBill) {
-        throw new Error(`DUPLICATE_BILL_FOUND:${room.roomNumber}`);
+        if (existingBill.status === "CANCELLED") {
+          await prisma.bill.delete({
+            where: {
+              id: existingBill.id,
+            },
+          });
+        } else {
+          throw new Error(
+            `DUPLICATE_BILL_FOUND: ห้อง ${room.roomNumber} มีบิลสถานะ ${existingBill.status} อยู่แล้ว`,
+          );
+        }
       }
 
       const tenant = room.tenants[0];
@@ -204,7 +238,7 @@ export const billService = {
         waterFee +
         electricFee +
         Number(item.commonFee);
-      const dueDate = new Date(billingDate);
+      const dueDate = new Date(saveDate);
       dueDate.setDate(dormSettings.dueDay);
       dueDate.setMonth(dueDate.getMonth() + dormSettings.dueMonthOffset);
 
@@ -212,7 +246,7 @@ export const billService = {
         data: {
           roomId: room.id,
           tenantId: tenant.id,
-          billingMonth: billingDate,
+          billingMonth: saveDate,
           dueDate: dueDate,
           tenantNameSnapshot: `${tenant.firstName} ${tenant.lastName}`,
           roomNumberSnapshot: room.roomNumber,
@@ -235,6 +269,97 @@ export const billService = {
       });
 
       createdBills.push(newBill);
+
+      if (tenant.email) {
+        const formatThaiDate = (
+          date: Date,
+          options?: {
+            day?: boolean;
+          },
+        ) => {
+          return date.toLocaleDateString("th-TH", {
+            ...(options?.day !== false && {
+              day: "numeric",
+            }),
+
+            month: "long",
+            year: "numeric",
+          });
+        };
+
+        emailJobs.push({
+          type: EmailType.NEW_BILL,
+          to: tenant.email,
+          senderName: senderName,
+          replyTo: ownerEmail,
+
+          data: {
+            dormName: dormInfo.name,
+            ownerPhone: dormInfo.owner?.phone,
+            billId: newBill.id.substring(0, 8).toUpperCase(),
+            currentDate: formatThaiDate(new Date()),
+            roomNumber: room.roomNumber,
+            tenantName: `${tenant.firstName} ${tenant.lastName}`,
+
+            month: formatThaiDate(saveDate, {
+              day: false,
+            }),
+
+            dueDate: formatThaiDate(dueDate),
+            link: `${process.env.FRONTEND_URL}/tenant/bills/${newBill.id}`,
+
+            amount: total.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+            }),
+
+            details: {
+              rent: (tenant.roomPriceSnapshot || room.basePrice).toLocaleString(
+                undefined,
+                {
+                  minimumFractionDigits: 2,
+                },
+              ),
+
+              commonFeeRaw: Number(item.commonFee),
+
+              commonFee: Number(item.commonFee).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+              }),
+
+              water: {
+                prev: Number(item.prevWater),
+                curr: Number(item.currentWater),
+                used: waterUsed,
+                unitPrice: dormSettings.waterRate,
+
+                total: waterFee.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                }),
+              },
+
+              electric: {
+                prev: Number(item.prevElectric),
+                curr: Number(item.currentElectric),
+                used: electricUsed,
+                unitPrice: dormSettings.electricRate,
+
+                total: electricFee.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                }),
+              },
+            },
+          },
+        });
+      }
+    }
+
+    if (emailJobs.length > 0) {
+      try {
+        await Promise.all(emailJobs.map((job) => emailQueue.add(job)));
+        console.log(`📨 Queued ${emailJobs.length} emails.`);
+      } catch (error) {
+        console.error("⚠️ Email Queue Error:", error);
+      }
     }
 
     return createdBills;

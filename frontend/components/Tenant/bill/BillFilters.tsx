@@ -15,51 +15,51 @@ const THAI_MONTHS = [
     label: "ทุกเดือน",
   },
   {
-    value: "0",
+    value: "1",
     label: "มกราคม",
   },
   {
-    value: "1",
+    value: "2",
     label: "กุมภาพันธ์",
   },
   {
-    value: "2",
+    value: "3",
     label: "มีนาคม",
   },
   {
-    value: "3",
+    value: "4",
     label: "เมษายน",
   },
   {
-    value: "4",
+    value: "5",
     label: "พฤษภาคม",
   },
   {
-    value: "5",
+    value: "6",
     label: "มิถุนายน",
   },
   {
-    value: "6",
+    value: "7",
     label: "กรกฎาคม",
   },
   {
-    value: "7",
+    value: "8",
     label: "สิงหาคม",
   },
   {
-    value: "8",
+    value: "9",
     label: "กันยายน",
   },
   {
-    value: "9",
+    value: "10",
     label: "ตุลาคม",
   },
   {
-    value: "10",
+    value: "11",
     label: "พฤศจิกายน",
   },
   {
-    value: "11",
+    value: "12",
     label: "ธันวาคม",
   },
 ];
@@ -143,7 +143,6 @@ export default function BillFilters({
         onChange={(val) => onChange("month", val)}
         width="w-full sm:w-[160px]"
       />
-
       <CustomDropdown
         label="ปี"
         icon={<Calendar size={18} />}
@@ -152,7 +151,6 @@ export default function BillFilters({
         onChange={(val) => onChange("year", val)}
         width="w-full sm:w-[120px]"
       />
-
       <CustomDropdown
         label="สถานะ"
         icon={<Filter size={18} />}
@@ -215,11 +213,11 @@ function CustomDropdown({
   }, []);
 
   return (
-    <div className={`relative ${width}`} ref={containerRef}>
+    <div className={`relative ${width} `} ref={containerRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border bg-white px-4 py-2 text-sm font-medium transition-all ${isOpen ? "border-indigo-500" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"}`}
+        className={`flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border bg-white px-4 py-2 text-sm font-medium transition-all ${isOpen ? "border-indigo-500 ring-2 ring-indigo-100" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"}`}
       >
         <div className="flex items-center gap-3 truncate text-slate-700">
           {icon && <span className="text-slate-400">{icon}</span>}
@@ -232,32 +230,35 @@ function CustomDropdown({
           className={`shrink-0 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-
       {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-2 max-h-[300px] w-full min-w-[180px] overflow-y-auto rounded-2xl border border-slate-100 bg-white p-1.5 shadow-xl shadow-slate-200/50 duration-100">
-          <div className="space-y-2">
-            {options.map((option) => {
-              const isSelected = option.value === value;
+        <div className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-2 w-full min-w-45">
+          <div className="rounded-2xl border border-slate-100 bg-white p-1 shadow-xl">
+            <div className="max-h-75 overflow-y-auto rounded-xl p-1 pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-track]:bg-transparent">
+              <div className="space-y-1">
+                {options.map((option) => {
+                  const isSelected = option.value === value;
 
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(option.value);
-                    setIsOpen(false);
-                  }}
-                  className={`flex w-full cursor-pointer items-center justify-between rounded-2xl px-3 py-2.5 text-left text-sm transition-colors ${isSelected ? "bg-indigo-50 font-semibold text-indigo-600" : "text-slate-600 hover:bg-slate-50"}`}
-                >
-                  <div className="flex items-center gap-2">
-                    {renderOption ? renderOption(option) : option.label}
-                  </div>
-                  {isSelected && (
-                    <Check size={16} className="text-indigo-600" />
-                  )}
-                </button>
-              );
-            })}
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        onChange(option.value);
+                        setIsOpen(false);
+                      }}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${isSelected ? "bg-indigo-50 font-semibold text-indigo-600" : "text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {renderOption ? renderOption(option) : option.label}
+                      </div>
+                      {isSelected && (
+                        <Check size={16} className="text-indigo-600" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       )}

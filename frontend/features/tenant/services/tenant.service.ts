@@ -122,10 +122,9 @@ export const TenantService = {
     return res.data;
   },
 
-  generatePromptPayQR: async (amount: number, dormId: string) => {
-    const res = await axios.post(`/api/payment/generate-qr`, {
-      amount,
-      dormId,
+  generatePromptPayQR: async (billId: string) => {
+    const res = await axios.post(`/api/tenants/payment/generate-qr`, {
+      billId,
     });
 
     return res.data;
@@ -136,6 +135,23 @@ export const TenantService = {
       responseType: "blob",
     });
 
+    return res.data;
+  },
+
+  uploadPaymentSlip: async (
+    billId: string,
+    file: File,
+    refNo: string | null,
+  ) => {
+    const formData = new FormData();
+    formData.append("billId", billId);
+
+    if (refNo) {
+      formData.append("refNo", refNo);
+    }
+
+    formData.append("file", file);
+    const res = await axios.post(`/api/tenants/payment/upload-slip`, formData);
     return res.data;
   },
 };

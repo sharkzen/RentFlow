@@ -180,6 +180,12 @@ export default function BillDetailDialog({
                   />
                   รายละเอียดบิล
                 </h3>
+                <span className="flex text-gray-500">
+                  {new Date(bill.billingMonth).toLocaleDateString("th-TH", {
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </span>
                 <p className="text-xs text-gray-500 sm:text-sm">
                   {bill.roomNumberSnapshot}• {bill.tenantNameSnapshot}
                 </p>

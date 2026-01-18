@@ -349,4 +349,114 @@ export const TenantController = {
       });
     }
   },
+
+  generateQrPayment: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const body = request.body as {
+      billId: string;
+    };
+
+    try {
+      if (!body.billId) {
+        return reply.status(400).send({
+          message: "BILL_ID_REQUIRED",
+        });
+      }
+
+      const result = await tenantService.generatePromptPayQR(
+        user.sub,
+        body.billId,
+      );
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      switch (error.message) {
+        case "BILL_NOT_FOUND":
+          return reply.status(404).send({
+            message: "ไม่พบข้อมูลบิล",
+          });
+        case "FORBIDDEN_ACCESS":
+          return reply.status(403).send({
+            message: "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้",
+          });
+        case "PROMPTPAY_NOT_CONFIGURED":
+          return reply.status(400).send({
+            message: "หอพักนี้ยังไม่ได้ตั้งค่าการชำระเงินผ่าน PromptPay",
+          });
+        default:
+          return reply.status(500).send({
+            message: "INTERNAL_SERVER_ERROR",
+          });
+      }
+    }
+  },
+
+  uploadSlip: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    try {
+      const parts = await request.file();
+
+      if (!parts) {
+        return reply.status(400).send({
+          message: "กรุณาอัพโหลดรูปภาพสลิป",
+        });
+      }
+
+      const fields: any = parts.fields;
+      const billId = fields.billId?.value;
+      const refNo = fields.refNo?.value;
+
+      if (!billId) {
+        return reply.status(400).send({
+          message: "BILL_ID_REQUIRED",
+        });
+      }
+
+      const fileBuffer = await parts.toBuffer();
+
+      const result = await tenantService.processPaymentSlip({
+        userId: user.sub,
+        billId,
+        refNo: refNo || null,
+        fileBuffer,
+        mimeType: parts.mimetype,
+        fileName: parts.filename,
+      });
+
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      logger.error("Upload Error Details:");
+      logger.error(error);
+
+      switch (error.message) {
+        case "SLIP_DUPLICATE":
+          return reply.status(409).send({
+            code: "SLIP_DUPLICATE",
+            message: "สลิปนี้ถูกใช้งานเข้าระบบไปแล้ว",
+          });
+        case "BILL_NOT_FOUND":
+          return reply.status(404).send({
+            message: "ไม่พบข้อมูลบิล",
+          });
+        case "FORBIDDEN_ACCESS":
+          return reply.status(403).send({
+            message: "คุณไม่มีสิทธิ์เข้าถึงบิลนี้",
+          });
+        case "INVALID_SLIP_API":
+        case "SLIP_AMOUNT_MISMATCH":
+        case "INVALID_SLIP":
+          return reply.status(400).send({
+            code: "INVALID_SLIP",
+            message: "ตรวจสอบสลิปไม่ผ่าน หรือยอดเงินไม่ถูกต้อง",
+          });
+        default:
+          return reply.status(500).send({
+            message: "INTERNAL_SERVER_ERROR",
+          });
+      }
+    }
+  },
 };

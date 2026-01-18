@@ -4,18 +4,53 @@ import {
   UploadCloud,
   Loader2,
   CalendarClock,
+  User,
+  Building2,
+  FileText,
+  CheckCircle2,
+  Wallet,
 } from "lucide-react";
+
 import { useState, useRef } from "react";
 import { toast } from "react-toastify";
 import { useScrollLock } from "usehooks-ts";
 import log from "@/lib/logger";
 
+const BANK_MAP: Record<string, string> = {
+  "002": "ธ.กรุงเทพ (BBL)",
+  "004": "ธ.กสิกรไทย (KBANK)",
+  "006": "ธ.กรุงไทย (KTB)",
+  "011": "ธ.ทีเอ็มบีธนชาต (TTB)",
+  "014": "ธ.ไทยพาณิชย์ (SCB)",
+  "025": "ธ.กรุงศรีอยุธยา (BAY)",
+  "030": "ธ.ออมสิน (GSB)",
+  "034": "ธ.ก.ส. (BAAC)",
+  "065": "ธ.ธนชาต (TBANK)",
+  "067": "ธ.ทิสโก้ (TISCO)",
+  "069": "ธ.เกียรตินาคิน (KKP)",
+  "073": "ธ.แลนด์ แอนด์ เฮ้าส์ (LH)",
+  "098": "อาคารสงเคราะห์ (GHB)",
+};
+
+const getBankName = (code?: string | null) => {
+  if (!code) return "-";
+
+  return BANK_MAP[code] || `รหัสธนาคาร ${code}`;
+};
+
 interface Props {
   slipUrl?: string;
   payment?: {
+    id?: string;
     updatedAt: string;
     createdAt: string;
+    paidAt?: string | null;
     status?: string;
+    senderName?: string | null;
+    transferAmount?: number | null;
+    transferBank?: string | null;
+    transferRef?: string | null;
+    verifiedBy?: string | null;
   } | null;
   onUpload?: (file: File) => Promise<void>;
   isEditable?: boolean;
@@ -61,6 +96,18 @@ export default function BillSlipSidebar({
     }
   };
 
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return "-";
+
+    return new Date(dateString).toLocaleString("th-TH", {
+      year: "2-digit",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   return (
     <div
       className={`flex w-full flex-col bg-slate-50/50 ${!isMobile ? "h-full" : ""}`}
@@ -73,13 +120,14 @@ export default function BillSlipSidebar({
           หลักฐานการโอน
         </h4>
       </div>
+
       <div
         className={`flex-1 p-4 ${!isMobile ? "custom-scrollbar overflow-y-auto" : ""}`}
       >
         {slipUrl ? (
           <div className="flex flex-col gap-4">
             <div
-              className="group relative w-full cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md"
+              className="group relative w-full cursor-pointer overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm transition-all"
               onClick={() => setIsPreviewOpen(true)}
             >
               <div
@@ -185,41 +233,90 @@ export default function BillSlipSidebar({
           onChange={handleFileChange}
         />
       </div>
+
       {payment && (
         <div
-          className={`border-t border-gray-200 bg-white p-4 ${isMobile ? "" : "mt-auto"}`}
+          className={`border-t border-gray-200 bg-white p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] ${isMobile ? "" : "mt-auto"}`}
         >
-          <div className="flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm text-gray-600">
-            <CalendarClock
-              size={16}
-              className="mt-0.5 shrink-0 text-gray-400"
-            />
-            <div className="space-y-1">
-              <p className="text-xs font-semibold text-gray-900">
-                ข้อมูลการแนบ
-              </p>
-              <p className="text-[10px] text-gray-500">
-                แก้ไขล่าสุด:{" "}
-                {payment.updatedAt
-                  ? new Date(payment.updatedAt).toLocaleString("th-TH", {
-                      year: "numeric",
-                      month: "short",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                    })
-                  : "-"}
-              </p>
-              <div className="flex items-center gap-2 text-[10px]">
-                สถานะ:
-                <span
-                  className={`rounded-full px-1.5 py-0.5 font-medium ${payment.status === "VERIFIED" ? "bg-green-100 text-green-700" : payment.status === "REJECTED" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}
-                >
-                  {payment.status}
-                </span>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-700">
+                ข้อมูลการโอน
+              </span>
+              <span
+                className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${payment.status === "VERIFIED" ? "bg-green-100 text-green-700" : payment.status === "REJECTED" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}
+              >
+                {payment.status === "VERIFIED" && <CheckCircle2 size={12} />}
+                {payment.status}
+              </span>
+            </div>
+
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+              <div className="grid grid-cols-2 gap-x-2 gap-y-3">
+                <div className="col-span-2 flex items-center justify-between border-b border-slate-200 pb-2">
+                  <div className="flex items-center gap-2 text-slate-500">
+                    <Wallet size={16} />
+                    <span className="text-xs">ยอดเงิน</span>
+                  </div>
+                  <span className="text-lg font-bold text-slate-900">
+                    ฿
+                    {payment.transferAmount?.toLocaleString("th-TH", {
+                      minimumFractionDigits: 2,
+                    }) || "0.00"}
+                  </span>
+                </div>
+
+                <div className="col-span-2 sm:col-span-1">
+                  <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                    <User size={12} />
+                    ผู้โอน
+                  </div>
+                  <div
+                    className="truncate text-xs font-medium text-slate-700"
+                    title={payment.senderName || ""}
+                  >
+                    {payment.senderName || "-"}
+                  </div>
+                </div>
+
+                <div className="col-span-2 sm:col-span-1">
+                  <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                    <Building2 size={12} />
+                    ธนาคาร
+                  </div>
+                  <div className="truncate text-xs font-medium text-slate-700">
+                    {getBankName(payment.transferBank)}
+                  </div>
+                </div>
+
+                <div className="col-span-2 sm:col-span-1">
+                  <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                    <CalendarClock size={12} />
+                    วันที่โอน
+                  </div>
+                  <div className="text-xs font-medium text-slate-700">
+                    {formatDate(payment.paidAt)}
+                  </div>
+                </div>
+
+                <div className="col-span-2 sm:col-span-1">
+                  <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                    <FileText size={12} />
+                    Ref No.
+                  </div>
+                  <div className="truncate font-mono text-xs font-medium text-slate-700">
+                    {payment.transferRef || "-"}
+                  </div>
+                </div>
               </div>
             </div>
+
+            {payment.status === "VERIFIED" && payment.verifiedBy && (
+              <div className="mt-2 text-center text-[10px] text-slate-400">
+                ตรวจสอบโดย: {payment.verifiedBy}•{" "}
+                {formatDate(payment.updatedAt)}
+              </div>
+            )}
           </div>
         </div>
       )}

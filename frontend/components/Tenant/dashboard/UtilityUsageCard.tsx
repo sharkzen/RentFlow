@@ -22,7 +22,6 @@ export default function UtilityUsageCard({ utilities }: Props) {
                 className="opacity-100"
               />
             </div>
-
             <div>
               <h3 className="text-base font-bold text-slate-800 sm:text-lg">
                 ค่าไฟฟ้า
@@ -32,7 +31,6 @@ export default function UtilityUsageCard({ utilities }: Props) {
               </p>
             </div>
           </div>
-
           <div className="text-right">
             <span className="mb-0.5 block text-[10px] font-semibold tracking-wider text-slate-400 uppercase sm:text-xs">
               ยอดการใช้
@@ -47,9 +45,7 @@ export default function UtilityUsageCard({ utilities }: Props) {
             </div>
           </div>
         </div>
-
         <div className="my-5 h-px w-full bg-slate-100"></div>
-
         <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
           <div className="mb-3 flex items-center gap-2 text-xs font-medium text-slate-500">
             <History size={14} />
@@ -64,11 +60,9 @@ export default function UtilityUsageCard({ utilities }: Props) {
                 {utilities.electric.prevUnit.toLocaleString()}
               </span>
             </div>
-
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-slate-300 ring-1 ring-slate-100">
               <ArrowRight size={14} />
             </div>
-
             <div className="flex flex-1 flex-col items-end overflow-hidden">
               <span className="truncate text-[10px] text-slate-400 sm:text-xs">
                 ล่าสุด (ปัจจุบัน)
@@ -80,7 +74,6 @@ export default function UtilityUsageCard({ utilities }: Props) {
           </div>
         </div>
       </div>
-
       <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-blue-200 hover:shadow-md sm:p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3 sm:gap-4">
@@ -92,7 +85,6 @@ export default function UtilityUsageCard({ utilities }: Props) {
                 className="opacity-100"
               />
             </div>
-
             <div>
               <h3 className="text-base font-bold text-slate-800 sm:text-lg">
                 ค่าน้ำประปา
@@ -102,7 +94,6 @@ export default function UtilityUsageCard({ utilities }: Props) {
               </p>
             </div>
           </div>
-
           <div className="text-right">
             <span className="mb-0.5 block text-[10px] font-semibold tracking-wider text-slate-400 uppercase sm:text-xs">
               ยอดการใช้
@@ -117,9 +108,7 @@ export default function UtilityUsageCard({ utilities }: Props) {
             </div>
           </div>
         </div>
-
         <div className="my-5 h-px w-full bg-slate-100"></div>
-
         <div className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
           <div className="mb-3 flex items-center gap-2 text-xs font-medium text-slate-500">
             <History size={14} />
@@ -134,11 +123,9 @@ export default function UtilityUsageCard({ utilities }: Props) {
                 {utilities.water.prevUnit.toLocaleString()}
               </span>
             </div>
-
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-slate-300 ring-1 ring-slate-100">
               <ArrowRight size={14} />
             </div>
-
             <div className="flex flex-1 flex-col items-end overflow-hidden">
               <span className="truncate text-[10px] text-slate-400 sm:text-xs">
                 ล่าสุด (ปัจจุบัน)

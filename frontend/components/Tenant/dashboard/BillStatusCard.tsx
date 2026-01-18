@@ -115,7 +115,6 @@ export default function BillStatusCard({ bill }: Props) {
     >
       <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-white/10 blur-3xl transition-transform duration-700 hover:scale-110"></div>
       <div className="absolute -bottom-20 -left-20 h-48 w-48 rounded-full bg-black/10 blur-3xl"></div>
-
       <div className="relative z-10 flex h-full flex-col justify-between gap-6 sm:gap-8">
         <div className="flex flex-col-reverse justify-between gap-4 sm:flex-row sm:items-start">
           <div className="space-y-2">
@@ -132,7 +131,6 @@ export default function BillStatusCard({ bill }: Props) {
               </h2>
             </div>
           </div>
-
           <div className="self-start">
             <span
               className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold backdrop-blur-md transition-colors sm:px-4 sm:py-1.5 ${config.badgeStyle}`}
@@ -142,7 +140,6 @@ export default function BillStatusCard({ bill }: Props) {
             </span>
           </div>
         </div>
-
         <div className="flex flex-col gap-5 border-t border-white/10 pt-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-medium tracking-wider text-white/60 uppercase">
@@ -153,7 +150,6 @@ export default function BillStatusCard({ bill }: Props) {
               <span>{formattedDueDate}</span>
             </div>
           </div>
-
           {isActionable && (
             <Link
               href={`/tenant/bills/${bill.id}`}
