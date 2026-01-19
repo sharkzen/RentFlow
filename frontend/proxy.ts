@@ -80,9 +80,15 @@ export async function proxy(request: NextRequest) {
     } catch {}
   }
 
-  // 3️⃣ ❗ redirect เฉพาะ protected route เท่านั้น
   if (!accessToken && !refreshToken) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+    const loginUrl = new URL("/auth/login", request.url);
+
+    // เก็บ path + query เดิม
+    const redirectPath = request.nextUrl.pathname + request.nextUrl.search;
+
+    loginUrl.searchParams.set("redirect", encodeURIComponent(redirectPath));
+
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();

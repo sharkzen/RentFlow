@@ -9,8 +9,13 @@ import useLogin from "@/features/auth/hooks/useLogin";
 import { authService } from "../services/auth.service";
 import { useAuth } from "@/context/AuthProvider";
 import log from "@/lib/logger";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginForm() {
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+  const redirect = redirectParam ? decodeURIComponent(redirectParam) : null;
+
   const { setUser } = useAuth();
 
   const mutation = useLogin();
@@ -72,6 +77,13 @@ export default function LoginForm() {
 
         const me = await authService.getMe();
         setUser(me);
+        const safeRedirect =
+          redirect && redirect.startsWith("/") ? redirect : null;
+
+        if (safeRedirect) {
+          router.replace(safeRedirect);
+          return;
+        }
 
         if (response.role === "OWNER" || response.role === "STAFF")
           router.replace("/owner/dashboard");
