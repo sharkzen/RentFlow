@@ -184,7 +184,6 @@ export default function BillSlugContainer() {
             <span className="hidden sm:inline">พิมพ์ / PDF</span>
             <span className="sm:hidden">พิมพ์</span>
           </button>
-
           {renderPaymentButton()}
         </div>
       </div>
@@ -193,7 +192,6 @@ export default function BillSlugContainer() {
           <InvoiceVoucher ref={componentRef} data={bill} />
         </div>
       </div>
-
       {isPayModalOpen && (
         <PaymentModal
           isOpen={isPayModalOpen}

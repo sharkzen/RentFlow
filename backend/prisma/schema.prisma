@@ -253,7 +253,6 @@ model TenantProfile {
   numberOfResidents Int     @default(1)
 
   tenantNameSnapshot String?
-  roomPriceSnapshot  Float?
 
   securityDeposit Float @default(0)
   advancePayment  Float @default(0)

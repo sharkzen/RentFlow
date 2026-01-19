@@ -83,7 +83,6 @@ export const PromptPayCard = ({
               </span>
             </div>
           </div>
-
           <div className="flex flex-col items-center px-6 pt-6 pb-6">
             <div className="mb-6 flex items-center gap-2 rounded-full border border-blue-100 bg-[#F0F7FF] px-4 py-1.5">
               <Smartphone size={16} className="text-[#1A3761]" />
@@ -95,7 +94,6 @@ export const PromptPayCard = ({
                 className="fill-emerald-50 text-emerald-500"
               />
             </div>
-
             <div className="group relative mb-6 p-1">
               <div className="absolute -top-1 -left-1 h-6 w-6 rounded-tl-md border-t-[3px] border-l-[3px] border-[#1A3761]"></div>
               <div className="absolute -top-1 -right-1 h-6 w-6 rounded-tr-md border-t-[3px] border-r-[3px] border-[#1A3761]"></div>
@@ -113,7 +111,6 @@ export const PromptPayCard = ({
                 </div>
               </div>
             </div>
-
             <div className="mb-5 w-full px-2 text-center">
               <p className="mb-1 text-[11px] font-bold tracking-wide text-slate-400 uppercase">
                 ชื่อบัญชี (Account Name)
@@ -122,12 +119,10 @@ export const PromptPayCard = ({
                 {accountName}
               </h3>
             </div>
-
             <div className="relative mb-6 w-full border-t-2 border-dashed border-slate-200">
               <div className="absolute -top-2.5 -left-9 h-5 w-5 rounded-full bg-[#f8fafc]"></div>
               <div className="absolute -top-2.5 -right-9 h-5 w-5 rounded-full bg-[#f8fafc]"></div>
             </div>
-
             <div className="flex w-full flex-col items-center justify-center rounded-2xl border border-slate-100 bg-[#F8FAFC] py-5">
               <p className="mb-1 text-[13px] font-semibold text-slate-500">
                 จำนวนเงิน (Amount)
@@ -143,7 +138,6 @@ export const PromptPayCard = ({
               </div>
             </div>
           </div>
-
           <div className="flex h-3 w-full">
             <div className="w-1/3 bg-[#1A3761]"></div>
             <div className="w-1/3 bg-[#00589B]"></div>
@@ -151,7 +145,6 @@ export const PromptPayCard = ({
           </div>
         </div>
       </div>
-
       <button
         onClick={handleDownload}
         disabled={isSaving}

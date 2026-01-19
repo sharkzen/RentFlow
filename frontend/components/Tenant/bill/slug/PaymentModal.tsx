@@ -221,17 +221,48 @@ export default function PaymentModal({
     setIsSubmitting(true);
     setShowConfirm(false);
 
-    await toast.promise(
-      TenantService.uploadPaymentSlip(billId, selectedFile, slipData?.refNo),
-      {
-        pending: "กำลังอัพโหลดสลิปชำระเงิน...",
-        success: "ส่งหลักฐานการชำระเงินเรียบร้อยแล้ว",
-        error: "เกิดข้อผิดพลาดในการส่งหลักฐาน",
-      },
-    );
+    await toast
+      .promise(
+        TenantService.uploadPaymentSlip(billId, selectedFile, slipData?.refNo),
+        {
+          pending: "กำลังอัพโหลดสลิปชำระเงิน...",
 
-    setIsSubmitting(false);
-    onClose();
+          success: {
+            render({ data }) {
+              return data?.message || "ส่งหลักฐานการชำระเงินเรียบร้อยแล้ว";
+            },
+          },
+
+          error: {
+            render({ data }: { data: any }) {
+              const errorMsg =
+                data?.response?.data?.message ||
+                data?.message ||
+                "UNKNOWN_ERROR";
+              console.error("Upload Error:", errorMsg);
+
+              switch (errorMsg) {
+                case "SLIP_DUPLICATE":
+                case "SLIP_DUPLICATE_REF":
+                case "SLIP_DUPLICATE_DETECTED_FROM_IMAGE":
+                  return "สลิปนี้เคยถูกใช้ในระบบแล้ว (ห้ามใช้ซ้ำ)";
+                case "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED":
+                  return "กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น (JPG, PNG)";
+                case "BILL_NOT_FOUND":
+                  return "❌ ไม่พบข้อมูลบิล";
+                case "FORBIDDEN_ACCESS":
+                  return "คุณไม่มีสิทธิ์เข้าถึงบิลนี้";
+                default:
+                  return `เกิดข้อผิดพลาด: ${errorMsg.substring(0, 50)}`;
+              }
+            },
+          },
+        },
+      )
+      .finally(() => {
+        setIsSubmitting(false);
+        onClose();
+      });
   };
 
   const copyToClipboard = (text: string) => {
@@ -291,7 +322,6 @@ export default function PaymentModal({
                 })}
               </h2>
             </div>
-
             {!isLocked && (
               <div className="mx-6 mt-4 flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50 p-4">
                 <AlertTriangle
@@ -310,7 +340,6 @@ export default function PaymentModal({
                 </div>
               </div>
             )}
-
             {!isLocked && hasBank && hasPromptPay && (
               <div className="mx-6 mt-6 grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1.5">
                 <button
@@ -423,7 +452,6 @@ export default function PaymentModal({
                   )}
                 </div>
               )}
-
               <div className="space-y-4">
                 <h4 className="flex items-center gap-2 px-1 text-sm font-bold text-slate-700">
                   <span
@@ -442,7 +470,6 @@ export default function PaymentModal({
                   accept="image/*"
                   onChange={handleFileChange}
                 />
-
                 {!previewUrl && isReuploading && !isLocked && (
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -460,7 +487,6 @@ export default function PaymentModal({
                     <p className="mt-1 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
                       JPG, PNG เท่านั้น
                     </p>
-
                     {currentSlipUrl && (
                       <div
                         onClick={(e) => {
@@ -474,7 +500,6 @@ export default function PaymentModal({
                     )}
                   </button>
                 )}
-
                 {previewUrl && (
                   <div className="group relative overflow-hidden rounded-2xl border-2 border-slate-100 bg-slate-100 shadow-inner">
                     {isScanning && (
@@ -490,7 +515,6 @@ export default function PaymentModal({
                       alt="Slip Preview"
                       className="block h-auto w-full"
                     />
-
                     {!isScanning && (
                       <div className="absolute top-4 right-4 flex gap-2">
                         {!isLocked ? (
@@ -520,7 +544,6 @@ export default function PaymentModal({
                     )}
                   </div>
                 )}
-
                 {!isLocked && isReuploading && (
                   <button
                     disabled={!selectedFile || isSubmitting || isScanning}
@@ -537,7 +560,6 @@ export default function PaymentModal({
                     )}
                   </button>
                 )}
-
                 {!isReuploading && currentSlipUrl && !isLocked && (
                   <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4 text-center">
                     <p className="text-sm font-bold text-amber-700">

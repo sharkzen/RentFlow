@@ -59,11 +59,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
       <div
         ref={ref}
         className="flex flex-col bg-white print:m-0 print:h-[297mm] print:w-[210mm] print:p-[15mm] print:shadow-none"
-        style={{
-          fontFamily: "'Sarabun', 'sans-serif'",
-          boxSizing: "border-box",
-          WebkitPrintColorAdjust: "exact",
-        }}
       >
         <div className="flex items-start justify-between border-b-2 border-slate-800 py-5">
           <div className="flex-1">

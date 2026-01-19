@@ -248,7 +248,6 @@ export const tenantService = {
           email: data.email,
           address: data.address,
           numberOfResidents: Number(data.numberOfResidents) || 1,
-          roomPriceSnapshot: room.basePrice,
           tenantNameSnapshot: `${data.firstName} ${data.lastName}`,
           moveInDate: data.moveInDate ? new Date(data.moveInDate) : new Date(),
           contractStartDate: data.contractStartDate
@@ -1187,6 +1186,17 @@ export const tenantService = {
 
     if (bill.tenant.userId !== userId) throw new Error("FORBIDDEN_ACCESS");
 
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (mimeType && !allowedMimeTypes.includes(mimeType)) {
+      throw new Error("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
+    }
+
     if (refNo) {
       const existingPayment = await prisma.payment.findUnique({
         where: {
@@ -1195,7 +1205,7 @@ export const tenantService = {
       });
 
       if (existingPayment && existingPayment.billId !== billId) {
-        throw new Error("SLIP_DUPLICATE");
+        throw new Error("SLIP_DUPLICATE_REF");
       }
     }
 
@@ -1204,62 +1214,44 @@ export const tenantService = {
     try {
       verifiedData = await slipOkService.verifySlip(fileBuffer, bill.total);
     } catch (error: any) {
-      const possibleBody = error?.response?.data || error?.data || error;
-      const rawCode = possibleBody?.code || error?.code || "0";
-      const errCode = parseInt(String(rawCode));
-      const innerData = possibleBody?.data || error?.data;
-
-      if (errCode === 1014 && innerData?.success === true) {
-        const raw = innerData;
-
-        verifiedData = {
-          success: true,
-          refNo: raw.transRef,
-          amount: raw.paidLocalAmount || raw.amount,
-          bankCode: raw.sendingBank,
-          senderName: raw.sender?.displayName || raw.sender?.name,
-          paidAt: raw.transTimestamp
-            ? new Date(raw.transTimestamp)
-            : new Date(),
-        };
+      if (error?.response?.data) {
+        verifiedData = error.response.data.data || error.response.data;
       } else {
-        const statusCode = error?.response?.status || 0;
-        const errorMsg =
-          error?.message || possibleBody?.message || "UNKNOWN_ERROR";
-
-        if (
-          errorMsg === "SLIP_DUPLICATE" ||
-          errorMsg === "SLIP_AMOUNT_MISMATCH" ||
-          errorMsg === "INVALID_SLIP" ||
-          statusCode === 400
-        ) {
-          throw new Error(
-            errorMsg === "UNKNOWN_ERROR" ? "INVALID_SLIP" : errorMsg,
-          );
-        }
-
-        console.warn(
-          `SlipOK unavailable (Status: ${statusCode}). Fallback to manual verify.`,
-        );
         verifiedData = null;
       }
     }
 
-    let paymentStatus: PaymentStatus = PaymentStatus.WAITING_VERIFY;
-    let billStatus: BillStatus = BillStatus.WAITING_FOR_VERIFICATION;
+    let paymentStatus: PaymentStatus = "WAITING_VERIFY" as PaymentStatus;
+    let billStatus: BillStatus = "WAITING_FOR_VERIFICATION" as BillStatus;
     let isAutoVerified = false;
+    let slipAmount = null;
+    let slipRef = null;
 
-    if (verifiedData && verifiedData.amount != null) {
-      const isAmountMatch = Math.abs(verifiedData.amount - bill.total) < 1.0;
+    if (verifiedData) {
+      slipAmount = verifiedData.amount ?? verifiedData.transAmount ?? null;
+      slipRef = verifiedData.transRef ?? verifiedData.refNo ?? null;
+    }
+
+    if (slipAmount != null) {
+      const isAmountMatch =
+        Math.abs(Number(slipAmount) - Number(bill.total)) <= 1.0;
+
+      if (!refNo && slipRef) {
+        const duplicateCheck = await prisma.payment.findUnique({
+          where: {
+            transferRef: slipRef,
+          },
+        });
+
+        if (duplicateCheck && duplicateCheck.billId !== billId) {
+          throw new Error("SLIP_DUPLICATE_DETECTED_FROM_IMAGE");
+        }
+      }
 
       if (isAmountMatch) {
-        paymentStatus = PaymentStatus.VERIFIED;
-        billStatus = BillStatus.PAID;
+        paymentStatus = "VERIFIED" as PaymentStatus;
+        billStatus = "PAID" as BillStatus;
         isAutoVerified = true;
-      } else {
-        console.warn(
-          `Amount Mismatch: Bill=${bill.total}, Slip=${verifiedData.amount}`,
-        );
       }
     }
 
@@ -1274,7 +1266,17 @@ export const tenantService = {
     });
 
     const year = new Date().getFullYear();
-    const extension = mimeType ? mimeType.split("/")[1] : "jpg";
+
+    const mimeToExtension: {
+      [key: string]: string;
+    } = {
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+    };
+
+    const extension = mimeToExtension[mimeType] || "jpg";
     const objectKey = `slips/${bill.roomId}/${year}/${uuidv4()}.${extension}`;
     await uploadFile(fileBuffer, objectKey, mimeType);
 
@@ -1288,11 +1290,28 @@ export const tenantService = {
         });
       }
 
-      const finalRefNo = verifiedData?.refNo || null;
-      const finalAmount = verifiedData?.amount || null;
-      const finalBank = verifiedData?.bankCode || null;
-      const finalSender = verifiedData?.senderName || null;
-      const finalPaidAt = verifiedData?.paidAt || new Date();
+      const finalRefNo = slipRef || refNo || null;
+      const finalAmount = slipAmount || null;
+      const finalBank =
+        verifiedData?.sendingBank || verifiedData?.bankCode || null;
+      const finalSender =
+        verifiedData?.sender?.displayName || verifiedData?.senderName || null;
+      let finalPaidAt = new Date();
+
+      if (verifiedData?.transTimestamp) {
+        finalPaidAt = new Date(verifiedData.transTimestamp);
+      } else if (verifiedData?.transDate) {
+        const r = String(verifiedData.transDate);
+
+        if (r.length === 8) {
+          const t = verifiedData.transTime || "00:00:00";
+          finalPaidAt = new Date(
+            `${r.slice(0, 4)}-${r.slice(4, 6)}-${r.slice(6, 8)}T${t}`,
+          );
+        }
+      }
+
+      if (isNaN(finalPaidAt.getTime())) finalPaidAt = new Date();
 
       const payment = await tx.payment.upsert({
         where: {
@@ -1304,7 +1323,7 @@ export const tenantService = {
           paymentMethod: "TRANSFER",
           status: paymentStatus,
           transferRef: finalRefNo,
-          transferAmount: finalAmount,
+          transferAmount: finalAmount ? Number(finalAmount) : null,
           transferBank: finalBank,
           senderName: finalSender,
           paidAt: finalPaidAt,
@@ -1316,7 +1335,7 @@ export const tenantService = {
           paymentMethod: "TRANSFER",
           status: paymentStatus,
           transferRef: finalRefNo,
-          transferAmount: finalAmount ?? undefined,
+          transferAmount: finalAmount ? Number(finalAmount) : undefined,
           transferBank: finalBank,
           senderName: finalSender,
           paidAt: finalPaidAt,
@@ -1353,15 +1372,13 @@ export const tenantService = {
         success: true,
         status: paymentStatus,
         message: isAutoVerified
-          ? "ชำระเงินเรียบร้อยแล้ว (ตรวจสอบอัตโนมัติ)"
-          : "ส่งหลักฐานเรียบร้อย (รอเจ้าหน้าที่ตรวจสอบ)",
+          ? "ตรวจสอบสลิปเรียบร้อย"
+          : "บันทึกสลิปเรียบร้อย (รอตรวจสอบ)",
 
         data: {
           paidAt: finalPaidAt,
           amount: finalAmount,
           refNo: finalRefNo,
-          sender: finalSender,
-          bank: finalBank,
         },
       };
     });

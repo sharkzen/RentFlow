@@ -433,24 +433,29 @@ export const TenantController = {
 
       switch (error.message) {
         case "SLIP_DUPLICATE":
-          return reply.status(409).send({
-            code: "SLIP_DUPLICATE",
-            message: "สลิปนี้ถูกใช้งานเข้าระบบไปแล้ว",
+        case "SLIP_DUPLICATE_REF":
+        case "SLIP_DUPLICATE_DETECTED_FROM_IMAGE":
+          return reply.status(400).send({
+            message: error.message,
           });
         case "BILL_NOT_FOUND":
           return reply.status(404).send({
-            message: "ไม่พบข้อมูลบิล",
+            message: "BILL_NOT_FOUND",
           });
         case "FORBIDDEN_ACCESS":
           return reply.status(403).send({
-            message: "คุณไม่มีสิทธิ์เข้าถึงบิลนี้",
+            message: "FORBIDDEN_ACCESS",
+          });
+        case "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED":
+          return reply.status(400).send({
+            message: "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED",
           });
         case "INVALID_SLIP_API":
         case "SLIP_AMOUNT_MISMATCH":
         case "INVALID_SLIP":
           return reply.status(400).send({
             code: "INVALID_SLIP",
-            message: "ตรวจสอบสลิปไม่ผ่าน หรือยอดเงินไม่ถูกต้อง",
+            message: "INVALID_SLIP",
           });
         default:
           return reply.status(500).send({
