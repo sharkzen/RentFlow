@@ -231,13 +231,12 @@ export const billService = {
       const tenant = room.tenants[0];
       const waterUsed = item.currentWater - item.prevWater;
       const electricUsed = item.currentElectric - item.prevElectric;
-      const waterFee = waterUsed * dormSettings.waterRate;
-      const electricFee = electricUsed * dormSettings.electricRate;
-      const total =
-        (tenant.roomPriceSnapshot || room.basePrice) +
-        waterFee +
-        electricFee +
-        Number(item.commonFee);
+      const waterRate = dormSettings.waterRate;
+      const electricRate = dormSettings.electricRate;
+      const waterFee = waterUsed * waterRate;
+      const electricFee = electricUsed * electricRate;
+      const roomPrice = tenant.roomPriceSnapshot || room.basePrice;
+      const total = roomPrice + waterFee + electricFee + Number(item.commonFee);
       const dueDate = new Date(saveDate);
       dueDate.setDate(dormSettings.dueDay);
       dueDate.setMonth(dueDate.getMonth() + dormSettings.dueMonthOffset);
@@ -250,16 +249,16 @@ export const billService = {
           dueDate: dueDate,
           tenantNameSnapshot: `${tenant.firstName} ${tenant.lastName}`,
           roomNumberSnapshot: room.roomNumber,
-          roomPriceSnapshot: tenant.roomPriceSnapshot || room.basePrice,
+          roomPriceSnapshot: roomPrice,
           prevWaterUnitSnapshot: Number(item.prevWater),
           currentWaterUnitSnapshot: Number(item.currentWater),
           waterUsedSnapshot: waterUsed,
-          waterRateSnapshot: dormSettings.waterRate,
+          waterRateSnapshot: waterRate,
           waterFeeSnapshot: waterFee,
           prevElectricUnitSnapshot: Number(item.prevElectric),
           currentElectricUnitSnapshot: Number(item.currentElectric),
           electricUsedSnapshot: electricUsed,
-          electricRateSnapshot: dormSettings.electricRate,
+          electricRateSnapshot: electricRate,
           electricFeeSnapshot: electricFee,
           commonFeeSnapshot: Number(item.commonFee),
           lateFeeSnapshot: dormSettings.lateFee,
@@ -313,12 +312,9 @@ export const billService = {
             }),
 
             details: {
-              rent: (tenant.roomPriceSnapshot || room.basePrice).toLocaleString(
-                undefined,
-                {
-                  minimumFractionDigits: 2,
-                },
-              ),
+              rent: roomPrice.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+              }),
 
               commonFeeRaw: Number(item.commonFee),
 
@@ -330,7 +326,7 @@ export const billService = {
                 prev: Number(item.prevWater),
                 curr: Number(item.currentWater),
                 used: waterUsed,
-                unitPrice: dormSettings.waterRate,
+                unitPrice: waterRate,
 
                 total: waterFee.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
@@ -341,7 +337,7 @@ export const billService = {
                 prev: Number(item.prevElectric),
                 curr: Number(item.currentElectric),
                 used: electricUsed,
-                unitPrice: dormSettings.electricRate,
+                unitPrice: electricRate,
 
                 total: electricFee.toLocaleString(undefined, {
                   minimumFractionDigits: 2,

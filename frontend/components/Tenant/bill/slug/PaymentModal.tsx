@@ -221,17 +221,48 @@ export default function PaymentModal({
     setIsSubmitting(true);
     setShowConfirm(false);
 
-    await toast.promise(
-      TenantService.uploadPaymentSlip(billId, selectedFile, slipData?.refNo),
-      {
-        pending: "กำลังอัพโหลดสลิปชำระเงิน...",
-        success: "ส่งหลักฐานการชำระเงินเรียบร้อยแล้ว",
-        error: "เกิดข้อผิดพลาดในการส่งหลักฐาน",
-      },
-    );
+    await toast
+      .promise(
+        TenantService.uploadPaymentSlip(billId, selectedFile, slipData?.refNo),
+        {
+          pending: "กำลังอัพโหลดสลิปชำระเงิน...",
 
-    setIsSubmitting(false);
-    onClose();
+          success: {
+            render({ data }) {
+              return data?.message || "ส่งหลักฐานการชำระเงินเรียบร้อยแล้ว";
+            },
+          },
+
+          error: {
+            render({ data }: { data: any }) {
+              const errorMsg =
+                data?.response?.data?.message ||
+                data?.message ||
+                "UNKNOWN_ERROR";
+              console.error("Upload Error:", errorMsg);
+
+              switch (errorMsg) {
+                case "SLIP_DUPLICATE":
+                case "SLIP_DUPLICATE_REF":
+                case "SLIP_DUPLICATE_DETECTED_FROM_IMAGE":
+                  return "สลิปนี้เคยถูกใช้ในระบบแล้ว (ห้ามใช้ซ้ำ)";
+                case "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED":
+                  return "กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น (JPG, PNG)";
+                case "BILL_NOT_FOUND":
+                  return "❌ ไม่พบข้อมูลบิล";
+                case "FORBIDDEN_ACCESS":
+                  return "คุณไม่มีสิทธิ์เข้าถึงบิลนี้";
+                default:
+                  return `เกิดข้อผิดพลาด: ${errorMsg.substring(0, 50)}`;
+              }
+            },
+          },
+        },
+      )
+      .finally(() => {
+        setIsSubmitting(false);
+        onClose();
+      });
   };
 
   const copyToClipboard = (text: string) => {

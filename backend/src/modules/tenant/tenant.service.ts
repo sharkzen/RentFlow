@@ -256,7 +256,6 @@ export const tenantService = {
           email: data.email,
           address: data.address,
           numberOfResidents: Number(data.numberOfResidents) || 1,
-          roomPriceSnapshot: room.basePrice,
           tenantNameSnapshot: `${data.firstName} ${data.lastName}`,
           moveInDate: data.moveInDate ? new Date(data.moveInDate) : new Date(),
           contractStartDate: data.contractStartDate
@@ -1210,6 +1209,17 @@ export const tenantService = {
 
     if (bill.tenant.userId !== userId) throw new Error("FORBIDDEN_ACCESS");
 
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (mimeType && !allowedMimeTypes.includes(mimeType)) {
+      throw new Error("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
+    }
+
     if (refNo) {
       const existingPayment = await prisma.payment.findUnique({
         where: {
@@ -1218,7 +1228,7 @@ export const tenantService = {
       });
 
       if (existingPayment && existingPayment.billId !== billId) {
-        throw new Error("SLIP_DUPLICATE");
+        throw new Error("SLIP_DUPLICATE_REF");
       }
     }
 
@@ -1230,9 +1240,11 @@ export const tenantService = {
       throw error;
     }
 
-    let paymentStatus: PaymentStatus = PaymentStatus.WAITING_VERIFY;
-    let billStatus: BillStatus = BillStatus.WAITING_FOR_VERIFICATION;
+    let paymentStatus: PaymentStatus = "WAITING_VERIFY" as PaymentStatus;
+    let billStatus: BillStatus = "WAITING_FOR_VERIFICATION" as BillStatus;
     let isAutoVerified = false;
+    let slipAmount = null;
+    let slipRef = null;
 
     if (verifiedData) {
       const isAmountMatch = Math.abs(verifiedData.amount - bill.total) < 1.0;
@@ -1288,7 +1300,17 @@ export const tenantService = {
     });
 
     const year = new Date().getFullYear();
-    const extension = mimeType ? mimeType.split("/")[1] : "jpg";
+
+    const mimeToExtension: {
+      [key: string]: string;
+    } = {
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+    };
+
+    const extension = mimeToExtension[mimeType] || "jpg";
     const objectKey = `slips/${bill.roomId}/${year}/${uuidv4()}.${extension}`;
     await uploadFile(fileBuffer, objectKey, mimeType);
 
@@ -1363,8 +1385,8 @@ export const tenantService = {
         success: true,
         status: paymentStatus,
         message: isAutoVerified
-          ? "ชำระเงินเรียบร้อยแล้ว (ตรวจสอบอัตโนมัติ)"
-          : "ส่งหลักฐานเรียบร้อย (รอเจ้าหน้าที่ตรวจสอบ)",
+          ? "ตรวจสอบสลิปเรียบร้อย"
+          : "บันทึกสลิปเรียบร้อย (รอตรวจสอบ)",
 
         data: {
           paidAt: finalPaidAt,
