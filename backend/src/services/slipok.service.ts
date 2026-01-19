@@ -18,8 +18,16 @@ interface SlipOkData {
     };
   };
   receiver: {
-    displayName: string;
-    name: string;
+    displayName?: string;
+    name?: string;
+    proxy?: {
+      type: string;
+      value: string;
+    };
+    account?: {
+      bank: string;
+      value: string;
+    };
   };
 }
 
@@ -29,6 +37,21 @@ interface SlipOkResponse {
   code?: number;
   message?: string;
 }
+
+const mapSlipData = (data: SlipOkData) => {
+  return {
+    success: true,
+    refNo: data.transRef,
+    bankCode: data.sendingBank,
+    amount: data.paidLocalAmount || data.amount,
+    senderName: data.sender?.displayName || data.sender?.name,
+    paidAt: parseSlipOkDate(data.transDate, data.transTime),
+    receiverAccount: data.receiver?.account?.value || null,
+    receiverProxy: data.receiver?.proxy?.value || null,
+    receiverName: data.receiver?.displayName || data.receiver?.name,
+    rawData: data,
+  };
+};
 
 export const slipOkService = {
   verifySlip: async (fileBuffer: Buffer, amount?: number) => {
@@ -44,6 +67,7 @@ export const slipOkService = {
 
     form.append("files", fileBuffer, {
       filename: "slip.jpg",
+      contentType: "image/jpeg",
     });
 
     if (amount) {
@@ -68,28 +92,40 @@ export const slipOkService = {
         }
 
         const logicError: any = new Error("INVALID_SLIP");
-
-        logicError.response = {
-          data: response.data,
-        };
-
+        logicError.data = response.data;
         throw logicError;
       }
 
-      const data = response.data.data;
-
-      return {
-        success: true,
-        refNo: data.transRef,
-        bankCode: data.sendingBank,
-        amount: data.paidLocalAmount || data.amount,
-        senderName: data.sender?.displayName || data.sender?.name,
-        paidAt: parseSlipOkDate(data.transDate, data.transTime),
-        rawData: data,
-      };
+      return mapSlipData(response.data.data);
     } catch (error: any) {
       if (axios.isAxiosError(error)) {
-        throw error;
+        const responseBody = error.response?.data;
+        const statusCode = error.response?.status;
+
+        if (statusCode === 400 && responseBody?.code === 1014) {
+          if (responseBody?.data?.success === true) {
+            logger.warn(
+              "SlipOK Code 1014: Receiver mismatch but slip is valid. Proceeding with data.",
+            );
+
+            return mapSlipData(responseBody.data);
+          }
+        }
+
+        logger.error(
+          `SlipOK API Error [${statusCode}]: ${JSON.stringify(responseBody, null, 2)}`,
+        );
+
+        if (statusCode === 400) {
+          if (
+            responseBody?.code === 1004 ||
+            responseBody?.message?.includes("Credit")
+          ) {
+            throw new Error("SLIPOK_QUOTA_EXCEEDED");
+          }
+
+          throw new Error("INVALID_SLIP_API");
+        }
       }
 
       throw error;

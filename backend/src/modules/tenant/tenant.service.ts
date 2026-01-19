@@ -14,7 +14,13 @@ import {
 } from "@prisma/client";
 
 import puppeteer from "puppeteer";
-import { formatDate, formatLongDate, formatMoney } from "./lib/tenant.lib";
+import {
+  formatDate,
+  formatLongDate,
+  formatMoney,
+  formatThaiDateTime,
+  matchAccount,
+} from "./lib/tenant.lib";
 import path from "path";
 import fs from "fs";
 import { slipOkService } from "@/services/slipok.service";
@@ -23,6 +29,8 @@ import { deleteFile, generateSignedUrl, uploadFile } from "@/services/minio";
 import { env } from "@/config/env";
 import logger from "@/utils/logger";
 import { SlipApiErrorResponse, VerifiedPaymentData } from "./dto/tenant.dto";
+import { emailQueue } from "@/queues/email.queue";
+import { EmailType } from "@/queues/email.types";
 
 interface GetTenantDormParams {
   dormId: string;
@@ -1171,7 +1179,7 @@ export const tenantService = {
     fileBuffer,
     mimeType,
     fileName,
-  }: ProcessSlipParams) => {
+  }: any) => {
     const bill = await prisma.bill.findUnique({
       where: {
         id: billId,
@@ -1179,7 +1187,22 @@ export const tenantService = {
 
       include: {
         tenant: true,
-        room: true,
+
+        room: {
+          include: {
+            dormitory: {
+              include: {
+                paymentSetting: true,
+
+                owner: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -1204,60 +1227,51 @@ export const tenantService = {
     try {
       verifiedData = await slipOkService.verifySlip(fileBuffer, bill.total);
     } catch (error: any) {
-      const possibleBody = error?.response?.data || error?.data || error;
-      const rawCode = possibleBody?.code || error?.code || "0";
-      const errCode = parseInt(String(rawCode));
-      const innerData = possibleBody?.data || error?.data;
-
-      if (errCode === 1014 && innerData?.success === true) {
-        const raw = innerData;
-
-        verifiedData = {
-          success: true,
-          refNo: raw.transRef,
-          amount: raw.paidLocalAmount || raw.amount,
-          bankCode: raw.sendingBank,
-          senderName: raw.sender?.displayName || raw.sender?.name,
-          paidAt: raw.transTimestamp
-            ? new Date(raw.transTimestamp)
-            : new Date(),
-        };
-      } else {
-        const statusCode = error?.response?.status || 0;
-        const errorMsg =
-          error?.message || possibleBody?.message || "UNKNOWN_ERROR";
-
-        if (
-          errorMsg === "SLIP_DUPLICATE" ||
-          errorMsg === "SLIP_AMOUNT_MISMATCH" ||
-          errorMsg === "INVALID_SLIP" ||
-          statusCode === 400
-        ) {
-          throw new Error(
-            errorMsg === "UNKNOWN_ERROR" ? "INVALID_SLIP" : errorMsg,
-          );
-        }
-
-        console.warn(
-          `SlipOK unavailable (Status: ${statusCode}). Fallback to manual verify.`,
-        );
-        verifiedData = null;
-      }
+      throw error;
     }
 
     let paymentStatus: PaymentStatus = PaymentStatus.WAITING_VERIFY;
     let billStatus: BillStatus = BillStatus.WAITING_FOR_VERIFICATION;
     let isAutoVerified = false;
 
-    if (verifiedData && verifiedData.amount != null) {
+    if (verifiedData) {
       const isAmountMatch = Math.abs(verifiedData.amount - bill.total) < 1.0;
+      let isReceiverMatch = false;
+      const dormSetting = bill.room.dormitory.paymentSetting;
+      const targetBank = dormSetting?.bankAccount;
+      const targetPromptPay = dormSetting?.promptPayValue;
+      const slipReceiverAcc = verifiedData.receiverAccount;
+      const slipReceiverProxy = verifiedData.receiverProxy;
+
+      if (slipReceiverAcc && targetBank) {
+        if (matchAccount(targetBank, slipReceiverAcc)) {
+          isReceiverMatch = true;
+        }
+      }
+
+      if (!isReceiverMatch && slipReceiverProxy && targetPromptPay) {
+        if (matchAccount(targetPromptPay, slipReceiverProxy)) {
+          isReceiverMatch = true;
+        }
+      }
+
+      if (!targetBank && !targetPromptPay) {
+        logger.warn(
+          `Dormitory ID ${bill.room.dormitoryId} missing bank details.`,
+        );
+        isReceiverMatch = false;
+      }
 
       if (isAmountMatch) {
-        paymentStatus = PaymentStatus.VERIFIED;
-        billStatus = BillStatus.PAID;
-        isAutoVerified = true;
+        if (isReceiverMatch) {
+          paymentStatus = PaymentStatus.VERIFIED;
+          billStatus = BillStatus.PAID;
+          isAutoVerified = true;
+        } else {
+          logger.warn(`Suspicious Slip (Receiver Mismatch): BillId=${billId}`);
+        }
       } else {
-        console.warn(
+        logger.warn(
           `Amount Mismatch: Bill=${bill.total}, Slip=${verifiedData.amount}`,
         );
       }
@@ -1278,7 +1292,7 @@ export const tenantService = {
     const objectKey = `slips/${bill.roomId}/${year}/${uuidv4()}.${extension}`;
     await uploadFile(fileBuffer, objectKey, mimeType);
 
-    return await prisma.$transaction(async (tx) => {
+    const transactionResult = await prisma.$transaction(async (tx) => {
       if (oldPayment) {
         await tx.file.deleteMany({
           where: {
@@ -1288,10 +1302,6 @@ export const tenantService = {
         });
       }
 
-      const finalRefNo = verifiedData?.refNo || null;
-      const finalAmount = verifiedData?.amount || null;
-      const finalBank = verifiedData?.bankCode || null;
-      const finalSender = verifiedData?.senderName || null;
       const finalPaidAt = verifiedData?.paidAt || new Date();
 
       const payment = await tx.payment.upsert({
@@ -1303,10 +1313,10 @@ export const tenantService = {
           billId,
           paymentMethod: "TRANSFER",
           status: paymentStatus,
-          transferRef: finalRefNo,
-          transferAmount: finalAmount,
-          transferBank: finalBank,
-          senderName: finalSender,
+          transferRef: verifiedData?.refNo || null,
+          transferAmount: verifiedData?.amount || null,
+          transferBank: verifiedData?.bankCode || null,
+          senderName: verifiedData?.senderName || null,
           paidAt: finalPaidAt,
           verifiedBy: isAutoVerified ? "SYSTEM_AUTO" : null,
           verifiedAt: isAutoVerified ? new Date() : null,
@@ -1315,10 +1325,10 @@ export const tenantService = {
         update: {
           paymentMethod: "TRANSFER",
           status: paymentStatus,
-          transferRef: finalRefNo,
-          transferAmount: finalAmount ?? undefined,
-          transferBank: finalBank,
-          senderName: finalSender,
+          transferRef: verifiedData?.refNo || null,
+          transferAmount: verifiedData?.amount ?? undefined,
+          transferBank: verifiedData?.bankCode || null,
+          senderName: verifiedData?.senderName || null,
           paidAt: finalPaidAt,
           verifiedBy: isAutoVerified ? "SYSTEM_AUTO" : null,
           verifiedAt: isAutoVerified ? new Date() : null,
@@ -1358,12 +1368,41 @@ export const tenantService = {
 
         data: {
           paidAt: finalPaidAt,
-          amount: finalAmount,
-          refNo: finalRefNo,
-          sender: finalSender,
-          bank: finalBank,
+          amount: payment.transferAmount,
+          refNo: payment.transferRef,
+          sender: payment.senderName,
+          bank: payment.transferBank,
         },
       };
     });
+
+    try {
+      const ownerEmail = bill.room.dormitory.owner?.user?.email;
+      const dormName = bill.room.dormitory.name;
+
+      if (ownerEmail) {
+        await emailQueue.add({
+          type: EmailType.PAYMENT_RECEIVED,
+          to: ownerEmail,
+          senderName: "RentFlow Notification",
+
+          data: {
+            dormName: dormName,
+            roomNumber: bill.room.roomNumber,
+            tenantName: `${bill.tenant.firstName} ${bill.tenant.lastName}`,
+            amount: transactionResult.data.amount,
+            paidDate: formatThaiDateTime(transactionResult.data.paidAt),
+            bankName: transactionResult.data.bank,
+            refNo: transactionResult.data.refNo,
+            isAutoVerified: isAutoVerified,
+            link: `${process.env.FRONTEND_URL}/owner/bills`,
+          },
+        });
+      }
+    } catch (emailError) {
+      logger.error(`⚠️ Failed to queue owner email: ${emailError}`);
+    }
+
+    return transactionResult;
   },
 };

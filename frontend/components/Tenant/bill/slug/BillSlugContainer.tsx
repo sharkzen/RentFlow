@@ -29,6 +29,7 @@ export default function BillSlugContainer() {
   const [error, setError] = useState<string | null>(null);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const componentRef = useRef<HTMLDivElement>(null);
+  const [printLoading, setPrintLoading] = useState(false);
 
   const fetchBill = async () => {
     try {
@@ -87,6 +88,7 @@ export default function BillSlugContainer() {
 
   const handlePrint = async (id: string) => {
     const toastId = toast.loading("กำลังสร้างไฟล์ PDF...");
+    setPrintLoading(true);
 
     try {
       const data = await TenantService.printBillTenant(id);
@@ -112,6 +114,8 @@ export default function BillSlugContainer() {
         isLoading: false,
         autoClose: 3000,
       });
+    } finally {
+      setPrintLoading(false);
     }
   };
 
@@ -176,7 +180,7 @@ export default function BillSlugContainer() {
         </button>
         <div className="flex w-full gap-3 sm:w-auto">
           <button
-            disabled={isCancelled}
+            disabled={printLoading || isCancelled}
             onClick={() => handlePrint(bill.id)}
             className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 max-sm:text-xs sm:flex-none"
           >
@@ -184,7 +188,6 @@ export default function BillSlugContainer() {
             <span className="hidden sm:inline">พิมพ์ / PDF</span>
             <span className="sm:hidden">พิมพ์</span>
           </button>
-
           {renderPaymentButton()}
         </div>
       </div>
@@ -193,7 +196,6 @@ export default function BillSlugContainer() {
           <InvoiceVoucher ref={componentRef} data={bill} />
         </div>
       </div>
-
       {isPayModalOpen && (
         <PaymentModal
           isOpen={isPayModalOpen}

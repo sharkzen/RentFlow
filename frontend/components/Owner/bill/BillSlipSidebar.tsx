@@ -120,7 +120,6 @@ export default function BillSlipSidebar({
           หลักฐานการโอน
         </h4>
       </div>
-
       <div
         className={`flex-1 p-4 ${!isMobile ? "custom-scrollbar overflow-y-auto" : ""}`}
       >
@@ -233,7 +232,6 @@ export default function BillSlipSidebar({
           onChange={handleFileChange}
         />
       </div>
-
       {payment && (
         <div
           className={`border-t border-gray-200 bg-white p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] ${isMobile ? "" : "mt-auto"}`}
@@ -250,7 +248,6 @@ export default function BillSlipSidebar({
                 {payment.status}
               </span>
             </div>
-
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
               <div className="grid grid-cols-2 gap-x-2 gap-y-3">
                 <div className="col-span-2 flex items-center justify-between border-b border-slate-200 pb-2">
@@ -265,7 +262,6 @@ export default function BillSlipSidebar({
                     }) || "0.00"}
                   </span>
                 </div>
-
                 <div className="col-span-2 sm:col-span-1">
                   <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
                     <User size={12} />
@@ -278,7 +274,6 @@ export default function BillSlipSidebar({
                     {payment.senderName || "-"}
                   </div>
                 </div>
-
                 <div className="col-span-2 sm:col-span-1">
                   <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
                     <Building2 size={12} />
@@ -288,7 +283,6 @@ export default function BillSlipSidebar({
                     {getBankName(payment.transferBank)}
                   </div>
                 </div>
-
                 <div className="col-span-2 sm:col-span-1">
                   <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
                     <CalendarClock size={12} />
@@ -298,7 +292,6 @@ export default function BillSlipSidebar({
                     {formatDate(payment.paidAt)}
                   </div>
                 </div>
-
                 <div className="col-span-2 sm:col-span-1">
                   <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
                     <FileText size={12} />
@@ -310,7 +303,6 @@ export default function BillSlipSidebar({
                 </div>
               </div>
             </div>
-
             {payment.status === "VERIFIED" && payment.verifiedBy && (
               <div className="mt-2 text-center text-[10px] text-slate-400">
                 ตรวจสอบโดย: {payment.verifiedBy}•{" "}

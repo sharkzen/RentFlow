@@ -291,7 +291,6 @@ export default function PaymentModal({
                 })}
               </h2>
             </div>
-
             {!isLocked && (
               <div className="mx-6 mt-4 flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50 p-4">
                 <AlertTriangle
@@ -310,7 +309,6 @@ export default function PaymentModal({
                 </div>
               </div>
             )}
-
             {!isLocked && hasBank && hasPromptPay && (
               <div className="mx-6 mt-6 grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-1.5">
                 <button
@@ -423,7 +421,6 @@ export default function PaymentModal({
                   )}
                 </div>
               )}
-
               <div className="space-y-4">
                 <h4 className="flex items-center gap-2 px-1 text-sm font-bold text-slate-700">
                   <span
@@ -442,7 +439,6 @@ export default function PaymentModal({
                   accept="image/*"
                   onChange={handleFileChange}
                 />
-
                 {!previewUrl && isReuploading && !isLocked && (
                   <button
                     onClick={() => fileInputRef.current?.click()}
@@ -460,7 +456,6 @@ export default function PaymentModal({
                     <p className="mt-1 text-[10px] font-bold tracking-widest text-slate-400 uppercase">
                       JPG, PNG เท่านั้น
                     </p>
-
                     {currentSlipUrl && (
                       <div
                         onClick={(e) => {
@@ -474,7 +469,6 @@ export default function PaymentModal({
                     )}
                   </button>
                 )}
-
                 {previewUrl && (
                   <div className="group relative overflow-hidden rounded-2xl border-2 border-slate-100 bg-slate-100 shadow-inner">
                     {isScanning && (
@@ -490,7 +484,6 @@ export default function PaymentModal({
                       alt="Slip Preview"
                       className="block h-auto w-full"
                     />
-
                     {!isScanning && (
                       <div className="absolute top-4 right-4 flex gap-2">
                         {!isLocked ? (
@@ -520,7 +513,6 @@ export default function PaymentModal({
                     )}
                   </div>
                 )}
-
                 {!isLocked && isReuploading && (
                   <button
                     disabled={!selectedFile || isSubmitting || isScanning}
@@ -532,12 +524,11 @@ export default function PaymentModal({
                     ) : (
                       <>
                         <CheckCircle size={24} />
-                        ยืนยันการส่งสลิปใหม่
+                        ยืนยันการส่งสลิป
                       </>
                     )}
                   </button>
                 )}
-
                 {!isReuploading && currentSlipUrl && !isLocked && (
                   <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4 text-center">
                     <p className="text-sm font-bold text-amber-700">
@@ -558,7 +549,7 @@ export default function PaymentModal({
         isOpen={showConfirm}
         onClose={() => setShowConfirm(false)}
         onConfirm={processUpload}
-        title="ยืนยันการส่งสลิปใหม่?"
+        title="ยืนยันการส่งสลิป?"
         description={`สลิปใบเดิมจะถูกแทนที่ด้วยใบใหม่ ยอดเงิน ${total.toLocaleString()} บาท`}
         type="warning"
         confirmText="ยืนยัน ส่งใหม่"

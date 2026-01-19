@@ -8,6 +8,59 @@ const THEME = {
   bg: "#f1f5f9",
   paper: "#ffffff",
   danger: "#dc2626",
+  success: "#10b981",
+  successBg: "#ecfdf5",
+  warning: "#f59e0b",
+  warningBg: "#fffbeb",
+};
+
+const getBankName = (code: string) => {
+  const banks: Record<string, string> = {
+    "002": "ธนาคารกรุงเทพ (BBL)",
+    "004": "ธนาคารกสิกรไทย (KBANK)",
+    "006": "ธนาคารกรุงไทย (KTB)",
+    "011": "ธนาคารทหารไทยธนชาต (TTB)",
+    "014": "ธนาคารไทยพาณิชย์ (SCB)",
+    "025": "ธนาคารกรุงศรีอยุธยา (BAY)",
+    "030": "ธนาคารออมสิน (GSB)",
+    "034": "ธนาคาร ธ.ก.ส. (BAAC)",
+    "069": "ธนาคารเกียรตินาคินภัทร (KKP)",
+    "073": "ธนาคารแลนด์ แอนด์ เฮาส์ (LH)",
+  };
+
+  return banks[code] || code || "-";
+};
+
+const formatThaiDate = (dateInput: string | Date) => {
+  if (!dateInput) return "-";
+
+  const date = new Date(dateInput);
+
+  return (
+    date.toLocaleDateString("th-TH", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }) + " น."
+  );
+};
+
+const minifyHtml = (html: string) => {
+  return html.replace(/\s+/g, " ").replace(/>\s+</g, "><").trim();
+};
+
+const getSubject = (text: string) => {
+  if (process.env.NODE_ENV === "development") {
+    const time = new Date().toLocaleTimeString("th-TH", {
+      hour12: false,
+    });
+
+    return `[DEV ${time}] ${text}`;
+  }
+
+  return text;
 };
 
 const wrapEmail = (title: string, contentHtml: string) => {
@@ -62,12 +115,14 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
   switch (type) {
     case EmailType.NEW_BILL:
       return {
-        subject: `🧾 บิลค่าเช่าห้อง ${data.roomNumber} ประจำเดือน ${data.month}`,
+        subject: getSubject(
+          `🧾 บิลค่าเช่าห้อง ${data.roomNumber} ประจำเดือน ${data.month}`,
+        ),
 
-        html: wrapEmail(
-          "บิลค่าเช่า",
-          `
-          
+        html: minifyHtml(
+          wrapEmail(
+            "บิลค่าเช่า",
+            `
           <table width="100%" style="border-bottom: 2px solid ${THEME.primary}; padding-bottom: 20px;">
             <tr>
               <td valign="top" class="col-left" style="width: 60%;">
@@ -209,8 +264,8 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
           <table width="100%" style="margin-top: 40px; border-top: 1px solid ${THEME.bg}; padding-top: 30px;">
              <tr>
                <td width="60%" valign="bottom" style="font-size: 14px; color: ${THEME.muted}; line-height: 1.6;">
-                  <strong>หมายเหตุ:</strong><br>
-                  เมื่อทำการโอนเงินแล้ว กรุณาแจ้งการชำระเงินผ่านระบบ<br>หรือกดปุ่มด้านขวาเพื่อดำเนินการต่อ
+                 <strong>หมายเหตุ:</strong><br>
+                 เมื่อทำการโอนเงินแล้ว กรุณาแจ้งการชำระเงินผ่านระบบ<br>หรือกดปุ่มด้านขวาเพื่อดำเนินการต่อ
                </td>
                <td width="40%" align="center" valign="bottom">
                   <a href="${data.link}" style="background-color: ${THEME.primary}; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 4px; font-weight: 700; display: inline-block;">
@@ -221,10 +276,193 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
                </td>
              </tr>
           </table>
-
-        `,
+          `,
+          ),
         ),
       };
+    case EmailType.PAYMENT_RECEIVED: {
+      const isAuto = data.isAutoVerified;
+      const statusColor = isAuto ? THEME.success : THEME.warning;
+      const statusBg = isAuto ? "#f0fdf4" : "#fffbeb";
+      const statusBorder = isAuto ? "#86efac" : "#fde047";
+      const statusText = isAuto ? "ชำระเงินสำเร็จ" : "รอตรวจสอบ";
+      const statusIcon = isAuto ? "✓" : "⏱";
+      const actionText = isAuto ? "ดูประวัติธุรกรรม" : "ตรวจสอบสลิป";
+      const bankDisplayName = getBankName(data.bankName);
+
+      return {
+        subject: getSubject(
+          `💰 แจ้งชำระเงิน ${data.amount} บาท (ห้อง ${data.roomNumber})`,
+        ),
+
+        html: minifyHtml(
+          wrapEmail(
+            "ใบแจ้งชำระเงิน",
+            `
+        <!-- Status Banner -->
+        <div style="background-color: ${statusBg}; border: 2px solid ${statusBorder}; border-radius: 12px; padding: 16px 24px; margin-bottom: 24px; text-align: center;">
+          <table width="100%" style="border-spacing: 0;">
+            <tr>
+              <td align="center">
+                <span style="font-size: 28px; vertical-align: middle; margin-right: 8px;">${statusIcon}</span>
+                <span style="color: ${statusColor}; font-size: 18px; font-weight: 700; vertical-align: middle;">
+                  ${statusText}
+                </span>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Receipt Header -->
+        <div style="text-align: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0;">
+          <div style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">
+            ใบแจ้งชำระเงิน
+          </div>
+          <div style="font-size: 14px; color: #64748b; font-weight: 600;">
+            PAYMENT RECEIPT
+          </div>
+        </div>
+
+        <!-- Receipt Body -->
+        <div style="background-color: #ffffff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 0; margin-bottom: 24px;">
+          
+          <!-- Dorm Name -->
+          <div style="background-color: #f8fafc; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;">
+            <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 4px;">
+              หอพัก / DORMITORY
+            </div>
+            <div style="color: #0f172a; font-size: 16px; font-weight: 700;">
+              ${data.dormName}
+            </div>
+          </div>
+
+          <!-- Receipt Details -->
+          <div style="padding: 24px;">
+            
+            <!-- Row 1: Room & Tenant -->
+            <table width="100%" style="border-spacing: 0; margin-bottom: 20px;">
+              <tr>
+                <td width="50%" style="padding-right: 12px; vertical-align: top;">
+                  <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 6px;">
+                    เลขที่ห้อง
+                  </div>
+                  <div style="color: #0f172a; font-size: 20px; font-weight: 800;">
+                    ${data.roomNumber}
+                  </div>
+                </td>
+                <td width="50%" style="padding-left: 12px; vertical-align: top;">
+                  <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 6px;">
+                    ผู้เช่า
+                  </div>
+                  <div style="color: #0f172a; font-size: 16px; font-weight: 700;">
+                    ${data.tenantName}
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Divider -->
+            <div style="height: 1px; background-color: #e2e8f0; margin: 20px 0;"></div>
+
+            <!-- Row 2: Bank & Date -->
+            <table width="100%" style="border-spacing: 0; margin-bottom: 20px;">
+              <tr>
+                <td width="50%" style="padding-right: 12px; vertical-align: top;">
+                  <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 6px;">
+                    💳 ธนาคาร
+                  </div>
+                  <div style="color: #0f172a; font-size: 15px; font-weight: 600;">
+                    ${bankDisplayName}
+                  </div>
+                </td>
+                <td width="50%" style="padding-left: 12px; vertical-align: top;">
+                  <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 6px;">
+                    📅 วันที่ชำระ
+                  </div>
+                  <div style="color: #0f172a; font-size: 15px; font-weight: 600;">
+                    ${data.paidDate}
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Divider -->
+            <div style="height: 2px; background-color: #e2e8f0; margin: 20px 0;"></div>
+
+            <!-- Amount Section -->
+            <table width="100%" style="border-spacing: 0;">
+              <tr>
+                <td>
+                  <div style="color: #64748b; font-size: 13px; font-weight: 600; margin-bottom: 8px;">
+                    💵 ยอดเงินที่ชำระ
+                  </div>
+                  <div style="color: #0f172a; font-size: 42px; font-weight: 800; line-height: 1; letter-spacing: -1px;">
+                    ฿${Number(data.amount).toLocaleString("th-TH")}
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            ${
+              data.refNo
+                ? `
+            <!-- Reference Number -->
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
+              <table width="100%" style="border-spacing: 0;">
+                <tr>
+                  <td style="color: #64748b; font-size: 12px; font-weight: 600;">
+                    📋 หมายเลขอ้างอิง
+                  </td>
+                  <td align="right" style="color: #0f172a; font-size: 14px; font-weight: 700; font-family: 'Courier New', monospace;">
+                    #${data.refNo}
+                  </td>
+                </tr>
+              </table>
+            </div>
+            `
+                : ""
+            }
+
+          </div>
+        </div>
+
+        <!-- Notice Box -->
+        <div style="background-color: ${isAuto ? "#f0fdf4" : "#fffbeb"}; border-left: 4px solid ${statusColor}; padding: 16px 20px; border-radius: 4px; margin-bottom: 24px;">
+          <div style="color: #0f172a; font-size: 14px; line-height: 1.6;">
+            <strong>${isAuto ? "✓ สถานะ:" : "⏱ สถานะ:"}</strong> 
+            ${isAuto ? "การชำระเงินได้รับการยืนยันอัตโนมัติแล้ว ระบบได้บันทึกข้อมูลเรียบร้อย" : "กรุณารอการตรวจสอบจากเจ้าหน้าที่ภายใน 24 ชั่วโมง คุณจะได้รับการแจ้งเตือนเมื่อยืนยันแล้ว"}
+          </div>
+        </div>
+
+        <!-- CTA Button -->
+        <table width="100%" style="margin-top: 24px;">
+          <tr>
+            <td align="center">
+              <a href="${data.link}" 
+                 style="background-color: #0f172a; 
+                        color: #ffffff; 
+                        padding: 14px 32px; 
+                        text-decoration: none; 
+                        border-radius: 6px; 
+                        font-weight: 700; 
+                        font-size: 15px; 
+                        display: inline-block; 
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                📊 ${actionText}
+              </a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Footer Note -->
+        <div style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+          หากมีข้อสงสัยเกี่ยวกับการชำระเงิน กรุณาติดต่อเจ้าหน้าที่
+        </div>
+        `,
+          ),
+        ),
+      };
+    }
     default:
       throw new Error("Unknown Type");
   }

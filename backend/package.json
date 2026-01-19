@@ -5,11 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
-    "build": "esbuild src/server.ts --bundle --platform=node --outdir=dist",
-    "start": "node dist/server.js",
-    "worker": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/workers/email.worker.ts",
-    "test:email": "ts-node src/test/send-test-email.ts"
+    "dev:server": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
+    "dev:worker": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/workers/email.worker.ts",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:worker\"",
+    "build": "esbuild src/server.ts --bundle --platform=node --outdir=dist && esbuild src/workers/email.worker.ts --bundle --platform=node --outdir=dist/workers",
+    "start:server": "node dist/server.js",
+    "start:worker": "node dist/workers/email.worker.js",
+    "start": "concurrently \"npm run start:server\" \"npm run start:worker\""
   },
   "_moduleAliases": {
     "@": "dist"
@@ -53,6 +55,7 @@
     "@types/node-fetch": "^2.6.13",
     "@types/nodemailer": "^7.0.5",
     "@types/qrcode": "^1.5.6",
+    "concurrently": "^9.2.1",
     "esbuild": "^0.27.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
