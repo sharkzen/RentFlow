@@ -1,3 +1,5 @@
+import { BillData, BillStatus } from "@/components/Tenant/bill/types";
+
 export type Tenant = {
   id: string;
   userId: string;
@@ -101,4 +103,43 @@ export interface TenantDashboardData {
     inProgress: number;
     totalActive: number;
   };
+}
+
+export interface GetTenantDormParams {
+  dormId: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}
+
+export interface BillsResponse {
+  items: BillData[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  summary: {
+    totalPending: number;
+  };
+}
+
+export interface GetMyBillsParams {
+  page?: number;
+  limit?: number;
+  year?: string;
+  status?: BillStatus | string;
+  month?: string;
+}
+
+export interface MaintenanceRequest {
+  id: string;
+  title: string;
+  description: string;
+  status: "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  createdAt: string;
+  images: {
+    id: string;
+    objectKey: string;
+  }[];
 }

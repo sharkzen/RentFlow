@@ -464,4 +464,89 @@ export const TenantController = {
       }
     }
   },
+
+  createMaintenance: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      if (!user || !user.sub) {
+        return reply.status(401).send({
+          message: "Unauthorized",
+        });
+      }
+
+      const parts = request.parts();
+      let title = "";
+      let description = "";
+      const files: any[] = [];
+
+      for await (const part of parts) {
+        if (part.type === "file") {
+          const buffer = await part.toBuffer();
+
+          files.push({
+            filename: part.filename,
+            mimetype: part.mimetype,
+            file: buffer,
+          });
+        } else {
+          if (part.fieldname === "title") title = (part.value as string).trim();
+
+          if (part.fieldname === "description")
+            description = (part.value as string).trim();
+        }
+      }
+
+      if (!title) {
+        return reply.status(400).send({
+          message: "Title is required",
+        });
+      }
+
+      if (files.length > 2) {
+        return reply.status(400).send({
+          message: "Max 2 images allowed",
+        });
+      }
+
+      const result = await tenantService.createMaintenance({
+        userId: user.sub,
+        title,
+        description,
+        files,
+      });
+
+      return reply.status(201).send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      return reply.status(500).send({
+        message: error.message || "Internal Server Error",
+      });
+    }
+  },
+
+  getMyHistoryMaintenances: async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      if (!user || !user.sub) {
+        return reply.status(401).send({
+          message: "Unauthorized",
+        });
+      }
+
+      const result = await tenantService.getMyMaintenances(user.sub);
+      return reply.status(200).send(result);
+    } catch (error) {
+      logger.error(error);
+
+      return reply.status(500).send({
+        message: "Internal Server Error",
+      });
+    }
+  },
 };

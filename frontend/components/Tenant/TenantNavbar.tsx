@@ -35,12 +35,6 @@ export default function TenantNavbar() {
       description: "ดูบิลและแจ้งโอน",
     },
     {
-      name: "มิเตอร์น้ำ/ไฟ",
-      icon: <Zap size={20} />,
-      href: "/tenant/utilities",
-      description: "ประวัติการใช้น้ำไฟ",
-    },
-    {
       name: "แจ้งซ่อม",
       icon: <Wrench size={20} />,
       href: "/tenant/maintenance",
@@ -53,11 +47,6 @@ export default function TenantNavbar() {
       name: "สัญญาและห้องพัก",
       icon: <FileText size={20} />,
       href: "/tenant/contract",
-    },
-    {
-      name: "ข้อมูลส่วนตัว",
-      icon: <User size={20} />,
-      href: "/tenant/profile",
     },
   ];
 

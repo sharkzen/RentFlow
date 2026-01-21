@@ -1,5 +1,5 @@
-import React from "react";
+import MaintenanceContainer from "@/components/Tenant/maintenance/MaintenanceContainer";
 
 export default function page() {
-  return <div>page</div>;
+  return <MaintenanceContainer />;
 }

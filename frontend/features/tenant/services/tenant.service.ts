@@ -1,37 +1,19 @@
 import { axios } from "@/lib/api-client";
-import { TenantDashboardData } from "../types";
+
+import {
+  BillsResponse,
+  GetMyBillsParams,
+  GetTenantDormParams,
+  MaintenanceRequest,
+  TenantDashboardData,
+} from "../types";
+
 import {
   BillData,
   BillStatus,
   IBillDetail,
 } from "@/components/Tenant/bill/types";
-
-interface GetTenantDormParams {
-  dormId: string;
-  page?: number;
-  limit?: number;
-  search?: string;
-  status?: string;
-}
-
-export interface BillsResponse {
-  items: BillData[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  summary: {
-    totalPending: number;
-  };
-}
-
-interface GetMyBillsParams {
-  page?: number;
-  limit?: number;
-  year?: string;
-  status?: BillStatus | string;
-  month?: string;
-}
+import { create } from "domain";
 
 export const TenantService = {
   getTenantDorm: async ({
@@ -102,21 +84,6 @@ export const TenantService = {
     return res.data;
   },
 
-  getMyMaintenanceRequests: async () => {
-    const res = await axios.get(`/api/tenants/maintenance`);
-    return res.data;
-  },
-
-  createMaintenanceRequest: async (data: FormData) => {
-    const res = await axios.post(`/api/tenants/maintenance`, data, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    return res.data;
-  },
-
   getBillDetail: async (billId: string): Promise<IBillDetail> => {
     const res = await axios.get(`/api/tenants/bills/${billId}`);
     return res.data;
@@ -152,6 +119,21 @@ export const TenantService = {
 
     formData.append("file", file);
     const res = await axios.post(`/api/tenants/payment/upload-slip`, formData);
+    return res.data;
+  },
+
+  createMaintenance: async (formData: FormData) => {
+    const res = await axios.post("/api/tenants/maintenance", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return res.data;
+  },
+
+  getMyMaintenances: async (): Promise<MaintenanceRequest[]> => {
+    const res = await axios.get("/api/tenants/maintenance/history");
     return res.data;
   },
 };

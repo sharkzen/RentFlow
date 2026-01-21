@@ -29,5 +29,10 @@ export async function tenantRoute(app: FastifyInstance) {
     routeRoles.get("/bills/:billId/print", TenantController.printBillTenant);
     routeRoles.post("/payment/generate-qr", TenantController.generateQrPayment);
     routeRoles.post("/payment/upload-slip", TenantController.uploadSlip);
+    routeRoles.post("/maintenance", TenantController.createMaintenance);
+    routeRoles.get(
+      "/maintenance/history",
+      TenantController.getMyHistoryMaintenances,
+    );
   });
 }

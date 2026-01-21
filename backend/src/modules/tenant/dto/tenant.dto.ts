@@ -22,3 +22,14 @@ export type SlipApiErrorResponse = {
     };
   };
 };
+
+export interface CreateMaintenanceParams {
+  userId: string;
+  title: string;
+  description: string;
+  files?: Array<{
+    filename: string;
+    mimetype: string;
+    file: Buffer;
+  }>;
+}

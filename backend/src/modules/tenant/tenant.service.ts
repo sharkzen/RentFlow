@@ -28,9 +28,14 @@ import { uuidv4 } from "zod";
 import { deleteFile, generateSignedUrl, uploadFile } from "@/services/minio";
 import { env } from "@/config/env";
 import logger from "@/utils/logger";
-import { SlipApiErrorResponse, VerifiedPaymentData } from "./dto/tenant.dto";
+import {
+  CreateMaintenanceParams,
+  SlipApiErrorResponse,
+  VerifiedPaymentData,
+} from "./dto/tenant.dto";
 import { emailQueue } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
+import { randomUUID } from "crypto";
 
 interface GetTenantDormParams {
   dormId: string;
@@ -1426,5 +1431,113 @@ export const tenantService = {
     }
 
     return transactionResult;
+  },
+
+  createMaintenance: async ({
+    userId,
+    title,
+    description,
+    files,
+  }: CreateMaintenanceParams) => {
+    const tenant = await prisma.tenantProfile.findFirst({
+      where: {
+        userId: userId,
+        isActive: true,
+      },
+
+      include: {
+        room: true,
+      },
+    });
+
+    if (!tenant || !tenant.roomId || !tenant.room) {
+      throw new Error("TENANT_OR_ROOM_NOT_FOUND");
+    }
+
+    const validFiles = files ? files.slice(0, 2) : [];
+    const fileCreateData = [];
+
+    for (const f of validFiles) {
+      const ext = f.filename.split(".").pop();
+      const objectKey = `maintenance/${tenant.room.dormitoryId}/${randomUUID()}.${ext}`;
+      await uploadFile(f.file, objectKey, f.mimetype);
+
+      fileCreateData.push({
+        bucket: process.env.S3_BUCKET || "default-bucket",
+        category: FileCategory.MAINTENANCE,
+        objectKey: objectKey,
+        mimeType: f.mimetype,
+        size: f.file.length,
+        isCover: false,
+      });
+    }
+
+    const request = await prisma.maintenanceRequest.create({
+      data: {
+        title,
+        description,
+        status: MaintenanceStatus.OPEN,
+
+        dormitory: {
+          connect: {
+            id: tenant.room.dormitoryId,
+          },
+        },
+
+        room: {
+          connect: {
+            id: tenant.roomId,
+          },
+        },
+
+        tenant: {
+          connect: {
+            id: tenant.id,
+          },
+        },
+
+        images: {
+          create: fileCreateData,
+        },
+      },
+
+      include: {
+        images: true,
+      },
+    });
+
+    return request;
+  },
+
+  getMyMaintenances: async (userId: string) => {
+    const tenant = await prisma.tenantProfile.findFirst({
+      where: {
+        userId,
+      },
+    });
+
+    if (!tenant) return [];
+
+    const requests = await prisma.maintenanceRequest.findMany({
+      where: {
+        tenantId: tenant.id,
+      },
+
+      include: {
+        images: true,
+
+        room: {
+          select: {
+            roomNumber: true,
+          },
+        },
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return requests;
   },
 };
