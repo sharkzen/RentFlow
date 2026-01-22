@@ -10,7 +10,7 @@ import {
 import { generateSlug } from "@/lib/text";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { formatDistance, getDistance } from "@/utils/geo";
-import { Prisma, Status } from "@prisma/client";
+import { FileCategory, Prisma, Status } from "@prisma/client";
 import { shuffleArray } from "./lib/dorm.lib";
 import logger from "@/utils/logger";
 
@@ -275,6 +275,10 @@ export const dormService = {
         settings: true,
 
         images: {
+          where: {
+            category: FileCategory.DORMITORY,
+          },
+
           orderBy: [
             {
               isCover: "desc",
@@ -568,7 +572,17 @@ export const dormService = {
 
       include: {
         settings: true,
-        images: true,
+
+        images: {
+          where: {
+            category: FileCategory.DORMITORY,
+          },
+
+          orderBy: {
+            order: "asc",
+          },
+        },
+
         owner: true,
         paymentSetting: true,
       },

@@ -81,7 +81,6 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
             </p>
           </div>
           <hr className="border-gray-100" />
-
           <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-gray-700">
@@ -109,7 +108,6 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
               />
             </div>
           </div>
-
           <div>
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               รูปประกอบ (สูงสุด 2 รูป)
@@ -138,7 +136,6 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
                 className="hidden"
               />
             </div>
-
             {files.length > 0 && (
               <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
                 {files.map((file, index) => (
@@ -168,7 +165,6 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
               </div>
             )}
           </div>
-
           <div className="pt-2">
             <button
               type="submit"
@@ -180,7 +176,6 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
           </div>
         </div>
       </form>
-
       <ConfirmDialog
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}

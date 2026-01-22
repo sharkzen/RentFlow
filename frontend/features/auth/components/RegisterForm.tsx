@@ -140,7 +140,7 @@ export default function OwnerRegisterForm() {
   };
 
   return (
-    <div className="grid min-h-screen w-full bg-white md:grid-cols-2">
+    <div className="grid h-[calc(100vh-65px)] w-full bg-white md:grid-cols-2">
       <div className="relative hidden md:block">
         <img
           src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267"

@@ -34,5 +34,13 @@ export async function tenantRoute(app: FastifyInstance) {
       "/maintenance/history",
       TenantController.getMyHistoryMaintenances,
     );
+    routeRoles.patch(
+      "/maintenance/:requestId",
+      TenantController.updateMaintenance,
+    );
+    routeRoles.delete(
+      "/maintenance/:requestId",
+      TenantController.cancelMaintenance,
+    );
   });
 }

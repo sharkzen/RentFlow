@@ -18,6 +18,30 @@ interface GetMyBillsQuery {
   status?: string;
 }
 
+interface GetMaintenanceQuery {
+  page?: string;
+  limit?: string;
+  status?: string;
+  search?: string;
+}
+
+const getMultipartValue = (field: any): string => {
+  if (!field) return "";
+
+  if (typeof field === "string") return field;
+
+  if (field.value !== undefined) return String(field.value);
+
+  if (Array.isArray(field) && field.length > 0) {
+    const lastItem = field[field.length - 1];
+    return lastItem.value !== undefined
+      ? String(lastItem.value)
+      : String(lastItem);
+  }
+
+  return String(field);
+};
+
 export const TenantController = {
   getTenantDorm: async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -527,7 +551,9 @@ export const TenantController = {
   },
 
   getMyHistoryMaintenances: async (
-    request: FastifyRequest,
+    request: FastifyRequest<{
+      Querystring: GetMaintenanceQuery;
+    }>,
     reply: FastifyReply,
   ) => {
     try {
@@ -539,10 +565,117 @@ export const TenantController = {
         });
       }
 
-      const result = await tenantService.getMyMaintenances(user.sub);
+      const { page, limit, status, search } = request.query;
+
+      const result = await tenantService.getMyMaintenances(user.sub, {
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10,
+        status,
+        search,
+      });
+
       return reply.status(200).send(result);
     } catch (error) {
       logger.error(error);
+
+      return reply.status(500).send({
+        message: "Internal Server Error",
+      });
+    }
+  },
+
+  updateMaintenance: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      const { requestId } = request.params as {
+        requestId: string;
+      };
+
+      const body = (request.body as any) || {};
+      console.log("Raw Body:", body);
+      const deletedIdsRaw = body.deletedImageIds || body["deletedImageIds[]"];
+      let deletedImageIds: string[] | undefined;
+
+      if (deletedIdsRaw) {
+        if (Array.isArray(deletedIdsRaw)) {
+          deletedImageIds = deletedIdsRaw.map((item: any) =>
+            item.value !== undefined ? String(item.value) : String(item),
+          );
+        } else {
+          const val =
+            deletedIdsRaw.value !== undefined
+              ? String(deletedIdsRaw.value)
+              : String(deletedIdsRaw);
+          deletedImageIds = [val];
+        }
+      }
+
+      const imagesRaw = body.images || body["images[]"];
+      let images: any[] | undefined;
+
+      if (imagesRaw) {
+        images = Array.isArray(imagesRaw) ? imagesRaw : [imagesRaw];
+      }
+
+      const updateData = {
+        title: getMultipartValue(body.title),
+        description: getMultipartValue(body.description),
+        images: images,
+        deletedImageIds: deletedImageIds,
+      };
+
+      const result = await tenantService.updateMaintenance(
+        user.sub,
+        requestId,
+        updateData,
+      );
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      console.error("Update Error:", error);
+
+      if (error.message === "Maintenance request not found or not authorized") {
+        return reply.status(404).send({
+          message: error.message,
+        });
+      }
+
+      if (error.message === "Cannot edit request that is not OPEN") {
+        return reply.status(400).send({
+          message: error.message,
+        });
+      }
+
+      return reply.status(500).send({
+        message: "Internal Server Error",
+      });
+    }
+  },
+
+  cancelMaintenance: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      const { requestId } = request.params as {
+        requestId: string;
+      };
+
+      const result = await tenantService.cancelMaintenance(user.sub, requestId);
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      console.error(error);
+
+      if (error.message === "Maintenance request not found or not authorized") {
+        return reply.status(404).send({
+          message: error.message,
+        });
+      }
+
+      if (error.message === "Cannot cancel request that is not OPEN") {
+        return reply.status(400).send({
+          message: error.message,
+        });
+      }
 
       return reply.status(500).send({
         message: "Internal Server Error",

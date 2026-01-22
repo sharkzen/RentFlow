@@ -13,7 +13,11 @@ import {
   BillStatus,
   IBillDetail,
 } from "@/components/Tenant/bill/types";
-import { create } from "domain";
+
+export interface GetMaintenanceParams {
+  page?: number;
+  limit?: number;
+}
 
 export const TenantService = {
   getTenantDorm: async ({
@@ -132,8 +136,29 @@ export const TenantService = {
     return res.data;
   },
 
-  getMyMaintenances: async (): Promise<MaintenanceRequest[]> => {
-    const res = await axios.get("/api/tenants/maintenance/history");
+  getMyMaintenances: async (params?: GetMaintenanceParams) => {
+    const res = await axios.get("/api/tenants/maintenance/history", {
+      params: {
+        page: params?.page || 1,
+        limit: params?.limit || 10,
+      },
+    });
+
+    return res.data;
+  },
+
+  updateMaintenance: async (id: string, formData: FormData) => {
+    const res = await axios.patch(`/api/tenants/maintenance/${id}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return res.data;
+  },
+
+  cancelMaintenance: async (id: string) => {
+    const res = await axios.delete(`/api/tenants/maintenance/${id}`);
     return res.data;
   },
 };

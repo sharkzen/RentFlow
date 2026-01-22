@@ -46,6 +46,13 @@ interface GetTenantDormParams {
   status?: string;
 }
 
+interface GetMaintenanceQuery {
+  page?: string;
+  limit?: string;
+  status?: string;
+  search?: string;
+}
+
 interface GetBillsParams {
   userId: string;
   page?: number;
@@ -62,6 +69,20 @@ interface ProcessSlipParams {
   fileBuffer: Buffer;
   mimeType: string;
   fileName: string;
+}
+
+interface GetMaintenanceParams {
+  page: number;
+  limit: number;
+  status?: string;
+  search?: string;
+}
+
+interface UpdateMaintenanceData {
+  title?: string;
+  description?: string;
+  images?: any[];
+  deletedImageIds?: string | string[];
 }
 
 export const tenantService = {
@@ -1509,35 +1530,274 @@ export const tenantService = {
     return request;
   },
 
-  getMyMaintenances: async (userId: string) => {
+  getMyMaintenances: async (userId: string, params: GetMaintenanceParams) => {
+    const { page, limit, status, search } = params;
+
     const tenant = await prisma.tenantProfile.findFirst({
       where: {
         userId,
       },
     });
 
-    if (!tenant) return [];
+    if (!tenant)
+      return {
+        data: [],
 
-    const requests = await prisma.maintenanceRequest.findMany({
+        meta: {
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+        },
+      };
+
+    const whereCondition: any = {
+      tenantId: tenant.id,
+    };
+
+    if (status && status !== "ALL") {
+      whereCondition.status = status;
+    }
+
+    if (search) {
+      whereCondition.OR = [
+        {
+          title: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          description: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      ];
+    }
+
+    const [total, requests] = await Promise.all([
+      prisma.maintenanceRequest.count({
+        where: whereCondition,
+      }),
+      prisma.maintenanceRequest.findMany({
+        where: whereCondition,
+        skip: (page - 1) * limit,
+        take: limit,
+
+        include: {
+          images: true,
+
+          room: {
+            select: {
+              roomNumber: true,
+            },
+          },
+        },
+
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+    ]);
+
+    const dataWithUrls = await Promise.all(
+      requests.map(async (request) => {
+        const imagesWithUrls = await Promise.all(
+          request.images.map(async (image) => ({
+            ...image,
+            url: await generateSignedUrl(image.objectKey),
+          })),
+        );
+
+        return {
+          ...request,
+          images: imagesWithUrls,
+        };
+      }),
+    );
+
+    return {
+      data: dataWithUrls,
+
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  },
+
+  updateMaintenance: async (
+    userId: string,
+    requestId: string,
+    data: UpdateMaintenanceData,
+  ) => {
+    const tenant = await prisma.tenantProfile.findFirst({
       where: {
+        userId,
+      },
+    });
+
+    if (!tenant) throw new Error("Tenant not found");
+
+    const maintenanceRequest = await prisma.maintenanceRequest.findFirst({
+      where: {
+        id: requestId,
         tenantId: tenant.id,
       },
 
       include: {
         images: true,
-
-        room: {
-          select: {
-            roomNumber: true,
-          },
-        },
-      },
-
-      orderBy: {
-        createdAt: "desc",
       },
     });
 
-    return requests;
+    if (!maintenanceRequest) {
+      throw new Error("Maintenance request not found or not authorized");
+    }
+
+    if (maintenanceRequest.status !== "OPEN") {
+      throw new Error("Cannot edit request that is not OPEN");
+    }
+
+    if (data.deletedImageIds) {
+      const idsToDelete = Array.isArray(data.deletedImageIds)
+        ? data.deletedImageIds
+        : [data.deletedImageIds];
+
+      const imagesToDelete = await prisma.file.findMany({
+        where: {
+          id: {
+            in: idsToDelete,
+          },
+
+          maintenanceId: requestId,
+        },
+      });
+
+      for (const img of imagesToDelete) {
+        try {
+          if (img.objectKey) {
+            await deleteFile(img.objectKey);
+          }
+
+          await prisma.file.delete({
+            where: {
+              id: img.id,
+            },
+          });
+        } catch (err) {
+          console.error(`Failed to delete image ${img.id}:`, err);
+        }
+      }
+    }
+
+    if (data.images) {
+      const newFiles = Array.isArray(data.images) ? data.images : [data.images];
+
+      for (const file of newFiles) {
+        if (!file.filename) continue;
+
+        const fileBuffer = await file.toBuffer();
+        const ext = file.filename.split(".").pop();
+        const fileName = `${uuidv4()}.${ext}`;
+        const objectKey = `maintenance/${maintenanceRequest.dormitoryId}/${fileName}`;
+        await uploadFile(fileBuffer, objectKey, file.mimetype);
+
+        await prisma.file.create({
+          data: {
+            bucket: process.env.S3_BUCKET || "rentflow",
+            objectKey: objectKey,
+            mimeType: file.mimetype,
+            size: file.file.bytesRead || 0,
+            category: FileCategory.MAINTENANCE,
+            maintenanceId: requestId,
+            dormitoryId: maintenanceRequest.dormitoryId,
+            tenantId: tenant.id,
+          },
+        });
+      }
+    }
+
+    const updatedRequest = await prisma.maintenanceRequest.update({
+      where: {
+        id: requestId,
+      },
+
+      data: {
+        title: data.title,
+        description: data.description,
+      },
+
+      include: {
+        images: true,
+      },
+    });
+
+    return updatedRequest;
+  },
+
+  cancelMaintenance: async (userId: string, requestId: string) => {
+    const tenant = await prisma.tenantProfile.findFirst({
+      where: {
+        userId,
+      },
+    });
+
+    if (!tenant) throw new Error("Tenant not found");
+
+    const maintenanceRequest = await prisma.maintenanceRequest.findFirst({
+      where: {
+        id: requestId,
+        tenantId: tenant.id,
+      },
+    });
+
+    if (!maintenanceRequest) {
+      throw new Error("Maintenance request not found or not authorized");
+    }
+
+    if (maintenanceRequest.status !== "OPEN") {
+      throw new Error("Cannot cancel request that is not OPEN");
+    }
+
+    const attachedFiles = await prisma.file.findMany({
+      where: {
+        maintenanceId: requestId,
+      },
+    });
+
+    await Promise.all(
+      attachedFiles.map(async (file) => {
+        if (file.objectKey) {
+          try {
+            await deleteFile(file.objectKey);
+          } catch (err) {
+            console.error(
+              `Failed to delete file from S3: ${file.objectKey}`,
+              err,
+            );
+          }
+        }
+      }),
+    );
+
+    await prisma.$transaction([
+      prisma.file.deleteMany({
+        where: {
+          maintenanceId: requestId,
+        },
+      }),
+      prisma.maintenanceRequest.delete({
+        where: {
+          id: requestId,
+        },
+      }),
+    ]);
+
+    return {
+      message: "Maintenance request cancelled successfully",
+    };
   },
 };

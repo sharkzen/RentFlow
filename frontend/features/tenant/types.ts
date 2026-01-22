@@ -141,5 +141,6 @@ export interface MaintenanceRequest {
   images: {
     id: string;
     objectKey: string;
+    url: string;
   }[];
 }

@@ -9,14 +9,27 @@ import { Wrench, History } from "lucide-react";
 export default function MaintenanceContainer() {
   const [activeTab, setActiveTab] = useState<"create" | "history">("history");
   const [requests, setRequests] = useState<MaintenanceRequest[]>([]);
-  const [loading, setLoading] = useState(false);
 
-  const fetchHistory = async () => {
+  const [meta, setMeta] = useState({
+    page: 1,
+    limit: 5,
+    total: 0,
+    totalPages: 0,
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  const fetchHistory = async (page = 1) => {
     setLoading(true);
 
     try {
-      const data = await TenantService.getMyMaintenances();
-      setRequests(data);
+      const response: any = await TenantService.getMyMaintenances({
+        page: page,
+        limit: meta.limit,
+      });
+
+      setRequests(response.data);
+      setMeta(response.meta);
     } catch (error) {
       console.error("Failed to fetch history", error);
     } finally {
@@ -26,7 +39,7 @@ export default function MaintenanceContainer() {
 
   useEffect(() => {
     if (activeTab === "history") {
-      fetchHistory();
+      fetchHistory(1);
     }
   }, [activeTab]);
 
@@ -38,7 +51,6 @@ export default function MaintenanceContainer() {
           แจ้งปัญหาที่เกิดขึ้นภายในห้องพัก หรือติดตามสถานะการซ่อม
         </p>
       </div>
-
       <div className="mb-6 inline-flex w-full gap-5 rounded-xl bg-gray-100/80 p-1.5 sm:w-auto">
         <button
           onClick={() => setActiveTab("create")}
@@ -53,19 +65,19 @@ export default function MaintenanceContainer() {
         >
           <History className="h-4 w-4" />
           ประวัติการแจ้ง
-          {requests.length > 0 && (
-            <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] text-blue-700">
-              {requests.length}
-            </span>
-          )}
         </button>
       </div>
-
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
         {activeTab === "create" ? (
           <RequestForm onSuccess={() => setActiveTab("history")} />
         ) : (
-          <RequestHistory requests={requests} loading={loading} />
+          <RequestHistory
+            requests={requests}
+            meta={meta}
+            loading={loading}
+            onPageChange={fetchHistory}
+            onRefreshNeeded={() => fetchHistory(meta.page)}
+          />
         )}
       </div>
     </div>
