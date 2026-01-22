@@ -1,6 +1,11 @@
 
 minio-data/
 
+# build output
+dist/
+backend/dist/
+frontend/.next/
+node_modules/
 # docker volumes (เผื่อในอนาคต)
 *.volume/
 

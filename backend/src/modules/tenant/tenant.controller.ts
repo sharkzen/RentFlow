@@ -257,11 +257,6 @@ export const TenantController = {
             code: "ALREADY_MOVED_OUT",
             message: "This tenant has already moved out.",
           });
-        case "ALREADY_MOVED_OUT":
-          return reply.status(400).send({
-            code: "ALREADY_MOVED_OUT",
-            message: "This tenant has already moved out.",
-          });
         case "OUTSTANDING_BILLS_EXIST":
           return reply.status(400).send({
             code: "OUTSTANDING_BILLS_EXIST",

@@ -60,7 +60,7 @@ services:
   worker:
     build: ./backend
     container_name: rentflow-worker
-    command: npm run worker
+    command: npm run start:worker
     restart: unless-stopped
     depends_on:
       - redis

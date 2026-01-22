@@ -158,7 +158,6 @@ export default function MaintenanceDetailModal({
               <X className="h-5 w-5 text-gray-400 group-hover:text-gray-600" />
             </button>
           </div>
-
           <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto p-6">
             {isEditing ? (
               <form id="edit-form" onSubmit={handleSave} className="space-y-5">
@@ -330,7 +329,6 @@ export default function MaintenanceDetailModal({
               </div>
             )}
           </div>
-
           <div className="flex justify-end gap-3 border-t border-gray-100 bg-gray-50/50 px-6 py-4 backdrop-blur-sm">
             {isEditing ? (
               <>

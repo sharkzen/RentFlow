@@ -37,7 +37,6 @@ emailQueue.process(async (job) => {
       html,
     });
 
-    console.log(`✅ [Worker] Finished Job ${job.id}: Email sent.`);
     return Promise.resolve();
   } catch (error) {
     console.error(`❌ [Worker] Job ${job.id} Failed:`, error);

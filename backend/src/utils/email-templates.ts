@@ -1,4 +1,4 @@
-import { EmailType } from "@/queues/email.types";
+import { EmailType } from "../queues/email.types";
 
 const THEME = {
   primary: "#0f172a",
