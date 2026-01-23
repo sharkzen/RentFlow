@@ -8,33 +8,47 @@ export const updateOwnerSchema = z.object({
   phone: z
     .string()
     .trim()
-    .regex(
-      PHONE_REGEX,
-      "Invalid phone number format (must be 9-10 digits starting with 0)",
-    )
-    .optional(),
+    .optional()
+    .or(z.literal(""))
+    .refine((val) => !val || PHONE_REGEX.test(val), {
+      message:
+        "Invalid phone number format (must be 9-10 digits starting with 0)",
+    }),
 
   lineId: z
     .string()
     .trim()
     .max(50, "Line ID is too long")
-    .regex(
-      LINE_ID_REGEX,
-      "Line ID must contain only English letters, numbers, and @ . _ -",
-    )
-    .refine((val) => !/\s/.test(val), "Line ID must not contain spaces")
-    .optional(),
+    .optional()
+    .or(z.literal(""))
+    .refine((val) => !val || LINE_ID_REGEX.test(val), {
+      message:
+        "Line ID must contain only English letters, numbers, and @ . _ -",
+    })
+    .refine(
+      (val) => !val || !/\s/.test(val),
+      "Line ID must not contain spaces",
+    ),
 
   facebook: z
     .string()
     .trim()
-    .url("Invalid URL format")
-    .refine(
-      (url) => url.includes("facebook.com") || url.includes("fb.me"),
-      "URL must be from Facebook",
-    )
     .optional()
-    .or(z.literal("")),
+    .or(z.literal(""))
+    .refine((val) => {
+      if (!val) return true;
+
+      try {
+        const url = new URL(val);
+        return (
+          url.hostname.includes("facebook.com") ||
+          url.hostname.includes("fb.com") ||
+          url.hostname.includes("fb.me")
+        );
+      } catch {
+        return false;
+      }
+    }, "Invalid Facebook URL format"),
 });
 
 export type UpdateOwnerDto = z.infer<typeof updateOwnerSchema>;

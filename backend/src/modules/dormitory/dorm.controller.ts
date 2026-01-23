@@ -64,7 +64,11 @@ export const DormController = {
         message: "UNAUTHORIZED",
       });
 
-    const name = request.body as string;
+    const { name } = request.body as {
+      name: string;
+    };
+
+    logger.info(name);
 
     if (!name)
       return reply.status(400).send({
@@ -323,7 +327,7 @@ export const DormController = {
       const uploadedImages = await Promise.all(uploadPromises);
       return reply.send(uploadedImages);
     } catch (error: any) {
-      logger.error("UPLOAD ERROR:", error);
+      logger.error(`UPLOAD ERROR: ${error}`);
 
       return reply.status(500).send({
         message: "UPLOAD_FAILED",

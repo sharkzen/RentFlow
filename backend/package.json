@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev:server": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
-    "dev:worker": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/workers/email.worker.ts",
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:worker\"",
+    "dev:server": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register --watch src src/server.ts",
+    "dev:worker": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register --watch src src/workers/email.worker.ts",
+    "dev": "concurrently --kill-others \"npm run dev:server\" \"npm run dev:worker\"",
     "clean": "shx rm -rf dist",
     "prebuild": "npm run clean",
     "build:server": "esbuild src/server.ts --bundle --platform=node --external:argon2 --external:bull --external:sharp --external:figlet --outdir=dist",
@@ -17,7 +17,7 @@
     "start:server": "node dist/server.js",
     "start:worker": "node dist/workers/email.worker.js",
     "start": "concurrently \"npm run start:server\" \"npm run start:worker\""
-  },
+},
   "_moduleAliases": {
     "@": "dist"
   },

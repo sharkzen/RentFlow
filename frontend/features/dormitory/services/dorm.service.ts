@@ -34,7 +34,10 @@ export const DormService = {
   },
 
   createDrom: async (name: string) => {
-    const res = await axios.post(`/api/dorms`, name);
+    const res = await axios.post(`/api/dorms`, {
+      name,
+    });
+
     return res.data;
   },
 
@@ -63,12 +66,7 @@ export const DormService = {
       formData.append("files", file);
     });
 
-    const res = await axios.post(`/api/dorms/${dormId}/upload`, formData, {
-      headers: {
-        "Content-Type": undefined as any,
-      },
-    });
-
+    const res = await axios.post(`/api/dorms/${dormId}/upload`, formData);
     return res.data;
   },
 

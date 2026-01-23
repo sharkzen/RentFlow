@@ -246,8 +246,6 @@ export async function buildApp() {
   });
 
   await app.register(fastifyMultipart, {
-    attachFieldsToBody: true,
-
     limits: {
       fileSize: 5 * 1024 * 1024,
     },

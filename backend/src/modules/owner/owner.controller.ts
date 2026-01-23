@@ -32,6 +32,7 @@ export const OwnerController = {
     try {
       const user = request.user as UserDecodedDto;
       const body = request.body;
+      logger.info(body);
       const parseResult = updateOwnerSchema.safeParse(body);
 
       if (!parseResult.success) {
@@ -45,7 +46,7 @@ export const OwnerController = {
       const profile = await OwnerService.updateOwnerProfile(user, dto);
       return reply.status(200).send(profile);
     } catch (error: any) {
-      logger.error(`Update Owner Error [User: ${request.user?.sub}]:`, error);
+      logger.error(`Update Owner Error [User: ${request.user?.sub}]: ${error}`);
 
       if (error.message === "OWNER_NOT_FOUND") {
         return reply.status(404).send({
