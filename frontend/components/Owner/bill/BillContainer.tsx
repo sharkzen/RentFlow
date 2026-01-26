@@ -11,6 +11,7 @@ import { BillService } from "@/features/bill/services/bill.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Bill } from "@/features/bill/types";
 import log from "@/lib/logger";
+import { useSearchParams } from "next/navigation";
 
 export default function BillContainer() {
   const [dorms, setDorms] = useState<any[]>([]);
@@ -27,6 +28,8 @@ export default function BillContainer() {
   const LIMIT = 10;
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const filter = searchParams.get("filter");
 
   const statusOptions = [
     {
@@ -65,6 +68,10 @@ export default function BillContainer() {
     dorms.find((d) => d.id === selectedDorm)?.name || "เลือกหอพัก";
 
   useEffect(() => {
+    if (filter) {
+      setStatusFilter(filter);
+    }
+
     const fetchDorms = async () => {
       try {
         const res = await DormService.getDorm();
@@ -83,7 +90,7 @@ export default function BillContainer() {
     if (!selectedDorm) return;
 
     fetchBills();
-  }, [selectedDorm, statusFilter, selectedMonth, page]);
+  }, [selectedDorm, filter, statusFilter, selectedMonth, page]);
 
   useEffect(() => {
     setPage(1);

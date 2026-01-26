@@ -12,15 +12,48 @@ import { generateSlug } from "@/lib/text";
 
 export const authService = {
   async me(user: UserDecodedDto) {
-    const me = await prisma.user.findUnique({
+    const userData = await prisma.user.findUnique({
       where: {
         id: user.sub,
       },
+
+      include: {
+        ownerProfile: true,
+
+        tenantProfiles: {
+          where: {
+            isActive: true,
+          },
+
+          take: 1,
+
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
     });
 
-    if (!me) throw new Error("UNAUTHORIZED");
+    if (!userData) throw new Error("UNAUTHORIZED");
 
-    return me;
+    let fullName = "";
+
+    if (userData.role === "OWNER" && userData.ownerProfile) {
+      fullName = userData.ownerProfile.fullName;
+    } else if (
+      userData.role === "TENANT" &&
+      userData.tenantProfiles.length > 0
+    ) {
+      const profile = userData.tenantProfiles[0];
+      fullName = `${profile.firstName} ${profile.lastName}`;
+    } else if (userData.role === "ADMIN") {
+      fullName = "Administrator";
+    }
+
+    return {
+      ...userData,
+      fullName: fullName || userData.email,
+    };
   },
 
   async registerOwner(data: OwnerRegisterDto) {

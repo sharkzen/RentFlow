@@ -1,4 +1,5 @@
 import TenantNavbar from "@/components/Tenant/TenantNavbar";
+import TenantProvider from "./TenantProvider";
 
 export default function TenantLayout({
   children,
@@ -6,9 +7,11 @@ export default function TenantLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-white">
-      <TenantNavbar />
-      <main className="flex-1 overflow-hidden p-4 md:p-8">{children}</main>
-    </div>
+    <TenantProvider>
+      <div className="flex min-h-screen bg-white">
+        <TenantNavbar />
+        <main className="flex-1 overflow-hidden p-4 md:p-8">{children}</main>
+      </div>
+    </TenantProvider>
   );
 }

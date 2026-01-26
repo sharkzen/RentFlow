@@ -17,8 +17,8 @@ export default function Header() {
   const logoutMutation = useLogout();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
-  const initial = user?.email?.charAt(0).toUpperCase() || "U";
-  const username = user?.email?.split("@")[0] || "User";
+  const initial = user?.fullName?.charAt(0).toUpperCase() || "U";
+  const firstName = user?.fullName.trim().split(/\s+/)[0];
 
   useEffect(() => {
     const handleClickOutside = () => setDropdownOpen(false);
@@ -68,7 +68,7 @@ export default function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
         <Link
           href="/"
-          className="group flex items-center text-xl font-bold tracking-tight text-slate-900"
+          className="group flex items-center text-xl font-bold tracking-tight text-slate-900 max-sm:pl-[40px]"
         >
           Rent
           <span className="ml-1 bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
@@ -108,7 +108,7 @@ export default function Header() {
                       {initial}
                     </div>
                     <span className="hidden text-sm font-semibold text-slate-700 md:block">
-                      {username}
+                      {firstName}
                     </span>
                     <ChevronDown
                       size={14}

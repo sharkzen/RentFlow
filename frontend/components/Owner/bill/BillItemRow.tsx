@@ -97,6 +97,7 @@ export default function BillItemRow({
               </button>
             </div>
             <input
+              min={0}
               type="number"
               disabled={!item.isPrevEditable || isSubmitting}
               value={item.prevWater}
@@ -109,6 +110,7 @@ export default function BillItemRow({
               ล่าสุด
             </label>
             <input
+              min={0}
               type="number"
               placeholder="0"
               disabled={isSubmitting}
@@ -151,6 +153,7 @@ export default function BillItemRow({
               </button>
             </div>
             <input
+              min={0}
               type="number"
               disabled={!item.isPrevEditable || isSubmitting}
               value={item.prevElectric}
@@ -163,6 +166,7 @@ export default function BillItemRow({
               ล่าสุด
             </label>
             <input
+              min={0}
               type="number"
               placeholder="0"
               disabled={isSubmitting}
@@ -193,6 +197,7 @@ export default function BillItemRow({
             <Coins size={14} className="text-gray-400" />
           </div>
           <input
+            min={0}
             type="number"
             placeholder="ส่วนกลาง"
             disabled={isSubmitting}

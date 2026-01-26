@@ -229,6 +229,7 @@ export default function DormsDialog({
                     </Label>
                     <div className="relative">
                       <Input
+                        min={0}
                         type="number"
                         value={formData.roomPrice}
                         onChange={(e) =>
@@ -249,7 +250,7 @@ export default function DormsDialog({
                         updateField("description", e.target.value)
                       }
                       rows={4}
-                      className="h-24 w-full resize-none border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+                      className="h-40 w-full resize-none border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
                       placeholder="รายละเอียดเกี่ยวกับหอพัก..."
                     />
                   </div>
@@ -292,6 +293,7 @@ export default function DormsDialog({
                       ค่าไฟ (บาท/หน่วย)
                     </Label>
                     <Input
+                      min={0}
                       type="number"
                       value={formData.electricRate}
                       onChange={(e) =>
@@ -304,6 +306,7 @@ export default function DormsDialog({
                       ค่าน้ำ (บาท/หน่วย)
                     </Label>
                     <Input
+                      min={0}
                       type="number"
                       value={formData.waterRate}
                       onChange={(e) =>
@@ -344,6 +347,7 @@ export default function DormsDialog({
                   <div>
                     <Label icon={AlertCircle}>ค่าปรับล่าช้า (บาท/วัน)</Label>
                     <Input
+                      min={0}
                       type="number"
                       value={formData.lateFee}
                       onChange={(e) =>

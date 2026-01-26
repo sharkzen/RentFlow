@@ -121,9 +121,7 @@ export default function DashboardContainer() {
     <div className="min-h-screen">
       <div className="mb-8 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900">
-            ภาพรวมหอพัก <span className="text-blue-600">.</span>
-          </h1>
+          <h1 className="text-3xl font-extrabold text-gray-900">ภาพรวมหอพัก</h1>
           <p className="mt-2 text-gray-500">
             ดูสถิติ รายได้ และการแจ้งซ่อมแบบครบวงจร
           </p>

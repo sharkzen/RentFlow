@@ -11,6 +11,7 @@ import {
   X,
   ReceiptText,
   User2,
+  Menu,
 } from "lucide-react";
 
 import { usePathname } from "next/navigation";
@@ -62,14 +63,25 @@ export default function OwnerNavbar() {
     <>
       {!sidebarOpen && (
         <button
-          className="fixed top-11 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-r from-blue-600 to-cyan-500 text-white hover:cursor-pointer min-[960px]:hidden"
+          className="fixed top-3 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 min-[960px]:hidden"
           onClick={() => setSidebarOpen(true)}
+          aria-label="Open Menu"
         >
-          <ChevronRight size={35} />
+          <Menu size={24} />
         </button>
       )}
+      {sidebarOpen && (
+        <button
+          className="fixed top-3 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 min-[960px]:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close Menu"
+        >
+          <X size={24} />
+        </button>
+      )}
+
       <aside
-        className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} /* Desktop (>960px): ให้เป็น Sticky และเลื่อนกลับมาแสดงผลเสมอ */ min-[960px]:sticky min-[960px]:translate-x-0`}
+        className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} /* Desktop (>960px): Sticky */ min-[960px]:sticky min-[960px]:translate-x-0`}
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center gap-3 px-6 py-8">
@@ -82,12 +94,6 @@ export default function OwnerNavbar() {
               </h1>
               <p className="text-xs font-medium text-slate-400">Owner Panel</p>
             </div>
-            <button
-              className="ml-auto cursor-pointer p-2 text-gray-600 hover:text-gray-500 min-[960px]:hidden"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X />
-            </button>
           </div>
           <div className="scrollbar-thin scrollbar-thumb-gray-200 flex-1 overflow-y-auto px-4 py-4">
             <nav className="space-y-1">

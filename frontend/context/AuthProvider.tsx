@@ -22,7 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   setUser: () => {},
 });
 
-const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
+const PUBLIC_ROUTES = ["/", "/auth/login", "/auth/register"];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
