@@ -33,11 +33,6 @@ export default function OwnerNavbar() {
       href: "/owner/dorms",
     },
     {
-      name: "จัดการบิล",
-      icon: <ReceiptText size={20} />,
-      href: "/owner/bills",
-    },
-    {
       name: "จัดการห้องพัก",
       icon: <BedDoubleIcon size={20} />,
       href: "/owner/rooms",
@@ -48,7 +43,12 @@ export default function OwnerNavbar() {
       href: "/owner/tenants",
     },
     {
-      name: "แจ้งซ่อม",
+      name: "จัดการบิล",
+      icon: <ReceiptText size={20} />,
+      href: "/owner/bills",
+    },
+    {
+      name: "จัดการแจ้งซ่อม",
       icon: <Wrench size={20} />,
       href: "/owner/maintenance",
     },
@@ -79,7 +79,6 @@ export default function OwnerNavbar() {
           <X size={24} />
         </button>
       )}
-
       <aside
         className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} /* Desktop (>960px): Sticky */ min-[960px]:sticky min-[960px]:translate-x-0`}
       >

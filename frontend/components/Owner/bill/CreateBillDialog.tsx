@@ -247,10 +247,7 @@ export default function CreateBillDialog({
               disabled={isSubmitting}
               className="group cursor-pointer rounded-full bg-gray-50 p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <X
-                size={20}
-                className="transition-transform group-hover:rotate-90"
-              />
+              <X size={20} className="transition-transform" />
             </button>
           </div>
           <div className="border-t border-gray-50 bg-gray-50/50 px-4 py-2 sm:border-t-0 sm:bg-transparent sm:px-6 sm:pt-0 sm:pb-4">

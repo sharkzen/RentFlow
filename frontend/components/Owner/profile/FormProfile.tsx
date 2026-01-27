@@ -225,7 +225,7 @@ export default function FormProfile() {
               size={16}
               className="transition-transform group-hover:-rotate-12"
             />
-            แก้ไขข้อมูล
+            แก้ไข
           </button>
         )}
       </div>

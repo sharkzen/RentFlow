@@ -55,21 +55,17 @@ export default function DormSlugContainer() {
   if (loading || !dorm) return <DormSlugSkeleton />;
 
   return (
-    // ใช้สีพื้นหลังขาว clean ตัดกับ content เล็กน้อย
     <main className="min-h-screen bg-white pb-20">
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Slider แบบไร้ขอบมนเกินไป ให้ดู Modern */}
         <section className="mb-10 w-full overflow-hidden rounded-2xl bg-slate-50">
           <DormHeroSlider images={dorm.images} />
         </section>
 
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
-          {/* Main Content (Left) */}
           <div className="order-2 space-y-12 lg:order-1 lg:col-span-8">
             <DormContent data={dorm} />
 
-            {/* Map Section - Clean wrapper */}
-            <div className="rounded-2xl border border-slate-100 p-1">
+            <div className="rounded-2xl p-1">
               <DormMap
                 latitude={dorm.latitude}
                 longitude={dorm.longitude}
@@ -79,7 +75,6 @@ export default function DormSlugContainer() {
             </div>
           </div>
 
-          {/* Sidebar (Right) */}
           <div className="order-1 lg:order-2 lg:col-span-4">
             <div className="sticky top-24 z-10">
               <DormSidebar data={dorm} />

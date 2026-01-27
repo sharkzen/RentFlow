@@ -20,7 +20,7 @@ export const DormMap: React.FC<DormMapProps> = ({
     !(latitude === 0 && longitude === 0);
 
   return (
-    <div className="mt-8 border-t border-gray-100 pt-8">
+    <div className="">
       <h3 className="mb-4 flex items-center gap-2 text-xl font-bold text-gray-900">
         <MapPin className="text-red-500" />
         แผนที่และการเดินทาง
