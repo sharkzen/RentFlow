@@ -14,7 +14,7 @@ export default function RoomContainer() {
   const [dorms, setDorms] = useState<Dormitory[]>([]);
   const [rooms, setRooms] = useState<any[]>([]);
   const [floorFilter, setFloorFilter] = useState("");
-  const [selectedDormId, setSelectedDormId] = useState<string | null>(null);
+  const [selectedDormId, setSelectedDormId] = useState<string>("ALL");
   const [page, setPage] = useState(1);
 
   const [meta, setMeta] = useState({
@@ -25,24 +25,18 @@ export default function RoomContainer() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [typeFilter, setTypeFilter] = useState("ALL");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchDorms = useCallback(async () => {
     try {
       const data = await DormService.getDorm();
       setDorms(data);
-
-      if (data.length > 0 && !selectedDormId) {
-        setSelectedDormId(data[0].id);
-      }
     } catch (error) {
       log.error("Failed to fetch dorms", error);
     }
-  }, [selectedDormId]);
+  }, []);
 
   const fetchRooms = useCallback(async () => {
-    if (!selectedDormId) return;
-
     setIsLoading(true);
 
     try {
@@ -68,6 +62,12 @@ export default function RoomContainer() {
       setIsLoading(false);
     }
   }, [selectedDormId, search, statusFilter, typeFilter, page, floorFilter]);
+
+  const getSelectedDormName = () => {
+    if (selectedDormId === "ALL") return "ทั้งหมดทุกหอพัก";
+
+    return dorms.find((d) => d.id === selectedDormId)?.name ?? "เลือกหอพัก";
+  };
 
   useEffect(() => {
     setPage(1);
@@ -100,12 +100,11 @@ export default function RoomContainer() {
           <div className="relative w-full sm:w-64">
             <button
               onClick={() => setOpen((v) => !v)}
-              className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
+              className="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
             >
               <div className="flex flex-col items-start">
                 <span className="truncate font-semibold text-blue-600">
-                  {dorms.find((d) => d.id === selectedDormId)?.name ??
-                    "เลือกหอพัก"}
+                  {getSelectedDormName()}
                 </span>
               </div>
               <ChevronDown
@@ -115,6 +114,19 @@ export default function RoomContainer() {
             {open && (
               <div className="absolute top-full right-0 z-50 mt-2 max-h-60 w-full overflow-hidden overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5">
                 <div className="p-1">
+                  <button
+                    onClick={() => {
+                      setSelectedDormId("ALL");
+                      setOpen(false);
+                    }}
+                    className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition ${selectedDormId === "ALL" ? "bg-blue-50 font-medium text-blue-700" : "text-gray-700 hover:bg-gray-50"}`}
+                  >
+                    <span className="truncate">ทั้งหมดทุกหอพัก</span>
+                    {selectedDormId === "ALL" && (
+                      <Check className="h-4 w-4 text-blue-600" />
+                    )}
+                  </button>
+
                   {dorms.map((dorm) => {
                     const active = dorm.id === selectedDormId;
 
@@ -138,8 +150,13 @@ export default function RoomContainer() {
           </div>
           <div className="shrink-0">
             <CreateRoomWithDialog
-              dormId={selectedDormId}
-              dormName={dorms.find((d) => d.id === selectedDormId)?.name || ""}
+              dormId={selectedDormId === "ALL" ? undefined : selectedDormId}
+              dormName={
+                selectedDormId === "ALL"
+                  ? ""
+                  : dorms.find((d) => d.id === selectedDormId)?.name || ""
+              }
+              dorms={dorms}
               onSuccess={() => {
                 fetchRooms();
               }}

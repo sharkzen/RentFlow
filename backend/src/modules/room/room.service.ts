@@ -26,11 +26,16 @@ export const roomService = {
 
     if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
 
+    const dormitoryCondition: Prisma.DormitoryWhereInput = {
+      ownerId: owner.id,
+    };
+
+    if (dormId !== "ALL") {
+      dormitoryCondition.id = dormId;
+    }
+
     const where: Prisma.RoomWhereInput = {
-      dormitory: {
-        id: dormId,
-        ownerId: owner.id,
-      },
+      dormitory: dormitoryCondition,
     };
 
     if (search) {
@@ -54,7 +59,7 @@ export const roomService = {
     if (floor) {
       const floorNum = Number(floor);
 
-      if (!isNaN(floorNum)) {
+      if (!isNaN(floorNum) && floor !== "") {
         where.floor = floorNum;
       }
     }
@@ -68,7 +73,20 @@ export const roomService = {
         take: Number(limit),
         skip: Number(skip),
 
+        include: {
+          dormitory: {
+            select: {
+              name: true,
+            },
+          },
+        },
+
         orderBy: [
+          {
+            dormitory: {
+              name: "asc",
+            },
+          },
           {
             floor: "asc",
           },

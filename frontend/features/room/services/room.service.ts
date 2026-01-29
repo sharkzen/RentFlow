@@ -4,7 +4,7 @@ export type RoomStatusQuery = "AVAILABLE" | "OCCUPIED" | "MAINTENANCE" | "ALL";
 
 export const RoomService = {
   getRoomsByDormitory: async (
-    dormId: string,
+    dormId?: string,
     params?: {
       search?: string;
       status?: string;

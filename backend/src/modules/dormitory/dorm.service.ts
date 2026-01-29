@@ -881,12 +881,7 @@ export const dormService = {
 
     const now = new Date();
     const isAllYears = !yearStr || yearStr === "ALL";
-
-    let graphData: {
-      name: string;
-      total: number;
-      isCurrent?: boolean;
-    }[] = [];
+    let graphData: any[] = [];
 
     if (isAllYears) {
       const currentYear = now.getFullYear();
@@ -912,9 +907,7 @@ export const dormService = {
       const startYear = Math.min(currentYear - 4, firstBillYear);
       const yearMap: Record<string, number> = {};
 
-      for (let y = startYear; y <= currentYear; y++) {
-        yearMap[y.toString()] = 0;
-      }
+      for (let y = startYear; y <= currentYear; y++) yearMap[y.toString()] = 0;
 
       const bills = await prisma.bill.findMany({
         where: {
@@ -936,21 +929,15 @@ export const dormService = {
       bills.forEach((bill) => {
         const y = bill.billingMonth.getFullYear().toString();
 
-        if (yearMap[y] !== undefined) {
-          yearMap[y] += bill.total;
-        }
+        if (yearMap[y] !== undefined) yearMap[y] += bill.total;
       });
 
       graphData = Object.entries(yearMap)
-        .map(([yearKey, total]) => {
-          const buddhistYear = parseInt(yearKey) + 543;
-
-          return {
-            name: `${buddhistYear}`,
-            total,
-            isCurrent: yearKey === currentYear.toString(),
-          };
-        })
+        .map(([yearKey, total]) => ({
+          name: `${parseInt(yearKey) + 543}`,
+          total,
+          isCurrent: yearKey === currentYear.toString(),
+        }))
         .sort((a, b) => parseInt(a.name) - parseInt(b.name));
     } else {
       const selectedYear = parseInt(yearStr!);
@@ -980,9 +967,6 @@ export const dormService = {
             length: 12,
           },
           (_, i) => {
-            const mStart = new Date(selectedYear, i, 1);
-            const mEnd = new Date(selectedYear, i + 1, 0, 23, 59, 59, 999);
-
             return prisma.bill
               .aggregate({
                 where: {
@@ -990,8 +974,8 @@ export const dormService = {
                   status: "PAID",
 
                   billingMonth: {
-                    gte: mStart,
-                    lte: mEnd,
+                    gte: new Date(selectedYear, i, 1),
+                    lte: new Date(selectedYear, i + 1, 0, 23, 59, 59, 999),
                   },
                 },
 
@@ -1004,25 +988,18 @@ export const dormService = {
         ),
       );
 
-      graphData = monthlyData.map((total, index) => {
-        const monthIndex = index + 1;
-        const label = `${thaiMonths[index]} ${shortYearThai}`;
-
-        return {
-          name: label,
-          total: total,
-          isCurrent: selectedMonthInt
-            ? monthIndex === selectedMonthInt
-            : index === now.getMonth() && selectedYear === now.getFullYear(),
-        };
-      });
+      graphData = monthlyData.map((total, index) => ({
+        name: `${thaiMonths[index]} ${shortYearThai}`,
+        total,
+        isCurrent: selectedMonthInt
+          ? index + 1 === selectedMonthInt
+          : index === now.getMonth() && selectedYear === now.getFullYear(),
+      }));
     }
 
     let dateFilterForStats: any = {};
 
-    if (isAllYears) {
-      dateFilterForStats = {};
-    } else {
+    if (!isAllYears) {
       const year = parseInt(yearStr!);
 
       if (!monthStr || monthStr === "ALL") {
@@ -1047,6 +1024,7 @@ export const dormService = {
       billsPaid,
       billsPending,
       billsOverdue,
+      billsWaiting,
       maintTotal,
       maintOpen,
       maintInProgress,
@@ -1123,6 +1101,19 @@ export const dormService = {
 
         _count: true,
       }),
+      prisma.bill.aggregate({
+        where: {
+          ...baseBillWhere,
+          status: "WAITING_FOR_VERIFICATION",
+          billingMonth: dateFilterForStats,
+        },
+
+        _sum: {
+          total: true,
+        },
+
+        _count: true,
+      }),
       prisma.maintenanceRequest.count({
         where: {
           ...maintenanceWhere,
@@ -1178,6 +1169,11 @@ export const dormService = {
         overdue: {
           count: billsOverdue._count,
           amount: billsOverdue._sum.total ?? 0,
+        },
+
+        waiting: {
+          count: billsWaiting._count,
+          amount: billsWaiting._sum.total ?? 0,
         },
       },
 

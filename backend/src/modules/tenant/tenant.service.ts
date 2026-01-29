@@ -603,10 +603,10 @@ export const tenantService = {
 
       orderBy: [
         {
-          status: "asc",
+          billingMonth: "desc",
         },
         {
-          billingMonth: "desc",
+          createdAt: "desc",
         },
       ],
     });
@@ -1799,5 +1799,49 @@ export const tenantService = {
     return {
       message: "Maintenance request cancelled successfully",
     };
+  },
+
+  getTenantContractDetail: async (userId: string) => {
+    const tenant = await prisma.tenantProfile.findFirst({
+      where: {
+        userId: userId,
+        isActive: true,
+        deletedAt: null,
+      },
+
+      include: {
+        user: {
+          select: {
+            email: true,
+            status: true,
+          },
+        },
+
+        room: {
+          include: {
+            dormitory: {
+              include: {
+                settings: true,
+                paymentSetting: true,
+              },
+            },
+          },
+        },
+
+        bills: {
+          take: 1,
+
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
+    });
+
+    if (!tenant) {
+      throw new Error("TENANT_NOT_FOUND");
+    }
+
+    return tenant;
   },
 };

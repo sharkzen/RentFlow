@@ -144,3 +144,46 @@ export interface MaintenanceRequest {
     url: string;
   }[];
 }
+
+export interface TenantContractDetail {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  idCard: string;
+  roomPriceSnapshot: number;
+  securityDeposit: number;
+  advancePayment: number;
+  contractStartDate: string;
+  contractEndDate: string | null;
+  moveInDate: string;
+  isActive: boolean;
+  user: {
+    email: string;
+    status: string;
+  };
+  room: {
+    roomNumber: string;
+    floor: number;
+    type: "AIR" | "FAN";
+    basePrice: number;
+    dormitory: {
+      name: string;
+      address: string;
+      settings: {
+        waterRate: number;
+        electricRate: number;
+        commonFee: number;
+        dueDay: number;
+      };
+      paymentSetting: {
+        bankName: string;
+        bankAccount: string;
+        bankHolder: string;
+        promptPayValue: string;
+      };
+    };
+  };
+}

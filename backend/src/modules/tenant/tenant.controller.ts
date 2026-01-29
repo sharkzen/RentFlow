@@ -677,4 +677,33 @@ export const TenantController = {
       });
     }
   },
+
+  getContractDetail: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      if (!user || !user.sub) {
+        return reply.status(401).send({
+          message: "Unauthorized",
+        });
+      }
+
+      const result = await tenantService.getTenantContractDetail(user.sub);
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      request.log.error(error);
+
+      if (error.message === "TENANT_NOT_FOUND") {
+        return reply.status(404).send({
+          message: "tenant not found",
+        });
+      }
+
+      return reply.status(500).send({
+        message: "Internal Server Error",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
+    }
+  },
 };

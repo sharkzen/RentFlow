@@ -42,5 +42,6 @@ export async function tenantRoute(app: FastifyInstance) {
       "/maintenance/:requestId",
       TenantController.cancelMaintenance,
     );
+    routeRoles.get("/contract", TenantController.getContractDetail);
   });
 }

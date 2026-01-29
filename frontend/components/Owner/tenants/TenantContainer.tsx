@@ -136,19 +136,17 @@ export default function TenantContainer() {
           จัดการรายชื่อผู้เช่าในหอพัก
         </p>
       </div>
-      <div className="col-span-12 grid grid-cols-12 gap-3 md:col-span-8">
-        <div className="relative order-1 col-span-12 sm:col-span-4 md:order-1 md:col-span-3">
+      <div className="col-span-12 grid grid-cols-12 gap-3 md:col-span-12 lg:col-span-12 xl:gap-4">
+        <div className="relative col-span-6 md:col-span-3 lg:col-span-3">
           <div className="relative h-full">
             <button
               onClick={() => setIsDormDropdownOpen(!isDormDropdownOpen)}
-              className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border bg-white px-3 py-2.5 text-sm font-medium shadow-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:outline-none ${isDormDropdownOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+              className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium shadow-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:outline-none ${isDormDropdownOpen ? "border-indigo-500 bg-white text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"}`}
             >
               <div className="flex items-center gap-2 overflow-hidden">
                 <Building
                   size={18}
-                  className={
-                    isDormDropdownOpen ? "text-indigo-500" : "text-gray-400"
-                  }
+                  className={`shrink-0 ${isDormDropdownOpen ? "text-indigo-500" : "text-gray-400"}`}
                 />
                 <span className="truncate">{currentDormName}</span>
               </div>
@@ -160,10 +158,10 @@ export default function TenantContainer() {
             {isDormDropdownOpen && (
               <>
                 <div
-                  className="fixed inset-0 z-10 cursor-default"
+                  className="fixed inset-0 z-40 cursor-default"
                   onClick={() => setIsDormDropdownOpen(false)}
                 />
-                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-50 overflow-hidden rounded-lg border border-gray-100 bg-white p-1 shadow-lg ring-1 ring-black/5 duration-100">
+                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+6px)] left-0 z-50 w-full min-w-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white p-1 shadow-xl ring-1 ring-black/5 duration-100">
                   <div className="custom-scrollbar max-h-60 overflow-y-auto">
                     {dorms.map((dorm) => (
                       <button
@@ -172,7 +170,7 @@ export default function TenantContainer() {
                           setSelectedDorm(dorm.id);
                           setIsDormDropdownOpen(false);
                         }}
-                        className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${selectedDorm === dorm.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                        className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${selectedDorm === dorm.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
                       >
                         <span className="truncate pr-2">{dorm.name}</span>
                         {selectedDorm === dorm.id && (
@@ -189,27 +187,19 @@ export default function TenantContainer() {
             )}
           </div>
         </div>
-        <div className="relative order-3 col-span-12 sm:col-span-8 md:order-2 md:col-span-4">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ค้นหาชื่อ / ห้อง / เบอร์โทร"
-            className="w-full rounded-lg border border-gray-300 bg-white py-2.5 pr-4 pl-9 text-sm transition hover:border-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
-          />
-        </div>
-        <div className="relative order-4 col-span-12 sm:col-span-6 md:order-3 md:col-span-3">
+
+        <div className="relative col-span-6 md:col-span-3 lg:col-span-2">
           <div className="relative h-full">
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border bg-white px-3 py-2.5 text-sm font-medium shadow-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:outline-none ${isFilterOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+              className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium shadow-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:outline-none ${isFilterOpen ? "border-indigo-500 bg-white text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"}`}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 overflow-hidden">
                 <Filter
                   size={16}
-                  className={isFilterOpen ? "text-indigo-500" : "text-gray-400"}
+                  className={`shrink-0 ${isFilterOpen ? "text-indigo-500" : "text-gray-400"}`}
                 />
-                <span>{currentFilterLabel}</span>
+                <span className="truncate">{currentFilterLabel}</span>
               </div>
               <ChevronDown
                 size={16}
@@ -219,10 +209,10 @@ export default function TenantContainer() {
             {isFilterOpen && (
               <>
                 <div
-                  className="fixed inset-0 z-10 cursor-default"
+                  className="fixed inset-0 z-40 cursor-default"
                   onClick={() => setIsFilterOpen(false)}
                 />
-                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-45 rounded-lg border border-gray-100 bg-white p-1 shadow-lg ring-1 ring-black/5 duration-100">
+                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+6px)] right-0 z-50 w-full min-w-[180px] rounded-xl border border-gray-100 bg-white p-1 shadow-xl ring-1 ring-black/5 duration-100 md:right-auto md:left-0">
                   {filterOptions.map((option) => (
                     <button
                       key={option.value}
@@ -230,7 +220,7 @@ export default function TenantContainer() {
                         setFilterStatus(option.value);
                         setIsFilterOpen(false);
                       }}
-                      className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${filterStatus === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${filterStatus === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
                     >
                       <div>
                         <div className="flex items-center gap-2">
@@ -254,14 +244,24 @@ export default function TenantContainer() {
             )}
           </div>
         </div>
-        <div className="order-2 col-span-12 sm:col-span-6 md:order-4 md:col-span-2">
+
+        <div className="relative col-span-12 md:col-span-4 lg:col-span-5">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ค้นหาชื่อ / ห้อง / เบอร์โทร"
+            className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pr-4 pl-10 text-sm shadow-sm transition-all placeholder:text-gray-400 hover:border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+          />
+        </div>
+
+        <div className="col-span-12 md:col-span-2 lg:col-span-2">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-md transition hover:bg-indigo-700 hover:shadow-lg focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-md focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95"
           >
             <Plus className="h-5 w-5" />
-            <span className="hidden xl:inline">เพิ่มผู้เช่า</span>
-            <span className="inline xl:hidden">เพิ่ม</span>
+            <span>เพิ่มผู้เช่า</span>
           </button>
         </div>
       </div>

@@ -68,7 +68,7 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
               <Sparkles size={16} className="text-purple-400" /> ส่วนกลาง
             </span>
             <span className="font-medium text-slate-900">
-              {settings.commonFee || "ฟรี"}
+              {settings.commonFee || "-"}
             </span>
           </div>
         </div>

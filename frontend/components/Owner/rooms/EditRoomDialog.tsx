@@ -6,7 +6,6 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import {
   X,
   Save,
-  Pencil,
   Home,
   Layers,
   DollarSign,
@@ -27,6 +26,7 @@ import { toast } from "react-toastify";
 import { AxiosError } from "axios";
 import { showBackendError } from "@/lib/backendErrorMsg";
 import { useClickOutsideModal } from "@/lib/useClickOutsideModal";
+import { useScrollLock } from "usehooks-ts";
 import log from "@/lib/logger";
 
 enum RoomType {
@@ -42,6 +42,8 @@ enum RoomStatus {
 
 interface EditRoomProps {
   room: any;
+  isOpen: boolean;
+  onClose: () => void;
   onSuccess?: () => void;
 }
 
@@ -103,7 +105,10 @@ const CustomSelect = ({
       )}
       <button
         type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={(e) => {
+          e.stopPropagation();
+          !disabled && setIsOpen(!isOpen);
+        }}
         disabled={disabled}
         className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm transition-all outline-none ${icon ? "pl-10" : ""} ${disabled ? "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400" : isOpen ? "border-blue-500 bg-white ring-2 ring-blue-100" : "border-gray-200 bg-white hover:border-gray-300"}`}
       >
@@ -123,7 +128,8 @@ const CustomSelect = ({
                 <button
                   type="button"
                   disabled={option.disabled}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     onChange(option.value);
                     setIsOpen(false);
                   }}
@@ -144,9 +150,12 @@ const CustomSelect = ({
   );
 };
 
-export default function EditRoomDialog({ room, onSuccess }: EditRoomProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
+export default function EditRoomDialog({
+  room,
+  isOpen,
+  onClose,
+  onSuccess,
+}: EditRoomProps) {
   const {
     register,
     handleSubmit,
@@ -158,6 +167,7 @@ export default function EditRoomDialog({ room, onSuccess }: EditRoomProps) {
     formState: { errors, isSubmitting },
   } = useForm<EditFormData>();
 
+  console.log(room);
   const isOccupied = room?.status === RoomStatus.OCCUPIED;
 
   const typeOptions = [
@@ -205,8 +215,6 @@ export default function EditRoomDialog({ room, onSuccess }: EditRoomProps) {
     }
   }, [isOpen, room, reset]);
 
-  const toggleModal = () => setIsOpen(!isOpen);
-
   const onSubmit = async (data: EditFormData) => {
     const toastId = toast.loading("กำลังตรวจสอบและบันทึก...");
 
@@ -221,14 +229,14 @@ export default function EditRoomDialog({ room, onSuccess }: EditRoomProps) {
       await RoomService.updateRoom(room.id, payload);
 
       toast.update(toastId, {
-        render: "บันทึกข้อมูลเรียบร้อย ✅",
+        render: "บันทึกข้อมูลเรียบร้อย",
         type: "success",
         isLoading: false,
         autoClose: 3000,
         closeButton: true,
       });
 
-      setIsOpen(false);
+      onClose();
       onSuccess?.();
     } catch (error: any) {
       const err = error as AxiosError<{
@@ -245,7 +253,7 @@ export default function EditRoomDialog({ room, onSuccess }: EditRoomProps) {
       }
 
       toast.update(toastId, {
-        render: `❌ ${showBackendError(code)}`,
+        render: `${showBackendError(code)}`,
         type: "error",
         isLoading: false,
         autoClose: 4000,
@@ -256,7 +264,7 @@ export default function EditRoomDialog({ room, onSuccess }: EditRoomProps) {
 
   const { modalRef } = useClickOutsideModal({
     isOpen,
-    onClose: () => setIsOpen(false),
+    onClose: onClose,
   });
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -291,207 +299,218 @@ export default function EditRoomDialog({ room, onSuccess }: EditRoomProps) {
         },
       });
 
-      setIsOpen(false);
+      onClose();
       onSuccess?.();
     } catch (error) {
       log.error("Failed to delete room:", error);
     }
   };
 
+  if (!isOpen) return null;
+
+  useScrollLock();
+
   return (
     <>
-      <button
-        onClick={toggleModal}
-        className="group relative cursor-pointer rounded-lg bg-white p-2 text-gray-500 shadow-sm ring-1 ring-gray-200 transition-all hover:bg-blue-50 hover:text-blue-600 hover:ring-blue-200"
-        title="แก้ไขข้อมูลห้อง"
-      >
-        <Pencil className="h-4 w-4" />
-      </button>
-      {isOpen && (
-        <div className="fixed inset-0 z-999 flex items-center justify-center p-4 transition-all">
-          <div className="fixed inset-0 bg-black/20" aria-hidden="true" />
-          <div
-            ref={modalRef}
-            className="animate-in zoom-in-95 relative flex w-full max-w-lg flex-col rounded-xl border border-gray-200 bg-white shadow-lg duration-200"
-          >
-            <div className="flex items-center justify-between border-b border-gray-50 p-5">
-              <div>
-                <h3 className="text-lg font-bold text-gray-800">
-                  แก้ไขข้อมูลห้องพัก
-                </h3>
-                <p className="text-xs text-gray-500">
-                  ห้อง:{" "}
-                  <span className="font-semibold text-blue-600">
-                    {room.roomNumber}
-                  </span>
-                </p>
-              </div>
-              <button
-                onClick={toggleModal}
-                className="cursor-pointer rounded-full p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
+      <div className="fixed inset-0 z-999 flex items-center justify-center p-4 transition-all">
+        <div className="fixed inset-0 bg-black/20" aria-hidden="true" />
+        <div
+          ref={modalRef}
+          onClick={(e) => e.stopPropagation()}
+          className="animate-in zoom-in-95 relative flex w-full max-w-lg flex-col rounded-xl border border-gray-200 bg-white shadow-lg duration-200"
+        >
+          <div className="flex items-center justify-between border-b border-gray-50 p-5">
+            <div>
+              <h3 className="text-lg font-bold text-gray-800">
+                แก้ไขข้อมูลห้องพัก
+              </h3>
+              <p className="text-xs text-gray-500">
+                ชื่อหอ:{" "}
+                <span className="font-semibold text-blue-600">
+                  {room?.dormitory?.name || ""}
+                </span>
+              </p>
+              <p className="text-xs text-gray-500">
+                ห้อง:{" "}
+                <span className="font-semibold text-blue-600">
+                  {room.roomNumber}
+                </span>
+              </p>
             </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-              <div className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-600">
-                      ชั้น <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Layers className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
-                      <input
-                        {...register("floor", {
-                          required: true,
-                        })}
-                        className="w-full rounded-lg border border-gray-200 py-2 pr-3 pl-10 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        placeholder="ชั้น"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-600">
-                      เลขห้อง <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Home className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
-                      <input
-                        {...register("roomNumber", {
-                          required: true,
-                        })}
-                        className={`w-full rounded-lg border py-2 pr-3 pl-10 text-sm transition outline-none focus:ring-2 ${errors.roomNumber ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"}`}
-                        placeholder="เลขห้อง"
-                      />
-                    </div>
-                    {errors.roomNumber && (
-                      <span className="text-[10px] text-red-500">
-                        {errors.roomNumber.message || "กรุณาระบุเลขห้อง"}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-600">
-                      ประเภทห้อง
-                    </label>
-                    <CustomSelect
-                      value={watch("type")}
-                      onChange={(val) => setValue("type", val as RoomType)}
-                      options={typeOptions}
+            <button
+              onClick={onClose}
+              className="cursor-pointer rounded-full p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-600">
+                    ชั้น <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Layers className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
+                    <input
+                      type="number"
+                      {...register("floor", {
+                        required: true,
+                      })}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full rounded-lg border border-gray-200 py-2 pr-3 pl-10 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      placeholder="ชั้น"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-600">
-                      ราคา
-                    </label>
-                    <div className="relative">
-                      <DollarSign className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
-                      <input
-                        type="number"
-                        {...register("basePrice", {
-                          required: true,
-                          min: 0,
-                        })}
-                        className="w-full rounded-lg border border-gray-200 py-2 pr-3 pl-10 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
-                    สถานะห้อง
-                    {isOccupied && (
-                      <span className="flex items-center gap-1 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">
-                        <Lock className="h-3 w-3" />
-                        Locked
-                      </span>
-                    )}
-                  </div>
-                  <CustomSelect
-                    value={watch("status")}
-                    onChange={(val) => setValue("status", val as RoomStatus)}
-                    options={statusOptions}
-                    disabled={isOccupied}
-                    icon={<Activity className="h-4 w-4" />}
-                  />
-                  {isOccupied ? (
-                    <div className="mt-2 flex items-start gap-2 rounded-lg border border-yellow-100 bg-yellow-50/50 p-2.5 text-xs text-yellow-700">
-                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-500" />
-                      <p>
-                        ห้องนี้มีผู้เช่าอยู่ <b>ไม่สามารถเปลี่ยนสถานะได้</b>{" "}
-                        ต้องแจ้งย้ายออกในระบบก่อน
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-2 flex items-start gap-2 rounded-lg bg-gray-50 p-2.5 text-xs text-gray-500">
-                      <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                      <p>
-                        หากต้องการเปลี่ยนเป็น <b>"มีผู้เช่า"</b>{" "}
-                        กรุณาไปที่เมนูจัดการผู้เช่า
-                      </p>
-                    </div>
-                  )}
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-gray-600">
-                    รายละเอียดเพิ่มเติม
+                    เลขห้อง <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <FileText className="absolute top-3 left-3 h-4 w-4 text-gray-400" />
-                    <textarea
-                      {...register("description")}
-                      rows={3}
-                      className="w-full resize-none rounded-lg border border-gray-200 py-2 pr-3 pl-10 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                      placeholder="ระบุข้อมูลเพิ่มเติม..."
+                    <Home className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
+                    <input
+                      {...register("roomNumber", {
+                        required: true,
+                      })}
+                      onClick={(e) => e.stopPropagation()}
+                      className={`w-full rounded-lg border py-2 pr-3 pl-10 text-sm transition outline-none focus:ring-2 ${errors.roomNumber ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"}`}
+                      placeholder="เลขห้อง"
+                    />
+                  </div>
+                  {errors.roomNumber && (
+                    <span className="text-[10px] text-red-500">
+                      {errors.roomNumber.message || "กรุณาระบุเลขห้อง"}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-600">
+                    ประเภทห้อง
+                  </label>
+                  <CustomSelect
+                    value={watch("type")}
+                    onChange={(val) => setValue("type", val as RoomType)}
+                    options={typeOptions}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-600">
+                    ราคา
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
+                    <input
+                      type="number"
+                      {...register("basePrice", {
+                        required: true,
+                        min: 0,
+                      })}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full rounded-lg border border-gray-200 py-2 pr-3 pl-10 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     />
                   </div>
                 </div>
               </div>
-              <div className="mt-6 flex items-center justify-between border-t border-gray-50 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setIsConfirmOpen(true)}
-                  disabled={isSubmitting || isOccupied}
-                  className={`flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${isOccupied ? "cursor-not-allowed text-gray-300" : "text-red-500 hover:bg-red-50 hover:text-red-600"}`}
-                  title={
-                    isOccupied ? "ไม่สามารถลบห้องที่มีผู้เช่าได้" : "ลบห้องพัก"
-                  }
-                >
-                  <Trash2 className="h-4 w-4" />
-                  ลบห้องพัก
-                </button>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={toggleModal}
-                    disabled={isSubmitting}
-                    className="cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
-                  >
-                    ยกเลิก
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95 disabled:bg-blue-300 disabled:shadow-none"
-                  >
-                    {isSubmitting ? (
-                      "กำลังบันทึก..."
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4" />
-                        บันทึก
-                      </>
-                    )}
-                  </button>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
+                  สถานะห้อง
+                  {isOccupied && (
+                    <span className="flex items-center gap-1 rounded bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600">
+                      <Lock className="h-3 w-3" />
+                      Locked
+                    </span>
+                  )}
+                </div>
+                <CustomSelect
+                  value={watch("status")}
+                  onChange={(val) => setValue("status", val as RoomStatus)}
+                  options={statusOptions}
+                  disabled={isOccupied}
+                  icon={<Activity className="h-4 w-4" />}
+                />
+                {isOccupied ? (
+                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-yellow-100 bg-yellow-50/50 p-2.5 text-xs text-yellow-700">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-500" />
+                    <p>
+                      ห้องนี้มีผู้เช่าอยู่ <b>ไม่สามารถเปลี่ยนสถานะได้</b>{" "}
+                      ต้องแจ้งย้ายออกในระบบก่อน
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-2 flex items-start gap-2 rounded-lg bg-gray-50 p-2.5 text-xs text-gray-500">
+                    <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <p>
+                      หากต้องการเปลี่ยนเป็น <b>"มีผู้เช่า"</b>{" "}
+                      กรุณาไปที่เมนูจัดการผู้เช่า
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-600">
+                  รายละเอียดเพิ่มเติม
+                </label>
+                <div className="relative">
+                  <FileText className="absolute top-3 left-3 h-4 w-4 text-gray-400" />
+                  <textarea
+                    {...register("description")}
+                    rows={3}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full resize-none rounded-lg border border-gray-200 py-2 pr-3 pl-10 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    placeholder="ระบุข้อมูลเพิ่มเติม..."
+                  />
                 </div>
               </div>
-            </form>
-          </div>
+            </div>
+            <div className="mt-6 flex items-center justify-between border-t border-gray-50 pt-4">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsConfirmOpen(true);
+                }}
+                disabled={isSubmitting || isOccupied}
+                className={`flex cursor-pointer items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${isOccupied ? "cursor-not-allowed text-gray-300" : "text-red-500 hover:bg-red-50 hover:text-red-600"}`}
+                title={
+                  isOccupied ? "ไม่สามารถลบห้องที่มีผู้เช่าได้" : "ลบห้องพัก"
+                }
+              >
+                <Trash2 className="h-4 w-4" />
+                ลบห้องพัก
+              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={isSubmitting}
+                  className="cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95 disabled:bg-blue-300 disabled:shadow-none"
+                >
+                  {isSubmitting ? (
+                    "กำลังบันทึก..."
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      บันทึก
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
-      )}
+      </div>
       <ConfirmDialog
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}

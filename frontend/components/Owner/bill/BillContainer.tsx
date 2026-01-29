@@ -219,7 +219,7 @@ export default function BillContainer() {
     <div className="relative flex h-[calc(100dvh-2rem)] w-full flex-col gap-4">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-xl font-bold text-gray-800 sm:text-2xl">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             รายการบิลค่าเช่า
           </h1>
           <p className="text-xs text-gray-500 sm:text-sm">
@@ -234,7 +234,7 @@ export default function BillContainer() {
           />
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow active:scale-95"
+            className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 active:scale-95"
           >
             <Plus size={18} />
             <span>สร้างบิล</span>

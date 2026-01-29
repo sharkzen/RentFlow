@@ -66,7 +66,6 @@ export default function BillItemRow({
         <div className="absolute top-0 left-0 z-10 flex items-center justify-center rounded-tl-xl rounded-br-lg bg-slate-700 px-3 py-1.5 text-xs font-bold text-white shadow-sm">
           #{index + 1}
         </div>
-
         <div className="col-span-1 space-y-2 lg:col-span-3">
           <label className="text-xs font-bold text-gray-700 lg:hidden">
             เลือกห้องพัก
@@ -224,7 +223,6 @@ export default function BillItemRow({
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs transition-all outline-none placeholder:text-gray-300 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-100"
           />
         </div>
-
         <div className="col-span-1 flex justify-center lg:col-span-1 lg:flex lg:h-full lg:items-center lg:pt-0">
           <button
             onClick={() => onRemove(item.id)}

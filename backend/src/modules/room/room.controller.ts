@@ -36,6 +36,8 @@ export const RoomController = {
 
       return reply.send(result);
     } catch (error: any) {
+      logger.error(error);
+
       return reply.status(500).send({
         message: "INTERNAL_SERVER_ERROR",
       });

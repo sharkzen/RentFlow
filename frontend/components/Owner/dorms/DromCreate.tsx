@@ -58,7 +58,7 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="cursor-pointer rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
             type="button"
           >
             <X size={18} />

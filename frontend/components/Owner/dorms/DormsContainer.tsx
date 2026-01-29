@@ -46,13 +46,15 @@ export default function DormsContainer() {
             จัดการรายการหอพัก ข้อมูลราคา และสถานะการเผยแพร่
           </p>
         </div>
-        <button
-          onClick={() => setOnCreate(true)}
-          className="flex cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md active:scale-95"
-        >
-          <Plus size={18} strokeWidth={2.5} />
-          <span>เพิ่มหอพักใหม่</span>
-        </button>
+        <div className="flex max-sm:w-full max-sm:justify-end">
+          <button
+            onClick={() => setOnCreate(true)}
+            className="flex cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md active:scale-95"
+          >
+            <Plus size={18} strokeWidth={2.5} />
+            <span>เพิ่มหอพักใหม่</span>
+          </button>
+        </div>
       </div>
       {isLoading ? (
         <div className="flex h-64 items-center justify-center">
@@ -90,7 +92,6 @@ export default function DormsContainer() {
           dorm={selectedDorm}
           onClose={() => {
             handleCloseDialog();
-            refreshDorms();
           }}
           onEdit={refreshDorms}
         />

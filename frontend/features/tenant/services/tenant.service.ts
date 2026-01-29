@@ -161,4 +161,9 @@ export const TenantService = {
     const res = await axios.delete(`/api/tenants/maintenance/${id}`);
     return res.data;
   },
+
+  getContractDetail: async () => {
+    const response = await axios.get(`/api/tenants/contract`);
+    return response.data;
+  },
 };

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 
 import {
@@ -13,6 +13,7 @@ import {
   Layers,
   ChevronDown,
   Check,
+  Search,
 } from "lucide-react";
 
 import { RoomService } from "@/features/room/services/room.service";
@@ -21,6 +22,7 @@ import log from "@/lib/logger";
 import { AxiosError } from "axios";
 import { showBackendError } from "@/lib/backendErrorMsg";
 import { useClickOutsideModal } from "@/lib/useClickOutsideModal";
+import { Dormitory } from "@/features/dormitory";
 
 enum RoomType {
   AIR = "AIR",
@@ -109,6 +111,106 @@ const RoomTypeDropdown = ({ value, onChange }: RoomTypeDropdownProps) => {
   );
 };
 
+interface DormSelectorProps {
+  dorms: Dormitory[];
+  value: string;
+  onChange: (value: string) => void;
+  error?: boolean;
+}
+
+const DormSelector = ({ dorms, value, onChange, error }: DormSelectorProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const filteredDorms = useMemo(() => {
+    return dorms.filter((d) =>
+      d.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+  }, [dorms, searchTerm]);
+
+  const selectedDorm = dorms.find((d) => d.id === value);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-full sm:w-72" ref={containerRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none ${error ? "border-red-300 ring-red-100 focus:border-red-500" : isOpen ? "border-blue-500 ring-2 ring-blue-100" : "border-gray-200 hover:bg-gray-50"}`}
+      >
+        <span
+          className={`truncate ${selectedDorm ? "font-medium text-slate-800" : "text-slate-500"}`}
+        >
+          {selectedDorm ? selectedDorm.name : "-- เลือกหอพัก --"}
+        </span>
+        <ChevronDown
+          className={`ml-2 h-4 w-4 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {isOpen && (
+        <div className="animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-1 w-full min-w-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5">
+          <div className="border-b border-gray-100 p-2">
+            <div className="relative">
+              <Search className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="ค้นหาชื่อหอ..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pr-3 pl-8 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <div className="custom-scrollbar max-h-60 overflow-y-auto p-1">
+            {filteredDorms.length === 0 ? (
+              <div className="py-3 text-center text-xs text-gray-400">
+                ไม่พบข้อมูล
+              </div>
+            ) : (
+              filteredDorms.map((dorm) => {
+                const isSelected = dorm.id === value;
+
+                return (
+                  <button
+                    key={dorm.id}
+                    type="button"
+                    onClick={() => {
+                      onChange(dorm.id);
+                      setIsOpen(false);
+                      setSearchTerm("");
+                    }}
+                    className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${isSelected ? "bg-blue-50 font-medium text-blue-700" : "text-slate-700 hover:bg-slate-50"}`}
+                  >
+                    <span className="truncate">{dorm.name}</span>
+                    {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface RoomFormItem {
   floor: string;
   roomNumber: string;
@@ -118,12 +220,14 @@ interface RoomFormItem {
 }
 
 interface RoomFormValues {
+  targetDormId?: string;
   rooms: RoomFormItem[];
 }
 
 interface CreateRoomProps {
-  dormId: string | null;
-  dormName: string;
+  dormId?: string;
+  dormName?: string;
+  dorms?: Dormitory[];
   onSuccess?: () => void;
   onClose?: () => void;
 }
@@ -131,6 +235,7 @@ interface CreateRoomProps {
 export default function CreateRoomWithDialog({
   dormId,
   dormName,
+  dorms = [],
   onSuccess,
 }: CreateRoomProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -142,10 +247,13 @@ export default function CreateRoomWithDialog({
     reset,
     watch,
     setValue,
+    trigger,
 
     formState: { errors, isSubmitting },
   } = useForm<RoomFormValues>({
     defaultValues: {
+      targetDormId: dormId || "",
+
       rooms: [
         {
           floor: "",
@@ -158,19 +266,22 @@ export default function CreateRoomWithDialog({
     },
   });
 
+  useEffect(() => {
+    if (dormId) {
+      setValue("targetDormId", dormId);
+    }
+  }, [dormId, setValue]);
+
   const { fields, append, remove } = useFieldArray({
     control,
     name: "rooms",
   });
 
   const toggleModal = () => {
-    if (!dormId) {
-      alert("กรุณาเลือกหอพักก่อนสร้างห้อง");
-      return;
-    }
-
     if (isOpen) {
       reset({
+        targetDormId: dormId || "",
+
         rooms: [
           {
             floor: "",
@@ -200,13 +311,18 @@ export default function CreateRoomWithDialog({
   };
 
   const onSubmit = async (data: RoomFormValues) => {
-    if (!dormId) return;
+    const finalDormId = dormId || data.targetDormId;
+
+    if (!finalDormId) {
+      toast.error("กรุณาเลือกหอพักที่จะสร้างห้อง");
+      return;
+    }
 
     const toastId = toast.loading("กำลังบันทึกข้อมูล...");
 
     try {
       const payload = {
-        dormitoryId: dormId,
+        dormitoryId: finalDormId,
 
         rooms: data.rooms.map((r) => ({
           floor: r.floor,
@@ -281,8 +397,7 @@ export default function CreateRoomWithDialog({
       <div className="my-2 flex justify-end">
         <button
           onClick={toggleModal}
-          disabled={!dormId}
-          className={`flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-all active:scale-95 ${!dormId ? "cursor-not-allowed bg-gray-400 opacity-70" : "cursor-pointer bg-linear-to-r from-blue-600 to-blue-500 shadow-blue-200 hover:from-blue-700 hover:to-blue-600 hover:shadow-lg"}`}
+          className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-5 py-2.5 text-sm font-semibold text-white shadow-blue-200 transition-all hover:from-blue-700 hover:to-blue-600 hover:shadow-lg active:scale-95 max-sm:w-full`}
         >
           <Plus className="h-5 w-5" />
           <span>สร้างห้องพัก</span>
@@ -292,24 +407,51 @@ export default function CreateRoomWithDialog({
         <div className="fixed inset-0 z-999 flex items-center justify-center overflow-hidden bg-black/60 p-4 transition-all">
           <div
             ref={modalRef}
-            className="flex h-[85vh] w-full max-w-5xl flex-col rounded-xl bg-white shadow-2xl"
+            className="relative flex h-[85vh] w-full max-w-5xl flex-col rounded-xl bg-white shadow-2xl"
           >
-            <div className="flex items-center justify-between border-b border-slate-100 p-6 pb-4">
+            <div className="flex flex-col gap-4 border-b border-slate-100 p-6 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-xl font-bold text-slate-800">
                   จัดการห้องพัก
                 </h3>
-                <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
-                  <Home className="h-3 w-3" />
-                  หอพัก:{" "}
-                  <span className="font-semibold text-blue-600">
-                    {dormName}
-                  </span>
+                <div className="mt-2 flex flex-col gap-2 text-sm text-slate-500 sm:mt-1 sm:flex-row sm:items-center">
+                  <div className="flex items-center gap-1">
+                    <Home className="h-3.5 w-3.5" />
+                    <span className="whitespace-nowrap">หอพัก:</span>
+                  </div>
+                  {dormId ? (
+                    <span className="font-semibold text-blue-600">
+                      {dormName}
+                    </span>
+                  ) : (
+                    <div className="w-full sm:ml-2">
+                      <input
+                        type="hidden"
+                        {...register("targetDormId", {
+                          required: true,
+                        })}
+                      />
+                      <DormSelector
+                        dorms={dorms}
+                        value={watch("targetDormId") || ""}
+                        onChange={(val) => {
+                          setValue("targetDormId", val);
+                          trigger("targetDormId");
+                        }}
+                        error={!!errors.targetDormId}
+                      />
+                      {errors.targetDormId && (
+                        <div className="mt-1 text-xs text-red-500">
+                          * กรุณาเลือกหอพัก
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               <button
                 onClick={toggleModal}
-                className="cursor-pointer rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                className="absolute top-4 right-4 cursor-pointer rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 sm:static"
               >
                 <X className="h-6 w-6" />
               </button>
