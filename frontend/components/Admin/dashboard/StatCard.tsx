@@ -34,7 +34,6 @@ export const StatCard = ({
           <Icon className="h-6 w-6" />
         </div>
       </div>
-
       <div
         className={`absolute -top-6 -right-6 h-24 w-24 rounded-full opacity-10 ${colorClass}`}
       />

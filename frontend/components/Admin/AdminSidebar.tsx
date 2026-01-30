@@ -64,7 +64,6 @@ export default function AdminSidebar() {
           <Menu size={24} />
         </button>
       )}
-
       {sidebarOpen && (
         <button
           className="fixed top-4 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-indigo-600 lg:hidden"
@@ -74,7 +73,6 @@ export default function AdminSidebar() {
           <X size={24} />
         </button>
       )}
-
       <aside
         className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} /* Desktop (>960px): Sticky */ min-[960px]:sticky min-[960px]:translate-x-0`}
       >
@@ -91,7 +89,6 @@ export default function AdminSidebar() {
             </p>
           </div>
         </div>
-
         <div className="scrollbar-thin scrollbar-thumb-gray-200 flex flex-1 flex-col overflow-y-auto px-4 py-6">
           <p className="mb-2 px-4 text-xs font-bold tracking-wider text-slate-400 uppercase">
             เมนูหลัก
@@ -121,7 +118,6 @@ export default function AdminSidebar() {
           </nav>
         </div>
       </aside>
-
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm lg:hidden"

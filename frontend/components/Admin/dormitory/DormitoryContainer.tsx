@@ -188,7 +188,6 @@ export default function DormitoryContainer() {
           รีเฟรช
         </button>
       </div>
-
       <div className="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:grid-cols-4">
         <div className="relative md:col-span-2">
           <Search className="absolute top-2.5 left-3 text-gray-400" size={18} />
@@ -230,7 +229,6 @@ export default function DormitoryContainer() {
           </select>
         </div>
       </div>
-
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -354,7 +352,6 @@ export default function DormitoryContainer() {
             </tbody>
           </table>
         </div>
-
         <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
           <p className="text-sm text-gray-600">
             แสดง {data.length > 0 ? (page - 1) * 10 + 1 : 0}ถึง{" "}
@@ -378,7 +375,6 @@ export default function DormitoryContainer() {
           </div>
         </div>
       </div>
-
       <DormitoryDetailModal
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}

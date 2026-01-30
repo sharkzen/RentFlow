@@ -42,7 +42,6 @@ export default function ApprovalDetailModal({
         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-
       <div className="animate-in fade-in zoom-in-95 relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl duration-200">
         <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-6 py-4">
           <div>
@@ -58,7 +57,6 @@ export default function ApprovalDetailModal({
             <X size={24} />
           </button>
         </div>
-
         <div className="flex-1 overflow-y-auto p-6">
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div className="space-y-6">
@@ -126,7 +124,6 @@ export default function ApprovalDetailModal({
                 </div>
               </div>
             </div>
-
             <div className="space-y-4">
               <h5 className="flex items-center gap-2 text-lg font-bold text-gray-900">
                 <Building className="text-blue-600" />
@@ -185,7 +182,6 @@ export default function ApprovalDetailModal({
             </div>
           </div>
         </div>
-
         <div className="flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50 p-6">
           <button
             onClick={onReject}

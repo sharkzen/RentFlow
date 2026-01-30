@@ -141,7 +141,6 @@ export default function ApprovalContainer() {
             จัดการคำขอสมัครสมาชิกและตรวจสอบข้อมูลหอพัก
           </p>
         </div>
-
         <div className="relative w-full md:w-72">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <Search className="h-4 w-4 text-gray-400" />
@@ -155,7 +154,6 @@ export default function ApprovalContainer() {
           />
         </div>
       </div>
-
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         {loading ? (
           <div className="flex h-64 items-center justify-center">
@@ -278,7 +276,6 @@ export default function ApprovalContainer() {
                 </tbody>
               </table>
             </div>
-
             <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-6 py-4">
               <p className="text-sm text-gray-500">
                 แสดง{" "}
@@ -314,7 +311,6 @@ export default function ApprovalContainer() {
           </>
         )}
       </div>
-
       <ApprovalDetailModal
         data={selectedItem}
         isOpen={!!selectedItem}
@@ -322,7 +318,6 @@ export default function ApprovalContainer() {
         onApprove={() => selectedItem && openApproveConfirm(selectedItem)}
         onReject={() => selectedItem && openRejectConfirm(selectedItem)}
       />
-
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
         onClose={() =>

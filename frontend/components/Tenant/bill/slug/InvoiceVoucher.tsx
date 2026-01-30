@@ -1,6 +1,6 @@
 "use client";
 import React, { forwardRef } from "react";
-import { format } from "date-fns";
+import { format, differenceInCalendarDays } from "date-fns";
 import { th } from "date-fns/locale";
 import { IBillDetail } from "../types";
 import Image from "next/image";
@@ -39,7 +39,20 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
     const isPaid = status === "PAID";
     const isCancel = status === "CANCELLED";
 
-    const formatDateThai = (date: string) => {
+    const getDaysLate = () => {
+      if (lateFeeSnapshot > 0) {
+        return Math.floor(lateFeeSnapshot / 10);
+      }
+
+      const today = new Date();
+      const due = new Date(dueDate);
+      const diff = differenceInCalendarDays(today, due);
+      return diff > 0 ? diff : 0;
+    };
+
+    const daysLate = getDaysLate();
+
+    const formatDateThai = (date: string | Date) => {
       const d = new Date(date);
       const buddhistYear = d.getFullYear() + 543;
 
@@ -87,9 +100,9 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
             <div className="text-sm text-slate-500">
               วันที่:{" "}
               <span className="font-bold text-slate-900">
-                {format(new Date(), "d MMMM", {
+                {format(new Date(), "d MMMM ", {
                   locale: th,
-                })}{" "}
+                })}
                 {new Date().getFullYear() + 543}
               </span>
             </div>
@@ -117,10 +130,16 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
             <div className="text-sm text-slate-700">
               รอบบิลเดือน:{" "}
               <span className="font-bold">
-                {format(new Date(billingMonth), "MMMM ", {
-                  locale: th,
-                })}{" "}
-                {new Date().getFullYear() + 543}
+                {(() => {
+                  const bDate = new Date(billingMonth);
+
+                  return (
+                    format(bDate, "MMMM ", {
+                      locale: th,
+                    }) +
+                    (bDate.getFullYear() + 543)
+                  );
+                })()}
               </span>
             </div>
             <div className="mt-1 text-sm font-bold text-red-600">
@@ -160,6 +179,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   {formatMoney(roomPriceSnapshot)}
                 </td>
               </tr>
+
               <tr>
                 <td className="px-3 py-4">
                   <div className="font-semibold text-slate-900">
@@ -208,10 +228,18 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   </td>
                 </tr>
               )}
+
               {lateFeeSnapshot > 0 && (
                 <tr>
-                  <td className="px-3 py-4 font-semibold text-red-600">
-                    ค่าปรับล่าช้า
+                  <td className="px-3 py-4">
+                    <div className="font-semibold text-red-600">
+                      ค่าปรับล่าช้า
+                    </div>
+                    {daysLate > 0 && (
+                      <div className="text-xs text-slate-500">
+                        (ค้างชำระ {daysLate}วัน)
+                      </div>
+                    )}
                   </td>
                   <td className="px-3 py-4 text-center">-</td>
                   <td className="px-3 py-4 text-right">-</td>
@@ -237,6 +265,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
               * ราคานี้รวมภาษีมูลค่าเพิ่มแล้ว (หากมี)
             </div>
           </div>
+
           <div className="mt-12 flex items-end justify-between border-t border-slate-100 pt-10">
             <div className="max-w-95 text-sm leading-relaxed text-slate-500">
               <span className="mb-1 block font-bold text-slate-700 italic">
@@ -252,7 +281,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   <div className="absolute -top-5 left-1/2 -translate-x-1/2 opacity-80 print:opacity-100">
                     <Image
                       src="/images/Paid.png"
-                      alt="Paid Stamp"
+                      alt="Paid"
                       width={100}
                       height={100}
                     />
@@ -262,7 +291,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 rotate-[-13deg] opacity-80 print:opacity-100">
                     <Image
                       src="/images/Cancel.png"
-                      alt="Cancel Stamp"
+                      alt="Cancel"
                       width={200}
                       height={200}
                     />

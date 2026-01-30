@@ -85,6 +85,22 @@ interface UpdateMaintenanceData {
   deletedImageIds?: string | string[];
 }
 
+const diffInDays = (date1: Date, date2: Date) => {
+  const diffTime = date1.getTime() - date2.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays > 0 ? diffDays : 0;
+};
+
+const formatThaiDate = (
+  date: Date | string,
+  options: Intl.DateTimeFormatOptions,
+) => {
+  return new Intl.DateTimeFormat("th-TH", {
+    ...options,
+    year: "numeric",
+  }).format(new Date(date));
+};
+
 export const tenantService = {
   getTenantDorm: async ({
     dormId,
@@ -560,7 +576,7 @@ export const tenantService = {
   getDashboardStats: async (userId: string) => {
     const tenant = await prisma.tenantProfile.findFirst({
       where: {
-        userId: userId,
+        userId,
         isActive: true,
         deletedAt: null,
       },
@@ -569,8 +585,8 @@ export const tenantService = {
         room: {
           include: {
             dormitory: {
-              select: {
-                name: true,
+              include: {
+                settings: true,
 
                 owner: {
                   select: {
@@ -587,11 +603,9 @@ export const tenantService = {
       },
     });
 
-    if (!tenant || !tenant.room) {
-      throw new Error("TENANT_NOT_FOUND_OR_NO_ROOM");
-    }
+    if (!tenant || !tenant.room) throw new Error("TENANT_NOT_FOUND_OR_NO_ROOM");
 
-    const latestBill = await prisma.bill.findFirst({
+    let latestBill = await prisma.bill.findFirst({
       where: {
         tenantId: tenant.id,
         roomId: tenant.room.id,
@@ -610,6 +624,53 @@ export const tenantService = {
         },
       ],
     });
+
+    if (
+      latestBill &&
+      latestBill.status !== "PAID" &&
+      latestBill.status !== "CANCELLED"
+    ) {
+      const today = new Date();
+      const dueDate = new Date(latestBill.dueDate);
+
+      if (today > dueDate) {
+        const dailyRate = tenant.room.dormitory.settings?.lateFee || 0;
+        const startDate = new Date(
+          dueDate.getFullYear(),
+          dueDate.getMonth(),
+          dueDate.getDate(),
+        );
+        const endDate = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate(),
+        );
+        const daysLate = Math.floor(
+          (endDate.getTime() - startDate.getTime()) / 86400000,
+        );
+        const calculatedLateFee = daysLate * dailyRate;
+
+        if (calculatedLateFee > latestBill.lateFeeSnapshot) {
+          const feeDifference = calculatedLateFee - latestBill.lateFeeSnapshot;
+
+          latestBill = await prisma.bill.update({
+            where: {
+              id: latestBill.id,
+            },
+
+            data: {
+              lateFeeSnapshot: calculatedLateFee,
+
+              total: {
+                increment: feeDifference,
+              },
+
+              status: "OVERDUE",
+            },
+          });
+        }
+      }
+    }
 
     const maintenanceStats = await prisma.maintenanceRequest.groupBy({
       by: ["status"],
@@ -799,6 +860,7 @@ export const tenantService = {
             dormitory: {
               include: {
                 paymentSetting: true,
+                settings: true,
 
                 owner: {
                   select: {
@@ -825,24 +887,65 @@ export const tenantService = {
       },
     });
 
-    if (!bill) {
-      throw new Error("BILL_NOT_FOUND");
-    }
+    if (!bill) throw new Error("BILL_NOT_FOUND");
 
-    if (bill.tenant.userId !== userId) {
-      throw new Error("FORBIDDEN_ACCESS");
+    if (bill.tenant.userId !== userId) throw new Error("FORBIDDEN_ACCESS");
+
+    const today = new Date();
+    const dueDate = new Date(bill.dueDate);
+
+    if (
+      bill.status !== "PAID" &&
+      bill.status !== "CANCELLED" &&
+      today > dueDate
+    ) {
+      const dailyRate = bill.room.dormitory.settings?.lateFee || 0;
+      const startDate = new Date(
+        dueDate.getFullYear(),
+        dueDate.getMonth(),
+        dueDate.getDate(),
+      );
+      const endDate = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+      );
+      const daysLate = Math.floor(
+        (endDate.getTime() - startDate.getTime()) / 86400000,
+      );
+      const calculatedLateFee = daysLate * dailyRate;
+
+      if (calculatedLateFee > bill.lateFeeSnapshot) {
+        const feeDifference = calculatedLateFee - bill.lateFeeSnapshot;
+
+        const updated = await prisma.bill.update({
+          where: {
+            id: billId,
+          },
+
+          data: {
+            lateFeeSnapshot: calculatedLateFee,
+
+            total: {
+              increment: feeDifference,
+            },
+
+            status: "OVERDUE",
+          },
+        });
+
+        bill.lateFeeSnapshot = updated.lateFeeSnapshot;
+        bill.total = updated.total;
+        bill.status = updated.status;
+      }
     }
 
     if (bill.payment && bill.payment.slips.length > 0) {
       const slipsWithUrls = await Promise.all(
-        bill.payment.slips.map(async (slip) => {
-          const signedUrl = await generateSignedUrl(slip.objectKey);
-
-          return {
-            ...slip,
-            url: signedUrl,
-          };
-        }),
+        bill.payment.slips.map(async (slip) => ({
+          ...slip,
+          url: await generateSignedUrl(slip.objectKey),
+        })),
       );
 
       (bill.payment as any).slips = slipsWithUrls;
@@ -855,6 +958,33 @@ export const tenantService = {
     const bill = await tenantService.getBillById(userId, billId);
 
     if (!bill) throw new Error("BILL_NOT_FOUND");
+
+    const today = new Date();
+    const dueDate = new Date(bill.dueDate);
+    const startDatePdf = new Date(
+      dueDate.getFullYear(),
+      dueDate.getMonth(),
+      dueDate.getDate(),
+    );
+    const endDatePdf = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const daysLate = Math.floor(
+      (endDatePdf.getTime() - startDatePdf.getTime()) / 86400000,
+    );
+    const finalDaysLate = daysLate > 0 ? daysLate : 0;
+
+    const formatThaiDate = (
+      date: Date | string,
+      options: Intl.DateTimeFormatOptions,
+    ) => {
+      return new Intl.DateTimeFormat("th-TH", {
+        ...options,
+        year: "numeric",
+      }).format(new Date(date));
+    };
 
     const getBase64Image = (fileName: string) => {
       try {
@@ -882,11 +1012,12 @@ export const tenantService = {
             margin: 0;
             padding: 0;
             background-color: white;
-            color: #1e293b; /* slate-800 */
+            color: #1e293b;
+            -webkit-print-color-adjust: exact; /* สำคัญ: ทำให้สีแสดงผลใน PDF */
           }
           .container {
             width: 210mm;
-            height: 297mm;
+            height: 296mm; /* ลดลงเล็กน้อยป้องกันหน้าว่าง */
             padding: 15mm;
             box-sizing: border-box;
             display: flex;
@@ -897,42 +1028,21 @@ export const tenantService = {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 2px solid #0f172a; /* border-slate-900 */
+            border-bottom: 2px solid #0f172a;
             padding: 20px 0;
           }
-          .header-left h1 {
-            font-size: 24px;
-            margin: 0;
-            color: #0f172a;
-            line-height: 1.2;
-          }
-          .header-left p {
-            font-size: 14px;
-            color: #475569; /* slate-600 */
-            margin: 8px 0 0 0;
-            line-height: 1.5;
-          }
+          .header-left h1 { font-size: 24px; margin: 0; color: #0f172a; line-height: 1.2; }
+          .header-left p { font-size: 14px; color: #475569; margin: 8px 0 0; line-height: 1.5; }
           .header-right { text-align: right; }
           .title { font-size: 24px; font-weight: 800; margin: 0; color: #0f172a; }
           .subtitle { font-size: 18px; font-weight: 700; color: #334155; text-transform: uppercase; }
           .info-text { font-size: 14px; color: #64748b; margin-top: 12px; }
           .info-val { font-weight: 700; color: #0f172a; }
 
-          .tenant-section {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 32px;
-            gap: 48px;
-          }
+          .tenant-section { display: flex; justify-content: space-between; margin-top: 32px; gap: 48px; }
           .section-title {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #64748b;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 4px;
-            margin-bottom: 8px;
-            letter-spacing: 0.05em;
+            font-size: 12px; font-weight: 700; text-transform: uppercase; color: #64748b;
+            border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px;
           }
           .tenant-name { font-size: 20px; font-weight: 700; }
           .room-label { font-size: 14px; color: #475569; margin-top: 8px; }
@@ -941,12 +1051,9 @@ export const tenantService = {
           .table-container { flex: 1; margin-top: 32px; }
           table { width: 100%; border-collapse: collapse; font-size: 14px; }
           th {
-            background-color: #f1f5f9; /* slate-100 */
-            padding: 16px 12px;
-            text-align: left;
-            font-weight: 700;
-            border-top: 1px solid #0f172a;
-            border-bottom: 1px solid #0f172a;
+            background-color: #f1f5f9;
+            padding: 16px 12px; text-align: left; font-weight: 700;
+            border-top: 1px solid #0f172a; border-bottom: 1px solid #0f172a;
           }
           td { padding: 16px 12px; border-bottom: 1px solid #e2e8f0; }
           .text-center { text-align: center; }
@@ -954,24 +1061,14 @@ export const tenantService = {
           .font-bold { font-weight: 700; }
           .unit-detail { font-size: 12px; color: #64748b; margin-top: 4px; }
 
-          .footer { margin-top: 24px; border-top: 2px solid #0f172a; pt-16px; }
-          .total-row {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 48px;
-            margin-top: 16px;
-          }
+          .footer { margin-top: 24px; border-top: 2px solid #0f172a; padding-top: 16px; }
+          .total-row { display: flex; justify-content: flex-end; align-items: center; gap: 48px; margin-top: 16px; }
           .total-label { font-size: 18px; font-weight: 500; color: #475569; }
           .total-amount { font-size: 36px; font-weight: 900; color: #0f172a; }
 
           .signature-section {
-            margin-top: 48px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-top: 1px solid #f1f5f9;
-            padding-top: 40px;
+            margin-top: 48px; display: flex; justify-content: space-between; align-items: flex-end;
+            border-top: 1px solid #f1f5f9; padding-top: 40px;
           }
           .note { width: 60%; font-size: 14px; color: #64748b; line-height: 1.6; }
           .note-title { font-weight: 700; color: #334155; font-style: italic; }
@@ -982,12 +1079,8 @@ export const tenantService = {
           .sig-sub { font-size: 10px; color: #94a3b8; }
 
           .stamp {
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            pointer-events: none;
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 10; pointer-events: none;
           }
           .stamp-paid { width: 100px; opacity: 0.8; }
           .stamp-cancel { width: 200px; transform: translate(-50%, -50%) rotate(-13deg); opacity: 0.8; }
@@ -1004,7 +1097,13 @@ export const tenantService = {
               <div class="title">${bill.status === "PAID" ? "ใบเสร็จรับเงิน" : "ใบแจ้งหนี้"}</div>
               <div class="subtitle">${bill.status === "PAID" ? "(Receipt)" : "(Invoice)"}</div>
               <div class="info-text text-right">เลขที่: <span class="info-val">#${bill.id.slice(0, 10).toUpperCase()}</span></div>
-              <div class="info-text text-right">วันที่: <span class="info-val">${formatLongDate(new Date())}</span></div>
+              <div class="info-text text-right">วันที่: <span class="info-val">${formatThaiDate(
+                new Date(),
+                {
+                  day: "numeric",
+                  month: "long",
+                },
+              )}</span></div>
             </div>
           </div>
 
@@ -1016,14 +1115,18 @@ export const tenantService = {
             </div>
             <div class="text-right" style="min-width: 200px;">
               <div class="section-title">รายละเอียด (Reference)</div>
-              <div class="info-text" style="color:#334155;">รอบบิลเดือน: <span class="font-bold">${new Intl.DateTimeFormat(
-                "th-TH",
-                {
+              <div class="info-text" style="color:#334155;">รอบบิลเดือน: <span class="font-bold">
+                ${formatThaiDate(bill.billingMonth, {
                   month: "long",
-                  year: "numeric",
+                })}
+              </span></div>
+              <div class="info-text font-bold" style="color: #dc2626; margin-top: 4px;">กำหนดชำระ: ${formatThaiDate(
+                bill.dueDate,
+                {
+                  day: "numeric",
+                  month: "short",
                 },
-              ).format(new Date(bill.billingMonth))}</span></div>
-              <div class="info-text font-bold" style="color: #dc2626; margin-top: 4px;">กำหนดชำระ: ${formatDate(bill.dueDate)}</div>
+              )}</div>
             </div>
           </div>
 
@@ -1077,7 +1180,9 @@ export const tenantService = {
                   bill.lateFeeSnapshot > 0
                     ? `
                 <tr>
-                  <td class="font-bold" style="color: #dc2626;">ค่าปรับล่าช้า</td>
+                  <td class="font-bold" style="color: #dc2626;">
+                    ค่าปรับล่าช้า ${daysLate > 0 ? `(ค้างชำระ ${finalDaysLate} วัน)` : ""}
+                  </td>
                   <td class="text-center">-</td>
                   <td class="text-right">-</td>
                   <td class="text-right font-bold" style="color: #dc2626;">${formatMoney(bill.lateFeeSnapshot)}</td>
@@ -1098,7 +1203,7 @@ export const tenantService = {
             <div class="signature-section">
               <div class="note">
                 <span class="note-title">หมายเหตุ:</span><br>
-                ${bill.status !== "PAID" ? "กรุณาตรวจสอบรายการและชำระเงินตามกำหนดเวลาที่ระบุไว้ข้างต้น" : "ขอบคุณที่ใช้บริการ เอกสารฉบับนี้ถือเป็นหลักฐานการรับเงินที่สมบูรณ์"}
+                ${bill.status !== "PAID" ? "กรุณาตรวจสอบรายการและชำระเงินตามกำหนดเวลาที่ระบุไว้ข้างต้น (ค่าปรับคำนวณรายวัน)" : "ขอบคุณที่ใช้บริการ เอกสารฉบับนี้ถือเป็นหลักฐานการรับเงินที่สมบูรณ์"}
               </div>
               <div class="signature-box">
                 <div class="sig-line">
@@ -1126,6 +1231,8 @@ export const tenantService = {
       waitUntil: "networkidle0",
     });
 
+    await page.evaluateHandle("document.fonts.ready");
+
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
@@ -1143,34 +1250,7 @@ export const tenantService = {
   },
 
   generatePromptPayQR: async (userId: string, billId: string) => {
-    const bill = await prisma.bill.findUnique({
-      where: {
-        id: billId,
-      },
-
-      include: {
-        tenant: true,
-
-        room: {
-          include: {
-            dormitory: {
-              include: {
-                paymentSetting: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!bill) {
-      throw new Error("BILL_NOT_FOUND");
-    }
-
-    if (bill.tenant.userId !== userId) {
-      throw new Error("FORBIDDEN_ACCESS");
-    }
-
+    const bill = await tenantService.getBillById(userId, billId);
     const paymentSetting = bill.room.dormitory.paymentSetting;
 
     if (

@@ -1,6 +1,14 @@
 import { TenantContractDetail } from "@/features/tenant";
 
 export const DormitoryCard = ({ tenant }: { tenant: TenantContractDetail }) => {
+  if (!tenant || !tenant.room) {
+    return (
+      <div className="rounded-3xl bg-slate-50 p-8 text-center text-slate-400">
+        ไม่พบข้อมูลการเช่า
+      </div>
+    );
+  }
+
   const { dormitory } = tenant.room;
 
   const { paymentSetting } = dormitory;
@@ -25,7 +33,7 @@ export const DormitoryCard = ({ tenant }: { tenant: TenantContractDetail }) => {
               ค่าเช่ารายเดือน
             </p>
             <p className="text-2xl font-black">
-              ฿{tenant.roomPriceSnapshot.toLocaleString()}
+              ฿{(tenant.roomPriceSnapshot ?? 0).toLocaleString()}
             </p>
           </div>
         </div>
@@ -35,18 +43,24 @@ export const DormitoryCard = ({ tenant }: { tenant: TenantContractDetail }) => {
           ช่องทางการชำระเงิน
         </h4>
         <div className="flex flex-wrap gap-4">
-          <div className="min-w-60 flex-1 rounded-2xl border-2 border-dashed border-slate-200 p-4">
-            <p className="text-xs font-bold text-slate-400 uppercase">
-              {paymentSetting.bankName}
+          {paymentSetting ? (
+            <div className="min-w-60 flex-1 rounded-2xl border-2 border-dashed border-slate-200 p-4">
+              <p className="text-xs font-bold text-slate-400 uppercase">
+                {paymentSetting.bankName || "ไม่ระบุธนาคาร"}
+              </p>
+              <p className="text-lg font-black text-slate-800">
+                {paymentSetting.bankAccount || "-"}
+              </p>
+              <p className="text-sm text-slate-500">
+                {paymentSetting.bankHolder || "-"}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400">
+              ไม่ได้ตั้งค่าช่องทางชำระเงิน
             </p>
-            <p className="text-lg font-black text-slate-800">
-              {paymentSetting.bankAccount}
-            </p>
-            <p className="text-sm text-slate-500">
-              {paymentSetting.bankHolder}
-            </p>
-          </div>
-          {paymentSetting.promptPayValue && (
+          )}
+          {paymentSetting?.promptPayValue && (
             <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-5 py-4">
               <div className="h-8 w-8 rounded bg-blue-900 p-1.5 text-[10px] leading-none font-bold text-white">
                 Prompt Pay

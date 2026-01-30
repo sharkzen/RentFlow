@@ -112,6 +112,14 @@ export const billService = {
       items.map(async (bill) => {
         if (!bill.payment || !bill.payment.slips.length) return bill;
 
+        const today = new Date();
+
+        if (bill.status === "PENDING" && today > new Date(bill.dueDate)) {
+          bill.status = "OVERDUE" as any;
+        }
+
+        if (!bill.payment || !bill.payment.slips.length) return bill;
+
         const slipsWithUrl = await Promise.all(
           bill.payment.slips.map(async (file) => ({
             ...file,
@@ -235,7 +243,7 @@ export const billService = {
       const electricRate = dormSettings.electricRate;
       const waterFee = waterUsed * waterRate;
       const electricFee = electricUsed * electricRate;
-      const roomPrice = tenant.roomPriceSnapshot || room.basePrice;
+      const roomPrice = room.basePrice;
       const total = roomPrice + waterFee + electricFee + Number(item.commonFee);
       const dueDate = new Date(saveDate);
       dueDate.setDate(dormSettings.dueDay);

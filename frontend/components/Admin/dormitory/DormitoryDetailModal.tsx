@@ -122,7 +122,6 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
         className="fixed inset-0 bg-black/60 transition-opacity"
         onClick={onClose}
       />
-
       <div className="animate-in fade-in zoom-in-95 relative flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-xl duration-200">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div>
@@ -151,7 +150,6 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
             <X size={24} />
           </button>
         </div>
-
         <div className="flex-1 overflow-y-auto bg-gray-50/50 p-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div className="lg:col-span-8">
@@ -168,7 +166,6 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                         alt={`View ${currentImageIndex}`}
                         className="h-full w-full object-contain"
                       />
-
                       {validImages.length > 1 && (
                         <>
                           <button
@@ -191,7 +188,6 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                           </button>
                         </>
                       )}
-
                       {validImages[currentImageIndex].isCover && (
                         <span className="absolute top-3 left-3 rounded-md bg-blue-600 px-2 py-1 text-xs font-semibold text-white shadow-sm">
                           รูปปก
@@ -201,7 +197,6 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                         {currentImageIndex + 1}/ {validImages.length}
                       </span>
                     </div>
-
                     <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-2">
                       {validImages.map((img, idx) => (
                         <button
@@ -225,7 +220,6 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                   </div>
                 )}
               </div>
-
               <DormMap
                 latitude={data.latitude}
                 longitude={data.longitude}
@@ -233,7 +227,6 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                 address={data.address}
               />
             </div>
-
             <div className="space-y-6 lg:col-span-4">
               <div className="rounded-xl border border-gray-200 bg-white p-5">
                 <h3 className="mb-4 border-b border-gray-100 pb-2 text-base font-bold text-gray-900">
@@ -263,7 +256,6 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                   </div>
                 </div>
               </div>
-
               <div className="rounded-xl border border-gray-200 bg-white p-5">
                 <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-gray-900">
                   <User size={18} className="text-blue-600" />
