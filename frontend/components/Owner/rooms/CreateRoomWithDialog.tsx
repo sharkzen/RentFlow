@@ -161,7 +161,6 @@ const DormSelector = ({ dorms, value, onChange, error }: DormSelectorProps) => {
           className={`ml-2 h-4 w-4 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-
       {isOpen && (
         <div className="animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-1 w-full min-w-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5">
           <div className="border-b border-gray-100 p-2">
@@ -177,7 +176,6 @@ const DormSelector = ({ dorms, value, onChange, error }: DormSelectorProps) => {
               />
             </div>
           </div>
-
           <div className="custom-scrollbar max-h-60 overflow-y-auto p-1">
             {filteredDorms.length === 0 ? (
               <div className="py-3 text-center text-xs text-gray-400">

@@ -116,7 +116,6 @@ export default function MonthYearPicker({
           </div>
         )}
       </div>
-
       <div className="relative h-10 w-full sm:w-28" ref={yearRef}>
         <button
           type="button"

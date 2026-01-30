@@ -25,7 +25,6 @@ export const FinancialCard = ({ tenant }: { tenant: TenantContractDetail }) => {
             </p>
           </div>
         </div>
-
         <div className="flex items-center gap-4 rounded-2xl bg-amber-50/50 p-4 ring-1 ring-amber-100">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500 text-white">
             <Zap size={24} />

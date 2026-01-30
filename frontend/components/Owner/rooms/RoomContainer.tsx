@@ -126,7 +126,6 @@ export default function RoomContainer() {
                       <Check className="h-4 w-4 text-blue-600" />
                     )}
                   </button>
-
                   {dorms.map((dorm) => {
                     const active = dorm.id === selectedDormId;
 

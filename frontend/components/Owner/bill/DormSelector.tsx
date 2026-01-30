@@ -68,7 +68,6 @@ export default function DormSelector({ dorms, selectedDorm, onSelect }: Props) {
           className={`shrink-0 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180 text-indigo-600" : ""}`}
         />
       </button>
-
       {isOpen && (
         <div className="animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-2 w-full min-w-[240px] origin-top-right overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 md:right-0 md:left-auto">
           <div className="border-b border-gray-100 p-2">
@@ -92,7 +91,6 @@ export default function DormSelector({ dorms, selectedDorm, onSelect }: Props) {
               )}
             </div>
           </div>
-
           <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent max-h-[240px] overflow-y-auto p-1">
             {filteredDorms.length === 0 ? (
               <div className="py-8 text-center text-sm text-gray-400">
@@ -120,7 +118,6 @@ export default function DormSelector({ dorms, selectedDorm, onSelect }: Props) {
               })
             )}
           </div>
-
           <div className="border-t border-gray-100 bg-gray-50 px-3 py-2 text-[10px] text-gray-400">
             แสดง {filteredDorms.length}จาก {dorms.length}หอพัก
           </div>

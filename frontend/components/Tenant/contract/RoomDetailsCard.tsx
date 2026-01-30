@@ -12,7 +12,6 @@ export const RoomDetailsCard = ({ room }: { room: any }) => {
             <p className="text-xs font-bold tracking-wider text-gray-500 uppercase">
               หมายเลขห้อง
             </p>
-
             <p className="text-2xl font-black text-gray-800">
               {room?.roomNumber || "-"}
             </p>
@@ -31,7 +30,6 @@ export const RoomDetailsCard = ({ room }: { room: any }) => {
             <div className="flex items-center gap-2 text-gray-600">
               <span>ค่าเช่าห้อง</span>
             </div>
-
             <span className="font-bold text-gray-800">
               ฿{(room?.basePrice ?? 0).toLocaleString()}/เดือน
             </span>

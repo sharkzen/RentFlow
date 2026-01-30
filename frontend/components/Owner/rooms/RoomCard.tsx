@@ -153,7 +153,6 @@ export default function RoomCard({
           </div>
         </div>
       </div>
-
       {editingRoom && (
         <EditRoomDialog
           room={editingRoom}

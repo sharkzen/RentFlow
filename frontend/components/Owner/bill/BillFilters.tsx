@@ -56,7 +56,6 @@ export default function BillFilters({
           className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 pr-4 pl-10 text-sm transition-all outline-none placeholder:text-gray-400 focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500"
         />
       </div>
-
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="w-full sm:w-auto">
           {selectedMonth ? (
@@ -80,9 +79,7 @@ export default function BillFilters({
             </button>
           )}
         </div>
-
         <div className="hidden h-8 w-px bg-gray-200 lg:block" />
-
         <div className="relative w-full sm:w-48" ref={dropdownRef}>
           <button
             onClick={() => setIsStatusOpen(!isStatusOpen)}
@@ -104,7 +101,6 @@ export default function BillFilters({
               className={`shrink-0 text-gray-400 transition-transform duration-200 ${isStatusOpen ? "rotate-180 text-indigo-500" : ""}`}
             />
           </button>
-
           {isStatusOpen && (
             <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-1 w-full min-w-[180px] origin-top-right overflow-hidden rounded-lg border border-gray-100 bg-white p-1 shadow-xl ring-1 ring-black/5 sm:w-auto">
               {statusOptions.map((opt) => (

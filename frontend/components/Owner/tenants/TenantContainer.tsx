@@ -187,7 +187,6 @@ export default function TenantContainer() {
             )}
           </div>
         </div>
-
         <div className="relative col-span-6 md:col-span-3 lg:col-span-2">
           <div className="relative h-full">
             <button
@@ -244,7 +243,6 @@ export default function TenantContainer() {
             )}
           </div>
         </div>
-
         <div className="relative col-span-12 md:col-span-4 lg:col-span-5">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
@@ -254,7 +252,6 @@ export default function TenantContainer() {
             className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pr-4 pl-10 text-sm shadow-sm transition-all placeholder:text-gray-400 hover:border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
           />
         </div>
-
         <div className="col-span-12 md:col-span-2 lg:col-span-2">
           <button
             onClick={() => setIsAddModalOpen(true)}

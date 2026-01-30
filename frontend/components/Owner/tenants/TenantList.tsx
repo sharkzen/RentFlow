@@ -135,13 +135,11 @@ export default function TenantList({
           <div>ชื่อ-สกุล</div>
           <div>ห้อง</div>
           <div>สถานะ</div>
-
           <div className="hidden md:block">เบอร์โทร</div>
           <div className="hidden md:block">อีเมล</div>
           <div className="hidden md:block">เข้าพักเมื่อ</div>
           <div className="text-right">จัดการ</div>
         </div>
-
         <div className="custom-scrollbar flex-1 overflow-y-auto bg-white">
           <div className="min-w-full">
             {tenants.map((tenant) => (
@@ -154,7 +152,6 @@ export default function TenantList({
                   <span className="truncate font-medium text-gray-900">
                     {tenant.firstName} {tenant.lastName}
                   </span>
-
                   <div className="mt-1 flex items-center gap-2 text-[10px] text-gray-500 md:hidden">
                     {tenant.phone && (
                       <span className="flex items-center gap-1">
@@ -163,7 +160,6 @@ export default function TenantList({
                     )}
                   </div>
                 </div>
-
                 <div>
                   {tenant.room ? (
                     <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-700/10 ring-inset">
@@ -173,13 +169,10 @@ export default function TenantList({
                     <span className="text-xs text-gray-400 italic">-</span>
                   )}
                 </div>
-
                 <div>{renderStatusBadge(tenant)}</div>
-
                 <div className="hidden truncate text-xs text-gray-600 md:block">
                   {tenant.phone || "-"}
                 </div>
-
                 <div className="hidden overflow-hidden md:block">
                   <span
                     className="block truncate text-xs text-gray-500"
@@ -188,7 +181,6 @@ export default function TenantList({
                     {tenant.email || "-"}
                   </span>
                 </div>
-
                 <div className="hidden text-xs text-gray-500 md:block">
                   {tenant.moveInDate
                     ? new Date(tenant.moveInDate).toLocaleDateString("th-TH", {
@@ -198,7 +190,6 @@ export default function TenantList({
                       })
                     : "-"}
                 </div>
-
                 <div className="text-right">
                   <button
                     onClick={(e) => handleEditClick(e, tenant.id)}

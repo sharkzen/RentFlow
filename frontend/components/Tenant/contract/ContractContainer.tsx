@@ -70,16 +70,13 @@ export default function ContractContainer() {
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="space-y-6 lg:col-span-8">
             <DormitoryCard tenant={tenantData} />
             <FinancialCard tenant={tenantData} />
           </div>
-
           <div className="space-y-6 lg:col-span-4">
             <TenantInfoCard tenant={tenantData} />
-
             <div className="overflow-hidden rounded-2xl bg-slate-900 p-6 text-white shadow-xl">
               <h4 className="mb-4 text-xs font-bold tracking-widest text-slate-400 uppercase">
                 System Status

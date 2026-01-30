@@ -1,0 +1,466 @@
+import prisma from "@/lib/prisma";
+import {
+  UserRole,
+  OwnerStatus,
+  MaintenanceStatus,
+  Status,
+  Prisma,
+  FileCategory,
+} from "@prisma/client";
+import { generateSignedUrl } from "@/services/minio";
+
+export const AdminService = {
+  getDashboardStats: async () => {
+    const [
+      totalUsers,
+      totalOwners,
+      totalTenants,
+      pendingOwners,
+      totalDormitories,
+      pendingDormitories,
+      totalRooms,
+      openMaintenance,
+      recentUsers,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({
+        where: {
+          role: UserRole.OWNER,
+        },
+      }),
+      prisma.user.count({
+        where: {
+          role: UserRole.TENANT,
+        },
+      }),
+      prisma.ownerProfile.count({
+        where: {
+          status: OwnerStatus.PENDING,
+        },
+      }),
+      prisma.dormitory.count(),
+      prisma.dormitory.count({
+        where: {
+          OR: [
+            {
+              isPublished: false,
+            },
+            {
+              status: Status.PENDING,
+            },
+          ],
+        },
+      }),
+      prisma.room.count(),
+      prisma.maintenanceRequest.count({
+        where: {
+          status: MaintenanceStatus.OPEN,
+        },
+      }),
+      prisma.user.findMany({
+        take: 5,
+
+        orderBy: {
+          createdAt: "desc",
+        },
+
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          createdAt: true,
+          status: true,
+        },
+      }),
+    ]);
+
+    return {
+      overview: {
+        totalUsers,
+        totalOwners,
+        totalTenants,
+        totalDormitories,
+        totalRooms,
+      },
+
+      actionRequired: {
+        pendingOwners,
+        pendingDormitories,
+        openMaintenance,
+      },
+
+      recentUsers,
+    };
+  },
+
+  getPendingOwners: async (page: number, limit: number, search: string) => {
+    const skip = (page - 1) * limit;
+
+    const whereCondition: Prisma.OwnerProfileWhereInput = {
+      status: OwnerStatus.PENDING,
+
+      OR: search
+        ? [
+            {
+              fullName: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              user: {
+                email: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              phone: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              dormitories: {
+                some: {
+                  name: {
+                    contains: search,
+                    mode: "insensitive",
+                  },
+                },
+              },
+            },
+          ]
+        : undefined,
+    };
+
+    const [total, items] = await prisma.$transaction([
+      prisma.ownerProfile.count({
+        where: whereCondition,
+      }),
+      prisma.ownerProfile.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+
+        orderBy: {
+          createdAt: "desc",
+        },
+
+        include: {
+          user: {
+            select: {
+              email: true,
+              status: true,
+              createdAt: true,
+            },
+          },
+
+          dormitories: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+              latitude: true,
+              longitude: true,
+
+              images: {
+                where: {
+                  category: FileCategory.DORMITORY,
+                },
+
+                take: 1,
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    const itemsWithUrls = await Promise.all(
+      items.map(async (owner) => {
+        const dormsWithUrls = await Promise.all(
+          owner.dormitories.map(async (dorm) => {
+            const images = await Promise.all(
+              dorm.images.map(async (img) => ({
+                ...img,
+                objectKey: await generateSignedUrl(img.objectKey),
+              })),
+            );
+
+            return {
+              ...dorm,
+              images,
+            };
+          }),
+        );
+
+        return {
+          ...owner,
+          dormitories: dormsWithUrls,
+        };
+      }),
+    );
+
+    return {
+      data: itemsWithUrls,
+
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  },
+
+  approveOwner: async (id: string) => {
+    return prisma.$transaction(async (tx) => {
+      const owner = await tx.ownerProfile.update({
+        where: {
+          id,
+        },
+
+        data: {
+          status: OwnerStatus.APPROVED,
+        },
+      });
+
+      await tx.user.update({
+        where: {
+          id: owner.userId,
+        },
+
+        data: {
+          status: "ACTIVE",
+        },
+      });
+
+      return owner;
+    });
+  },
+
+  rejectOwner: async (id: string) => {
+    return prisma.$transaction(async (tx) => {
+      const owner = await tx.ownerProfile.update({
+        where: {
+          id,
+        },
+
+        data: {
+          status: OwnerStatus.SUSPENDED,
+        },
+      });
+
+      return owner;
+    });
+  },
+
+  getDormitories: async (
+    page: number,
+    limit: number,
+    search: string,
+    status?: string,
+    isPublished?: string,
+  ) => {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.DormitoryWhereInput = {
+      OR: search
+        ? [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              address: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              owner: {
+                fullName: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+            },
+          ]
+        : undefined,
+
+      status: status && status !== "ALL" ? (status as any) : undefined,
+      isPublished:
+        isPublished === "true"
+          ? true
+          : isPublished === "false"
+            ? false
+            : undefined,
+    };
+
+    const [total, items] = await prisma.$transaction([
+      prisma.dormitory.count({
+        where,
+      }),
+      prisma.dormitory.findMany({
+        where,
+        skip,
+        take: limit,
+
+        orderBy: {
+          createdAt: "desc",
+        },
+
+        include: {
+          owner: {
+            select: {
+              fullName: true,
+              phone: true,
+
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+            },
+          },
+
+          images: {
+            where: {
+              isCover: true,
+              category: FileCategory.DORMITORY,
+            },
+
+            take: 1,
+          },
+
+          _count: {
+            select: {
+              rooms: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const itemsWithUrls = await Promise.all(
+      items.map(async (dorm) => {
+        const images = await Promise.all(
+          dorm.images.map(async (img) => ({
+            ...img,
+            objectKey: await generateSignedUrl(img.objectKey),
+          })),
+        );
+
+        return {
+          ...dorm,
+          images,
+        };
+      }),
+    );
+
+    return {
+      data: itemsWithUrls,
+
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  },
+
+  getDormitoryDetail: async (id: string) => {
+    const dorm = await prisma.dormitory.findUnique({
+      where: {
+        id,
+      },
+
+      include: {
+        owner: {
+          include: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+
+        images: {
+          where: {
+            category: FileCategory.DORMITORY,
+          },
+
+          orderBy: {
+            order: "asc",
+          },
+        },
+
+        settings: true,
+        paymentSetting: true,
+
+        _count: {
+          select: {
+            rooms: true,
+          },
+        },
+      },
+    });
+
+    if (!dorm) return null;
+
+    const imagesWithUrls = await Promise.all(
+      dorm.images.map(async (img) => {
+        try {
+          const url = await generateSignedUrl(img.objectKey);
+
+          return {
+            ...img,
+            url,
+          };
+        } catch (error) {
+          console.error(`Error signing url for ${img.objectKey}:`, error);
+
+          return {
+            ...img,
+            url: null,
+          };
+        }
+      }),
+    );
+
+    return {
+      ...dorm,
+      images: imagesWithUrls,
+    };
+  },
+
+  togglePublish: async (id: string, isPublished: boolean) => {
+    return prisma.dormitory.update({
+      where: {
+        id,
+      },
+
+      data: {
+        isPublished,
+      },
+    });
+  },
+
+  updateStatus: async (id: string, status: any) => {
+    return prisma.dormitory.update({
+      where: {
+        id,
+      },
+
+      data: {
+        status,
+      },
+    });
+  },
+};

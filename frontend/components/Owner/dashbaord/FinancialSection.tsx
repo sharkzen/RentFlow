@@ -28,7 +28,6 @@ export const FinancialSection = ({ overview, monthLabel, year }: any) => {
             colorClass="bg-green-100 text-green-600"
           />
         </Link>
-
         <Link href={"/owner/bills?filter=PENDING"}>
           <StatCard
             title="รอชำระ (ยังไม่จ่าย)"
@@ -38,7 +37,6 @@ export const FinancialSection = ({ overview, monthLabel, year }: any) => {
             colorClass="bg-yellow-100 text-yellow-600"
           />
         </Link>
-
         <Link href={"/owner/bills?filter=WAITING_FOR_VERIFICATION"}>
           <StatCard
             title="รอตรวจสอบ"
@@ -48,7 +46,6 @@ export const FinancialSection = ({ overview, monthLabel, year }: any) => {
             colorClass="bg-blue-100 text-blue-600"
           />
         </Link>
-
         <Link href={"/owner/bills?filter=OVERDUE"}>
           <StatCard
             title="เกินกำหนด (ค้างจ่าย)"
