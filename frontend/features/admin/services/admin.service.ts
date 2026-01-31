@@ -3,6 +3,7 @@ import {
   DashboardData,
   Dormitory,
   OwnerApproval,
+  OwnerUser,
   PaginatedResponse,
 } from "../types";
 
@@ -73,6 +74,37 @@ export const AdminService = {
 
   updateStatus: async (id: string, status: string) => {
     const res = await axios.patch(`/api/admin/dormitories/${id}/status`, {
+      status,
+    });
+
+    return res.data;
+  },
+
+  getOwners: async (
+    page = 1,
+    limit = 10,
+    search = "",
+    status = "ALL",
+  ): Promise<PaginatedResponse<OwnerUser>> => {
+    const res = await axios.get("/api/admin/users/owners", {
+      params: {
+        page,
+        limit,
+        q: search,
+        status,
+      },
+    });
+
+    return res.data;
+  },
+
+  getOwnerDetail: async (userId: string): Promise<OwnerUser> => {
+    const res = await axios.get(`/api/admin/users/owners/${userId}`);
+    return res.data;
+  },
+
+  updateUserStatus: async (userId: string, status: string) => {
+    const res = await axios.patch(`/api/admin/users/${userId}/status`, {
       status,
     });
 

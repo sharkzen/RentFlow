@@ -179,7 +179,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   {formatMoney(roomPriceSnapshot)}
                 </td>
               </tr>
-
               <tr>
                 <td className="px-3 py-4">
                   <div className="font-semibold text-slate-900">
@@ -228,7 +227,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   </td>
                 </tr>
               )}
-
               {lateFeeSnapshot > 0 && (
                 <tr>
                   <td className="px-3 py-4">
@@ -265,7 +263,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
               * ราคานี้รวมภาษีมูลค่าเพิ่มแล้ว (หากมี)
             </div>
           </div>
-
           <div className="mt-12 flex items-end justify-between border-t border-slate-100 pt-10">
             <div className="max-w-95 text-sm leading-relaxed text-slate-500">
               <span className="mb-1 block font-bold text-slate-700 italic">

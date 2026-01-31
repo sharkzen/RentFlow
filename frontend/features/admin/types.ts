@@ -84,3 +84,29 @@ export interface Dormitory {
   description?: any;
   settings?: any;
 }
+
+export interface OwnerUser {
+  id: string;
+  email: string;
+  status: "PENDING" | "ACTIVE" | "BANNED" | "INACTIVE";
+  createdAt: string;
+  ownerProfile: {
+    id: string;
+    fullName: string;
+    phone: string | null;
+    status: "PENDING" | "APPROVED" | "SUSPENDED";
+    _count: {
+      dormitories: number;
+    };
+    dormitories?: Array<{
+      id: string;
+      slug: string;
+      name: string;
+      status: string;
+      isPublished: boolean;
+      _count: {
+        rooms: number;
+      };
+    }>;
+  } | null;
+}

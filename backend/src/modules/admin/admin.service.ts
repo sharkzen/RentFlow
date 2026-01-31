@@ -463,4 +463,183 @@ export const AdminService = {
       },
     });
   },
+
+  getOwnersList: async (
+    page: number,
+    limit: number,
+    search: string,
+    status?: string,
+  ) => {
+    const skip = (page - 1) * limit;
+
+    const whereCondition: Prisma.UserWhereInput = {
+      role: UserRole.OWNER,
+
+      OR: search
+        ? [
+            {
+              email: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              ownerProfile: {
+                fullName: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              ownerProfile: {
+                phone: {
+                  contains: search,
+                  mode: "insensitive",
+                },
+              },
+            },
+          ]
+        : undefined,
+
+      status: status && status !== "ALL" ? (status as Status) : undefined,
+    };
+
+    const [total, items] = await prisma.$transaction([
+      prisma.user.count({
+        where: whereCondition,
+      }),
+      prisma.user.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+
+        orderBy: {
+          createdAt: "desc",
+        },
+
+        select: {
+          id: true,
+          email: true,
+          status: true,
+          createdAt: true,
+
+          ownerProfile: {
+            select: {
+              id: true,
+              fullName: true,
+              phone: true,
+              status: true,
+
+              _count: {
+                select: {
+                  dormitories: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      data: items,
+
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  },
+
+  getOwnerDetailById: async (userId: string) => {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+        role: UserRole.OWNER,
+      },
+
+      select: {
+        id: true,
+        email: true,
+        status: true,
+        createdAt: true,
+
+        ownerProfile: {
+          include: {
+            dormitories: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                address: true,
+                status: true,
+                isPublished: true,
+
+                _count: {
+                  select: {
+                    rooms: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return user;
+  },
+
+  updateUserStatus: async (userId: string, status: Status) => {
+    return prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({
+        where: {
+          id: userId,
+        },
+
+        data: {
+          status,
+        },
+      });
+
+      if (status === Status.BANNED) {
+        if (user.role === UserRole.OWNER) {
+          await tx.ownerProfile.update({
+            where: {
+              userId,
+            },
+
+            data: {
+              status: "SUSPENDED",
+            },
+          });
+        }
+      } else if (status === Status.ACTIVE) {
+        if (user.role === UserRole.OWNER) {
+          const profile = await tx.ownerProfile.findUnique({
+            where: {
+              userId,
+            },
+          });
+
+          if (profile && profile.status === "SUSPENDED") {
+            await tx.ownerProfile.update({
+              where: {
+                userId,
+              },
+
+              data: {
+                status: "APPROVED",
+              },
+            });
+          }
+        }
+      }
+
+      return user;
+    });
+  },
 };

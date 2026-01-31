@@ -1,0 +1,151 @@
+import React from "react";
+import { OwnerUser } from "@/features/admin";
+import { Eye, UserCircle2 } from "lucide-react";
+
+interface UserTableProps {
+  data: OwnerUser[];
+  isLoading: boolean;
+  onViewDetail: (user: OwnerUser) => void;
+}
+
+export default function UserTable({
+  data,
+  isLoading,
+  onViewDetail,
+}: UserTableProps) {
+  const renderStatusBadge = (status: string) => {
+    let styles = "bg-gray-100 text-gray-600";
+    let label = status;
+
+    switch (status) {
+      case "ACTIVE":
+        styles = "bg-emerald-100 text-emerald-700";
+        label = "ACTIVE";
+        break;
+      case "BANNED":
+        styles = "bg-rose-100 text-rose-700";
+        label = "BANNED";
+        break;
+      case "PENDING":
+        styles = "bg-orange-100 text-orange-700";
+        label = "PENDING";
+        break;
+    }
+
+    return (
+      <span
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold tracking-wide uppercase ${styles}`}
+      >
+        {label}
+      </span>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="w-full rounded-xl border border-gray-100 bg-white p-20 text-center shadow-sm">
+        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-blue-600 motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+        <p className="mt-4 text-gray-500">กำลังโหลดข้อมูล...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm text-gray-600">
+          <thead className="bg-gray-50/50 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+            <tr>
+              <th scope="col" className="px-6 py-4">
+                ผู้ประกอบการ
+              </th>
+              <th scope="col" className="px-6 py-4">
+                ข้อมูลติดต่อ
+              </th>
+              <th scope="col" className="px-6 py-4 text-center">
+                จำนวนหอพัก
+              </th>
+              <th scope="col" className="px-6 py-4 text-center">
+                วันที่สมัคร
+              </th>
+              <th scope="col" className="px-6 py-4 text-center">
+                สถานะ
+              </th>
+              <th scope="col" className="px-6 py-4 text-right">
+                จัดการ
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 border-t border-gray-100 bg-white">
+            {data.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="py-12 text-center text-gray-400">
+                  <div className="flex flex-col items-center justify-center">
+                    <UserCircle2 className="mb-2 h-12 w-12 opacity-20" />
+                    <span>ไม่พบข้อมูลผู้ใช้งาน</span>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              data.map((user) => (
+                <tr
+                  key={user.id}
+                  onClick={() => onViewDetail(user)}
+                  className="group cursor-pointer transition-colors hover:bg-gray-50/80"
+                >
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                        <span className="text-sm font-semibold">
+                          {(
+                            user.ownerProfile?.fullName?.[0] || user.email[0]
+                          ).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
+                          {user.ownerProfile?.fullName || "รอการระบุชื่อ"}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          ID: {user.id.slice(0, 8)}...
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="text-gray-900">{user.email}</span>
+                      <span className="text-xs text-gray-500">
+                        {user.ownerProfile?.phone || "-"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-600">
+                      {user.ownerProfile?._count.dormitories || 0}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-center text-xs text-gray-500">
+                    {new Date(user.createdAt).toLocaleDateString("th-TH")}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {renderStatusBadge(user.status)}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      onClick={() => onViewDetail(user)}
+                      className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-all hover:bg-blue-50 hover:text-blue-600 focus:ring-2 focus:ring-blue-600/20 focus:outline-none"
+                      title="ดูรายละเอียด"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

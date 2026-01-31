@@ -134,4 +134,76 @@ export const AdminController = {
     );
     return reply.send(result);
   },
+
+  getOwners: async (req: FastifyRequest, reply: FastifyReply) => {
+    const { page = 1, limit = 10, q = "", status = "ALL" } = req.query as any;
+
+    try {
+      const result = await AdminService.getOwnersList(
+        Number(page),
+        Number(limit),
+        String(q),
+        String(status),
+      );
+      return reply.send(result);
+    } catch (error) {
+      req.log.error(error);
+
+      return reply.code(500).send({
+        message: "Internal Server Error",
+      });
+    }
+  },
+
+  getOwnerById: async (
+    req: FastifyRequest<{
+      Params: {
+        id: string;
+      };
+    }>,
+    reply: FastifyReply,
+  ) => {
+    try {
+      const result = await AdminService.getOwnerDetailById(req.params.id);
+
+      if (!result)
+        return reply.code(404).send({
+          message: "User not found",
+        });
+
+      return reply.send(result);
+    } catch (error) {
+      req.log.error(error);
+
+      return reply.code(500).send({
+        message: "Internal Server Error",
+      });
+    }
+  },
+
+  updateUserStatus: async (
+    req: FastifyRequest<{
+      Params: {
+        id: string;
+      };
+      Body: {
+        status: string;
+      };
+    }>,
+    reply: FastifyReply,
+  ) => {
+    try {
+      const result = await AdminService.updateUserStatus(
+        req.params.id,
+        req.body.status as any,
+      );
+      return reply.send(result);
+    } catch (error) {
+      req.log.error(error);
+
+      return reply.code(500).send({
+        message: "Internal Server Error",
+      });
+    }
+  },
 };

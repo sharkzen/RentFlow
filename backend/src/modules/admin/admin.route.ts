@@ -18,5 +18,8 @@ export async function adminRoute(app: FastifyInstance) {
     routeRoles.get("/dormitories/:id", AdminController.getDetail);
     routeRoles.patch("/dormitories/:id/publish", AdminController.togglePublish);
     routeRoles.patch("/dormitories/:id/status", AdminController.updateStatus);
+    routeRoles.get("/users/owners", AdminController.getOwners);
+    routeRoles.get("/users/owners/:id", AdminController.getOwnerById);
+    routeRoles.patch("/users/:id/status", AdminController.updateUserStatus);
   });
 }
