@@ -110,3 +110,43 @@ export interface OwnerUser {
     }>;
   } | null;
 }
+
+export enum LandmarkType {
+  UNIVERSITY = "UNIVERSITY",
+  SCHOOL = "SCHOOL",
+  HOSPITAL = "HOSPITAL",
+  SHOPPING_MALL = "SHOPPING_MALL",
+  ARL = "ARL",
+  OFFICE = "OFFICE",
+  MARKET = "MARKET",
+  OTHER = "OTHER",
+}
+
+export interface Landmark {
+  id: string;
+  name: string;
+  slug: string;
+  type: LandmarkType;
+  latitude: number;
+  longitude: number;
+  mapUrl: string;
+  status: "ACTIVE" | "INACTIVE";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateLandmarkPayload {
+  name: string;
+  type: LandmarkType;
+  mapUrl: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}

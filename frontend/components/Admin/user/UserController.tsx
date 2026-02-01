@@ -94,7 +94,6 @@ export default function UserController() {
           </p>
         </div>
       </div>
-
       <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
         <UserFilter
           search={search}
@@ -106,13 +105,11 @@ export default function UserController() {
           }}
         />
       </div>
-
       <UserTable
         data={data}
         isLoading={loading}
         onViewDetail={handleViewDetail}
       />
-
       {meta && meta.totalPages > 1 && (
         <div className="flex items-center justify-between rounded-lg border-t border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-6">
           <div className="flex flex-1 justify-between sm:hidden">
@@ -156,7 +153,6 @@ export default function UserController() {
                   <span className="sr-only">Previous</span>
                   <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                 </button>
-
                 <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 ring-inset focus:outline-offset-0">
                   {page}/ {meta.totalPages}
                 </span>

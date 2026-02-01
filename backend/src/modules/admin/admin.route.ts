@@ -21,5 +21,8 @@ export async function adminRoute(app: FastifyInstance) {
     routeRoles.get("/users/owners", AdminController.getOwners);
     routeRoles.get("/users/owners/:id", AdminController.getOwnerById);
     routeRoles.patch("/users/:id/status", AdminController.updateUserStatus);
+    routeRoles.get("/landmarks", AdminController.getLandmarks);
+    routeRoles.post("/landmarks", AdminController.createLandmark);
+    routeRoles.delete("/landmarks/:id", AdminController.deleteLandmark);
   });
 }

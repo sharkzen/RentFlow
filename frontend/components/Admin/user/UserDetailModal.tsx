@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, RefObject } from "react";
 import { OwnerUser } from "@/features/admin";
+import { createPortal } from "react-dom";
 
 import {
   Building2,
@@ -20,6 +21,7 @@ import { th } from "date-fns/locale";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useOnClickOutside } from "usehooks-ts";
 import Link from "next/link";
+import { useScrollLock } from "usehooks-ts";
 
 interface UserDetailModalProps {
   isOpen: boolean;
@@ -36,6 +38,7 @@ export default function UserDetailModal({
   onStatusUpdate,
   isLoading,
 }: UserDetailModalProps) {
+  useScrollLock();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -103,7 +106,6 @@ export default function UserDetailModal({
                   ).toUpperCase()}
                 </span>
               </div>
-
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
                   {user.ownerProfile?.fullName || "รอการระบุชื่อ"}
@@ -121,7 +123,6 @@ export default function UserDetailModal({
                 <div className="mt-3">{renderBadge(user.status)}</div>
               </div>
             </div>
-
             <button
               onClick={onClose}
               className="cursor-pointer rounded-full bg-gray-100 p-2 text-gray-500 transition-colors hover:bg-gray-200 focus:outline-none"
@@ -129,7 +130,6 @@ export default function UserDetailModal({
               <X className="h-5 w-5" />
             </button>
           </div>
-
           <div className="flex-1 overflow-y-auto bg-gray-50/50 p-6">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="space-y-6 lg:col-span-1">
@@ -159,7 +159,6 @@ export default function UserDetailModal({
                     </div>
                   </div>
                 </div>
-
                 <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
                   <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900">
                     <ShieldCheck className="h-4 w-4 text-blue-500" />{" "}
@@ -188,7 +187,6 @@ export default function UserDetailModal({
                   </div>
                 </div>
               </div>
-
               <div className="lg:col-span-2">
                 <div className="h-full rounded-xl border border-gray-100 bg-white shadow-sm">
                   <div className="border-b border-gray-100 px-6 py-4">
@@ -257,28 +255,30 @@ export default function UserDetailModal({
           </div>
         </div>
       </div>
-      {confirmOpen && (
-        <ConfirmDialog
-          isOpen={confirmOpen}
-          onClose={() => setConfirmOpen(false)}
-          onConfirm={handleConfirmAction}
-          title={
-            pendingStatus === "BANNED"
-              ? "ยืนยันการระงับใช้งาน"
-              : "ยืนยันการปลดแบน"
-          }
-          description={
-            pendingStatus === "BANNED"
-              ? `คุณต้องการระงับการใช้งานบัญชี "${user.ownerProfile?.fullName || user.email}" ใช่หรือไม่? ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้`
-              : `คุณต้องการคืนสถานะปกติให้บัญชี "${user.ownerProfile?.fullName || user.email}" ใช่หรือไม่?`
-          }
-          confirmText={
-            pendingStatus === "BANNED" ? "ระงับการใช้งาน" : "อนุมัติให้ใช้งาน"
-          }
-          type={pendingStatus === "BANNED" ? "error" : "success"}
-          isLoading={isLoading}
-        />
-      )}
+      {confirmOpen &&
+        createPortal(
+          <ConfirmDialog
+            isOpen={confirmOpen}
+            onClose={() => setConfirmOpen(false)}
+            onConfirm={handleConfirmAction}
+            title={
+              pendingStatus === "BANNED"
+                ? "ยืนยันการระงับใช้งาน"
+                : "ยืนยันการปลดแบน"
+            }
+            description={
+              pendingStatus === "BANNED"
+                ? `คุณต้องการระงับการใช้งานบัญชี "${user.ownerProfile?.fullName || user.email}" ใช่หรือไม่? ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้`
+                : `คุณต้องการคืนสถานะปกติให้บัญชี "${user.ownerProfile?.fullName || user.email}" ใช่หรือไม่?`
+            }
+            confirmText={
+              pendingStatus === "BANNED" ? "ระงับการใช้งาน" : "อนุมัติให้ใช้งาน"
+            }
+            type={pendingStatus === "BANNED" ? "error" : "success"}
+            isLoading={isLoading}
+          />,
+          document.body,
+        )}
     </>
   );
 }

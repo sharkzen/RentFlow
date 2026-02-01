@@ -176,13 +176,13 @@ export default function DormitoryContainer() {
             </div>
             จัดการข้อมูลหอพัก
           </h2>
-          <p className="mt-1 pl-[3.25rem] text-sm text-gray-500">
+          <p className="mt-1 pl-13 text-sm text-gray-500">
             ตรวจสอบสถานะ เปิด/ปิด การเผยแพร่ และจัดการหอพักทั้งหมดในระบบ
           </p>
         </div>
         <button
           onClick={fetchData}
-          className="btn-icon flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-600 hover:bg-gray-50"
+          className="btn-icon flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-600 hover:bg-gray-50"
         >
           <RefreshCw size={16} className={loading ? "animate-spin" : ""} />{" "}
           รีเฟรช

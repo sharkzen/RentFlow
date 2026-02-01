@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+
 import {
   UserRole,
   OwnerStatus,
@@ -6,8 +7,12 @@ import {
   Status,
   Prisma,
   FileCategory,
+  LandmarkType,
 } from "@prisma/client";
+
 import { generateSignedUrl } from "@/services/minio";
+import { getLatLngFromUrl } from "@/lib/extractLatLng";
+import { generateSlug } from "@/lib/text";
 
 export const AdminService = {
   getDashboardStats: async () => {
@@ -640,6 +645,91 @@ export const AdminService = {
       }
 
       return user;
+    });
+  },
+
+  getLandmarks: async (
+    page: number,
+    limit: number,
+    search: string,
+    type?: string,
+  ) => {
+    const skip = (page - 1) * limit;
+
+    const whereCondition: Prisma.LandmarkWhereInput = {
+      OR: search
+        ? [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          ]
+        : undefined,
+
+      type: type && type !== "ALL" ? (type as LandmarkType) : undefined,
+      status: Status.ACTIVE,
+    };
+
+    const [total, items] = await prisma.$transaction([
+      prisma.landmark.count({
+        where: whereCondition,
+      }),
+      prisma.landmark.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+    ]);
+
+    return {
+      data: items,
+
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  },
+
+  createLandmark: async (data: {
+    name: string;
+    type: LandmarkType;
+    mapUrl: string;
+  }) => {
+    const coords = await getLatLngFromUrl(data.mapUrl);
+
+    if (!coords) {
+      throw new Error("INVALID_MAP_URL");
+    }
+
+    const slug = generateSlug(data.name);
+
+    return prisma.landmark.create({
+      data: {
+        name: data.name,
+        slug: slug,
+        type: data.type,
+        mapUrl: data.mapUrl,
+        latitude: coords.lat,
+        longitude: coords.lng,
+        status: Status.ACTIVE,
+      },
+    });
+  },
+
+  deleteLandmark: async (id: string) => {
+    return prisma.landmark.delete({
+      where: {
+        id,
+      },
     });
   },
 };

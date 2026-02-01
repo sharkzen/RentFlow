@@ -1,7 +1,10 @@
 import { axios } from "@/lib/api-client";
+
 import {
+  CreateLandmarkPayload,
   DashboardData,
   Dormitory,
+  Landmark,
   OwnerApproval,
   OwnerUser,
   PaginatedResponse,
@@ -108,6 +111,34 @@ export const AdminService = {
       status,
     });
 
+    return res.data;
+  },
+
+  getLandmarks: async (
+    page = 1,
+    limit = 10,
+    search = "",
+    type = "ALL",
+  ): Promise<PaginatedResponse<Landmark>> => {
+    const res = await axios.get("/api/admin/landmarks", {
+      params: {
+        page,
+        limit,
+        q: search,
+        type,
+      },
+    });
+
+    return res.data;
+  },
+
+  createLandmark: async (payload: CreateLandmarkPayload) => {
+    const res = await axios.post("/api/admin/landmarks", payload);
+    return res.data;
+  },
+
+  deleteLandmark: async (id: string) => {
+    const res = await axios.delete(`/api/admin/landmarks/${id}`);
     return res.data;
   },
 };

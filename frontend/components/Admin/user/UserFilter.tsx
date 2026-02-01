@@ -28,7 +28,6 @@ export default function UserFilter({
           className="block w-full rounded-lg border-0 py-2.5 pr-3 pl-10 text-gray-900 ring-1 ring-gray-300 transition-shadow ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600 focus:ring-inset sm:text-sm sm:leading-6"
         />
       </div>
-
       <div className="relative w-full md:w-56">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <Filter className="h-4 w-4 text-gray-500" />

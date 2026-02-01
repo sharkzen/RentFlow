@@ -8,3 +8,12 @@ export interface Tenant {
   roomPrice: number;
   isActive: boolean;
 }
+
+export interface ApiError {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message: string;
+}
