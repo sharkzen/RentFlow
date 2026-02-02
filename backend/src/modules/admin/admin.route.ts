@@ -23,6 +23,7 @@ export async function adminRoute(app: FastifyInstance) {
     routeRoles.patch("/users/:id/status", AdminController.updateUserStatus);
     routeRoles.get("/landmarks", AdminController.getLandmarks);
     routeRoles.post("/landmarks", AdminController.createLandmark);
+    routeRoles.put("/landmarks/:id", AdminController.updateLandmark);
     routeRoles.delete("/landmarks/:id", AdminController.deleteLandmark);
   });
 }

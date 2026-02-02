@@ -2,14 +2,21 @@ import { useState, useEffect } from "react";
 import { LandmarkType, CreateLandmarkPayload } from "@/features/admin/types";
 import { Button } from "@/components/ui/Button";
 import { Map, X, MapPin } from "lucide-react";
+import { Landmark } from "@/features/admin/types";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreateLandmarkPayload) => Promise<void>;
+  initialData?: Landmark | null;
 }
 
-export const LandmarkModal = ({ isOpen, onClose, onSubmit }: Props) => {
+export const LandmarkModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialData,
+}: Props) => {
   const [formData, setFormData] = useState<CreateLandmarkPayload>({
     name: "",
     type: LandmarkType.UNIVERSITY,
@@ -18,13 +25,21 @@ export const LandmarkModal = ({ isOpen, onClose, onSubmit }: Props) => {
 
   useEffect(() => {
     if (isOpen) {
-      setFormData({
-        name: "",
-        type: LandmarkType.UNIVERSITY,
-        mapUrl: "",
-      });
+      if (initialData) {
+        setFormData({
+          name: initialData.name,
+          type: initialData.type,
+          mapUrl: initialData.mapUrl,
+        });
+      } else {
+        setFormData({
+          name: "",
+          type: LandmarkType.UNIVERSITY,
+          mapUrl: "",
+        });
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
@@ -33,8 +48,10 @@ export const LandmarkModal = ({ isOpen, onClose, onSubmit }: Props) => {
     onSubmit(formData);
   };
 
+  const isEditMode = !!initialData;
+
   return (
-    <div className="animate-in fade-in fixed inset-0 z-999 flex items-center justify-center bg-black/60 p-4 transition-opacity duration-300">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 transition-opacity duration-300">
       <div className="animate-in zoom-in-95 w-full max-w-md transform overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl transition-all duration-200">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
           <div className="flex items-center gap-2">
@@ -42,7 +59,7 @@ export const LandmarkModal = ({ isOpen, onClose, onSubmit }: Props) => {
               <MapPin className="h-4 w-4" />
             </div>
             <h3 className="text-lg font-bold text-gray-900">
-              เพิ่มสถานที่ใหม่
+              {isEditMode ? "แก้ไขข้อมูลสถานที่" : "เพิ่มสถานที่ใหม่"}
             </h3>
           </div>
           <button
@@ -52,7 +69,6 @@ export const LandmarkModal = ({ isOpen, onClose, onSubmit }: Props) => {
             <X className="h-5 w-5" />
           </button>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-5 p-6">
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-gray-700">
@@ -72,7 +88,6 @@ export const LandmarkModal = ({ isOpen, onClose, onSubmit }: Props) => {
               }
             />
           </div>
-
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-gray-700">
               ประเภท <span className="text-red-500">*</span>
@@ -94,7 +109,6 @@ export const LandmarkModal = ({ isOpen, onClose, onSubmit }: Props) => {
                   </option>
                 ))}
               </select>
-
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
                 <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
                   <path
@@ -106,7 +120,6 @@ export const LandmarkModal = ({ isOpen, onClose, onSubmit }: Props) => {
               </div>
             </div>
           </div>
-
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-gray-700">
               ลิงก์ Google Maps <span className="text-red-500">*</span>
@@ -130,10 +143,10 @@ export const LandmarkModal = ({ isOpen, onClose, onSubmit }: Props) => {
               />
             </div>
             <p className="text-xs text-gray-500">
-              วางลิงก์จาก Google Maps ระบบจะดึงพิกัดให้อัตโนมัติ
+              วางลิงก์จาก Google Maps ระบบจะ
+              {isEditMode ? "คำนวณพิกัดใหม่" : "ดึงพิกัดให้อัตโนมัติ"}
             </p>
           </div>
-
           <div className="flex justify-end gap-3 pt-4">
             <Button
               type="button"
@@ -147,7 +160,7 @@ export const LandmarkModal = ({ isOpen, onClose, onSubmit }: Props) => {
               type="submit"
               className="bg-blue-600 px-6 shadow-md shadow-blue-500/20 hover:bg-blue-700"
             >
-              บันทึกข้อมูล
+              {isEditMode ? "บันทึกการแก้ไข" : "บันทึกข้อมูล"}
             </Button>
           </div>
         </form>

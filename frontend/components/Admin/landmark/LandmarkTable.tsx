@@ -1,4 +1,4 @@
-import { ExternalLink, Trash2, MapPinOff } from "lucide-react";
+import { ExternalLink, Trash2, MapPinOff, Pencil } from "lucide-react";
 import { Landmark } from "@/features/admin";
 import { Button } from "@/components/ui/Button";
 
@@ -6,6 +6,7 @@ interface Props {
   data: Landmark[];
   isLoading: boolean;
   onDeleteClick: (landmark: Landmark) => void;
+  onEditClick: (landmark: Landmark) => void;
   page: number;
   totalPages: number;
   onPageChange: (newPage: number) => void;
@@ -15,6 +16,7 @@ export const LandmarkTable = ({
   data,
   isLoading,
   onDeleteClick,
+  onEditClick,
   page,
   totalPages,
   onPageChange,
@@ -78,21 +80,29 @@ export const LandmarkTable = ({
                   </a>
                 </td>
                 <td className="px-6 py-4 text-right whitespace-nowrap">
-                  <Button
-                    variant="danger"
-                    className="ml-auto"
-                    size="sm"
-                    onClick={() => onDeleteClick(item)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => onEditClick(item)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => onDeleteClick(item)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-
       <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-6 py-4">
         <span className="text-xs text-gray-500">
           หน้า {page}จาก {totalPages}

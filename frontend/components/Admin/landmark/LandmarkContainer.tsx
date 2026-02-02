@@ -16,6 +16,7 @@ export default function LandmarkContainer() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [editingLandmark, setEditingLandmark] = useState<Landmark | null>(null);
 
   const [meta, setMeta] = useState({
     totalPages: 1,
@@ -27,6 +28,16 @@ export default function LandmarkContainer() {
   } | null>(null);
 
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleOpenCreateModal = () => {
+    setEditingLandmark(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditClick = (landmark: Landmark) => {
+    setEditingLandmark(landmark);
+    setIsModalOpen(true);
+  };
 
   const fetchLandmarks = async () => {
     setIsLoading(true);
@@ -92,6 +103,46 @@ export default function LandmarkContainer() {
     });
   };
 
+  const handleSave = async (payload: CreateLandmarkPayload) => {
+    setIsModalOpen(false);
+    const isEditing = !!editingLandmark;
+    const promise = isEditing
+      ? AdminService.updateLandmark(editingLandmark.id, payload)
+      : AdminService.createLandmark(payload);
+
+    try {
+      await toast.promise(promise, {
+        pending: "กำลังตรวจสอบลิงก์และบันทึกข้อมูล...",
+
+        success: {
+          render() {
+            return isEditing
+              ? `แก้ไข "${payload.name}" เรียบร้อยแล้ว`
+              : `เพิ่ม "${payload.name}" เรียบร้อยแล้ว`;
+          },
+        },
+
+        error: {
+          render({ data }: any) {
+            const err = data as ApiError;
+            let msg = err.response?.data?.message || "บันทึกข้อมูลไม่สำเร็จ";
+
+            if (msg.includes("Invalid")) {
+              msg = "ลิงก์แผนที่ไม่ถูกต้อง หรือไม่สามารถดึงพิกัดได้";
+            }
+
+            return msg;
+          },
+        },
+      });
+
+      fetchLandmarks();
+      setEditingLandmark(null);
+    } catch (error) {
+      setIsModalOpen(true);
+    }
+  };
+
   const handleConfirmDelete = async () => {
     if (!deleteData) return;
 
@@ -113,8 +164,7 @@ export default function LandmarkContainer() {
   return (
     <div className="min-h-screen bg-gray-50/50">
       <div className="">
-        <LandmarkHeader onOpenModal={() => setIsModalOpen(true)} />
-
+        <LandmarkHeader onOpenModal={handleOpenCreateModal} />
         <div className="mb-6 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
           <div className="relative max-w-md">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -127,22 +177,24 @@ export default function LandmarkContainer() {
             />
           </div>
         </div>
-
         <LandmarkTable
           data={landmarks}
           isLoading={isLoading}
           onDeleteClick={handleDeleteClick}
+          onEditClick={handleEditClick}
           page={page}
           totalPages={meta.totalPages}
           onPageChange={setPage}
         />
-
         <LandmarkModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={handleCreate}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingLandmark(null);
+          }}
+          onSubmit={handleSave}
+          initialData={editingLandmark}
         />
-
         <ConfirmDialog
           isOpen={!!deleteData}
           onClose={() => !isDeleting && setDeleteData(null)}

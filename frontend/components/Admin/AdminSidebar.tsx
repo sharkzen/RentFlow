@@ -46,11 +46,6 @@ export default function AdminSidebar() {
       href: "/admin/landmarks",
       icon: <MapPin size={20} />,
     },
-    {
-      name: "ตั้งค่าระบบ",
-      href: "/admin/settings",
-      icon: <Settings size={20} />,
-    },
   ];
 
   return (

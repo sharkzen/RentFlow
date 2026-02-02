@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 export type ConfirmDialogType = "success" | "warning" | "error" | "info";
-import { useScrollLock } from "usehooks-ts";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -33,8 +32,6 @@ export default function ConfirmDialog({
   cancelText = "ยกเลิก",
   isLoading = false,
 }: ConfirmDialogProps) {
-  useScrollLock();
-
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (isOpen && e.key === "Escape") onClose();

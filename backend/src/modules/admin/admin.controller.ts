@@ -265,6 +265,45 @@ export const AdminController = {
     }
   },
 
+  updateLandmark: async (
+    req: FastifyRequest<{
+      Params: {
+        id: string;
+      };
+      Body: {
+        name?: string;
+        type?: string;
+        mapUrl?: string;
+      };
+    }>,
+    reply: FastifyReply,
+  ) => {
+    try {
+      const { id } = req.params;
+
+      const body = req.body;
+
+      const result = await AdminService.updateLandmark(id, {
+        ...body,
+        type: body.type as LandmarkType,
+      });
+
+      return reply.send(result);
+    } catch (error: any) {
+      req.log.error(error);
+
+      if (error.message === "INVALID_MAP_URL") {
+        return reply.code(400).send({
+          message: "ไม่สามารถดึงพิกัดจากลิงก์ Google Maps ได้",
+        });
+      }
+
+      return reply.code(500).send({
+        message: "Internal Server Error",
+      });
+    }
+  },
+
   deleteLandmark: async (
     req: FastifyRequest<{
       Params: {

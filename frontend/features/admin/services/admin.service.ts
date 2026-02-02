@@ -137,6 +137,11 @@ export const AdminService = {
     return res.data;
   },
 
+  updateLandmark: async (id: string, payload: CreateLandmarkPayload) => {
+    const res = await axios.put(`/api/admin/landmarks/${id}`, payload);
+    return res.data;
+  },
+
   deleteLandmark: async (id: string) => {
     const res = await axios.delete(`/api/admin/landmarks/${id}`);
     return res.data;

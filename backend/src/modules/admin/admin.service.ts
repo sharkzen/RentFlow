@@ -725,6 +725,42 @@ export const AdminService = {
     });
   },
 
+  updateLandmark: async (
+    id: string,
+    data: {
+      name?: string;
+      type?: LandmarkType;
+      mapUrl?: string;
+    },
+  ) => {
+    const updateData: any = {
+      ...data,
+    };
+
+    if (data.mapUrl) {
+      const coords = await getLatLngFromUrl(data.mapUrl);
+
+      if (!coords) {
+        throw new Error("INVALID_MAP_URL");
+      }
+
+      updateData.latitude = coords.lat;
+      updateData.longitude = coords.lng;
+    }
+
+    if (data.name) {
+      updateData.slug = generateSlug(data.name);
+    }
+
+    return prisma.landmark.update({
+      where: {
+        id,
+      },
+
+      data: updateData,
+    });
+  },
+
   deleteLandmark: async (id: string) => {
     return prisma.landmark.delete({
       where: {
