@@ -24,4 +24,29 @@ export const authService = {
     const res = await axios.post("/api/auth/logout");
     return res.data;
   },
+
+  forgotPassword: async (email: string) => {
+    const res = await axios.post("/api/auth/forgot-password", {
+      email,
+    });
+
+    return res.data;
+  },
+
+  verifyResetToken: async (token: string) => {
+    const res = await axios.post("/api/auth/verify-reset-token", {
+      token,
+    });
+
+    return res.data;
+  },
+
+  resetPassword: async (token: string, newPassword: string) => {
+    const res = await axios.post("/api/auth/reset-password", {
+      token,
+      newPassword,
+    });
+
+    return res.data;
+  },
 };

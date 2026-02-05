@@ -68,7 +68,7 @@ export default function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
         <Link
           href="/"
-          className="group flex items-center text-xl font-bold tracking-tight text-slate-900 max-sm:pl-[40px]"
+          className={`group flex items-center text-xl font-bold tracking-tight text-slate-900 ${user ? "max-sm:pl-10" : ""}`}
         >
           Rent
           <span className="ml-1 bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">

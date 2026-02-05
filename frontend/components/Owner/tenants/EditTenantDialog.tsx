@@ -16,6 +16,8 @@ import {
   Coins,
   Power,
   LogOut,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 import { toast } from "react-toastify";
@@ -43,6 +45,7 @@ export default function EditTenantDialog({
   const [isMoveOutOpen, setIsMoveOutOpen] = useState(false);
   const [isMovingOut, setIsMovingOut] = useState(false);
   const [initialData, setInitialData] = useState<any>();
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -121,6 +124,21 @@ export default function EditTenantDialog({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+
+    if (name === "password") {
+      const cleanValue = value.replace(/[ก-๙]/g, "");
+
+      if (value !== cleanValue) {
+        toast.warning("รหัสผ่านรองรับเฉพาะภาษาอังกฤษเท่านั้น");
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        [name]: cleanValue,
+      }));
+
+      return;
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -210,7 +228,29 @@ export default function EditTenantDialog({
 
     if (!tenantId) return;
 
-    const isPasswordChanged = formData.password.trim() !== "";
+    const password = formData.password.trim();
+    const isPasswordChanged = password !== "";
+
+    if (isPasswordChanged) {
+      if (password.length < 6) {
+        toast.error("รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
+        return;
+      }
+
+      if (/[ก-๙]/.test(password)) {
+        toast.error(
+          "รหัสผ่านห้ามใช้ภาษาไทย กรุณาใช้ภาษาอังกฤษ ตัวเลข หรืออักขระพิเศษ",
+        );
+        return;
+      }
+
+      const hasLetter = /[a-zA-Z]/.test(password);
+
+      if (!hasLetter) {
+        toast.error("รหัสผ่านต้องมีตัวอักษรภาษาอังกฤษอย่างน้อย 1 ตัว");
+        return;
+      }
+    }
 
     const { password: pw1, ...dataToCompare } = formData;
 
@@ -391,6 +431,7 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
+
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-55">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-emerald-600 uppercase">
                       <Coins size={16} />
@@ -455,6 +496,7 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
+
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-gray-600 uppercase">
                       <Contact size={16} />
@@ -679,15 +721,38 @@ export default function EditTenantDialog({
                         <div className="relative">
                           <Lock className={iconClass} />
                           <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
                             placeholder="เว้นว่างไว้หากไม่ต้องการเปลี่ยน"
-                            className={inputWithIconClass}
+                            className={`${inputWithIconClass} pr-10`}
                           />
+
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                          >
+                            {showPassword ? (
+                              <EyeOff size={16} />
+                            ) : (
+                              <Eye size={16} />
+                            )}
+                          </button>
                         </div>
-                        <p className="mt-1.5 text-[10px] text-orange-500">
+
+                        <p className="mt-1.5 text-[10px] text-gray-500">
+                          * รหัสผ่านต้องมีอย่างน้อย{" "}
+                          <span className="font-semibold text-indigo-600">
+                            6 ตัวอักษร
+                          </span>{" "}
+                          และมี
+                          <span className="font-semibold text-indigo-600">
+                            ตัวอักษรภาษาอังกฤษ
+                          </span>
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-orange-500">
                           * หากกรอกช่องนี้ รหัสผ่านเดิมจะถูกเปลี่ยนทันที
                         </p>
                       </div>

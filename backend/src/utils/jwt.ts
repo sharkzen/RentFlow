@@ -2,6 +2,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import "dotenv/config";
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
+const RESET_SECRET = process.env.RESET_SECRET!;
 
 type AccessTokenPayload = {
   sub: string;
@@ -37,3 +38,19 @@ export function verifyRefreshToken(
     throw new Error("INVALID_REFRESH_TOKEN");
   }
 }
+
+export const signResetToken = (payload: { sub: string }) => {
+  return jwt.sign(payload, RESET_SECRET, {
+    expiresIn: "15m",
+  });
+};
+
+export const verifyResetToken = (token: string) => {
+  try {
+    return jwt.verify(token, RESET_SECRET) as {
+      sub: string;
+    };
+  } catch (error) {
+    throw new Error("INVALID_OR_EXPIRED_TOKEN");
+  }
+};

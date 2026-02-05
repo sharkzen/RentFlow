@@ -88,7 +88,6 @@ export const LandmarkTable = ({
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
-
                     <Button
                       variant="danger"
                       size="sm"

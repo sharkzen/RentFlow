@@ -177,4 +177,85 @@ export const AuthController = {
       ok: true,
     });
   },
+
+  async forgotPassword(request: FastifyRequest, reply: FastifyReply) {
+    const { email } = request.body as {
+      email: string;
+    };
+
+    try {
+      if (!email) throw new Error("DATA_ARE_NOT_VALID");
+
+      await authService.requestPasswordReset(email);
+
+      return reply.send({
+        ok: true,
+        message: "กรุณาตรวจสอบอีเมลของคุณ",
+      });
+    } catch (error: any) {
+      logger.error(error.message);
+
+      if (error.message === "USER_NOT_FOUND") {
+        return reply.status(404).send({
+          message: "USER_NOT_FOUND",
+        });
+      }
+
+      return reply.status(500).send({
+        message: "INTERNAL_SERVER_ERROR",
+      });
+    }
+  },
+
+  async verifyResetToken(request: FastifyRequest, reply: FastifyReply) {
+    const { token } = request.body as {
+      token: string;
+    };
+
+    try {
+      if (!token) throw new Error("DATA_ARE_NOT_VALID");
+
+      await authService.verifyTokenValidity(token);
+
+      return reply.send({
+        ok: true,
+      });
+    } catch (error: any) {
+      if (error.message === "INVALID_OR_EXPIRED_TOKEN") {
+        return reply.status(400).send({
+          message: "INVALID_OR_EXPIRED_TOKEN",
+        });
+      }
+
+      return reply.status(500).send({
+        message: "INTERNAL_SERVER_ERROR",
+      });
+    }
+  },
+
+  async resetPassword(request: FastifyRequest, reply: FastifyReply) {
+    const { token, newPassword } = request.body as any;
+
+    try {
+      if (!token || !newPassword) throw new Error("DATA_ARE_NOT_VALID");
+
+      await authService.resetPassword(token, newPassword);
+
+      return reply.send({
+        ok: true,
+      });
+    } catch (error: any) {
+      logger.error(error.message);
+
+      if (error.message === "INVALID_OR_EXPIRED_TOKEN") {
+        return reply.status(400).send({
+          message: "INVALID_OR_EXPIRED_TOKEN",
+        });
+      }
+
+      return reply.status(500).send({
+        message: "INTERNAL_SERVER_ERROR",
+      });
+    }
+  },
 };

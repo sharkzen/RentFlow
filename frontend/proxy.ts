@@ -6,6 +6,8 @@ const PUBLIC_ROUTES: string[] = [
   "/auth/register",
   "/api/auth/login",
   "/api/auth/refresh",
+  "/auth/forgot-password",
+  "/auth/reset-password",
   "/dorms",
 ];
 

@@ -2,6 +2,7 @@ import { EmailType } from "../queues/email.types";
 
 const THEME = {
   primary: "#0f172a",
+  secondary: "#64748B",
   text: "#334155",
   muted: "#64748b",
   border: "#e2e8f0",
@@ -12,6 +13,9 @@ const THEME = {
   successBg: "#ecfdf5",
   warning: "#f59e0b",
   warningBg: "#fffbeb",
+  dangerBg: "#FEF2F2",
+  dangerBorder: "#FECACA",
+  dangerText: "#991B1B",
 };
 
 const getBankName = (code: string) => {
@@ -29,22 +33,6 @@ const getBankName = (code: string) => {
   };
 
   return banks[code] || code || "-";
-};
-
-const formatThaiDate = (dateInput: string | Date) => {
-  if (!dateInput) return "-";
-
-  const date = new Date(dateInput);
-
-  return (
-    date.toLocaleDateString("th-TH", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }) + " น."
-  );
 };
 
 const minifyHtml = (html: string) => {
@@ -463,7 +451,81 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
         ),
       };
     }
+    case EmailType.RESET_PASSWORD:
+      return {
+        subject: getSubject("รีเซ็ตรหัสผ่าน"),
+        html: getResetPasswordHtml(data.link),
+      };
     default:
       throw new Error("Unknown Type");
   }
+};
+
+export const getResetPasswordHtml = (resetLink: string) => {
+  const title = "รีเซ็ตรหัสผ่าน";
+
+  const content = `
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 24px auto;">
+      <tr>
+        <td width="56" height="56" align="center" valign="middle" style="background-color: #EFF6FF; border-radius: 50%;">
+          <span style="font-size: 28px; line-height: 1;">🔑</span>
+        </td>
+      </tr>
+    </table>
+
+    <h1 style="color: ${THEME.text}; margin: 0 0 16px 0; font-size: 24px; font-weight: 700; font-family: 'Sarabun', sans-serif; text-align: center;">
+      ลืมรหัสผ่านใช่ไหม?
+    </h1>
+
+    <p style="color: ${THEME.secondary}; font-size: 16px; line-height: 1.6; margin: 0 0 32px 0; font-family: 'Sarabun', sans-serif; text-align: center;">
+      เราได้รับคำขอให้รีเซ็ตรหัสผ่านสำหรับบัญชีของคุณ<br>
+      หากคุณเป็นผู้ส่งคำขอนี้ กดปุ่มด้านล่างเพื่อตั้งใหม่ได้เลย
+    </p>
+
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" width="100%" style="margin: 0 auto 32px auto;">
+      <tr>
+        <td align="center">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+              <td align="center" bgcolor="${THEME.primary}" style="border-radius: 8px;">
+                <a href="${resetLink}" class="button-link"
+                   style="display: inline-block; padding: 14px 32px; font-family: 'Sarabun', sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 8px; background-color: ${THEME.primary}; border: 1px solid ${THEME.primary};">
+                   ตั้งรหัสผ่านใหม่
+                </a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: ${THEME.dangerBg}; border: 1px solid ${THEME.dangerBorder}; border-radius: 8px;">
+      <tr>
+        <td style="padding: 16px;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+              <td valign="top" width="24" style="padding-right: 12px; font-size: 18px;">⚠️</td>
+              <td>
+                <p style="margin: 0; color: ${THEME.dangerText}; font-size: 14px; line-height: 1.5; font-family: 'Sarabun', sans-serif; text-align: left;">
+                  <strong>ความปลอดภัย:</strong> ลิงก์นี้จะหมดอายุใน <strong>15 นาที</strong><br>
+                  หากคุณไม่ได้ทำรายการนี้ กรุณาเพิกเฉยต่ออีเมลฉบับนี้
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid ${THEME.border}; text-align: left;">
+      <p style="color: #94A3B8; font-size: 12px; margin: 0 0 8px 0; font-family: 'Sarabun', sans-serif;">
+        หากปุ่มด้านบนใช้งานไม่ได้ ให้คัดลอกลิงก์นี้ไปวางในเบราว์เซอร์:
+      </p>
+      <p style="margin: 0; font-size: 12px; line-height: 1.4; word-break: break-all;">
+        <a href="${resetLink}" style="color: ${THEME.primary}; text-decoration: none;">${resetLink}</a>
+      </p>
+    </div>
+  `;
+
+  return wrapEmail(title, minifyHtml(content));
 };

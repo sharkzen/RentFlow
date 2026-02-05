@@ -7,8 +7,21 @@ import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { hashPassword, verifyPassword } from "@/modules/auth/lib/password";
 import { LoginDto } from "@/modules/auth/dto/login.dto";
-import { signAccessToken, verifyRefreshToken } from "@/utils/jwt";
+import {
+  signAccessToken,
+  signResetToken,
+  verifyRefreshToken,
+  verifyResetToken,
+} from "@/utils/jwt";
 import { generateSlug } from "@/lib/text";
+import {
+  getEmailTemplate,
+  getResetPasswordHtml,
+} from "@/utils/email-templates";
+import { emailQueue } from "@/queues/email.queue";
+import logger from "@/utils/logger";
+import { sendEmailImmediate } from "@/utils/mail-sender";
+import { EmailType } from "@/queues/email.types";
 
 export const authService = {
   async me(user: UserDecodedDto) {
@@ -184,5 +197,79 @@ export const authService = {
       sub: user.id,
       role: user.role,
     });
+  },
+
+  async requestPasswordReset(email: string) {
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new Error("USER_NOT_FOUND");
+    }
+
+    const token = signResetToken({
+      sub: user.id,
+    });
+
+    const frontendUrl = process.env.FRONTEND_URL!;
+    const resetLink = `${frontendUrl}/auth/reset-password?token=${token}`;
+
+    logger.info({
+      frontendUrl,
+      resetLink,
+    });
+
+    try {
+      await sendEmailImmediate({
+        type: EmailType.RESET_PASSWORD,
+        to: email,
+
+        data: {
+          link: resetLink,
+        },
+      });
+    } catch (error: any) {
+      logger.error(error);
+    }
+
+    return {
+      message: "RESET_LINK_SENT",
+    };
+  },
+
+  async verifyTokenValidity(token: string) {
+    try {
+      verifyResetToken(token);
+
+      return {
+        valid: true,
+      };
+    } catch (error) {
+      throw new Error("INVALID_OR_EXPIRED_TOKEN");
+    }
+  },
+
+  async resetPassword(token: string, newPassword: string) {
+    const payload = verifyResetToken(token);
+    const hashedPassword = await hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: {
+        id: payload.sub,
+      },
+
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    logger.info("EMAIL JOB ADDED");
+
+    return {
+      message: "PASSWORD_RESET_SUCCESS",
+    };
   },
 };
