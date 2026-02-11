@@ -33,7 +33,9 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
         <p className="mb-1 text-sm font-medium text-slate-500">ราคาเริ่มต้น</p>
         <div className="flex items-baseline gap-2">
           <h2 className="text-4xl font-bold text-slate-900">
-            {settings.roomPrice.toLocaleString()}
+            {settings?.roomPrice != null && (
+              <span>{settings.roomPrice.toLocaleString()}</span>
+            )}
           </h2>
           <span className="text-base font-medium text-slate-500">
             บาท/เดือน
@@ -51,9 +53,11 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             <span className="flex items-center gap-2 text-slate-600">
               <Droplets size={16} className="text-blue-400" /> ค่าน้ำ
             </span>
-            <span className="font-medium text-slate-900">
-              {settings.waterRate} บ./หน่วย
-            </span>
+            {settings?.waterRate != null && (
+              <span className="font-medium text-slate-900">
+                {settings.waterRate} บ./หน่วย
+              </span>
+            )}
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-2 text-slate-600">
