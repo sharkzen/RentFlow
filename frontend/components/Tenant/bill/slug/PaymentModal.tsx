@@ -239,17 +239,17 @@ export default function PaymentModal({
                 data?.response?.data?.message ||
                 data?.message ||
                 "UNKNOWN_ERROR";
-              console.error("Upload Error:", errorMsg);
+              console.error(errorMsg);
 
               switch (errorMsg) {
                 case "SLIP_DUPLICATE":
                 case "SLIP_DUPLICATE_REF":
                 case "SLIP_DUPLICATE_DETECTED_FROM_IMAGE":
-                  return "สลิปนี้เคยถูกใช้ในระบบแล้ว (ห้ามใช้ซ้ำ)";
+                  return "สลิปซ้ำ";
                 case "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED":
                   return "กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น (JPG, PNG)";
                 case "BILL_NOT_FOUND":
-                  return "❌ ไม่พบข้อมูลบิล";
+                  return "ไม่พบข้อมูลบิล";
                 case "FORBIDDEN_ACCESS":
                   return "คุณไม่มีสิทธิ์เข้าถึงบิลนี้";
                 default:

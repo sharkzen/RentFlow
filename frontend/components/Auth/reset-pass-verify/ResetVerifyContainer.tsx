@@ -253,7 +253,6 @@ function ResetPasswordForm() {
                 )}
               </button>
             </div>
-
             <div className="mt-2 space-y-1">
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <span
@@ -275,7 +274,6 @@ function ResetPasswordForm() {
               </div>
             </div>
           </div>
-
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">
               ยืนยันรหัสผ่านใหม่
@@ -295,7 +293,6 @@ function ResetPasswordForm() {
             </div>
           </div>
         </div>
-
         {status === "error" && errorMessage && !isTokenInvalid && (
           <div className="animate-in slide-in-from-top-2 fade-in rounded-xl border border-red-100 bg-red-50/50 p-4">
             <div className="flex">
@@ -309,7 +306,6 @@ function ResetPasswordForm() {
             </div>
           </div>
         )}
-
         <button
           type="submit"
           disabled={status === "loading"}
@@ -325,7 +321,6 @@ function ResetPasswordForm() {
           )}
         </button>
       </form>
-
       <div className="mt-8 border-t border-slate-100 pt-6 text-center">
         <Link
           href="/auth/login"
@@ -345,7 +340,6 @@ export default function ResetPasswordContainer() {
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/30"></div>
       <div className="pointer-events-none absolute -top-[20%] -left-[10%] h-[50%] w-[50%] rounded-full bg-blue-100/40 blur-[100px]"></div>
       <div className="pointer-events-none absolute top-[20%] -right-[10%] h-[40%] w-[40%] rounded-full bg-purple-100/30 blur-[100px]"></div>
-
       <div className="relative z-10 flex w-full justify-center">
         <Suspense
           fallback={

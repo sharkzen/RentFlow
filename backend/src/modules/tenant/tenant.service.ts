@@ -1346,11 +1346,21 @@ export const tenantService = {
       throw error;
     }
 
+    if (verifiedData?.refNo) {
+      const duplicateSlip = await prisma.payment.findUnique({
+        where: {
+          transferRef: verifiedData.refNo,
+        },
+      });
+
+      if (duplicateSlip && duplicateSlip.billId !== billId) {
+        throw new Error("SLIP_DUPLICATE_REF");
+      }
+    }
+
     let paymentStatus: PaymentStatus = "WAITING_VERIFY" as PaymentStatus;
     let billStatus: BillStatus = "WAITING_FOR_VERIFICATION" as BillStatus;
     let isAutoVerified = false;
-    let slipAmount = null;
-    let slipRef = null;
 
     if (verifiedData) {
       const isAmountMatch = Math.abs(verifiedData.amount - bill.total) < 1.0;
@@ -1500,6 +1510,7 @@ export const tenantService = {
           refNo: payment.transferRef,
           sender: payment.senderName,
           bank: payment.transferBank,
+          isAutoVerified: isAutoVerified,
         },
       };
     });

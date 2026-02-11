@@ -431,7 +431,6 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
-
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-55">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-emerald-600 uppercase">
                       <Coins size={16} />
@@ -496,7 +495,6 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
-
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-gray-600 uppercase">
                       <Contact size={16} />
@@ -728,7 +726,6 @@ export default function EditTenantDialog({
                             placeholder="เว้นว่างไว้หากไม่ต้องการเปลี่ยน"
                             className={`${inputWithIconClass} pr-10`}
                           />
-
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
@@ -741,7 +738,6 @@ export default function EditTenantDialog({
                             )}
                           </button>
                         </div>
-
                         <p className="mt-1.5 text-[10px] text-gray-500">
                           * รหัสผ่านต้องมีอย่างน้อย{" "}
                           <span className="font-semibold text-indigo-600">

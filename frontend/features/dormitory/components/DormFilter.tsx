@@ -20,20 +20,19 @@ export default function DormFilter() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // State
   const [name, setName] = useState(searchParams.get("search") || "");
   const [isError, setIsError] = useState(false);
-  const [location, setLocation] = useState(searchParams.get("landmarkId") || "");
+  const [location, setLocation] = useState(
+    searchParams.get("landmarkId") || "",
+  );
   const [priceMin, setPriceMin] = useState<number | "">(
-    searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : ""
+    searchParams.get("minPrice") ? Number(searchParams.get("minPrice")) : "",
   );
   const [priceMax, setPriceMax] = useState<number | "">(
-    searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : ""
+    searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : "",
   );
   const [landmarks, setLandmarks] = useState<Landmark[]>([]);
 
-  // Fetch Landmarks
   useEffect(() => {
     const fetchLandmarks = async () => {
       try {
@@ -43,22 +42,22 @@ export default function DormFilter() {
         log.error("Failed to fetch landmarks", error);
       }
     };
+
     fetchLandmarks();
   }, []);
 
-  // Group Landmarks
   const groupedLandmarks = landmarks.reduce(
     (acc, landmark) => {
       const type = landmark.type || "OTHER";
+
       if (!acc[type]) acc[type] = [];
+
       acc[type].push(landmark);
       return acc;
     },
-    {} as Record<string, Landmark[]>
+    {} as Record<string, Landmark[]>,
   );
 
-  // ฟังก์ชันกลางสำหรับสร้าง URL และ Redirect (Reusable)
-  // รับ overrides เพื่อใช้ค่าล่าสุดทันที (แก้ปัญหา state update ช้าใน event handler)
   const executeSearch = (overrides?: {
     search?: string;
     landmarkId?: string;
@@ -66,23 +65,27 @@ export default function DormFilter() {
     maxPrice?: string;
   }) => {
     const params = new URLSearchParams();
-
-    // ใช้ค่าจาก overrides ถ้ามี ถ้าไม่มีให้ใช้ state ปัจจุบัน
-    const currentName = overrides?.search !== undefined ? overrides.search : name;
-    const currentLocation = overrides?.landmarkId !== undefined ? overrides.landmarkId : location;
-    const currentMin = overrides?.minPrice !== undefined ? overrides.minPrice : priceMin;
-    const currentMax = overrides?.maxPrice !== undefined ? overrides.maxPrice : priceMax;
+    const currentName =
+      overrides?.search !== undefined ? overrides.search : name;
+    const currentLocation =
+      overrides?.landmarkId !== undefined ? overrides.landmarkId : location;
+    const currentMin =
+      overrides?.minPrice !== undefined ? overrides.minPrice : priceMin;
+    const currentMax =
+      overrides?.maxPrice !== undefined ? overrides.maxPrice : priceMax;
 
     if (currentName) params.set("search", currentName);
+
     if (currentLocation) params.set("landmarkId", currentLocation);
+
     if (currentMin !== "") params.set("minPrice", String(currentMin));
+
     if (currentMax !== "") params.set("maxPrice", String(currentMax));
 
     router.push(`/?${params.toString()}`, {
       scroll: false,
     });
 
-    // Scroll Smooth ไปที่จุดแสดงผล
     setTimeout(() => {
       scroller.scrollTo("dorm-filter", {
         duration: 800,
@@ -93,11 +96,9 @@ export default function DormFilter() {
     }, 100);
   };
 
-  // ปุ่มกดค้นหา (Manual Search)
   const handleSearchClick = () => {
-    // Logic ใหม่: เช็คว่า "ว่างทุกช่อง" หรือไม่?
-    // ถ้าไม่มีชื่อ AND ไม่มีโลเคชั่น AND ไม่มีราคาเลย -> Error
-    const isEmpty = !name.trim() && !location && priceMin === "" && priceMax === "";
+    const isEmpty =
+      !name.trim() && !location && priceMin === "" && priceMax === "";
 
     if (isEmpty) {
       setIsError(true);
@@ -105,18 +106,17 @@ export default function DormFilter() {
       return;
     }
 
-    // ถ้ามีการกรอกช่องใดช่องหนึ่งแล้ว ให้ค้นหาได้เลย
     executeSearch();
   };
 
-  // เปลี่ยนทำเลแล้วค้นหาทันที (Auto Search)
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocation = e.target.value;
     setLocation(newLocation);
-    setIsError(false); // ปลด Error ทันทีเพราะถือว่ามีการเลือก Filter แล้ว
+    setIsError(false);
 
-    // สั่งค้นหาทันทีโดยส่งค่าใหม่เข้าไป
-    executeSearch({ landmarkId: newLocation });
+    executeSearch({
+      landmarkId: newLocation,
+    });
   };
 
   const handleReset = () => {
@@ -125,10 +125,12 @@ export default function DormFilter() {
     setLocation("");
     setPriceMin("");
     setPriceMax("");
-    router.push(`/?`, { scroll: false });
+
+    router.push(`/?`, {
+      scroll: false,
+    });
   };
 
-  // เช็คว่ามี Filter ค้างอยู่ไหม (สำหรับปุ่ม Reset)
   const hasFilter = name || location || priceMin || priceMax;
 
   return (
@@ -139,19 +141,11 @@ export default function DormFilter() {
         className="relative z-20 mx-auto my-8 w-full"
       >
         <div className="flex flex-col rounded-3xl bg-white p-2 shadow ring-1 shadow-slate-200/60 ring-slate-100 md:flex-row md:items-center md:p-1.5">
-          
-          {/* --- INPUT: ชื่อหอพัก --- */}
           <div
-            className={`group relative flex flex-1 flex-col justify-center px-6 py-3 transition-all md:rounded-l-full md:border-r ${
-              isError
-                ? "ring-2 ring-red-500 bg-red-50/30 md:border-transparent"
-                : "md:border-slate-100"
-            }`}
+            className={`group relative flex flex-1 flex-col justify-center px-6 py-3 transition-all md:rounded-l-full md:border-r ${isError ? "bg-red-50/30 ring-2 ring-red-500 md:border-transparent" : "md:border-slate-100"}`}
           >
             <label
-              className={`mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider uppercase ${
-                isError ? "text-red-600" : "text-slate-500"
-              }`}
+              className={`mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider uppercase ${isError ? "text-red-600" : "text-slate-500"}`}
             >
               <Building2
                 size={14}
@@ -159,7 +153,7 @@ export default function DormFilter() {
               />
               ค้นหาชื่อหอพัก{" "}
               {isError && (
-                <span className="text-[10px] normal-case font-medium animate-pulse">
+                <span className="animate-pulse text-[10px] font-medium normal-case">
                   (กรุณากรอกข้อมูลอย่างน้อย 1 ช่อง)
                 </span>
               )}
@@ -172,6 +166,7 @@ export default function DormFilter() {
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
+
                 if (e.target.value) setIsError(false);
               }}
               onKeyDown={(e) => {
@@ -180,7 +175,6 @@ export default function DormFilter() {
             />
           </div>
 
-          {/* --- INPUT: ทำเล (Auto Fetch) --- */}
           <div className="group relative flex flex-1 flex-col justify-center px-6 py-3 transition-colors md:border-r md:border-slate-100">
             <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <MapPin size={14} className="text-rose-500" />
@@ -190,7 +184,7 @@ export default function DormFilter() {
               <select
                 className="w-full cursor-pointer appearance-none truncate bg-transparent pr-4 text-sm font-semibold text-slate-700 placeholder:font-normal focus:outline-none md:text-base"
                 value={location}
-                onChange={handleLocationChange} // ใช้ฟังก์ชันใหม่ที่ Auto Fetch
+                onChange={handleLocationChange}
               >
                 <option value="">ทั้งหมด</option>
                 {Object.entries(groupedLandmarks).map(([type, items]) => (
@@ -217,7 +211,6 @@ export default function DormFilter() {
             </div>
           </div>
 
-          {/* --- INPUT: ช่วงราคา --- */}
           <div className="group relative flex flex-[1.3] flex-col justify-center px-6 py-3 transition-colors">
             <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <Banknote size={14} className="text-emerald-500" />
@@ -225,14 +218,16 @@ export default function DormFilter() {
             </label>
             <div className="flex items-center gap-2">
               <input
-              min={0}
+                min={0}
                 type="number"
                 placeholder="ต่ำสุด"
                 className="w-full min-w-15 bg-transparent text-sm font-semibold text-slate-700 placeholder:font-normal placeholder:text-slate-400 focus:outline-none md:text-base"
                 value={priceMin}
                 onChange={(e) => {
-                  setPriceMin(e.target.value === "" ? "" : Number(e.target.value));
-                  setIsError(false); // พิมพ์ราคา ก็ถือว่ามี filter แล้ว ปลด error ได้
+                  setPriceMin(
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  );
+                  setIsError(false);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSearchClick();
@@ -240,14 +235,16 @@ export default function DormFilter() {
               />
               <span className="text-slate-300">-</span>
               <input
-              min={0}
+                min={0}
                 type="number"
                 placeholder="สูงสุด"
                 className="w-full min-w-15 bg-transparent text-sm font-semibold text-slate-700 placeholder:font-normal placeholder:text-slate-400 focus:outline-none md:text-base"
                 value={priceMax}
                 onChange={(e) => {
-                  setPriceMax(e.target.value === "" ? "" : Number(e.target.value));
-                  setIsError(false); // พิมพ์ราคา ก็ถือว่ามี filter แล้ว ปลด error ได้
+                  setPriceMax(
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  );
+                  setIsError(false);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSearchClick();
@@ -256,12 +253,9 @@ export default function DormFilter() {
             </div>
           </div>
 
-          {/* --- BUTTONS --- */}
           <div className="flex items-center gap-2 p-2 md:pl-0">
             <div
-              className={`overflow-hidden transition-all duration-300 ${
-                hasFilter ? "w-10 scale-100 opacity-100" : "w-0 scale-90 opacity-0"
-              }`}
+              className={`overflow-hidden transition-all duration-300 ${hasFilter ? "w-10 scale-100 opacity-100" : "w-0 scale-90 opacity-0"}`}
             >
               <button
                 onClick={handleReset}

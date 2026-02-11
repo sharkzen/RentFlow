@@ -32,14 +32,18 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
       <div className="p-6 pb-4">
         <p className="mb-1 text-sm font-medium text-slate-500">ราคาเริ่มต้น</p>
         <div className="flex items-baseline gap-2">
-          <h2 className="text-4xl font-bold text-slate-900">
-            {settings?.roomPrice != null && (
-              <span>{settings.roomPrice.toLocaleString()}</span>
-            )}
-          </h2>
-          <span className="text-base font-medium text-slate-500">
-            บาท/เดือน
-          </span>
+          {settings?.roomPrice != null ? (
+            <>
+              <h2 className="text-4xl font-bold text-slate-900">
+                {settings.roomPrice.toLocaleString()}
+              </h2>
+              <span className="text-base font-medium text-slate-500">
+                บาท/เดือน
+              </span>
+            </>
+          ) : (
+            <h2 className="text-2xl font-bold text-slate-400">ยังไม่กำหนด</h2>
+          )}
         </div>
       </div>
 
@@ -53,18 +57,20 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             <span className="flex items-center gap-2 text-slate-600">
               <Droplets size={16} className="text-blue-400" /> ค่าน้ำ
             </span>
-            {settings?.waterRate != null && (
-              <span className="font-medium text-slate-900">
-                {settings.waterRate} บ./หน่วย
-              </span>
-            )}
+            <span className="font-medium text-slate-900">
+              {settings?.waterRate != null
+                ? `${settings.waterRate} บ./หน่วย`
+                : "ยังไม่กำหนด"}
+            </span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="flex items-center gap-2 text-slate-600">
               <Zap size={16} className="text-yellow-400" /> ค่าไฟ
             </span>
             <span className="font-medium text-slate-900">
-              {settings.electricRate} บ./หน่วย
+              {settings?.electricRate != null
+                ? `${settings.electricRate} บ./หน่วย`
+                : "ยังไม่กำหนด"}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
@@ -72,7 +78,8 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
               <Sparkles size={16} className="text-purple-400" /> ส่วนกลาง
             </span>
             <span className="font-medium text-slate-900">
-              {settings.commonFee || "-"}
+              {/* ถ้ามีค่าใช้ค่าเดิม ถ้าเป็น null/undefined ให้แสดง 0 */}
+              {settings?.commonFee ?? 0}
             </span>
           </div>
         </div>

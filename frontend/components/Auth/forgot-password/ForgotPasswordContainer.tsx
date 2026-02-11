@@ -86,7 +86,6 @@ export default function ForgotPasswordContainer() {
             เราจะส่งลิงก์เพื่อตั้งค่ารหัสผ่านใหม่ให้คุณ
           </p>
         </div>
-
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -114,7 +113,6 @@ export default function ForgotPasswordContainer() {
               </div>
             </div>
           </div>
-
           {status === "error" && (
             <div className="animate-fade-in-up rounded-md border border-red-100 bg-red-50 p-4">
               <div className="flex">
@@ -132,7 +130,6 @@ export default function ForgotPasswordContainer() {
               </div>
             </div>
           )}
-
           <button
             type="submit"
             disabled={status === "loading"}
@@ -148,7 +145,6 @@ export default function ForgotPasswordContainer() {
             )}
           </button>
         </form>
-
         <div className="mt-6 text-center">
           <Link
             href="/auth/login"
