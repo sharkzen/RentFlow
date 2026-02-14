@@ -149,6 +149,12 @@ export interface IBillDetail {
     createdAt: string;
     updatedAt: string;
   };
+  items?: Array<{
+    id: string;
+    name: string;
+    amount: number;
+    type: "CHARGE" | "DISCOUNT";
+  }>;
 }
 
 export interface QrGenerateResponse {

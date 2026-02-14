@@ -29,6 +29,27 @@ export const BillService = {
     return res.data;
   },
 
+  updateBillItem: async (
+    billId: string,
+    billItemId: string,
+    data: {
+      name: string;
+      amount: number;
+      type: "CHARGE" | "DISCOUNT";
+    },
+  ) => {
+    const res = await axios.patch(
+      `/api/bills/${billId}/items/${billItemId}`,
+      data,
+    );
+    return res.data;
+  },
+
+  deleteBillItem: async (billId: string, billItemId: string) => {
+    const res = await axios.delete(`/api/bills/${billId}/items/${billItemId}`);
+    return res.data;
+  },
+
   updateStatus: async (billId: string, status: string) => {
     const res = await axios.patch(`/api/bills/${billId}/status`, {
       status,
@@ -47,6 +68,28 @@ export const BillService = {
       },
     });
 
+    return res.data;
+  },
+
+  addBillItem: async (
+    billId: string,
+    data: {
+      name: string;
+      amount: number;
+      type: "CHARGE" | "DISCOUNT";
+    },
+  ) => {
+    const res = await axios.post(`/api/bills/${billId}/items`, data);
+    return res.data;
+  },
+
+  applyAdvancePayment: async (billId: string) => {
+    const res = await axios.post(`/api/bills/${billId}/apply-advance-payment`);
+    return res.data;
+  },
+
+  deleteBill: async (billId: string) => {
+    const res = await axios.delete(`/api/bills/${billId}`);
     return res.data;
   },
 };

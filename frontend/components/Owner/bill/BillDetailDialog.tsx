@@ -11,6 +11,13 @@ import {
   ArrowLeft,
   Receipt,
   FileText,
+  Plus,
+  Info,
+  Trash2,
+  ChevronDown,
+  PlusCircle,
+  MinusCircle,
+  Edit2,
 } from "lucide-react";
 
 import { Bill } from "@/features/bill/types";
@@ -39,6 +46,7 @@ export default function BillDetailDialog({
 }: Props) {
   useScrollLock();
   const detailRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(detailRef as RefObject<HTMLDivElement>, () => {
     if (!confirmConfig && window.innerWidth >= 768) {
@@ -46,14 +54,43 @@ export default function BillDetailDialog({
     }
   });
 
+  useOnClickOutside(dropdownRef as RefObject<HTMLDivElement>, () => {
+    setIsTypeDropdownOpen(false);
+  });
+
   const [confirmConfig, setConfirmConfig] = useState<{
     isOpen: boolean;
-    targetStatus: string;
+    action:
+      | "UPDATE_STATUS"
+      | "USE_ADVANCE_PAYMENT"
+      | "DELETE_ITEM"
+      | "DELETE_BILL"; // ✨ เพิ่มตรงนี้
+    targetStatus?: string;
+    targetItemId?: string;
     title: string;
     description: string;
     type: ConfirmDialogType;
     confirmText: string;
   } | null>(null);
+
+  const [isAddingItem, setIsAddingItem] = useState(false);
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+
+  const [newItemData, setNewItemData] = useState({
+    name: "",
+    amount: "",
+    type: "CHARGE" as "CHARGE" | "DISCOUNT",
+  });
+
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+
+  const [editItemData, setEditItemData] = useState({
+    name: "",
+    amount: "",
+    type: "CHARGE" as "CHARGE" | "DISCOUNT",
+  });
+
+  const [isProcessing, setIsProcessing] = useState(false);
 
   if (!isOpen || !bill) return null;
 
@@ -63,13 +100,22 @@ export default function BillDetailDialog({
     currentStatus === "PENDING" ||
     currentStatus === "WAITING_FOR_VERIFICATION" ||
     currentStatus === "OVERDUE";
+  const advancePayment = (bill as any).tenant?.advancePayment || 0;
+  const items = (bill as any).items || [];
+  const chargeItems = items.filter((item: any) => item.type === "CHARGE");
+  const discountItems = items.filter((item: any) => item.type === "DISCOUNT");
+  const allItemsSorted = [...chargeItems, ...discountItems];
+  const hasAppliedAdvance = items.some(
+    (item: any) => item.name === "หักเงินค่าเช่าล่วงหน้า",
+  );
 
-  const handleActionClick = (status: "PAID" | "CANCELLED") => {
+  const handleActionClick = (status: "PAID" | "DELETE") => {
     if (status === "PAID") {
       const hasSlip = !!slipUrl;
 
       setConfirmConfig({
         isOpen: true,
+        action: "UPDATE_STATUS",
         targetStatus: "PAID",
         title: hasSlip ? "ยืนยันการชำระเงิน" : "ยืนยันการรับเงินสด",
         description: hasSlip
@@ -78,23 +124,67 @@ export default function BillDetailDialog({
         type: "success",
         confirmText: "ยืนยันการชำระ",
       });
-    } else {
+    } else if (status === "DELETE") {
       setConfirmConfig({
         isOpen: true,
-        targetStatus: "CANCELLED",
-        title: "ยกเลิกบิลนี้?",
-        description: "การกระทำนี้ไม่สามารถย้อนกลับได้",
+        action: "DELETE_BILL",
+        title: "ยืนยันการลบบิล?",
+        description:
+          "ข้อมูลรายการชำระและสลิปของบิลนี้จะถูกลบทั้งหมด (หากมีการหักเงินล่วงหน้า ระบบจะคืนยอดให้ผู้เช่าอัตโนมัติ) การกระทำนี้ไม่สามารถย้อนกลับได้ ยืนยันหรือไม่?",
         type: "error",
-        confirmText: "ยืนยันการยกเลิก",
+        confirmText: "ลบบิลถาวร",
       });
     }
   };
 
-  const handleConfirmAction = () => {
-    if (confirmConfig) {
-      onUpdateStatus(bill.id, confirmConfig.targetStatus);
+  const handleUseAdvancePaymentClick = () => {
+    setConfirmConfig({
+      isOpen: true,
+      action: "USE_ADVANCE_PAYMENT",
+      title: "ยืนยันการใช้เงินล่วงหน้า?",
+      description: `ระบบจะดึงเงินมัดจำ/ล่วงหน้า จำนวน ฿${advancePayment.toLocaleString()} มาหักเป็นส่วนลดให้กับบิลเดือนนี้ คุณต้องการดำเนินการต่อหรือไม่?`,
+      type: "info",
+      confirmText: "ยืนยันการหักเงิน",
+    });
+  };
+
+  const handleDeleteItem = (itemId: string, itemName: string) => {
+    const isAdvancePayment = itemName === "หักเงินค่าเช่าล่วงหน้า";
+
+    setConfirmConfig({
+      isOpen: true,
+      action: "DELETE_ITEM",
+      targetItemId: itemId,
+      title: "ยืนยันการลบรายการ?",
+      description: isAdvancePayment
+        ? "คุณกำลังลบรายการหักเงินค่าเช่าล่วงหน้า ระบบจะทำการคืนยอดเงินทั้งหมดกลับไปให้ผู้เช่า ยืนยันหรือไม่?"
+        : "คุณต้องการลบรายการนี้ใช่หรือไม่? ยอดรวมจะถูกคำนวณใหม่ทันที",
+      type: "error",
+      confirmText: isAdvancePayment ? "ยกเลิกการหักเงินและคืนยอด" : "ลบรายการ",
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmConfig) return;
+
+    if (confirmConfig.action === "UPDATE_STATUS") {
+      onUpdateStatus(bill.id, confirmConfig.targetStatus as string);
       setConfirmConfig(null);
       onClose();
+    } else if (confirmConfig.action === "DELETE_BILL") {
+      setIsProcessing(true);
+
+      try {
+        await BillService.deleteBill(bill.id);
+        toast.success("ลบบิลสำเร็จ");
+        onRefresh();
+        onClose();
+      } catch (error) {
+        toast.error("ลบบิลไม่สำเร็จ");
+      } finally {
+        setIsProcessing(false);
+        setConfirmConfig(null);
+      }
     }
   };
 
@@ -105,6 +195,77 @@ export default function BillDetailDialog({
       toast.success("อัปโหลดสลิปเรียบร้อย");
     } catch (error) {
       toast.error("อัปโหลดไม่สำเร็จ");
+    }
+  };
+
+  const handleSaveNewItem = async () => {
+    if (!newItemData.name || !newItemData.amount) {
+      toast.warning("กรุณากรอกชื่อรายการและจำนวนเงิน");
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      await BillService.addBillItem(bill.id, {
+        name: newItemData.name,
+        amount: Number(newItemData.amount),
+        type: newItemData.type,
+      });
+
+      toast.success("เพิ่มรายการสำเร็จ");
+      setIsAddingItem(false);
+
+      setNewItemData({
+        name: "",
+        amount: "",
+        type: "CHARGE",
+      });
+
+      onRefresh();
+    } catch (error) {
+      toast.error("เพิ่มรายการไม่สำเร็จ");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleStartEdit = (item: any) => {
+    setEditingItemId(item.id);
+
+    setEditItemData({
+      name: item.name,
+      amount: item.amount.toString(),
+      type: item.type,
+    });
+
+    setIsAddingItem(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItemId) return;
+
+    if (!editItemData.name || !editItemData.amount) {
+      toast.warning("กรุณากรอกชื่อรายการและจำนวนเงิน");
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      await BillService.updateBillItem(bill.id, editingItemId, {
+        name: editItemData.name,
+        amount: Number(editItemData.amount),
+        type: editItemData.type,
+      });
+
+      toast.success("แก้ไขรายการสำเร็จ");
+      setEditingItemId(null);
+      onRefresh();
+    } catch (error) {
+      toast.error("แก้ไขรายการไม่สำเร็จ");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -248,11 +409,53 @@ export default function BillDetailDialog({
                     </div>
                   </div>
                 </div>
+
+                {bill.status === "PENDING" &&
+                  advancePayment > 0 &&
+                  !hasAppliedAdvance && (
+                    <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4 shadow-sm">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-3">
+                          <Info className="mt-0.5 text-indigo-600" size={20} />
+                          <div>
+                            <h5 className="text-sm font-bold text-indigo-900">
+                              ผู้เช่ามีเงินล่วงหน้าคงเหลือ: ฿
+                              {advancePayment.toLocaleString()}
+                            </h5>
+                            <p className="mt-0.5 text-xs text-indigo-700">
+                              สามารถนำเงินส่วนนี้มาหักลบกับยอดบิลเดือนนี้ได้
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleUseAdvancePaymentClick}
+                          disabled={isProcessing}
+                          className="w-full shrink-0 cursor-pointer rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-50 sm:w-auto"
+                        >
+                          นำมาหักลบบิลนี้
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                 <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                  <h4 className="mb-4 flex items-center gap-2 font-bold text-gray-700">
-                    <FileText size={18} className="text-gray-400" />
-                    สรุปยอดชำระ
-                  </h4>
+                  <div className="mb-4 flex items-center justify-between">
+                    <h4 className="flex items-center gap-2 font-bold text-gray-700">
+                      <FileText size={18} className="text-gray-400" />
+                      สรุปยอดชำระ
+                    </h4>
+                    {bill.status === "PENDING" &&
+                      !isAddingItem &&
+                      !editingItemId && (
+                        <button
+                          onClick={() => setIsAddingItem(true)}
+                          className="flex cursor-pointer items-center gap-1.5 rounded-md text-xs font-semibold text-indigo-600 transition-colors hover:text-indigo-800"
+                        >
+                          <Plus size={14} />
+                          เพิ่มรายการอื่น
+                        </button>
+                      )}
+                  </div>
                   <div className="space-y-3 text-sm text-gray-600">
                     <div className="flex justify-between">
                       <span>ค่าห้อง</span>
@@ -280,25 +483,359 @@ export default function BillDetailDialog({
                         </span>
                       </div>
                     )}
-                    {bill.lateFeeSnapshot > 0 && (
+                    {bill.lateFeeSnapshot > 0 && bill.status === "OVERDUE" && (
                       <div className="flex justify-between text-red-600">
-                        <span>ค่าปรับ</span>
+                        <span>ค่าปรับ (เกินกำหนด)</span>
                         <span className="font-medium">
                           ฿{bill.lateFeeSnapshot.toLocaleString()}
                         </span>
                       </div>
                     )}
+
+                    {allItemsSorted && allItemsSorted.length > 0 && (
+                      <div className="my-3 border-t border-dashed border-gray-200 pt-3">
+                        <div className="space-y-3">
+                          {allItemsSorted.map((item: any) => {
+                            if (editingItemId === item.id) {
+                              return (
+                                <div
+                                  key={item.id}
+                                  className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-3"
+                                >
+                                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                    <div className="flex-1">
+                                      <input
+                                        type="text"
+                                        placeholder="ชื่อรายการ"
+                                        className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-100"
+                                        value={editItemData.name}
+                                        disabled={
+                                          item.name === "หักเงินค่าเช่าล่วงหน้า"
+                                        }
+                                        onChange={(e) =>
+                                          setEditItemData({
+                                            ...editItemData,
+                                            name: e.target.value,
+                                          })
+                                        }
+                                      />
+                                    </div>
+                                    <div className="w-full sm:w-28">
+                                      <input
+                                        type="number"
+                                        placeholder="จำนวนเงิน"
+                                        className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                                        value={editItemData.amount}
+                                        onChange={(e) =>
+                                          setEditItemData({
+                                            ...editItemData,
+                                            amount: e.target.value,
+                                          })
+                                        }
+                                      />
+                                    </div>
+                                    <div
+                                      className="relative w-full sm:w-32"
+                                      ref={dropdownRef}
+                                    >
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (
+                                            item.name !==
+                                            "หักเงินค่าเช่าล่วงหน้า"
+                                          )
+                                            setIsTypeDropdownOpen(
+                                              !isTypeDropdownOpen,
+                                            );
+                                        }}
+                                        className={`flex w-full cursor-pointer items-center justify-between rounded-md border px-2.5 py-1.5 text-xs font-medium focus:outline-none ${editItemData.type === "CHARGE" ? "border-blue-200 bg-blue-50 text-blue-700" : "border-red-200 bg-red-50 text-red-700"} ${item.name === "หักเงินค่าเช่าล่วงหน้า" ? "cursor-not-allowed opacity-70" : ""}`}
+                                      >
+                                        <span className="flex items-center gap-1">
+                                          {editItemData.type === "CHARGE" ? (
+                                            <PlusCircle size={12} />
+                                          ) : (
+                                            <MinusCircle size={12} />
+                                          )}
+                                          {editItemData.type === "CHARGE"
+                                            ? "บวกเพิ่ม"
+                                            : "หักลบ (-)"}
+                                        </span>
+                                        <ChevronDown size={12} />
+                                      </button>
+                                      {isTypeDropdownOpen &&
+                                        item.name !==
+                                          "หักเงินค่าเช่าล่วงหน้า" && (
+                                          <div className="absolute top-full left-0 z-10 mt-1 w-full overflow-hidden rounded-md border border-gray-100 bg-white shadow-lg">
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setEditItemData({
+                                                  ...editItemData,
+                                                  type: "CHARGE",
+                                                });
+
+                                                setIsTypeDropdownOpen(false);
+                                              }}
+                                              className="flex w-full items-center gap-1.5 px-2 py-2 text-xs hover:bg-gray-50"
+                                            >
+                                              <PlusCircle
+                                                size={12}
+                                                className="text-blue-500"
+                                              />{" "}
+                                              บวกเพิ่ม
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setEditItemData({
+                                                  ...editItemData,
+                                                  type: "DISCOUNT",
+                                                });
+
+                                                setIsTypeDropdownOpen(false);
+                                              }}
+                                              className="flex w-full items-center gap-1.5 border-t border-gray-50 px-2 py-2 text-xs hover:bg-gray-50"
+                                            >
+                                              <MinusCircle
+                                                size={12}
+                                                className="text-red-500"
+                                              />{" "}
+                                              หักลบ
+                                            </button>
+                                          </div>
+                                        )}
+                                    </div>
+                                    <div className="flex shrink-0 justify-end gap-1.5">
+                                      <button
+                                        onClick={() => setEditingItemId(null)}
+                                        className="cursor-pointer rounded-md border border-gray-200 bg-white p-1.5 text-gray-500 hover:bg-gray-50"
+                                      >
+                                        <X size={14} />
+                                      </button>
+                                      <button
+                                        onClick={handleSaveEdit}
+                                        disabled={isProcessing}
+                                        className="cursor-pointer rounded-md bg-indigo-600 p-1.5 text-white hover:bg-indigo-700 disabled:opacity-50"
+                                      >
+                                        <CheckCircle size={14} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div
+                                key={item.id}
+                                className="group flex items-center justify-between"
+                              >
+                                <div className="flex items-center gap-2">
+                                  {item.type === "DISCOUNT" ? (
+                                    <span className="flex items-center gap-1 rounded border border-red-100 bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-600">
+                                      <MinusCircle size={10} />
+                                      หักลบ
+                                    </span>
+                                  ) : (
+                                    <span className="flex items-center gap-1 rounded border border-blue-100 bg-blue-50 px-1.5 py-0.5 text-[10px] font-bold text-blue-600">
+                                      <PlusCircle size={10} />
+                                      เพิ่มเติม
+                                    </span>
+                                  )}
+                                  <span className="text-gray-700">
+                                    {item.name}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span
+                                    className={`font-medium ${item.type === "DISCOUNT" ? "text-red-600" : "text-gray-900"}`}
+                                  >
+                                    {item.type === "DISCOUNT" ? "-" : ""}฿
+                                    {item.amount.toLocaleString()}
+                                  </span>
+
+                                  {bill.status === "PENDING" &&
+                                    !editingItemId && (
+                                      <div className="flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                                        <button
+                                          onClick={() => handleStartEdit(item)}
+                                          disabled={isProcessing}
+                                          className="cursor-pointer rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-indigo-600 disabled:opacity-50"
+                                          title="แก้ไข"
+                                        >
+                                          <Edit2 size={14} />
+                                        </button>
+                                        <button
+                                          onClick={() =>
+                                            handleDeleteItem(item.id, item.name)
+                                          }
+                                          disabled={isProcessing}
+                                          className="cursor-pointer rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+                                          title="ลบรายการ"
+                                        >
+                                          <Trash2 size={14} />
+                                        </button>
+                                      </div>
+                                    )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {isAddingItem && (
+                      <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/30 p-4">
+                        <h5 className="mb-3 text-xs font-semibold text-indigo-900">
+                          เพิ่มรายการค่าใช้จ่าย / ส่วนลด
+                        </h5>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              placeholder="เช่น ค่าล้างแอร์, ส่วนลด..."
+                              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                              value={newItemData.name}
+                              onChange={(e) =>
+                                setNewItemData({
+                                  ...newItemData,
+                                  name: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                          <div className="w-full sm:w-32">
+                            <div className="relative">
+                              <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm font-medium text-gray-500">
+                                ฿
+                              </span>
+                              <input
+                                type="number"
+                                placeholder="0.00"
+                                className="w-full rounded-lg border border-gray-300 bg-white py-2 pr-3 pl-8 text-sm text-gray-700 shadow-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                                value={newItemData.amount}
+                                onChange={(e) =>
+                                  setNewItemData({
+                                    ...newItemData,
+                                    amount: e.target.value,
+                                  })
+                                }
+                              />
+                            </div>
+                          </div>
+                          <div
+                            className="relative w-full sm:w-36"
+                            ref={dropdownRef}
+                          >
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setIsTypeDropdownOpen(!isTypeDropdownOpen)
+                              }
+                              className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm font-medium shadow-sm transition-all focus:ring-2 focus:ring-indigo-200 focus:outline-none ${newItemData.type === "CHARGE" ? "border-blue-200 bg-blue-50 text-blue-700" : "border-red-200 bg-red-50 text-red-700"}`}
+                            >
+                              <span className="flex items-center gap-1.5">
+                                {newItemData.type === "CHARGE" ? (
+                                  <PlusCircle size={14} />
+                                ) : (
+                                  <MinusCircle size={14} />
+                                )}
+                                {newItemData.type === "CHARGE"
+                                  ? "บวกเพิ่ม"
+                                  : "หักลบ (-)"}
+                              </span>
+                              <ChevronDown
+                                size={14}
+                                className={`transition-transform duration-200 ${isTypeDropdownOpen ? "rotate-180" : ""}`}
+                              />
+                            </button>
+                            {isTypeDropdownOpen && (
+                              <div className="animate-in fade-in slide-in-from-top-2 absolute top-full left-0 z-10 mt-1 w-full overflow-hidden rounded-lg border border-gray-100 bg-white shadow-lg">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setNewItemData({
+                                      ...newItemData,
+                                      type: "CHARGE",
+                                    });
+
+                                    setIsTypeDropdownOpen(false);
+                                  }}
+                                  className="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-blue-50 hover:text-blue-700"
+                                >
+                                  <PlusCircle
+                                    size={14}
+                                    className="text-blue-500"
+                                  />{" "}
+                                  บวกเพิ่ม (Charge)
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setNewItemData({
+                                      ...newItemData,
+                                      type: "DISCOUNT",
+                                    });
+
+                                    setIsTypeDropdownOpen(false);
+                                  }}
+                                  className="flex w-full cursor-pointer items-center gap-2 border-t border-gray-50 px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-red-50 hover:text-red-700"
+                                >
+                                  <MinusCircle
+                                    size={14}
+                                    className="text-red-500"
+                                  />{" "}
+                                  หักลบ (Discount)
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="mt-4 flex justify-end gap-2 border-t border-indigo-100/50 pt-3">
+                          <button
+                            onClick={() => {
+                              setIsAddingItem(false);
+
+                              setNewItemData({
+                                name: "",
+                                amount: "",
+                                type: "CHARGE",
+                              });
+                            }}
+                            className="cursor-pointer rounded-lg px-4 py-2 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100"
+                          >
+                            ยกเลิก
+                          </button>
+                          <button
+                            onClick={handleSaveNewItem}
+                            disabled={isProcessing}
+                            className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 active:scale-95 disabled:opacity-50"
+                          >
+                            <CheckCircle size={14} />
+                            บันทึกรายการ
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="mt-4 flex items-end justify-between border-t border-dashed pt-4">
+
+                  <div className="mt-4 flex items-end justify-between border-t border-dashed border-gray-200 pt-4">
                     <span className="text-xs text-gray-500">
                       ครบกำหนด{" "}
-                      {new Date(bill.dueDate).toLocaleDateString("th-TH")}
+                      {new Date(bill.dueDate).toLocaleDateString("th-TH", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
                     </span>
                     <span className="text-2xl font-bold text-indigo-600">
                       ฿{bill.total.toLocaleString()}
                     </span>
                   </div>
                 </div>
+
                 <div className="mt-8 border-t pt-6 sm:hidden">
                   <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                     <BillSlipSidebar
@@ -312,6 +849,7 @@ export default function BillDetailDialog({
                 </div>
               </div>
             </div>
+
             <div className="hidden w-100 flex-col border-l border-gray-200 bg-white sm:flex lg:w-112.5">
               <div className="h-full overflow-y-auto">
                 <BillSlipSidebar
@@ -324,14 +862,15 @@ export default function BillDetailDialog({
               </div>
             </div>
           </div>
+
           {isActionable && (
             <div className="pb-safe-area z-20 flex-none border-t border-gray-100 bg-white p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
               <div className="flex justify-between gap-3">
                 <button
-                  onClick={() => handleActionClick("CANCELLED")}
+                  onClick={() => handleActionClick("DELETE")}
                   className="flex cursor-pointer rounded-xl border border-red-100 px-6 py-3.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 active:scale-95 sm:flex-none sm:py-3"
                 >
-                  ยกเลิกบิล
+                  ลบบิล
                 </button>
                 <button
                   onClick={() => handleActionClick("PAID")}
@@ -354,6 +893,7 @@ export default function BillDetailDialog({
           description={confirmConfig.description}
           type={confirmConfig.type}
           confirmText={confirmConfig.confirmText}
+          isLoading={isProcessing}
         />
       )}
     </>

@@ -74,11 +74,13 @@ export const billService = {
 
         include: {
           room: true,
+          items: true,
 
           tenant: {
             select: {
               firstName: true,
               lastName: true,
+              advancePayment: true,
             },
           },
 
@@ -110,12 +112,11 @@ export const billService = {
 
     const itemsWithSignedUrl = await Promise.all(
       items.map(async (bill) => {
-        if (!bill.payment || !bill.payment.slips.length) return bill;
-
         const today = new Date();
 
         if (bill.status === "PENDING" && today > new Date(bill.dueDate)) {
           bill.status = "OVERDUE" as any;
+          bill.total = bill.total + bill.lateFeeSnapshot;
         }
 
         if (!bill.payment || !bill.payment.slips.length) return bill;
@@ -145,6 +146,257 @@ export const billService = {
       limit: Number(limit),
       totalPages: Math.ceil(total / limit),
     };
+  },
+
+  addBillItem: async (
+    userSub: string,
+    billId: string,
+    data: {
+      name: string;
+      amount: number;
+      type: "CHARGE" | "DISCOUNT";
+    },
+  ) => {
+    const bill = await prisma.bill.findUnique({
+      where: {
+        id: billId,
+      },
+
+      include: {
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+      },
+    });
+
+    if (!bill) throw new Error("BILL_NOT_FOUND");
+
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: userSub,
+      },
+    });
+
+    if (!owner || owner.id !== bill.room.dormitory.ownerId) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    return await prisma.$transaction(async (tx) => {
+      const newItem = await tx.billItem.create({
+        data: {
+          billId: billId,
+          name: data.name,
+          amount: Number(data.amount),
+          type: data.type,
+        },
+      });
+
+      const amountChange =
+        data.type === "CHARGE" ? Number(data.amount) : -Number(data.amount);
+      const newTotal = bill.total + amountChange;
+
+      const updatedBill = await tx.bill.update({
+        where: {
+          id: billId,
+        },
+
+        data: {
+          total: newTotal < 0 ? 0 : newTotal,
+        },
+
+        include: {
+          items: true,
+        },
+      });
+
+      return updatedBill;
+    });
+  },
+
+  deleteBillItem: async (userSub: string, billId: string, itemId: string) => {
+    const bill = await prisma.bill.findUnique({
+      where: {
+        id: billId,
+      },
+
+      include: {
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+
+        tenant: true,
+      },
+    });
+
+    if (!bill) throw new Error("BILL_NOT_FOUND");
+
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: userSub,
+      },
+    });
+
+    if (!owner || owner.id !== bill.room.dormitory.ownerId) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    const itemToDelete = await prisma.billItem.findUnique({
+      where: {
+        id: itemId,
+      },
+    });
+
+    if (!itemToDelete || itemToDelete.billId !== billId) {
+      throw new Error("ITEM_NOT_FOUND");
+    }
+
+    return await prisma.$transaction(async (tx) => {
+      await tx.billItem.delete({
+        where: {
+          id: itemId,
+        },
+      });
+
+      if (
+        itemToDelete.name === "หักเงินค่าเช่าล่วงหน้า" &&
+        itemToDelete.type === "DISCOUNT"
+      ) {
+        await tx.tenantProfile.update({
+          where: {
+            id: bill.tenantId,
+          },
+
+          data: {
+            advancePayment: {
+              increment: itemToDelete.amount,
+            },
+          },
+        });
+      }
+
+      const amountToReverse =
+        itemToDelete.type === "CHARGE"
+          ? -Number(itemToDelete.amount)
+          : Number(itemToDelete.amount);
+      const newTotal = bill.total + amountToReverse;
+
+      const updatedBill = await tx.bill.update({
+        where: {
+          id: billId,
+        },
+
+        data: {
+          total: newTotal < 0 ? 0 : newTotal,
+        },
+
+        include: {
+          items: true,
+        },
+      });
+
+      return updatedBill;
+    });
+  },
+
+  updateBillItem: async (
+    userSub: string,
+    billId: string,
+    itemId: string,
+    data: any,
+  ) => {
+    const bill = await prisma.bill.findUnique({
+      where: {
+        id: billId,
+      },
+
+      include: {
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+      },
+    });
+
+    if (!bill) throw new Error("BILL_NOT_FOUND");
+
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: userSub,
+      },
+    });
+
+    if (!owner || owner.id !== bill.room.dormitory.ownerId) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    const oldItem = await prisma.billItem.findUnique({
+      where: {
+        id: itemId,
+      },
+    });
+
+    if (!oldItem || oldItem.billId !== billId) {
+      throw new Error("ITEM_NOT_FOUND");
+    }
+
+    return await prisma.$transaction(async (tx) => {
+      const updatedItem = await tx.billItem.update({
+        where: {
+          id: itemId,
+        },
+
+        data: {
+          name: data.name ?? oldItem.name,
+          amount: data.amount ? Number(data.amount) : oldItem.amount,
+          type: data.type ?? oldItem.type,
+        },
+      });
+
+      let recalculatedTotal =
+        bill.roomPriceSnapshot +
+        bill.waterFeeSnapshot +
+        bill.electricFeeSnapshot +
+        bill.commonFeeSnapshot;
+
+      if (bill.status === "OVERDUE") {
+        recalculatedTotal += bill.lateFeeSnapshot;
+      }
+
+      const allItems = await tx.billItem.findMany({
+        where: {
+          billId: billId,
+        },
+      });
+
+      allItems.forEach((item) => {
+        if (item.type === "CHARGE") {
+          recalculatedTotal += item.amount;
+        } else if (item.type === "DISCOUNT") {
+          recalculatedTotal -= item.amount;
+        }
+      });
+
+      const updatedBill = await tx.bill.update({
+        where: {
+          id: billId,
+        },
+
+        data: {
+          total: recalculatedTotal < 0 ? 0 : recalculatedTotal,
+        },
+
+        include: {
+          items: true,
+        },
+      });
+
+      return updatedBill;
+    });
   },
 
   createBills: async (dormId: string, data: any, user: UserDecodedDto) => {
@@ -360,13 +612,101 @@ export const billService = {
     if (emailJobs.length > 0) {
       try {
         await Promise.all(emailJobs.map((job) => emailQueue.add(job)));
-        console.log(`📨 Queued ${emailJobs.length} emails.`);
-      } catch (error) {
-        console.error("⚠️ Email Queue Error:", error);
+        logger.info(`📨 Queued ${emailJobs.length} emails.`);
+      } catch (error: any) {
+        logger.error(`⚠️ Email Queue Error: ${error.message}`);
       }
     }
 
     return createdBills;
+  },
+
+  deleteBill: async (userSub: string, billId: string) => {
+    const bill = await prisma.bill.findUnique({
+      where: {
+        id: billId,
+      },
+
+      include: {
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+
+        payment: {
+          include: {
+            slips: true,
+          },
+        },
+
+        items: true,
+      },
+    });
+
+    if (!bill) throw new Error("BILL_NOT_FOUND");
+
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: userSub,
+      },
+    });
+
+    if (!owner || owner.id !== bill.room.dormitory.ownerId) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    return await prisma.$transaction(async (tx) => {
+      const advanceItem = bill.items.find(
+        (item) =>
+          item.name === "หักเงินค่าเช่าล่วงหน้า" && item.type === "DISCOUNT",
+      );
+
+      if (advanceItem) {
+        await tx.tenantProfile.update({
+          where: {
+            id: bill.tenantId,
+          },
+
+          data: {
+            advancePayment: {
+              increment: advanceItem.amount,
+            },
+          },
+        });
+      }
+
+      if (bill.payment) {
+        await tx.file.deleteMany({
+          where: {
+            paymentId: bill.payment.id,
+          },
+        });
+
+        await tx.payment.delete({
+          where: {
+            id: bill.payment.id,
+          },
+        });
+      }
+
+      await tx.billItem.deleteMany({
+        where: {
+          billId: bill.id,
+        },
+      });
+
+      await tx.bill.delete({
+        where: {
+          id: bill.id,
+        },
+      });
+
+      return {
+        success: true,
+        message: "BILL_DELETED",
+      };
+    });
   },
 
   uploadSlip: async ({
@@ -634,6 +974,92 @@ export const billService = {
 
         data: {
           status: status,
+        },
+      });
+
+      return updatedBill;
+    });
+  },
+
+  applyAdvancePayment: async (userSub: string, billId: string) => {
+    const bill = await prisma.bill.findUnique({
+      where: {
+        id: billId,
+      },
+
+      include: {
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+
+        tenant: true,
+        items: true,
+      },
+    });
+
+    if (!bill) throw new Error("BILL_NOT_FOUND");
+
+    if (bill.status !== "PENDING") throw new Error("BILL_NOT_PENDING");
+
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: userSub,
+      },
+    });
+
+    if (!owner || owner.id !== bill.room.dormitory.ownerId) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    if (!bill.tenant || bill.tenant.advancePayment <= 0) {
+      throw new Error("NO_ADVANCE_PAYMENT");
+    }
+
+    const alreadyApplied = bill.items.some(
+      (item) => item.name === "หักเงินค่าเช่าล่วงหน้า",
+    );
+
+    if (alreadyApplied) {
+      throw new Error("ALREADY_APPLIED");
+    }
+
+    const advanceAmount = bill.tenant.advancePayment;
+
+    return await prisma.$transaction(async (tx) => {
+      await tx.tenantProfile.update({
+        where: {
+          id: bill.tenantId,
+        },
+
+        data: {
+          advancePayment: 0,
+        },
+      });
+
+      await tx.billItem.create({
+        data: {
+          billId: billId,
+          name: "หักเงินค่าเช่าล่วงหน้า",
+          amount: advanceAmount,
+          type: "DISCOUNT",
+        },
+      });
+
+      const newTotal = bill.total - advanceAmount;
+
+      const updatedBill = await tx.bill.update({
+        where: {
+          id: billId,
+        },
+
+        data: {
+          total: newTotal < 0 ? 0 : newTotal,
+        },
+
+        include: {
+          items: true,
         },
       });
 

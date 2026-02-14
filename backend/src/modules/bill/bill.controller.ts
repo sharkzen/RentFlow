@@ -80,6 +80,31 @@ export const BillController = {
     }
   },
 
+  deleteBill: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      const { billId } = request.params as {
+        billId: string;
+      };
+
+      const result = await billService.deleteBill(user.sub, billId);
+      return reply.send(result);
+    } catch (error: any) {
+      logger.error("DELETE BILL ERROR:", error);
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        return reply.status(403).send({
+          message: "FORBIDDEN_ACCESS",
+        });
+      }
+
+      return reply.status(500).send({
+        message: error.message || "DELETE_BILL_FAILED",
+      });
+    }
+  },
+
   updateStatus: async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const user = request.user as UserDecodedDto;
@@ -103,6 +128,106 @@ export const BillController = {
 
       return reply.status(500).send({
         message: error.message || "UPDATE_STATUS_FAILED",
+      });
+    }
+  },
+
+  addBillItem: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      const { billId } = request.params as {
+        billId: string;
+      };
+
+      const body = request.body as {
+        name: string;
+        amount: number;
+        type: "CHARGE" | "DISCOUNT";
+      };
+
+      if (!body.name || !body.amount || !body.type) {
+        return reply.status(400).send({
+          message: "INVALID_DATA",
+        });
+      }
+
+      const result = await billService.addBillItem(user.sub, billId, body);
+      return reply.status(201).send(result);
+    } catch (error: any) {
+      logger.error("ADD BILL ITEM ERROR:", error);
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        return reply.status(403).send({
+          message: "FORBIDDEN_ACCESS",
+        });
+      }
+
+      return reply.status(500).send({
+        message: error.message || "ADD_ITEM_FAILED",
+      });
+    }
+  },
+
+  deleteBillItem: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      const { billId, itemId } = request.params as {
+        billId: string;
+        itemId: string;
+      };
+
+      const result = await billService.deleteBillItem(user.sub, billId, itemId);
+      return reply.send(result);
+    } catch (error: any) {
+      logger.error("DELETE BILL ITEM ERROR:", error);
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        return reply.status(403).send({
+          message: "FORBIDDEN_ACCESS",
+        });
+      }
+
+      return reply.status(500).send({
+        message: error.message || "DELETE_ITEM_FAILED",
+      });
+    }
+  },
+
+  updateBillItem: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      const { billId, itemId } = request.params as {
+        billId: string;
+        itemId: string;
+      };
+
+      const body = request.body as {
+        name?: string;
+        amount?: number;
+        type?: "CHARGE" | "DISCOUNT";
+      };
+
+      const result = await billService.updateBillItem(
+        user.sub,
+        billId,
+        itemId,
+        body,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      logger.error("UPDATE BILL ITEM ERROR:", error);
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        return reply.status(403).send({
+          message: "FORBIDDEN_ACCESS",
+        });
+      }
+
+      return reply.status(500).send({
+        message: error.message || "UPDATE_ITEM_FAILED",
       });
     }
   },
@@ -192,6 +317,43 @@ export const BillController = {
 
       return reply.status(500).send({
         message: error.message || "UPLOAD_FAILED",
+      });
+    }
+  },
+
+  applyAdvancePayment: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      const { billId } = request.params as {
+        billId: string;
+      };
+
+      const result = await billService.applyAdvancePayment(user.sub, billId);
+      return reply.send(result);
+    } catch (error: any) {
+      logger.error("APPLY ADVANCE PAYMENT ERROR:", error);
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        return reply.status(403).send({
+          message: "FORBIDDEN_ACCESS",
+        });
+      }
+
+      if (error.message === "NO_ADVANCE_PAYMENT") {
+        return reply.status(400).send({
+          message: "ผู้เช่าไม่มีเงินล่วงหน้าคงเหลือ",
+        });
+      }
+
+      if (error.message === "ALREADY_APPLIED") {
+        return reply.status(400).send({
+          message: "มีการหักเงินล่วงหน้าไปแล้ว",
+        });
+      }
+
+      return reply.status(500).send({
+        message: error.message || "APPLY_ADVANCE_PAYMENT_FAILED",
       });
     }
   },

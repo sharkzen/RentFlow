@@ -33,6 +33,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
       total,
       id,
       status,
+      items,
     } = data;
 
     const dorm = room?.dormitory;
@@ -40,9 +41,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
     const isCancel = status === "CANCELLED";
 
     const getDaysLate = () => {
-      if (lateFeeSnapshot > 0) {
-        return Math.floor(lateFeeSnapshot / 10);
-      }
+      if (status !== "OVERDUE") return 0;
 
       const today = new Date();
       const due = new Date(dueDate);
@@ -67,6 +66,10 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
       amount.toLocaleString("th-TH", {
         minimumFractionDigits: 2,
       });
+
+    const chargeItems = items?.filter((item) => item.type === "CHARGE") || [];
+    const discountItems =
+      items?.filter((item) => item.type === "DISCOUNT") || [];
 
     return (
       <div
@@ -227,7 +230,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   </td>
                 </tr>
               )}
-              {lateFeeSnapshot > 0 && (
+              {status === "OVERDUE" && lateFeeSnapshot > 0 && (
                 <tr>
                   <td className="px-3 py-4">
                     <div className="font-semibold text-red-600">
@@ -246,6 +249,39 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   </td>
                 </tr>
               )}
+
+              {chargeItems.map((item) => (
+                <tr key={item.id}>
+                  <td className="px-3 py-4">
+                    <div className="font-semibold text-slate-900">
+                      {item.name}
+                    </div>
+                  </td>
+                  <td className="px-3 py-4 text-center">-</td>
+                  <td className="px-3 py-4 text-right">-</td>
+                  <td className="px-3 py-4 text-right font-bold text-slate-900">
+                    {formatMoney(item.amount)}
+                  </td>
+                </tr>
+              ))}
+
+              {discountItems.map((item) => (
+                <tr key={item.id}>
+                  <td className="px-3 py-4">
+                    <div className="font-semibold text-red-600">
+                      {item.name}
+                      <span className="ml-2 text-xs font-bold text-red-500">
+                        (ส่วนลด/หักลบ)
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-4 text-center">-</td>
+                  <td className="px-3 py-4 text-right">-</td>
+                  <td className="px-3 py-4 text-right font-bold text-red-600">
+                    -{formatMoney(item.amount)}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

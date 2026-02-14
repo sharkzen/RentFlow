@@ -16,6 +16,14 @@ export async function billRoute(app: FastifyInstance) {
     routeRoles.get("/:dormId", BillController.getBills);
     routeRoles.post("/", BillController.createBills);
     routeRoles.patch("/:billId/status", BillController.updateStatus);
+    routeRoles.delete("/:billId", BillController.deleteBill);
+    routeRoles.post("/:billId/items", BillController.addBillItem);
+    routeRoles.delete("/:billId/items/:itemId", BillController.deleteBillItem);
+    routeRoles.patch("/:billId/items/:itemId", BillController.updateBillItem);
+    routeRoles.post(
+      "/:billId/apply-advance-payment",
+      BillController.applyAdvancePayment,
+    );
   });
 
   app.register(async (routeRoles) => {

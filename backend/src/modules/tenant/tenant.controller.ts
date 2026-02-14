@@ -328,18 +328,21 @@ export const TenantController = {
 
       if (error.message === "BILL_NOT_FOUND") {
         return reply.status(404).send({
-          message: "ไม่พบข้อมูลบิล",
+          message: "BILL_NOT_FOUND",
+          error: "ไม่พบข้อมูลบิล หรือบิลนี้อาจถูกลบออกไปแล้ว",
         });
       }
 
       if (error.message === "FORBIDDEN_ACCESS") {
         return reply.status(403).send({
-          message: "คุณไม่มีสิทธิ์เข้าถึงบิลนี้",
+          message: "FORBIDDEN_ACCESS",
+          error: "คุณไม่มีสิทธิ์เข้าถึงข้อมูลบิลใบนี้",
         });
       }
 
       return reply.status(500).send({
-        message: "Internal Server Error",
+        message: "INTERNAL_SERVER_ERROR",
+        error: "เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง",
       });
     }
   },

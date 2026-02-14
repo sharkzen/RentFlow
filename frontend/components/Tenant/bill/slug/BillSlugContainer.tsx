@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { TenantService } from "@/features/tenant/services/tenant.service";
 import LoadingPage from "@/components/layout/LoadingPage";
+import log from "@/lib/logger";
 
 import {
   ChevronLeft,
@@ -13,6 +14,7 @@ import {
   CheckCircle,
   Clock,
   Edit,
+  Receipt,
 } from "lucide-react";
 
 import { InvoiceVoucher } from "./InvoiceVoucher";
@@ -34,11 +36,21 @@ export default function BillSlugContainer() {
   const fetchBill = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await TenantService.getBillDetail(billId);
       setBill(data);
     } catch (err: any) {
-      console.error(err);
-      setError("ไม่สามารถโหลดข้อมูลบิลได้ หรือคุณไม่มีสิทธิ์เข้าถึง");
+      log.error(err);
+      const backendError = err.response?.data?.error;
+      const backendMessage = err.response?.data?.message;
+
+      if (backendMessage === "BILL_NOT_FOUND") {
+        setError("บิลนี้ไม่มีอยู่ในระบบ หรืออาจจะถูกเจ้าของหอพักลบไปแล้ว");
+      } else if (backendMessage === "FORBIDDEN_ACCESS") {
+        setError("สิทธิ์การเข้าถึงปฏิเสธ: บิลนี้ไม่ใช่ของคุณ");
+      } else {
+        setError(backendError || "ไม่สามารถโหลดข้อมูลบิลได้ในขณะนี้");
+      }
     } finally {
       setLoading(false);
     }
@@ -64,14 +76,45 @@ export default function BillSlugContainer() {
 
   if (error || !bill) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4">
-        <p className="text-slate-500">{error || "ไม่พบข้อมูล"}</p>
-        <button
-          onClick={() => router.push("/")}
-          className="rounded-lg bg-slate-200 px-4 py-2 font-medium transition hover:bg-slate-300"
-        >
-          หน้าหลัก
-        </button>
+      <div className="animate-in fade-in zoom-in flex min-h-[80vh] flex-col items-center justify-center p-6 text-center duration-300">
+        <div className="relative mb-6">
+          <div className="absolute inset-0 scale-150 rounded-full bg-slate-100/50 blur-3xl" />
+
+          <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-xl ring-1 ring-slate-100">
+            <Receipt className="h-10 w-10 text-slate-300" />
+            <div className="absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-500 shadow-sm ring-4 ring-white">
+              <XCircle size={20} />
+            </div>
+          </div>
+        </div>
+
+        <h2 className="mb-2 text-2xl font-bold text-slate-800">
+          {error?.includes("สิทธิ์") ? "ไม่มีสิทธิ์เข้าถึง" : "ไม่พบข้อมูลบิล"}
+        </h2>
+        <p className="mx-auto mb-8 max-w-[300px] leading-relaxed text-slate-500">
+          {error ||
+            "บิลนี้อาจถูกลบไปแล้ว หรือคุณอาจเข้าใช้งานด้วยลิงก์ที่ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง"}
+        </p>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <button
+            onClick={() => router.push("/tenant/bills")}
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-200 transition-all hover:bg-slate-800 active:scale-95"
+          >
+            <ChevronLeft size={18} />
+            กลับไปหน้ารายการบิล
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-600 ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95"
+          >
+            ลองโหลดใหม่อีกครั้ง
+          </button>
+        </div>
+
+        <p className="mt-12 text-xs text-slate-400">
+          หากคิดว่าเป็นข้อผิดพลาด กรุณาติดต่อผู้ดูแลหอพักของคุณ
+        </p>
       </div>
     );
   }

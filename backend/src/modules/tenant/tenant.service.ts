@@ -884,6 +884,7 @@ export const tenantService = {
         },
 
         tenant: true,
+        items: true,
       },
     });
 
@@ -961,20 +962,24 @@ export const tenantService = {
 
     const today = new Date();
     const dueDate = new Date(bill.dueDate);
-    const startDatePdf = new Date(
-      dueDate.getFullYear(),
-      dueDate.getMonth(),
-      dueDate.getDate(),
-    );
-    const endDatePdf = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-    );
-    const daysLate = Math.floor(
-      (endDatePdf.getTime() - startDatePdf.getTime()) / 86400000,
-    );
-    const finalDaysLate = daysLate > 0 ? daysLate : 0;
+    let finalDaysLate = 0;
+
+    if (bill.status === "OVERDUE") {
+      const startDatePdf = new Date(
+        dueDate.getFullYear(),
+        dueDate.getMonth(),
+        dueDate.getDate(),
+      );
+      const endDatePdf = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+      );
+      const daysLate = Math.floor(
+        (endDatePdf.getTime() - startDatePdf.getTime()) / 86400000,
+      );
+      finalDaysLate = daysLate > 0 ? daysLate : 0;
+    }
 
     const formatThaiDate = (
       date: Date | string,
@@ -984,6 +989,12 @@ export const tenantService = {
         ...options,
         year: "numeric",
       }).format(new Date(date));
+    };
+
+    const formatMoney = (amount: number) => {
+      return amount.toLocaleString("th-TH", {
+        minimumFractionDigits: 2,
+      });
     };
 
     const getBase64Image = (fileName: string) => {
@@ -998,6 +1009,39 @@ export const tenantService = {
 
     const paidStamp = getBase64Image("Paid.png");
     const cancelStamp = getBase64Image("Cancel.png");
+    const items = (bill as any).items || [];
+    const chargeItems = items.filter((item: any) => item.type === "CHARGE");
+    const discountItems = items.filter((item: any) => item.type === "DISCOUNT");
+
+    const chargeItemsHtml = chargeItems
+      .map(
+        (item: any) => `
+      <tr>
+        <td class="font-bold text-slate-900">${item.name}</td>
+        <td class="text-center">-</td>
+        <td class="text-right">-</td>
+        <td class="text-right font-bold text-slate-900">${formatMoney(item.amount)}</td>
+      </tr>
+    `,
+      )
+      .join("");
+
+    const discountItemsHtml = discountItems
+      .map(
+        (item: any) => `
+      <tr>
+        <td>
+          <div class="font-bold" style="color: #dc2626;">
+            ${item.name} <span style="font-size: 10px; color: #ef4444; margin-left: 4px;">(ส่วนลด/หักลบ)</span>
+          </div>
+        </td>
+        <td class="text-center">-</td>
+        <td class="text-right">-</td>
+        <td class="text-right font-bold" style="color: #dc2626;">-${formatMoney(item.amount)}</td>
+      </tr>
+    `,
+      )
+      .join("");
 
     const htmlContent = `
       <!DOCTYPE html>
@@ -1013,11 +1057,11 @@ export const tenantService = {
             padding: 0;
             background-color: white;
             color: #1e293b;
-            -webkit-print-color-adjust: exact; /* สำคัญ: ทำให้สีแสดงผลใน PDF */
+            -webkit-print-color-adjust: exact; 
           }
           .container {
             width: 210mm;
-            height: 296mm; /* ลดลงเล็กน้อยป้องกันหน้าว่าง */
+            height: 296mm; 
             padding: 15mm;
             box-sizing: border-box;
             display: flex;
@@ -1176,12 +1220,14 @@ export const tenantService = {
                 </tr>`
                     : ""
                 }
+                
                 ${
-                  bill.lateFeeSnapshot > 0
+                  bill.status === "OVERDUE" && bill.lateFeeSnapshot > 0
                     ? `
                 <tr>
-                  <td class="font-bold" style="color: #dc2626;">
-                    ค่าปรับล่าช้า ${daysLate > 0 ? `(ค้างชำระ ${finalDaysLate} วัน)` : ""}
+                  <td>
+                    <div class="font-bold" style="color: #dc2626;">ค่าปรับล่าช้า</div>
+                    ${finalDaysLate > 0 ? `<div class="unit-detail">(ค้างชำระ ${finalDaysLate} วัน)</div>` : ""}
                   </td>
                   <td class="text-center">-</td>
                   <td class="text-right">-</td>
@@ -1189,6 +1235,10 @@ export const tenantService = {
                 </tr>`
                     : ""
                 }
+                
+                ${chargeItemsHtml}
+                ${discountItemsHtml}
+
               </tbody>
             </table>
           </div>

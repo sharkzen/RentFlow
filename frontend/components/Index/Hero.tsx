@@ -70,13 +70,10 @@ export default function Hero() {
             <Link href="/owner/dashboard" className="w-full sm:w-auto">
               <button className="group flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-8 py-3.5 text-base font-medium text-white backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/10 active:scale-95">
                 <Building2 className="h-4 w-4 text-slate-300 transition-colors group-hover:text-white" />
-                <span>สำหรับเจ้าของหอ</span>
+                <span>แดชบอร์ด</span>
                 <ArrowRight className="h-4 w-4 -translate-x-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
               </button>
             </Link>
-          </div>
-          <div className="mt-16 flex items-center gap-2 text-xs font-medium tracking-widest text-slate-500 uppercase opacity-80">
-            Trusted by 500+ Dormitories
           </div>
         </div>
       </div>

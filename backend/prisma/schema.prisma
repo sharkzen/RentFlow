@@ -73,6 +73,11 @@ enum Status {
   INACTIVE // ย้ายออกแล้ว / เลิกใช้งาน
 }
 
+enum BillItemType {
+  CHARGE // ยอดบวก (เพิ่มหนี้) เช่น ค่าเช่า, ค่าน้ำไฟ, ค่าล้างแอร์
+  DISCOUNT // ยอดลบ (ลดหนี้) เช่น ส่วนลด, หักค่าเช่าล่วงหน้า
+}
+
 //  
 model File {
   id          String     @id @default(uuid())
@@ -316,13 +321,25 @@ model Bill {
   status   BillStatus @default(PENDING)
   archived Boolean    @default(false)
 
-  room    Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
-  tenant  TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  payment Payment?
-
-  createdAt DateTime @default(now())
+  room      Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  tenant    TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  payment   Payment?
+  items     BillItem[]
+  createdAt DateTime      @default(now())
 
   @@unique([roomId, billingMonth])
+}
+
+model BillItem {
+  id     String       @id @default(uuid())
+  billId String
+  name   String // ชื่อรายการ เช่น "ค่าล้างแอร์", "หักค่าเช่าล่วงหน้า 1 เดือน"
+  amount Float // จำนวนเงิน (เก็บเป็นค่าบวกเสมอ แล้วไปใช้ Type ในการคำนวณ)
+  type   BillItemType @default(CHARGE)
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }
 
 /**

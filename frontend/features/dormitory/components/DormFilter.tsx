@@ -174,7 +174,6 @@ export default function DormFilter() {
               }}
             />
           </div>
-
           <div className="group relative flex flex-1 flex-col justify-center px-6 py-3 transition-colors md:border-r md:border-slate-100">
             <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <MapPin size={14} className="text-rose-500" />
@@ -210,7 +209,6 @@ export default function DormFilter() {
               </div>
             </div>
           </div>
-
           <div className="group relative flex flex-[1.3] flex-col justify-center px-6 py-3 transition-colors">
             <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <Banknote size={14} className="text-emerald-500" />
@@ -252,7 +250,6 @@ export default function DormFilter() {
               />
             </div>
           </div>
-
           <div className="flex items-center gap-2 p-2 md:pl-0">
             <div
               className={`overflow-hidden transition-all duration-300 ${hasFilter ? "w-10 scale-100 opacity-100" : "w-0 scale-90 opacity-0"}`}

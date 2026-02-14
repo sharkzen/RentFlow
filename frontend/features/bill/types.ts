@@ -5,6 +5,16 @@ export type BillStatus =
   | "OVERDUE"
   | "CANCELLED";
 export type PaymentStatus = "WAITING_VERIFY" | "VERIFIED" | "REJECTED";
+export type BillItemType = "CHARGE" | "DISCOUNT";
+
+export interface BillItem {
+  id: string;
+  billId?: string;
+  name: string;
+  amount: number;
+  type: BillItemType;
+  createdAt?: string;
+}
 
 export interface Bill {
   id: string;
@@ -35,6 +45,7 @@ export interface Bill {
   room?: BillRoom;
   tenant?: BillTenant;
   payment?: Payment | null;
+  items?: BillItem[];
 }
 
 export interface BillRoom {
@@ -50,6 +61,7 @@ export interface BillTenant {
   lastName: string;
   phone: string | null;
   email: string | null;
+  advancePayment: number;
 }
 
 export interface Payment {
