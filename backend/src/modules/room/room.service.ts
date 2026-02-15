@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import { Prisma } from "@prisma/client";
 import { CreateBulkRoomsDto, RoomStatus } from "./dtos/room.dto";
+import { createActivityLog } from "@/services/activity-log.service";
 
 interface GetRoomParams {
   search?: string;
@@ -178,6 +179,18 @@ export const roomService = {
       });
 
       createdCount = result.count;
+
+      await createActivityLog({
+        userId: user.sub,
+        action: "CREATE_BULK_ROOMS",
+        entityType: "Dormitory",
+        entityId: dormitoryId,
+
+        metadata: {
+          createdCount: result.count,
+          failedCount: duplicatedRooms.length,
+        },
+      });
     }
 
     return {
@@ -264,6 +277,18 @@ export const roomService = {
       data: {
         ...data,
         floor: data.floor ? Number(data.floor) : undefined,
+      },
+    });
+
+    await createActivityLog({
+      userId: user.sub,
+      action: "UPDATE_ROOM",
+      entityType: "Room",
+      entityId: roomId,
+
+      metadata: {
+        roomNumber: updatedRoom.roomNumber,
+        changes: data,
       },
     });
 
@@ -389,6 +414,17 @@ export const roomService = {
     await prisma.room.delete({
       where: {
         id: roomId,
+      },
+    });
+
+    await createActivityLog({
+      userId: user.sub,
+      action: "DELETE_ROOM",
+      entityType: "Room",
+      entityId: roomId,
+
+      metadata: {
+        roomNumber: room.roomNumber,
       },
     });
 

@@ -58,7 +58,8 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
               <Droplets size={16} className="text-blue-400" /> ค่าน้ำ
             </span>
             <span className="font-medium text-slate-900">
-              {settings?.waterRate != null
+              {/* แก้ไข: เช็คว่าค่ามากกว่า 0 ถึงจะแสดงราคา ถ้าเป็น 0 หรือว่างให้ขึ้น ยังไม่กำหนด */}
+              {settings?.waterRate > 0
                 ? `${settings.waterRate} บ./หน่วย`
                 : "ยังไม่กำหนด"}
             </span>
@@ -68,7 +69,8 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
               <Zap size={16} className="text-yellow-400" /> ค่าไฟ
             </span>
             <span className="font-medium text-slate-900">
-              {settings?.electricRate != null
+              {/* แก้ไข: เช็คว่าค่ามากกว่า 0 ถึงจะแสดงราคา */}
+              {settings?.electricRate > 0
                 ? `${settings.electricRate} บ./หน่วย`
                 : "ยังไม่กำหนด"}
             </span>
@@ -77,9 +79,13 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             <span className="flex items-center gap-2 text-slate-600">
               <Sparkles size={16} className="text-purple-400" /> ส่วนกลาง
             </span>
-            <span className="font-medium text-slate-900">
-              {/* ถ้ามีค่าใช้ค่าเดิม ถ้าเป็น null/undefined ให้แสดง 0 */}
-              {settings?.commonFee ?? 0}
+            {/* แก้ไข: ถ้ามากกว่า 0 ให้แสดงตัวเลข ถ้าเป็น 0 ให้แสดงคำว่า ฟรี */}
+            <span
+              className={`font-medium ${
+                settings?.commonFee > 0 ? "text-slate-900" : "text-emerald-500"
+              }`}
+            >
+              {settings?.commonFee > 0 ? settings.commonFee : "ฟรี"}
             </span>
           </div>
         </div>

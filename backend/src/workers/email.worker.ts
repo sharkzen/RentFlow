@@ -1,16 +1,19 @@
 import { emailQueue } from "../queues/email.queue";
 import { transporter } from "../config/mail";
 import { getEmailTemplate } from "../utils/email-templates";
+import { startMoveOutWorker } from "./moveOutWorker";
 console.log("========================================");
-console.log("👷 Email Worker Service STARTING...");
+console.log("👷 RentFlow Background Workers STARTING...");
 console.log("========================================");
+startMoveOutWorker();
+console.log("✅ MoveOut Worker: Started successfully!");
 
 emailQueue.on("ready", () => {
-  console.log("✅ Worker: Connected to Redis successfully!");
+  console.log("✅ Email Worker: Connected to Redis successfully!");
 });
 
 emailQueue.on("error", (err) => {
-  console.error("❌ Worker: Redis connection failed!", err);
+  console.error("❌ Email Worker: Redis connection failed!", err);
 });
 
 emailQueue.process(async (job) => {

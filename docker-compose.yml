@@ -55,21 +55,32 @@ services:
     image: redis:7
     container_name: rentflow-redis
     restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning # สั่งให้ Redis เซฟข้อมูลลงดิสก์
+    environment:
+      TZ: Asia/Bangkok # เพิ่ม TZ
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data # เพิ่ม Volume ป้องกัน Job Queue หาย
+
   worker:
     build: ./backend
     container_name: rentflow-worker
     command: npm run start:worker
     restart: unless-stopped
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     env_file:
       - ./backend/.env
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      TZ: Asia/Bangkok # เพิ่ม TZ
 
 volumes:
   postgres_data:
   pgadmin_data:
+  redis_data: # ประกาศ Volume ใหม่

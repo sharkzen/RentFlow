@@ -54,8 +54,23 @@ export const TenantService = {
     return response.data;
   },
 
-  moveOut: async (tenantId: string) => {
-    const response = await axios.post(`/api/tenants/${tenantId}/move-out`);
+  moveOut: async (
+    tenantId: string,
+    data: {
+      moveOutDate: string;
+    },
+  ) => {
+    const response = await axios.post(
+      `/api/tenants/${tenantId}/move-out`,
+      data,
+    );
+    return response.data;
+  },
+
+  cancelMoveOut: async (tenantId: string) => {
+    const response = await axios.post(
+      `/api/tenants/${tenantId}/cancel-move-out`,
+    );
     return response.data;
   },
 

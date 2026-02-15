@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import { OwnerProfileDto } from "@/modules/owner/dtos/owner.dto";
 import { UpdateOwnerDto } from "./validators/owner.validator";
+import { createActivityLog } from "@/services/activity-log.service";
 
 export const OwnerService = {
   getOwnerProfile: async (user: UserDecodedDto): Promise<OwnerProfileDto> => {
@@ -30,6 +31,14 @@ export const OwnerService = {
           ...data,
           facebook: data.facebook === "" ? null : data.facebook,
         },
+      });
+
+      await createActivityLog({
+        userId: user.sub,
+        action: "UPDATE_OWNER_PROFILE",
+        entityType: "OwnerProfile",
+        entityId: updatedOwner.id,
+        metadata: data,
       });
 
       return updatedOwner;

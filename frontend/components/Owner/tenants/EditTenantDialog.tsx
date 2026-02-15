@@ -18,6 +18,7 @@ import {
   LogOut,
   Eye,
   EyeOff,
+  CalendarClock,
 } from "lucide-react";
 
 import { toast } from "react-toastify";
@@ -26,6 +27,7 @@ import { TenantService } from "@/features/tenant/services/tenant.service";
 import log from "@/lib/logger";
 import DatePickerTh from "@/components/ui/DatePickerTh";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import MoveOutDialog from "./MoveOutDialog";
 
 interface EditTenantDialogProps {
   isOpen: boolean;
@@ -42,10 +44,12 @@ export default function EditTenantDialog({
 }: EditTenantDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
-  const [isMoveOutOpen, setIsMoveOutOpen] = useState(false);
-  const [isMovingOut, setIsMovingOut] = useState(false);
   const [initialData, setInitialData] = useState<any>();
   const [showPassword, setShowPassword] = useState(false);
+  const [isMoveOutOpen, setIsMoveOutOpen] = useState(false);
+  const [isMovingOut, setIsMovingOut] = useState(false);
+  const [isCancelMoveOutOpen, setIsCancelMoveOutOpen] = useState(false);
+  const [isCancelingMoveOut, setIsCancelingMoveOut] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -68,6 +72,7 @@ export default function EditTenantDialog({
     emergencyContactName: "",
     emergencyContactPhone: "",
     notes: "",
+    moveOutDate: "",
   });
 
   useEffect(() => {
@@ -77,6 +82,16 @@ export default function EditTenantDialog({
 
         try {
           const data = await TenantService.getTenantById(tenantId);
+
+          const formatDateToLocal = (dateString: string | null | undefined) => {
+            if (!dateString) return "";
+
+            const d = new Date(dateString);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          };
 
           const mappedData = {
             firstName: data.firstName,
@@ -89,13 +104,10 @@ export default function EditTenantDialog({
             isActive: data.user?.status === "ACTIVE",
             roomNumber: data.room?.roomNumber || "-",
             dormName: data.room?.dormitory?.name || "-",
-            moveInDate: data.moveInDate ? data.moveInDate.split("T")[0] : "",
-            contractStartDate: data.contractStartDate
-              ? data.contractStartDate.split("T")[0]
-              : "",
-            contractEndDate: data.contractEndDate
-              ? data.contractEndDate.split("T")[0]
-              : "",
+            moveInDate: formatDateToLocal(data.moveInDate),
+            contractStartDate: formatDateToLocal(data.contractStartDate),
+            contractEndDate: formatDateToLocal(data.contractEndDate),
+            moveOutDate: formatDateToLocal(data.moveOutDate),
             numberOfResidents: data.numberOfResidents || 1,
             securityDeposit: data.securityDeposit || 0,
             advancePayment: data.advancePayment || 0,
@@ -168,58 +180,63 @@ export default function EditTenantDialog({
       case "EMAIL_ALREADY_EXISTS":
         return "อีเมลนี้มีผู้ใช้งานแล้วในระบบ";
       case "FORBIDDEN":
-        return "คุณไม่มีสิทธิ์แก้ไขข้อมูลผู้เช่ารายนี้";
+        return "คุณไม่มีสิทธิ์ทำรายการนี้";
       case "TENANT_NOT_FOUND":
         return "ไม่พบข้อมูลผู้เช่า (อาจถูกลบไปแล้ว)";
       case "TENANT_ALREADY_MOVED_OUT":
-        return "ผู้เช่ารายนี้ย้ายออกไปแล้ว ไม่สามารถแก้ไขข้อมูลได้";
-      case "MISSING_REQUIRED_FIELDS":
-        return "กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน";
+        return "ผู้เช่ารายนี้ย้ายออกไปแล้ว ไม่สามารถแก้ไขได้";
+      case "OUTSTANDING_BILLS_EXIST":
+        return "ไม่สามารถทำรายการได้ ผู้เช่ามียอดค้างชำระหรือกำลังรอตรวจสอบบิล";
       default:
-        return errorData?.message || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
+        return errorData?.message || "เกิดข้อผิดพลาด โปรดลองอีกครั้ง";
     }
   };
 
-  const handleMoveOutConfirm = async () => {
+  const handleMoveOutConfirm = async (selectedDate: string) => {
     if (!tenantId) return;
 
     setIsMovingOut(true);
 
     try {
-      await toast.promise(TenantService.moveOut(tenantId), {
-        pending: "กำลังดำเนินการแจ้งย้ายออก...",
-        success: "แจ้งย้ายออกสำเร็จ สถานะห้องว่างแล้ว",
-
-        error: {
-          render({ data }: any) {
-            const errorData = data?.response?.data;
-            const code = errorData?.code;
-
-            switch (code) {
-              case "OUTSTANDING_BILLS_EXIST":
-                return "ไม่สามารถย้ายออกได้: ผู้เช่ามียอดค้างชำระ (กรุณาเคลียร์บิลก่อน)";
-              case "ALREADY_MOVED_OUT":
-                return "ผู้เช่ารายนี้แจ้งย้ายออกไปแล้ว";
-              case "FORBIDDEN":
-                return "คุณไม่มีสิทธิ์ทำรายการนี้";
-              case "TENANT_NOT_FOUND":
-                return "ไม่พบข้อมูลผู้เช่า";
-              case "room_not_found":
-                return "ไม่พบข้อมูลห้องพัก";
-              default:
-                return `เกิดข้อผิดพลาด: ${errorData?.message || "โปรดลองใหม่อีกครั้ง"}`;
-            }
-          },
-        },
+      const res = await TenantService.moveOut(tenantId, {
+        moveOutDate: selectedDate,
       });
+
+      if (res.status === "SCHEDULED") {
+        toast.success(
+          `ตั้งเวลาย้ายออกล่วงหน้าสำเร็จ ระบบจะดำเนินการให้ในวันที่ ${new Date(selectedDate).toLocaleDateString("th-TH")}`,
+        );
+      } else {
+        toast.success("แจ้งย้ายออกสำเร็จ สถานะห้องว่างแล้ว");
+      }
 
       setIsMoveOutOpen(false);
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       log.error("Move Out Error:", error);
+      toast.error(getUpdateErrorMessage(error));
     } finally {
       setIsMovingOut(false);
+    }
+  };
+
+  const handleCancelMoveOutConfirm = async () => {
+    if (!tenantId) return;
+
+    setIsCancelingMoveOut(true);
+
+    try {
+      await TenantService.cancelMoveOut(tenantId);
+      toast.success("ยกเลิกการตั้งคิวย้ายออกล่วงหน้าเรียบร้อยแล้ว");
+      setIsCancelMoveOutOpen(false);
+      onSuccess();
+      onClose();
+    } catch (error: any) {
+      log.error("Cancel Move Out Error:", error);
+      toast.error(getUpdateErrorMessage(error));
+    } finally {
+      setIsCancelingMoveOut(false);
     }
   };
 
@@ -244,17 +261,19 @@ export default function EditTenantDialog({
         return;
       }
 
-      const hasLetter = /[a-zA-Z]/.test(password);
-
-      if (!hasLetter) {
+      if (!/[a-zA-Z]/.test(password)) {
         toast.error("รหัสผ่านต้องมีตัวอักษรภาษาอังกฤษอย่างน้อย 1 ตัว");
         return;
       }
     }
 
-    const { password: pw1, ...dataToCompare } = formData;
+    const { password: pw1, moveOutDate: mv1, ...dataToCompare } = formData;
 
-    const { password: pw2, ...initialToCompare } = initialData || {};
+    const {
+      password: pw2,
+      moveOutDate: mv2,
+      ...initialToCompare
+    } = initialData || {};
 
     const isDataChanged =
       JSON.stringify(dataToCompare) !== JSON.stringify(initialToCompare);
@@ -271,21 +290,13 @@ export default function EditTenantDialog({
     setIsLoading(true);
 
     try {
-      await toast.promise(TenantService.updateTenant(tenantId, formData), {
-        pending: "กำลังบันทึกการแก้ไข...",
-        success: "อัปเดตข้อมูลเรียบร้อย",
-
-        error: {
-          render({ data }: any) {
-            return `${getUpdateErrorMessage(data)}`;
-          },
-        },
-      });
-
+      await TenantService.updateTenant(tenantId, formData);
+      toast.success("อัปเดตข้อมูลเรียบร้อย");
       onSuccess();
       onClose();
     } catch (error) {
       log.error("Update Error:", error);
+      toast.error(getUpdateErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -302,18 +313,36 @@ export default function EditTenantDialog({
     "absolute top-3 left-3 h-4 w-4 text-gray-400 pointer-events-none";
   const readOnlyClass = `${inputClass} bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200`;
 
+  const isFutureMoveOutScheduled = () => {
+    if (!formData.isActive || !formData.moveOutDate) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const scheduled = new Date(formData.moveOutDate);
+    scheduled.setHours(0, 0, 0, 0);
+    return scheduled.getTime() > today.getTime();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4 transition-all duration-200">
-      <ConfirmDialog
+      <MoveOutDialog
         isOpen={isMoveOutOpen}
         onClose={() => setIsMoveOutOpen(false)}
         onConfirm={handleMoveOutConfirm}
-        title="ยืนยันการแจ้งย้ายออก"
-        description={`คุณต้องการแจ้งย้ายออกผู้เช่า "${formData.firstName} ${formData.lastName}" ใช่หรือไม่? \nการกระทำนี้จะทำให้ห้องพักกลับมามีสถานะ "ว่าง" และไม่สามารถแก้ไขได้อีก`}
-        confirmText="ยืนยันย้ายออก"
-        cancelText="ยกเลิก"
-        type="error"
+        tenantName={`${formData.firstName} ${formData.lastName}`}
         isLoading={isMovingOut}
+      />
+
+      <ConfirmDialog
+        isOpen={isCancelMoveOutOpen}
+        onClose={() => setIsCancelMoveOutOpen(false)}
+        onConfirm={handleCancelMoveOutConfirm}
+        title="ยกเลิกคิวย้ายออกล่วงหน้า"
+        description={`คุณต้องการยกเลิกกำหนดการย้ายออกของ "${formData.firstName} ${formData.lastName}" ใช่หรือไม่?\n\n(ผู้เช่ารายนี้จะกลับมาพักอยู่ต่อตามปกติ และไม่มีการหักค่าใช้จ่ายใดๆ เพิ่มเติม)`}
+        confirmText="ยืนยันยกเลิกคิว"
+        cancelText="ปิด"
+        type="warning"
+        isLoading={isCancelingMoveOut}
       />
       <div className="flex h-full max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-gray-200">
         <div className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
@@ -339,6 +368,7 @@ export default function EditTenantDialog({
             </button>
           </div>
         </div>
+
         <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto bg-gray-50/30 p-2">
           {isFetching ? (
             <div className="flex h-64 w-full flex-col items-center justify-center gap-3">
@@ -357,7 +387,42 @@ export default function EditTenantDialog({
               onSubmit={handleSubmit}
               className="space-y-6"
             >
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {isFutureMoveOutScheduled() && (
+                <div className="mx-2 mt-2 flex flex-col justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm sm:flex-row sm:items-center">
+                  <div className="flex items-start gap-3">
+                    <CalendarClock
+                      className="mt-0.5 shrink-0 text-amber-500"
+                      size={20}
+                    />
+                    <div>
+                      <strong className="block text-base text-amber-900">
+                        มีการตั้งคิวย้ายออกล่วงหน้า
+                      </strong>
+                      <p className="mt-1 text-sm text-amber-700">
+                        ผู้เช่ารายนี้มีกำหนดจะย้ายออกในวันที่{" "}
+                        <strong className="font-semibold">
+                          {new Date(formData.moveOutDate).toLocaleDateString(
+                            "th-TH",
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            },
+                          )}
+                        </strong>
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsCancelMoveOutOpen(true)}
+                    className="shrink-0 cursor-pointer rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-700 shadow-sm transition-colors hover:bg-amber-100 active:scale-95"
+                  >
+                    ยกเลิกคิวย้ายออก
+                  </button>
+                </div>
+              )}
+              <div className="grid grid-cols-1 gap-6 px-2 lg:grid-cols-2">
                 <div className="space-y-6">
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-87.5">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
@@ -431,6 +496,7 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
+
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-55">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-emerald-600 uppercase">
                       <Coins size={16} />
@@ -495,6 +561,7 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
+
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-gray-600 uppercase">
                       <Contact size={16} />
@@ -660,6 +727,7 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
+
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-55">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                       <Lock size={16} />
@@ -743,7 +811,7 @@ export default function EditTenantDialog({
                           <span className="font-semibold text-indigo-600">
                             6 ตัวอักษร
                           </span>{" "}
-                          และมี
+                          และมี{" "}
                           <span className="font-semibold text-indigo-600">
                             ตัวอักษรภาษาอังกฤษ
                           </span>
@@ -759,9 +827,10 @@ export default function EditTenantDialog({
             </form>
           )}
         </div>
+
         <div className="flex items-center justify-between gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
           <div>
-            {!isFetching && (
+            {!isFetching && !formData.moveOutDate && (
               <button
                 disabled={!formData.isActive}
                 type="button"

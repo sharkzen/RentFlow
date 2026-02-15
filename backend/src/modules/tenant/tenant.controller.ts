@@ -142,10 +142,11 @@ export const TenantController = {
         tenantId: string;
       };
 
-      if (!tenantId)
+      if (!tenantId) {
         return reply.status(400).send({
           message: "TENANT_ID_REQUIRED",
         });
+      }
 
       const result = await tenantService.getTenantById(user.sub, tenantId);
       return reply.status(200).send(result);
@@ -229,13 +230,22 @@ export const TenantController = {
         tenantId: string;
       };
 
+      const { moveOutDate } =
+        (request.body as {
+          moveOutDate?: string;
+        }) || {};
+
       if (!tenantId) {
         return reply.status(400).send({
           message: "TENANT_ID_REQUIRED",
         });
       }
 
-      const result = await tenantService.moveOut(user.sub, tenantId);
+      const result = await tenantService.moveOut(
+        user.sub,
+        tenantId,
+        moveOutDate,
+      );
       return reply.status(200).send(result);
     } catch (error: any) {
       logger.error(error);
@@ -261,7 +271,57 @@ export const TenantController = {
           return reply.status(400).send({
             code: "OUTSTANDING_BILLS_EXIST",
             message:
-              "Tenant has unpaid bills. Please clear bills before moving out.",
+              "Tenant has unpaid bills or bills waiting for verification. Please clear them before moving out.",
+          });
+        default:
+          return reply.status(500).send({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Something went wrong.",
+          });
+      }
+    }
+  },
+
+  cancelMoveOut: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    try {
+      const { tenantId } = request.params as {
+        tenantId: string;
+      };
+
+      if (!tenantId) {
+        return reply.status(400).send({
+          message: "TENANT_ID_REQUIRED",
+        });
+      }
+
+      const result = await tenantService.cancelMoveOut(user.sub, tenantId);
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      switch (error.message) {
+        case "OWNER_PROFILE_NOT_FOUND":
+        case "FORBIDDEN_ACCESS":
+          return reply.status(403).send({
+            code: "FORBIDDEN",
+            message: "You don't have permission to perform this action.",
+          });
+        case "TENANT_NOT_FOUND":
+          return reply.status(404).send({
+            code: "TENANT_NOT_FOUND",
+            message: "Tenant not found.",
+          });
+        case "NOT_SCHEDULED_FOR_MOVE_OUT":
+          return reply.status(400).send({
+            code: "NOT_SCHEDULED",
+            message: "This tenant does not have a scheduled move-out date.",
+          });
+        case "ALREADY_MOVED_OUT":
+          return reply.status(400).send({
+            code: "ALREADY_MOVED_OUT",
+            message: "Cannot cancel. This tenant has already moved out.",
           });
         default:
           return reply.status(500).send({

@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { UserDecodedDto } from "../auth/dto/user.dto";
 import { generateSignedUrl } from "@/services/minio";
 import { MaintenanceStatus } from "@prisma/client";
+import { createActivityLog } from "@/services/activity-log.service";
 
 export const maintenanceService = {
   getMaintenance: async (
@@ -179,6 +180,19 @@ export const maintenanceService = {
 
       data: {
         status: status as MaintenanceStatus,
+      },
+    });
+
+    await createActivityLog({
+      userId: user.sub,
+      action: "UPDATE_MAINTENANCE_STATUS",
+      entityType: "MaintenanceRequest",
+      entityId: maintenanceId,
+
+      metadata: {
+        title: existingRequest.title,
+        oldStatus: existingRequest.status,
+        newStatus: status,
       },
     });
 

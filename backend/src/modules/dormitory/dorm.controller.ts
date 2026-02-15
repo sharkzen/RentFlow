@@ -321,6 +321,7 @@ export const DormController = {
           objectKey,
           fileData.mimetype,
           optimizedBuffer.length,
+          user.sub,
         );
       });
 
@@ -371,7 +372,7 @@ export const DormController = {
           message: "FORBIDDEN",
         });
 
-      await dormService.deleteDormImage(imageId);
+      await dormService.deleteDormImage(imageId, user.sub);
 
       reply.send({
         success: true,

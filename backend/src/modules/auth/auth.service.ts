@@ -7,6 +7,7 @@ import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { hashPassword, verifyPassword } from "@/modules/auth/lib/password";
 import { LoginDto } from "@/modules/auth/dto/login.dto";
+import { createActivityLog } from "@/services/activity-log.service";
 import {
   signAccessToken,
   signResetToken,
@@ -134,6 +135,17 @@ export const authService = {
       };
     });
 
+    await createActivityLog({
+      userId: result.user.id,
+      action: "REGISTER_OWNER",
+      entityType: "User",
+      entityId: result.user.id,
+
+      metadata: {
+        dormName: data.dormName,
+      },
+    });
+
     return result;
   },
 
@@ -159,6 +171,13 @@ export const authService = {
       },
     });
 
+    await createActivityLog({
+      userId: user.id,
+      action: "REGISTER_ADMIN",
+      entityType: "User",
+      entityId: user.id,
+    });
+
     return user;
   },
 
@@ -176,6 +195,13 @@ export const authService = {
     const isValid = await verifyPassword(user.password, data.password);
 
     if (!isValid) throw new Error("INVALID_EMAIL_OR_PASSWORD");
+
+    await createActivityLog({
+      userId: user.id,
+      action: "LOGIN",
+      entityType: "User",
+      entityId: user.id,
+    });
 
     return user;
   },
@@ -231,6 +257,13 @@ export const authService = {
           link: resetLink,
         },
       });
+
+      await createActivityLog({
+        userId: user.id,
+        action: "REQUEST_PASSWORD_RESET",
+        entityType: "User",
+        entityId: user.id,
+      });
     } catch (error: any) {
       logger.error(error);
     }
@@ -267,6 +300,13 @@ export const authService = {
     });
 
     logger.info("EMAIL JOB ADDED");
+
+    await createActivityLog({
+      userId: payload.sub as string,
+      action: "RESET_PASSWORD_SUCCESS",
+      entityType: "User",
+      entityId: payload.sub as string,
+    });
 
     return {
       message: "PASSWORD_RESET_SUCCESS",

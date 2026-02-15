@@ -79,7 +79,6 @@ export default function BillSlugContainer() {
       <div className="animate-in fade-in zoom-in flex min-h-[80vh] flex-col items-center justify-center p-6 text-center duration-300">
         <div className="relative mb-6">
           <div className="absolute inset-0 scale-150 rounded-full bg-slate-100/50 blur-3xl" />
-
           <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-xl ring-1 ring-slate-100">
             <Receipt className="h-10 w-10 text-slate-300" />
             <div className="absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-500 shadow-sm ring-4 ring-white">
@@ -87,7 +86,6 @@ export default function BillSlugContainer() {
             </div>
           </div>
         </div>
-
         <h2 className="mb-2 text-2xl font-bold text-slate-800">
           {error?.includes("สิทธิ์") ? "ไม่มีสิทธิ์เข้าถึง" : "ไม่พบข้อมูลบิล"}
         </h2>
@@ -95,7 +93,6 @@ export default function BillSlugContainer() {
           {error ||
             "บิลนี้อาจถูกลบไปแล้ว หรือคุณอาจเข้าใช้งานด้วยลิงก์ที่ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง"}
         </p>
-
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             onClick={() => router.push("/tenant/bills")}
@@ -111,7 +108,6 @@ export default function BillSlugContainer() {
             ลองโหลดใหม่อีกครั้ง
           </button>
         </div>
-
         <p className="mt-12 text-xs text-slate-400">
           หากคิดว่าเป็นข้อผิดพลาด กรุณาติดต่อผู้ดูแลหอพักของคุณ
         </p>

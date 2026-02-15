@@ -13,6 +13,7 @@ import { formatDistance, getDistance } from "@/utils/geo";
 import { FileCategory, Prisma, Status } from "@prisma/client";
 import { shuffleArray } from "./lib/dorm.lib";
 import logger from "@/utils/logger";
+import { createActivityLog } from "@/services/activity-log.service";
 
 export const dormService = {
   async getAllDorms(query: GetDormsQueryDto) {
@@ -332,6 +333,17 @@ export const dormService = {
       },
     });
 
+    await createActivityLog({
+      userId: userId,
+      action: "CREATE_DORM",
+      entityType: "Dormitory",
+      entityId: dorm.id,
+
+      metadata: {
+        dormName: name,
+      },
+    });
+
     return dorm;
   },
 
@@ -344,9 +356,7 @@ export const dormService = {
   },
 
   async updateDormStatus(dormId: string, isPublished: boolean, userId: string) {
-    if (!dormId) {
-      throw new Error("INVALID_DORM_ID");
-    }
+    if (!dormId) throw new Error("INVALID_DORM_ID");
 
     const user = await prisma.user.findUnique({
       where: {
@@ -364,11 +374,7 @@ export const dormService = {
       },
     });
 
-    if (!user || user.status !== "ACTIVE") {
-      throw new Error("FORBIDDEN");
-    }
-
-    if (!user.ownerProfile) {
+    if (!user || user.status !== "ACTIVE" || !user.ownerProfile) {
       throw new Error("FORBIDDEN");
     }
 
@@ -380,18 +386,15 @@ export const dormService = {
       select: {
         id: true,
         ownerId: true,
+        name: true,
       },
     });
 
-    if (!dorm) {
-      throw new Error("NOT_FOUND");
-    }
+    if (!dorm) throw new Error("NOT_FOUND");
 
-    if (dorm.ownerId !== user.ownerProfile.id) {
-      throw new Error("FORBIDDEN");
-    }
+    if (dorm.ownerId !== user.ownerProfile.id) throw new Error("FORBIDDEN");
 
-    return await prisma.dormitory.update({
+    const updated = await prisma.dormitory.update({
       where: {
         id: dormId,
       },
@@ -406,6 +409,20 @@ export const dormService = {
         updatedAt: true,
       },
     });
+
+    await createActivityLog({
+      userId: userId,
+      action: isPublished ? "PUBLISH_DORM" : "UNPUBLISH_DORM",
+      entityType: "Dormitory",
+      entityId: dormId,
+
+      metadata: {
+        dormName: dorm.name,
+        isPublished,
+      },
+    });
+
+    return updated;
   },
 
   async updateDorm(dorm: DormFormDataDto, userId: string) {
@@ -501,6 +518,17 @@ export const dormService = {
           promptPayType: validPromptPayType,
           promptPayValue: dorm.promptPayValue,
           isActive: true,
+        },
+      });
+
+      await createActivityLog({
+        userId: userId,
+        action: "UPDATE_DORM",
+        entityType: "Dormitory",
+        entityId: dorm.id,
+
+        metadata: {
+          dormName: dorm.name,
         },
       });
 
@@ -624,6 +652,7 @@ export const dormService = {
     objectKey: string,
     mimeType: string,
     size: number,
+    userId: string,
   ) {
     const hasCover = await prisma.file.findFirst({
       where: {
@@ -657,7 +686,7 @@ export const dormService = {
 
     await minioClient.send(command);
 
-    return prisma.file.create({
+    const newImage = await prisma.file.create({
       data: {
         dormitoryId: dormId,
         bucket: env.BUCKET,
@@ -669,9 +698,25 @@ export const dormService = {
         order: newOrder,
       },
     });
+
+    if (userId) {
+      await createActivityLog({
+        userId: userId,
+        action: "UPLOAD_DORM_IMAGE",
+        entityType: "Dormitory",
+        entityId: dormId,
+
+        metadata: {
+          fileId: newImage.id,
+          isCover,
+        },
+      });
+    }
+
+    return newImage;
   },
 
-  async deleteDormImage(imageId: string) {
+  async deleteDormImage(imageId: string, userId: string) {
     const imageToDelete = await prisma.file.findUnique({
       where: {
         id: imageId,
@@ -688,9 +733,7 @@ export const dormService = {
         }),
       );
     } catch (err: any) {
-      if (err?.name !== "NoSuchKey" && err?.Code !== "NoSuchKey") {
-        throw err;
-      }
+      if (err?.name !== "NoSuchKey" && err?.Code !== "NoSuchKey") throw err;
     }
 
     await prisma.file.delete({
@@ -722,6 +765,19 @@ export const dormService = {
           },
         });
       }
+    }
+
+    if (userId && imageToDelete.dormitoryId) {
+      await createActivityLog({
+        userId: userId,
+        action: "DELETE_DORM_IMAGE",
+        entityType: "Dormitory",
+        entityId: imageToDelete.dormitoryId,
+
+        metadata: {
+          fileId: imageId,
+        },
+      });
     }
 
     return true;
@@ -1237,10 +1293,23 @@ export const dormService = {
       await Promise.all(deletePromises);
     }
 
-    return await prisma.dormitory.delete({
+    const deletedDorm = await prisma.dormitory.delete({
       where: {
         id: dormId,
       },
     });
+
+    await createActivityLog({
+      userId: userId,
+      action: "DELETE_DORM",
+      entityType: "Dormitory",
+      entityId: dormId,
+
+      metadata: {
+        dormName: deletedDorm.name,
+      },
+    });
+
+    return deletedDorm;
   },
 };

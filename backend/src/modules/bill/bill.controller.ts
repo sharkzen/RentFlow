@@ -89,18 +89,27 @@ export const BillController = {
       };
 
       const result = await billService.deleteBill(user.sub, billId);
-      return reply.send(result);
+      return reply.status(200).send(result);
     } catch (error: any) {
       logger.error("DELETE BILL ERROR:", error);
 
       if (error.message === "FORBIDDEN_ACCESS") {
         return reply.status(403).send({
-          message: "FORBIDDEN_ACCESS",
+          code: "FORBIDDEN",
+          message: "คุณไม่มีสิทธิ์ลบบิลนี้",
+        });
+      }
+
+      if (error.message === "BILL_NOT_FOUND") {
+        return reply.status(404).send({
+          code: "NOT_FOUND",
+          message: "ไม่พบข้อมูลบิลที่ต้องการลบ",
         });
       }
 
       return reply.status(500).send({
-        message: error.message || "DELETE_BILL_FAILED",
+        code: "INTERNAL_SERVER_ERROR",
+        message: "เกิดข้อผิดพลาดในการลบบิล โปรดลองใหม่อีกครั้ง",
       });
     }
   },

@@ -249,7 +249,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   </td>
                 </tr>
               )}
-
               {chargeItems.map((item) => (
                 <tr key={item.id}>
                   <td className="px-3 py-4">
@@ -264,7 +263,6 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   </td>
                 </tr>
               ))}
-
               {discountItems.map((item) => (
                 <tr key={item.id}>
                   <td className="px-3 py-4">

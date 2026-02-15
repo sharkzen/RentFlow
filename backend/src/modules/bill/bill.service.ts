@@ -11,9 +11,10 @@ import {
 } from "@prisma/client";
 import { env } from "@/config/env";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { generateSignedUrl, minioClient } from "@/services/minio";
+import { deleteFile, generateSignedUrl, minioClient } from "@/services/minio";
 import logger from "@/utils/logger";
 import { UserDecodedDto } from "../auth/dto/user.dto";
+import { createActivityLog } from "@/services/activity-log.service";
 
 export const billService = {
   getBills: async ({
@@ -211,6 +212,14 @@ export const billService = {
         },
       });
 
+      await createActivityLog({
+        userId: userSub,
+        action: "ADD_BILL_ITEM",
+        entityType: "Bill",
+        entityId: billId,
+        metadata: data,
+      });
+
       return updatedBill;
     });
   },
@@ -295,6 +304,18 @@ export const billService = {
 
         include: {
           items: true,
+        },
+      });
+
+      await createActivityLog({
+        userId: userSub,
+        action: "DELETE_BILL_ITEM",
+        entityType: "BillItem",
+        entityId: itemId,
+
+        metadata: {
+          billId,
+          itemName: itemToDelete.name,
         },
       });
 
@@ -392,6 +413,19 @@ export const billService = {
 
         include: {
           items: true,
+        },
+      });
+
+      await createActivityLog({
+        userId: userSub,
+        action: "UPDATE_BILL_ITEM",
+        entityType: "BillItem",
+        entityId: itemId,
+
+        metadata: {
+          billId,
+          oldData: oldItem,
+          newData: data,
         },
       });
 
@@ -618,6 +652,23 @@ export const billService = {
       }
     }
 
+    const generatedRoomNumbers = createdBills.map(
+      (bill) => bill.roomNumberSnapshot,
+    );
+
+    await createActivityLog({
+      userId: user.sub,
+      action: "BATCH_CREATE_BILLS",
+      entityType: "Dormitory",
+      entityId: dormId,
+
+      metadata: {
+        billingMonth,
+        generatedCount: createdBills.length,
+        rooms: generatedRoomNumbers,
+      },
+    });
+
     return createdBills;
   },
 
@@ -676,13 +727,25 @@ export const billService = {
         });
       }
 
-      if (bill.payment) {
+      if (bill.payment && bill.payment.slips.length > 0) {
+        for (const slip of bill.payment.slips) {
+          try {
+            await deleteFile(slip.objectKey);
+          } catch (s3Error) {
+            logger.error(
+              `Failed to delete S3 file: ${slip.objectKey} : ${s3Error}`,
+            );
+          }
+        }
+
         await tx.file.deleteMany({
           where: {
             paymentId: bill.payment.id,
           },
         });
+      }
 
+      if (bill.payment) {
         await tx.payment.delete({
           where: {
             id: bill.payment.id,
@@ -702,9 +765,22 @@ export const billService = {
         },
       });
 
+      await createActivityLog({
+        userId: userSub,
+        action: "DELETE_BILL",
+        entityType: "Bill",
+        entityId: billId,
+
+        metadata: {
+          roomNumber: bill.roomNumberSnapshot,
+          tenantName: bill.tenantNameSnapshot,
+          total: bill.total,
+        },
+      });
+
       return {
         success: true,
-        message: "BILL_DELETED",
+        message: "BILL_DELETED_SUCCESSFULLY",
       };
     });
   },
@@ -839,6 +915,17 @@ export const billService = {
           verifiedBy: isOwner ? verifierName : null,
           updatedAt: new Date(),
           paymentMethod: PaymentMethod.TRANSFER,
+        },
+      });
+
+      await createActivityLog({
+        userId: userSub,
+        action: "UPLOAD_PAYMENT_SLIP",
+        entityType: "Bill",
+        entityId: billId,
+
+        metadata: {
+          fileKey: objectKey,
         },
       });
 
@@ -977,6 +1064,18 @@ export const billService = {
         },
       });
 
+      await createActivityLog({
+        userId: userSub,
+        action: "UPDATE_BILL_STATUS",
+        entityType: "Bill",
+        entityId: billId,
+
+        metadata: {
+          newStatus: status,
+          oldStatus: bill.status,
+        },
+      });
+
       return updatedBill;
     });
   },
@@ -1060,6 +1159,17 @@ export const billService = {
 
         include: {
           items: true,
+        },
+      });
+
+      await createActivityLog({
+        userId: userSub,
+        action: "APPLY_ADVANCE_PAYMENT",
+        entityType: "Bill",
+        entityId: billId,
+
+        metadata: {
+          appliedAmount: advanceAmount,
         },
       });
 

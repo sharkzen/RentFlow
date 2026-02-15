@@ -36,6 +36,7 @@ import {
 import { emailQueue } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import { randomUUID } from "crypto";
+import { createActivityLog } from "@/services/activity-log.service";
 
 interface GetTenantDormParams {
   dormId: string;
@@ -325,6 +326,18 @@ export const tenantService = {
         },
       });
 
+      await createActivityLog({
+        userId: userId,
+        action: "CREATE_TENANT",
+        entityType: "TenantProfile",
+        entityId: newTenant.id,
+
+        metadata: {
+          roomId: data.roomId,
+          tenantName: `${data.firstName} ${data.lastName}`,
+        },
+      });
+
       return newTenant;
     });
   },
@@ -486,11 +499,22 @@ export const tenantService = {
         data: tenantUpdatePayload,
       });
 
+      await createActivityLog({
+        userId: sub,
+        action: "UPDATE_TENANT",
+        entityType: "TenantProfile",
+        entityId: tenantId,
+
+        metadata: {
+          changedData: Object.keys(tenantUpdatePayload),
+        },
+      });
+
       return updatedTenant;
     });
   },
 
-  moveOut: async (sub: string, tenantId: string) => {
+  moveOut: async (sub: string, tenantId: string, moveOutDateStr?: string) => {
     const owner = await prisma.ownerProfile.findUnique({
       where: {
         userId: sub,
@@ -514,7 +538,7 @@ export const tenantService = {
         bills: {
           where: {
             status: {
-              in: ["PENDING", "OVERDUE"],
+              in: ["PENDING", "OVERDUE", "WAITING_FOR_VERIFICATION"],
             },
           },
         },
@@ -523,26 +547,57 @@ export const tenantService = {
 
     if (!tenant) throw new Error("TENANT_NOT_FOUND");
 
-    if (tenant.room && tenant.room.dormitory.ownerId !== owner.id) {
+    if (tenant.room && tenant.room.dormitory.ownerId !== owner.id)
       throw new Error("FORBIDDEN_ACCESS");
-    }
 
-    if (!tenant.isActive && tenant.moveOutDate) {
+    if (!tenant.isActive && tenant.moveOutDate)
       throw new Error("ALREADY_MOVED_OUT");
-    }
 
-    if (tenant.bills.length > 0) {
-      throw new Error("OUTSTANDING_BILLS_EXIST");
-    }
+    if (tenant.bills.length > 0) throw new Error("OUTSTANDING_BILLS_EXIST");
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = moveOutDateStr ? new Date(moveOutDateStr) : new Date();
+    selectedDate.setHours(0, 0, 0, 0);
+    const isFutureDate = selectedDate.getTime() > today.getTime();
 
     return await prisma.$transaction(async (tx) => {
+      if (isFutureDate) {
+        const updatedTenant = await tx.tenantProfile.update({
+          where: {
+            id: tenantId,
+          },
+
+          data: {
+            moveOutDate: selectedDate,
+          },
+        });
+
+        await createActivityLog({
+          userId: sub,
+          action: "SCHEDULE_MOVE_OUT",
+          entityType: "TenantProfile",
+          entityId: tenantId,
+
+          metadata: {
+            roomId: tenant.roomId,
+            scheduledDate: selectedDate,
+          },
+        });
+
+        return {
+          status: "SCHEDULED",
+          data: updatedTenant,
+        };
+      }
+
       const updatedTenant = await tx.tenantProfile.update({
         where: {
           id: tenantId,
         },
 
         data: {
-          moveOutDate: new Date(),
+          moveOutDate: selectedDate,
           isActive: false,
         },
       });
@@ -554,7 +609,7 @@ export const tenantService = {
           },
 
           data: {
-            status: RoomStatus.AVAILABLE,
+            status: "AVAILABLE",
           },
         });
       }
@@ -569,7 +624,87 @@ export const tenantService = {
         },
       });
 
-      return updatedTenant;
+      await createActivityLog({
+        userId: sub,
+        action: "MOVE_OUT_TENANT",
+        entityType: "TenantProfile",
+        entityId: tenantId,
+
+        metadata: {
+          roomId: tenant.roomId,
+        },
+      });
+
+      return {
+        status: "COMPLETED",
+        data: updatedTenant,
+      };
+    });
+  },
+
+  cancelMoveOut: async (sub: string, tenantId: string) => {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: sub,
+      },
+    });
+
+    if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
+
+    const tenant = await prisma.tenantProfile.findUnique({
+      where: {
+        id: tenantId,
+      },
+
+      include: {
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+      },
+    });
+
+    if (!tenant) throw new Error("TENANT_NOT_FOUND");
+
+    if (tenant.room && tenant.room.dormitory.ownerId !== owner.id) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    if (!tenant.isActive) {
+      throw new Error("ALREADY_MOVED_OUT");
+    }
+
+    if (!tenant.moveOutDate) {
+      throw new Error("NOT_SCHEDULED_FOR_MOVE_OUT");
+    }
+
+    return await prisma.$transaction(async (tx) => {
+      const updatedTenant = await tx.tenantProfile.update({
+        where: {
+          id: tenantId,
+        },
+
+        data: {
+          moveOutDate: null,
+        },
+      });
+
+      await createActivityLog({
+        userId: sub,
+        action: "CANCEL_SCHEDULED_MOVE_OUT",
+        entityType: "TenantProfile",
+        entityId: tenantId,
+
+        metadata: {
+          roomId: tenant.roomId,
+        },
+      });
+
+      return {
+        status: "CANCELED",
+        data: updatedTenant,
+      };
     });
   },
 
@@ -1333,7 +1468,6 @@ export const tenantService = {
     refNo,
     fileBuffer,
     mimeType,
-    fileName,
   }: any) => {
     const bill = await prisma.bill.findUnique({
       where: {
@@ -1565,6 +1699,18 @@ export const tenantService = {
       };
     });
 
+    await createActivityLog({
+      userId: userId,
+      action: "SUBMIT_PAYMENT_SLIP",
+      entityType: "Bill",
+      entityId: billId,
+
+      metadata: {
+        amount: transactionResult.data.amount,
+        isAutoVerified: transactionResult.data.isAutoVerified,
+      },
+    });
+
     try {
       const ownerEmail = bill.room.dormitory.owner?.user?.email;
       const dormName = bill.room.dormitory.name;
@@ -1665,6 +1811,17 @@ export const tenantService = {
 
       include: {
         images: true,
+      },
+    });
+
+    await createActivityLog({
+      userId: userId,
+      action: "CREATE_MAINTENANCE",
+      entityType: "MaintenanceRequest",
+      entityId: request.id,
+
+      metadata: {
+        title,
       },
     });
 
@@ -1876,6 +2033,17 @@ export const tenantService = {
       },
     });
 
+    await createActivityLog({
+      userId: userId,
+      action: "UPDATE_MAINTENANCE",
+      entityType: "MaintenanceRequest",
+      entityId: requestId,
+
+      metadata: {
+        title: data.title,
+      },
+    });
+
     return updatedRequest;
   },
 
@@ -1936,6 +2104,13 @@ export const tenantService = {
         },
       }),
     ]);
+
+    await createActivityLog({
+      userId: userId,
+      action: "CANCEL_MAINTENANCE",
+      entityType: "MaintenanceRequest",
+      entityId: requestId,
+    });
 
     return {
       message: "Maintenance request cancelled successfully",
