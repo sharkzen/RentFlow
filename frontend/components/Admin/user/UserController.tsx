@@ -171,13 +171,15 @@ export default function UserController() {
           </div>
         </div>
       )}
-      <UserDetailModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        user={selectedUser}
-        onStatusUpdate={handleStatusUpdate}
-        isLoading={actionLoading}
-      />
+      {isModalOpen && (
+        <UserDetailModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          user={selectedUser}
+          onStatusUpdate={handleStatusUpdate}
+          isLoading={actionLoading}
+        />
+      )}
     </div>
   );
 }

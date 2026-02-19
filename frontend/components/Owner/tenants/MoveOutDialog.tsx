@@ -52,13 +52,11 @@ export default function MoveOutDialog({
             <X size={20} />
           </button>
         </div>
-
         <div className="p-6">
           <p className="mb-4 text-sm text-gray-600">
             คุณกำลังดำเนินการแจ้งย้ายออกสำหรับ{" "}
             <strong className="text-gray-900">{tenantName}</strong>
           </p>
-
           <div className="mb-6">
             <DatePickerTh
               label="เลือกวันที่ย้ายออก"
@@ -66,7 +64,6 @@ export default function MoveOutDialog({
               onChange={(date) => setSelectedDate(date)}
             />
           </div>
-
           <div
             className={`flex items-start gap-3 rounded-xl border p-4 text-sm ${isFuture ? "border-blue-100 bg-blue-50 text-blue-700" : "border-red-100 bg-red-50 text-red-700"}`}
           >
@@ -89,7 +86,6 @@ export default function MoveOutDialog({
             </p>
           </div>
         </div>
-
         <div className="mt-auto flex items-center justify-end gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50 px-6 py-4">
           <button
             type="button"

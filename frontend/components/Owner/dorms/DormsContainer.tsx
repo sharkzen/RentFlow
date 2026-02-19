@@ -94,6 +94,7 @@ export default function DormsContainer() {
             handleCloseDialog();
           }}
           onEdit={refreshDorms}
+          onRefresh={refreshDorms}
         />
       )}
     </div>

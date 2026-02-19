@@ -68,6 +68,7 @@ export default function Dormitory({ dorms, total = 0 }: DormitoryProps) {
                 location={locationName}
                 distance={distanceText}
                 price={dorm.settings?.roomPrice || 0}
+                availabilityStatus={dorm.availabilityStatus}
               />
             );
           })}

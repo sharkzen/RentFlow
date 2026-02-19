@@ -332,7 +332,6 @@ export default function EditTenantDialog({
         tenantName={`${formData.firstName} ${formData.lastName}`}
         isLoading={isMovingOut}
       />
-
       <ConfirmDialog
         isOpen={isCancelMoveOutOpen}
         onClose={() => setIsCancelMoveOutOpen(false)}
@@ -368,7 +367,6 @@ export default function EditTenantDialog({
             </button>
           </div>
         </div>
-
         <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto bg-gray-50/30 p-2">
           {isFetching ? (
             <div className="flex h-64 w-full flex-col items-center justify-center gap-3">
@@ -496,7 +494,6 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
-
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-55">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-emerald-600 uppercase">
                       <Coins size={16} />
@@ -561,7 +558,6 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
-
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-gray-600 uppercase">
                       <Contact size={16} />
@@ -727,7 +723,6 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
-
                   <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-55">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                       <Lock size={16} />
@@ -827,7 +822,6 @@ export default function EditTenantDialog({
             </form>
           )}
         </div>
-
         <div className="flex items-center justify-between gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
           <div>
             {!isFetching && !formData.moveOutDate && (

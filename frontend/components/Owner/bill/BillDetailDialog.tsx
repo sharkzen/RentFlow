@@ -194,11 +194,46 @@ export default function BillDetailDialog({
         onRefresh();
         onClose();
       } catch (error) {
-        log.error("DELETE BILL ERROR:", error);
+        console.error("DELETE BILL ERROR:", error);
       } finally {
         setIsProcessing(false);
         setConfirmConfig(null);
       }
+
+      return;
+    }
+
+    if (confirmConfig.action === "DELETE_ITEM") {
+      setIsProcessing(true);
+
+      try {
+        await toast.promise(
+          BillService.deleteBillItem(
+            bill.id,
+            confirmConfig.targetItemId as string,
+          ),
+          {
+            pending: "กำลังลบรายการ...",
+            success: "ลบรายการเรียบร้อยแล้ว",
+
+            error: {
+              render({ data }: any) {
+                const errorData = data?.response?.data;
+                return errorData?.message || "เกิดข้อผิดพลาดในการลบรายการ";
+              },
+            },
+          },
+        );
+
+        onRefresh();
+      } catch (error) {
+        console.error("DELETE ITEM ERROR:", error);
+      } finally {
+        setIsProcessing(false);
+        setConfirmConfig(null);
+      }
+
+      return;
     }
   };
 
@@ -334,10 +369,10 @@ export default function BillDetailDialog({
 
   return (
     <>
-      <div className="animate-in fade-in fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 transition-all duration-300 sm:items-center sm:p-4 md:p-6">
+      <div className="animate-in fade-in fixed inset-0 z-60 flex items-end justify-center bg-black/60 transition-all duration-300 sm:p-4 md:p-6">
         <div
           ref={detailRef}
-          className="flex h-[95vh] w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-5xl sm:rounded-2xl"
+          className="flex h-screen w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-5xl sm:rounded-2xl"
         >
           <div className="flex flex-none items-center justify-between border-b border-gray-100 bg-white px-4 py-3 sm:px-6 sm:py-4">
             <div className="flex items-center gap-3">
@@ -381,7 +416,6 @@ export default function BillDetailDialog({
               </button>
             </div>
           </div>
-
           <div className="flex flex-1 flex-col overflow-hidden sm:flex-row">
             <div className="custom-scrollbar flex-1 overflow-y-auto bg-slate-50/50 p-4 sm:p-6">
               <div className="mx-auto max-w-2xl space-y-5">
@@ -429,7 +463,6 @@ export default function BillDetailDialog({
                     </div>
                   </div>
                 </div>
-
                 {bill.status === "PENDING" &&
                   advancePayment > 0 &&
                   !hasAppliedAdvance && (
@@ -460,7 +493,6 @@ export default function BillDetailDialog({
                       </div>
                     </div>
                   )}
-
                 <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                   <div className="mb-4 flex items-center justify-between">
                     <h4 className="flex items-center gap-2 font-bold text-gray-700">
@@ -514,7 +546,6 @@ export default function BillDetailDialog({
                         </span>
                       </div>
                     )}
-
                     {allItemsSorted && allItemsSorted.length > 0 && (
                       <div className="my-3 border-t border-dashed border-gray-200 pt-3">
                         <div className="space-y-3">
@@ -679,11 +710,11 @@ export default function BillDetailDialog({
                                   </span>
                                   {bill.status === "PENDING" &&
                                     !editingItemId && (
-                                      <div className="flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                                      <div className="flex items-center gap-1 opacity-100 transition-opacity">
                                         <button
                                           onClick={() => handleStartEdit(item)}
                                           disabled={isProcessing}
-                                          className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-indigo-600"
+                                          className="cursor-pointer rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-indigo-600"
                                         >
                                           <Edit2 size={14} />
                                         </button>
@@ -692,7 +723,7 @@ export default function BillDetailDialog({
                                             handleDeleteItem(item.id, item.name)
                                           }
                                           disabled={isProcessing}
-                                          className="rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                                          className="cursor-pointer rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
                                         >
                                           <Trash2 size={14} />
                                         </button>
@@ -823,14 +854,14 @@ export default function BillDetailDialog({
                                 type: "CHARGE",
                               });
                             }}
-                            className="rounded-lg px-4 py-2 text-xs font-semibold text-indigo-600 hover:bg-indigo-100"
+                            className="cursor-pointer rounded-lg px-4 py-2 text-xs font-semibold text-indigo-600 hover:bg-indigo-100"
                           >
                             ยกเลิก
                           </button>
                           <button
                             onClick={handleSaveNewItem}
                             disabled={isProcessing}
-                            className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
+                            className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
                           >
                             <CheckCircle size={14} />
                             บันทึกรายการ
@@ -839,7 +870,7 @@ export default function BillDetailDialog({
                       </div>
                     )}
                   </div>
-                  <div className="mt-4 flex items-end justify-between border-t border-dashed border-gray-200 pt-4">
+                  <div className="mt-4 flex justify-between border-t border-dashed border-gray-200 pt-4">
                     <span className="text-xs text-gray-500">
                       ครบกำหนด{" "}
                       {new Date(bill.dueDate).toLocaleDateString("th-TH", {
@@ -853,7 +884,6 @@ export default function BillDetailDialog({
                     </span>
                   </div>
                 </div>
-
                 <div className="mt-6 border-t border-gray-200 pt-6 sm:hidden">
                   <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
                     <BillSlipSidebar
@@ -867,7 +897,6 @@ export default function BillDetailDialog({
                 </div>
               </div>
             </div>
-
             <div className="hidden w-full shrink-0 flex-col border-l border-gray-100 bg-slate-50/50 sm:flex sm:w-[320px] lg:w-100">
               <div className="custom-scrollbar h-full w-full overflow-y-auto p-0">
                 <BillSlipSidebar
@@ -880,7 +909,6 @@ export default function BillDetailDialog({
               </div>
             </div>
           </div>
-
           {isActionable && (
             <div className="pb-safe-area z-20 flex-none border-t border-gray-100 bg-white p-4 sm:px-6">
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">

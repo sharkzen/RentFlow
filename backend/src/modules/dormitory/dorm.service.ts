@@ -10,7 +10,7 @@ import {
 import { generateSlug } from "@/lib/text";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { formatDistance, getDistance } from "@/utils/geo";
-import { FileCategory, Prisma, Status } from "@prisma/client";
+import { FileCategory, Prisma, RoomStatus, Status } from "@prisma/client";
 import { shuffleArray } from "./lib/dorm.lib";
 import logger from "@/utils/logger";
 import { createActivityLog } from "@/services/activity-log.service";
@@ -63,6 +63,21 @@ export const dormService = {
     let resultDorms: any[] = [];
     let totalItems = 0;
 
+    const dormIncludeQuery = {
+      images: true,
+      settings: true,
+
+      rooms: {
+        where: {
+          deletedAt: null,
+        },
+
+        select: {
+          status: true,
+        },
+      },
+    };
+
     if (cleanLandmarkId) {
       const targetLandmark = await prisma.landmark.findUnique({
         where: {
@@ -84,11 +99,7 @@ export const dormService = {
 
       const allMatchingDorms = await prisma.dormitory.findMany({
         where: whereCondition,
-
-        include: {
-          images: true,
-          settings: true,
-        },
+        include: dormIncludeQuery,
       });
 
       const dormsWithDistance = allMatchingDorms.map((dorm) => {
@@ -155,10 +166,7 @@ export const dormService = {
             },
           },
 
-          include: {
-            images: true,
-            settings: true,
-          },
+          include: dormIncludeQuery,
         });
 
         resultDorms = pageIds
@@ -172,11 +180,7 @@ export const dormService = {
 
       resultDorms = await prisma.dormitory.findMany({
         where: whereCondition,
-
-        include: {
-          images: true,
-          settings: true,
-        },
+        include: dormIncludeQuery,
 
         orderBy: {
           createdAt: "desc",
@@ -197,7 +201,6 @@ export const dormService = {
         );
 
         let nearbyData = null;
-        const hasValidLocation = dorm.latitude && dorm.longitude;
 
         if (dorm._targetLandmark) {
           nearbyData = {
@@ -206,50 +209,58 @@ export const dormService = {
             distanceKm: Number(dorm._distance.toFixed(2)),
             distanceText: formatDistance(dorm._distance),
           };
-        } else {
-          if (hasValidLocation) {
-            const landmarks = await prisma.landmark.findMany({
-              where: {
-                status: Status.ACTIVE,
-              },
-            });
+        } else if (dorm.latitude && dorm.longitude) {
+          const landmarks = await prisma.landmark.findMany({
+            where: {
+              status: Status.ACTIVE,
+            },
+          });
 
-            let minDistance = Infinity;
-            let nearest = null;
+          let minDistance = Infinity;
+          let nearest = null;
 
-            for (const lm of landmarks) {
-              if (!lm.latitude || !lm.longitude) continue;
+          for (const lm of landmarks) {
+            if (!lm.latitude || !lm.longitude) continue;
 
-              const dist = getDistance(
-                dorm.latitude,
-                dorm.longitude,
-                lm.latitude,
-                lm.longitude,
-              );
+            const dist = getDistance(
+              dorm.latitude,
+              dorm.longitude,
+              lm.latitude,
+              lm.longitude,
+            );
 
-              if (dist < minDistance) {
-                minDistance = dist;
-                nearest = lm;
-              }
+            if (dist < minDistance) {
+              minDistance = dist;
+              nearest = lm;
             }
+          }
 
-            if (nearest) {
-              nearbyData = {
-                name: nearest.name,
-                slug: nearest.slug,
-                distanceKm: Number(minDistance.toFixed(2)),
-                distanceText: formatDistance(minDistance),
-              };
-            }
+          if (nearest) {
+            nearbyData = {
+              name: nearest.name,
+              slug: nearest.slug,
+              distanceKm: Number(minDistance.toFixed(2)),
+              distanceText: formatDistance(minDistance),
+            };
           }
         }
 
-        const { _distance, _targetLandmark, ...rest } = dorm;
+        let availabilityStatus: string | undefined = undefined;
+
+        if (dorm.rooms && dorm.rooms.length > 0) {
+          const hasAvailable = dorm.rooms.some(
+            (r: any) => r.status === "AVAILABLE",
+          );
+          availabilityStatus = hasAvailable ? "AVAILABLE" : "FULL";
+        }
+
+        const { _distance, _targetLandmark, rooms, ...rest } = dorm;
 
         return {
           ...rest,
           images: imagesWithUrl,
           nearby: nearbyData,
+          availabilityStatus,
         };
       }),
     );

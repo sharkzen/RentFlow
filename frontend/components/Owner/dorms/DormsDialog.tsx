@@ -36,6 +36,7 @@ interface DormsDialogProps {
   };
   onClose: () => void;
   onEdit?: () => void;
+  onRefresh?: () => void;
 }
 
 const Label = ({ icon: Icon, children, required }: any) => (
@@ -60,6 +61,7 @@ export default function DormsDialog({
   dorm,
   onClose,
   onEdit,
+  onRefresh,
 }: DormsDialogProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -115,6 +117,7 @@ export default function DormsDialog({
   const handleSave = async () => {
     if (initialData && isEqual(initialData, formData)) {
       onClose();
+      onRefresh?.();
       return;
     }
 
