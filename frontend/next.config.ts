@@ -4,10 +4,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: "http",
-        hostname: "localhost",
-        port: "9000",
-        pathname: "/rentflow/**",
+        protocol: "https",
+        hostname: "*.r2.cloudflarestorage.com",
       },
     ],
   },

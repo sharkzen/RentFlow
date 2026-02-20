@@ -37,16 +37,13 @@ export default function DormCard({
             className={`h-full w-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110 ${isFull ? "grayscale-[40%]" : ""}`}
             loading="lazy"
           />
-
           <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
-
           <div className="absolute right-3 bottom-3 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
             <div className="rounded-full bg-white p-2 text-blue-600 shadow-lg">
               <Search size={18} />
             </div>
           </div>
         </div>
-
         <div className="flex flex-1 flex-col p-4">
           <div className="mb-2 flex items-center justify-between gap-2">
             {distance ? (
@@ -57,7 +54,6 @@ export default function DormCard({
             ) : (
               <span />
             )}
-
             {isAvailable && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold tracking-wide text-emerald-600 ring-1 ring-emerald-500/20">
                 <CheckCircle2 size={12} strokeWidth={2.5} />
@@ -71,19 +67,16 @@ export default function DormCard({
               </span>
             )}
           </div>
-
           <h3
             className="mb-1 line-clamp-1 text-lg font-bold text-gray-900 transition-colors group-hover:text-blue-600"
             title={title}
           >
             {title}
           </h3>
-
           <div className="mb-4 flex items-center text-sm text-gray-500">
             <MapPin size={16} className="mr-1 shrink-0 text-gray-400" />
             <span className="line-clamp-1">{location}</span>
           </div>
-
           <div className="mt-auto border-t border-gray-50 pt-3">
             <div className="flex items-end justify-between">
               <div className="flex flex-col">
@@ -101,7 +94,6 @@ export default function DormCard({
                   </span>
                 </div>
               </div>
-
               <span
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${isFull ? "cursor-not-allowed bg-gray-100 text-gray-400" : "bg-gray-50 text-gray-600 group-hover:bg-blue-600 group-hover:text-white"}`}
               >

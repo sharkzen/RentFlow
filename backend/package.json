@@ -62,6 +62,7 @@
     "@types/node-fetch": "^2.6.13",
     "@types/nodemailer": "^7.0.5",
     "@types/qrcode": "^1.5.6",
+    "@types/sharp": "^0.31.1",
     "concurrently": "^9.2.1",
     "esbuild": "^0.27.2",
     "eslint": "^9.39.2",

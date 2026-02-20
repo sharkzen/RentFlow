@@ -18,6 +18,7 @@ export async function tenantRoute(app: FastifyInstance) {
     routeRoles.get("/detail/:tenantId", TenantController.getTenantById);
     routeRoles.patch("/:tenantId", TenantController.updateTenant);
     routeRoles.post("/:tenantId/move-out", TenantController.moveOut);
+    routeRoles.post("/re-entry", TenantController.reEntryTenant);
     routeRoles.post(
       "/:tenantId/cancel-move-out",
       TenantController.cancelMoveOut,

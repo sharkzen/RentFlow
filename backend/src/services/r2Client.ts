@@ -6,22 +6,22 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-if (!process.env.S3_BUCKET) {
-  throw new Error("S3_BUCKET is not defined");
+if (!process.env.R2_ACCOUNT_ID) {
+  throw new Error("R2_ACCOUNT_ID is not defined");
 }
 
 import { env } from "@/config/env";
 
-export const minioClient = new S3Client({
-  region: process.env.S3_REGION!,
-  endpoint: process.env.S3_ENDPOINT!,
+export const r2Client = new S3Client({
+  region: "auto",
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
 
   credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY!,
-    secretAccessKey: process.env.S3_SECRET_KEY!,
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
   },
 
-  forcePathStyle: true,
+  forcePathStyle: false,
 });
 
 export async function uploadFile(
@@ -29,7 +29,7 @@ export async function uploadFile(
   objectKey: string,
   contentType: string,
 ) {
-  await minioClient.send(
+  await r2Client.send(
     new PutObjectCommand({
       Bucket: env.BUCKET,
       Key: objectKey,
@@ -42,7 +42,7 @@ export async function uploadFile(
 }
 
 export async function deleteFile(objectKey: string) {
-  await minioClient.send(
+  await r2Client.send(
     new DeleteObjectCommand({
       Bucket: env.BUCKET,
       Key: objectKey,
@@ -58,7 +58,7 @@ export async function generateSignedUrl(
     typeof expiresIn === "string" ? Number(expiresIn) : expiresIn;
 
   return getSignedUrl(
-    minioClient,
+    r2Client,
     new GetObjectCommand({
       Bucket: env.BUCKET,
       Key: objectKey,

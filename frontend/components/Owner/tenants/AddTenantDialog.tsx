@@ -34,6 +34,7 @@ interface AddTenantDialogProps {
   onClose: () => void;
   dormId: string;
   onSuccess: () => void;
+  initialData?: any;
 }
 
 const getTodayString = () => {
@@ -58,6 +59,7 @@ export default function AddTenantDialog({
   onClose,
   dormId,
   onSuccess,
+  initialData,
 }: AddTenantDialogProps) {
   useScrollLock();
   const [isLoading, setIsLoading] = useState(false);
@@ -91,19 +93,23 @@ export default function AddTenantDialog({
   });
 
   useEffect(() => {
-    if (isOpen && dormId) {
-      const fetchRooms = async () => {
-        try {
-          const res = await RoomService.getRooms(dormId, "AVAILABLE");
-          setRooms(res);
-        } catch (error) {
-          log.error("Failed to fetch rooms", error);
-        }
-      };
-
-      fetchRooms();
+    if (isOpen && initialData) {
+      setFormData((prev) => ({
+        ...prev,
+        ...initialData,
+        roomId: "",
+        securityDeposit: 0,
+        advancePayment: 0,
+        entranceFee: 0,
+        password: "",
+        moveInDate: getTodayString(),
+        contractStartDate: getTodayString(),
+        contractEndDate: getNextYearString(),
+      }));
+    } else if (isOpen && !initialData) {
+      resetForm();
     }
-  }, [isOpen, dormId]);
+  }, [isOpen, initialData]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -166,24 +172,32 @@ export default function AddTenantDialog({
     }
 
     try {
-      await toast.promise(
-        TenantService.createTenant({
-          ...formData,
-          dormId: dormId,
-        }),
-        {
-          pending: "กำลังบันทึกข้อมูล...",
-          success: "เพิ่มผู้เช่าเรียบร้อยแล้ว",
+      const isReEntry = !!initialData?.userId;
 
-          error: {
-            render({ data }: any) {
-              const errorResponse = data?.response?.data;
-              const code = errorResponse?.code;
-              return getTenantErrorMessage(code, errorResponse?.message);
-            },
+      const payload = {
+        ...formData,
+        dormId: dormId,
+        userId: isReEntry ? initialData.userId : undefined,
+      };
+
+      const apiCall = isReEntry
+        ? TenantService.reEntryTenant(payload)
+        : TenantService.createTenant(payload);
+
+      await toast.promise(apiCall, {
+        pending: "กำลังบันทึกข้อมูล...",
+        success: isReEntry
+          ? "ทำสัญญาใหม่ให้ผู้เช่าเดิมเรียบร้อยแล้ว"
+          : "เพิ่มผู้เช่าใหม่เรียบร้อยแล้ว",
+
+        error: {
+          render({ data }: any) {
+            const errorResponse = data?.response?.data;
+            const code = errorResponse?.code;
+            return getTenantErrorMessage(code, errorResponse?.message);
           },
         },
-      );
+      });
 
       onSuccess();
       onClose();
@@ -233,7 +247,7 @@ export default function AddTenantDialog({
         <div className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
           <div>
             <h2 className="text-lg font-bold text-gray-800">
-              เพิ่มผู้เช่าใหม่
+              {initialData ? "ทำสัญญาใหม่ให้ผู้เช่าเดิม" : "เพิ่มผู้เช่าใหม่"}
             </h2>
             <p className="mt-0.5 text-xs text-gray-500">
               กรอกข้อมูลเพื่อสร้างบัญชี ทำสัญญาเช่า และบันทึกข้อมูลการเงิน
@@ -636,8 +650,14 @@ export default function AddTenantDialog({
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          className={inputWithIconClass}
+                          disabled={!!initialData?.userId}
+                          className={`${inputWithIconClass} ${initialData?.userId ? "cursor-not-allowed bg-gray-100 text-gray-500" : ""}`}
                         />
+                        {initialData?.userId && (
+                          <p className="mt-1 text-[10px] text-orange-500">
+                            * ใช้บัญชีอีเมลเดิมของผู้เช่า ไม่สามารถแก้ไขได้
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div>

@@ -181,4 +181,9 @@ export const TenantService = {
     const response = await axios.get(`/api/tenants/contract`);
     return response.data;
   },
+
+  reEntryTenant: async (data: any) => {
+    const response = await axios.post("/api/tenants/re-entry", data);
+    return response.data;
+  },
 };

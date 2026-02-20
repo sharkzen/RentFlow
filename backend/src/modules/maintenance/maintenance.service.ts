@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { UserDecodedDto } from "../auth/dto/user.dto";
-import { generateSignedUrl } from "@/services/minio";
+import { generateSignedUrl } from "@/services/r2Client";
 import { MaintenanceStatus } from "@prisma/client";
 import { createActivityLog } from "@/services/activity-log.service";
 

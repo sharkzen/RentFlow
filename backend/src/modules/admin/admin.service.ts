@@ -10,7 +10,7 @@ import {
   LandmarkType,
 } from "@prisma/client";
 
-import { generateSignedUrl } from "@/services/minio";
+import { generateSignedUrl } from "@/services/r2Client";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { generateSlug } from "@/lib/text";
 

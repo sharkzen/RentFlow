@@ -1,6 +1,11 @@
 import prisma from "@/lib/prisma";
 import { UserDecodedDto } from "../auth/dto/user.dto";
-import { minioClient, generateSignedUrl } from "@/services/minio";
+import {
+  r2Client,
+  deleteFile,
+  uploadFile,
+  generateSignedUrl,
+} from "@/services/r2Client";
 import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "@/config/env";
 import {
@@ -14,6 +19,7 @@ import { FileCategory, Prisma, RoomStatus, Status } from "@prisma/client";
 import { shuffleArray } from "./lib/dorm.lib";
 import logger from "@/utils/logger";
 import { createActivityLog } from "@/services/activity-log.service";
+import sharp from "sharp";
 
 export const dormService = {
   async getAllDorms(query: GetDormsQueryDto) {
@@ -688,22 +694,28 @@ export const dormService = {
 
     const newOrder = (lastImage?.order ?? -1) + 1;
 
-    const command = new PutObjectCommand({
-      Bucket: env.BUCKET,
-      Key: objectKey,
-      Body: file,
-      ContentType: mimeType,
-    });
+    const compressedFile = await sharp(file)
+      .resize(1920, 1080, {
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({
+        quality: 85,
+        smartSubsample: true,
+        effort: 5,
+      })
+      .toBuffer();
 
-    await minioClient.send(command);
+    const webpObjectKey = objectKey.replace(/\.[^/.]+$/, ".webp");
+    await uploadFile(compressedFile, webpObjectKey, "image/webp");
 
     const newImage = await prisma.file.create({
       data: {
         dormitoryId: dormId,
         bucket: env.BUCKET,
-        objectKey,
-        mimeType,
-        size,
+        objectKey: webpObjectKey,
+        mimeType: "image/webp",
+        size: compressedFile.length,
         category: "DORMITORY",
         isCover,
         order: newOrder,
@@ -737,12 +749,7 @@ export const dormService = {
     if (!imageToDelete) throw new Error("Image not found");
 
     try {
-      await minioClient.send(
-        new DeleteObjectCommand({
-          Bucket: env.BUCKET,
-          Key: imageToDelete.objectKey,
-        }),
-      );
+      await deleteFile(imageToDelete.objectKey);
     } catch (err: any) {
       if (err?.name !== "NoSuchKey" && err?.Code !== "NoSuchKey") throw err;
     }
@@ -1286,19 +1293,9 @@ export const dormService = {
 
     if (dorm.images && dorm.images.length > 0) {
       const deletePromises = dorm.images.map((img) =>
-        minioClient
-          .send(
-            new DeleteObjectCommand({
-              Bucket: env.BUCKET,
-              Key: img.objectKey,
-            }),
-          )
-          .catch((err) => {
-            logger.error(
-              `Failed to delete image ${img.objectKey} from MinIO:`,
-              err,
-            );
-          }),
+        deleteFile(img.objectKey).catch((err) => {
+          logger.error(`Failed to delete image ${img.objectKey} from R2:`, err);
+        }),
       );
 
       await Promise.all(deletePromises);

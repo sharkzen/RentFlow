@@ -11,7 +11,12 @@ import {
 } from "@prisma/client";
 import { env } from "@/config/env";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { deleteFile, generateSignedUrl, minioClient } from "@/services/minio";
+import {
+  r2Client,
+  deleteFile,
+  uploadFile,
+  generateSignedUrl,
+} from "@/services/r2Client";
 import logger from "@/utils/logger";
 import { UserDecodedDto } from "../auth/dto/user.dto";
 import { createActivityLog } from "@/services/activity-log.service";
@@ -834,14 +839,7 @@ export const billService = {
       }
     }
 
-    const command = new PutObjectCommand({
-      Bucket: env.BUCKET,
-      Key: objectKey,
-      Body: file,
-      ContentType: mimeType,
-    });
-
-    await minioClient.send(command);
+    await uploadFile(file, objectKey, mimeType);
 
     const transactionResult = await prisma.$transaction(async (tx) => {
       let paymentId = bill.payment?.id;
@@ -937,15 +935,10 @@ export const billService = {
 
     if (transactionResult.oldFileToDelete) {
       try {
-        const deleteCommand = new DeleteObjectCommand({
-          Bucket: transactionResult.oldFileToDelete.bucket,
-          Key: transactionResult.oldFileToDelete.objectKey,
-        });
-
-        await minioClient.send(deleteCommand);
+        await deleteFile(transactionResult.oldFileToDelete.objectKey);
       } catch (error: any) {
         logger.error(
-          `Failed to delete old slip from MinIO: ${transactionResult.oldFileToDelete.objectKey}`,
+          `Failed to delete old slip from R2: ${transactionResult.oldFileToDelete.objectKey}`,
           error,
         );
       }

@@ -19,6 +19,7 @@ import {
   Eye,
   EyeOff,
   CalendarClock,
+  UserPlus,
 } from "lucide-react";
 
 import { toast } from "react-toastify";
@@ -34,6 +35,7 @@ interface EditTenantDialogProps {
   onClose: () => void;
   tenantId: string | null;
   onSuccess: () => void;
+  onReEntry?: (data: any) => void;
 }
 
 export default function EditTenantDialog({
@@ -41,6 +43,7 @@ export default function EditTenantDialog({
   onClose,
   tenantId,
   onSuccess,
+  onReEntry,
 }: EditTenantDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -94,6 +97,7 @@ export default function EditTenantDialog({
           };
 
           const mappedData = {
+            userId: data.userId,
             firstName: data.firstName,
             lastName: data.lastName,
             phone: data.phone || "",
@@ -321,6 +325,32 @@ export default function EditTenantDialog({
     const scheduled = new Date(formData.moveOutDate);
     scheduled.setHours(0, 0, 0, 0);
     return scheduled.getTime() > today.getTime();
+  };
+
+  const handleReEntryClick = () => {
+    const reEntryData = {
+      userId: initialData?.userId,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      phone: formData.phone,
+      email: formData.email,
+      idCard: formData.idCard,
+      address: formData.address,
+      emergencyContactName: formData.emergencyContactName,
+      emergencyContactPhone: formData.emergencyContactPhone,
+      securityDeposit: 0,
+      advancePayment: 0,
+      entranceFee: 0,
+      moveInDate: "",
+      contractStartDate: "",
+      contractEndDate: "",
+    };
+
+    onClose();
+
+    if (onReEntry) {
+      onReEntry(reEntryData);
+    }
   };
 
   return (
@@ -824,23 +854,30 @@ export default function EditTenantDialog({
         </div>
         <div className="flex items-center justify-between gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
           <div>
-            {!isFetching && !formData.moveOutDate && (
-              <button
-                disabled={!formData.isActive}
-                type="button"
-                onClick={() => setIsMoveOutOpen(true)}
-                className={`group flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition-all max-sm:text-xs ${!formData.isActive ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-red-100 active:scale-95"}`}
-                title={
-                  !formData.isActive
-                    ? "ผู้เช่ารายนี้ไม่ได้อยู่ในสถานะเข้าพักปกติ"
-                    : "แจ้งย้ายออก (Checkout)"
-                }
-              >
-                <LogOut size={16} className="text-red-500" />
-                <span className="max-sm:text-xs">
-                  {!formData.isActive ? "ย้ายออกแล้ว" : "แจ้งย้ายออก"}
-                </span>
-              </button>
+            {!isFetching && (
+              <>
+                {formData.isActive ? (
+                  !formData.moveOutDate && (
+                    <button
+                      type="button"
+                      onClick={() => setIsMoveOutOpen(true)}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition-all hover:bg-red-100 active:scale-95"
+                    >
+                      <LogOut size={16} />
+                      <span>แจ้งย้ายออก</span>
+                    </button>
+                  )
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleReEntryClick}
+                    className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-600 shadow-sm transition-all hover:bg-indigo-100 active:scale-95"
+                  >
+                    <UserPlus size={18} />
+                    <span>กลับมาพักใหม่ / ทำสัญญาใหม่</span>
+                  </button>
+                )}
+              </>
             )}
           </div>
           <div className="flex items-center gap-3">

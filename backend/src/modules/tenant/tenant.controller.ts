@@ -769,4 +769,24 @@ export const TenantController = {
       });
     }
   },
+
+  reEntryTenant: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as any;
+    const body = request.body as any;
+
+    try {
+      const result = await tenantService.createNewContractForExistingUser(
+        user.sub,
+        body,
+      );
+      return reply.status(200).send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      return reply.status(400).send({
+        code: "RE_ENTRY_FAILED",
+        message: error.message,
+      });
+    }
+  },
 };

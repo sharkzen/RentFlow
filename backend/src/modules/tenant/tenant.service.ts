@@ -25,7 +25,7 @@ import path from "path";
 import fs from "fs";
 import { slipOkService } from "@/services/slipok.service";
 import { uuidv4 } from "zod";
-import { deleteFile, generateSignedUrl, uploadFile } from "@/services/minio";
+import { deleteFile, generateSignedUrl, uploadFile } from "@/services/r2Client";
 import { env } from "@/config/env";
 import logger from "@/utils/logger";
 import {
@@ -2159,5 +2159,79 @@ export const tenantService = {
     }
 
     return tenant;
+  },
+
+  async createNewContractForExistingUser(ownerSub: string, data: any) {
+    return await prisma.$transaction(async (tx) => {
+      const owner = await tx.ownerProfile.findUnique({
+        where: {
+          userId: ownerSub,
+        },
+      });
+
+      if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
+
+      const room = await tx.room.findUnique({
+        where: {
+          id: data.roomId,
+        },
+
+        include: {
+          dormitory: true,
+        },
+      });
+
+      if (!room || room.status !== "AVAILABLE")
+        throw new Error("ROOM_NOT_AVAILABLE");
+
+      if (room.dormitory.ownerId !== owner.id)
+        throw new Error("FORBIDDEN_ACCESS");
+
+      await tx.user.update({
+        where: {
+          id: data.userId,
+        },
+
+        data: {
+          status: "ACTIVE",
+        },
+      });
+
+      const newProfile = await tx.tenantProfile.create({
+        data: {
+          userId: data.userId,
+          roomId: data.roomId,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          phone: data.phone,
+          email: data.email,
+          idCard: data.idCard,
+          address: data.address,
+          securityDeposit: Number(data.securityDeposit),
+          advancePayment: Number(data.advancePayment),
+          entranceFee: Number(data.entranceFee),
+          contractStartDate: new Date(data.contractStartDate),
+          contractEndDate: new Date(data.contractEndDate),
+          moveInDate: new Date(data.moveInDate),
+          numberOfResidents: Number(data.numberOfResidents),
+          emergencyContactName: data.emergencyContactName,
+          emergencyContactPhone: data.emergencyContactPhone,
+          notes: data.notes,
+          isActive: true,
+        },
+      });
+
+      await tx.room.update({
+        where: {
+          id: data.roomId,
+        },
+
+        data: {
+          status: "OCCUPIED",
+        },
+      });
+
+      return newProfile;
+    });
   },
 };

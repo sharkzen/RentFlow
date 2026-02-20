@@ -13,19 +13,24 @@ import {
 import { useState } from "react";
 import EditTenantDialog from "./EditTenantDialog";
 import Skeleton from "@/components/ui/Skeleton";
+import AddTenantDialog from "./AddTenantDialog";
 
 interface Props {
   tenants: Tenant[];
   isLoading: boolean;
   onEditSuccess?: () => void;
+  dormId: string;
 }
 
 export default function TenantList({
   tenants,
   isLoading,
   onEditSuccess,
+  dormId,
 }: Props) {
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [prefilledData, setPrefilledData] = useState<any>(null);
 
   const handleEditClick = (e: React.MouseEvent, tenantId: string) => {
     e.stopPropagation();
@@ -35,6 +40,12 @@ export default function TenantList({
   const handleEditSuccess = () => {
     setEditingTenantId(null);
     onEditSuccess?.();
+  };
+
+  const handleReEntryFromEdit = (data: any) => {
+    setEditingTenantId(null);
+    setPrefilledData(data);
+    setIsAddOpen(true);
   };
 
   const renderStatusBadge = (tenant: Tenant) => {
@@ -126,6 +137,19 @@ export default function TenantList({
           tenantId={editingTenantId}
           onClose={() => setEditingTenantId(null)}
           onSuccess={handleEditSuccess}
+          onReEntry={handleReEntryFromEdit}
+        />
+      )}
+      {isAddOpen && (
+        <AddTenantDialog
+          isOpen={isAddOpen}
+          onClose={() => {
+            setIsAddOpen(false);
+            setPrefilledData(null);
+          }}
+          dormId={dormId}
+          initialData={prefilledData}
+          onSuccess={onEditSuccess!}
         />
       )}
       <div className="flex h-[60vh] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
