@@ -11,7 +11,7 @@ import log from "@/lib/logger";
 
 const DormSlugSkeleton = () => (
   <div className="mx-auto max-w-7xl animate-pulse space-y-8 px-4 pt-8 pb-20 sm:px-6 lg:px-8">
-    <div className="h-[420px] w-full rounded-3xl bg-slate-100 md:h-[520px]" />
+    <div className="h-105 w-full rounded-3xl bg-slate-100 md:h-130" />
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
       <div className="space-y-6 lg:col-span-8">
         <div className="h-9 w-2/3 rounded-full bg-slate-100" />
@@ -32,7 +32,7 @@ export default function DormSlugContainer() {
   const decodedSlug = decodeURIComponent(slug);
   const [dorm, setDorm] = useState<DormSlugResponse | null>(null);
   const [loading, setLoading] = useState(true);
-
+  console.log(dorm);
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);

@@ -125,6 +125,12 @@ export type DormSlugResponse = {
   ownerId: string;
   name: string;
   slug: string;
+  availability: {
+    isAvailable: boolean;
+    airAvailable: number;
+    fanAvailable: number;
+    totalAvailable: number;
+  };
   description: {
     sections: (
       | {

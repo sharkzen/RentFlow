@@ -49,7 +49,7 @@ export const DormHeroSlider: React.FC<DormHeroSliderProps> = ({ images }) => {
 
   if (!sortedImages.length) {
     return (
-      <div className="mx-auto flex aspect-video max-h-125 w-full max-w-5xl flex-col items-center justify-center rounded-xl bg-slate-100 text-slate-400 shadow-sm">
+      <div className="mx-auto mb-4 flex aspect-video max-h-125 w-full max-w-7xl flex-col items-center justify-center rounded-xl bg-slate-100 text-slate-400">
         <ImageIcon size={48} className="mb-3 opacity-30" strokeWidth={1.5} />
         <span className="text-sm font-medium">ไม่มีรูปภาพแสดง</span>
       </div>

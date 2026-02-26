@@ -1,6 +1,17 @@
 "use client";
 import React from "react";
-import { Phone, Facebook, Droplets, Zap, Sparkles } from "lucide-react";
+import {
+  Phone,
+  Facebook,
+  Droplets,
+  Zap,
+  Sparkles,
+  CheckCircle2,
+  XCircle,
+  DoorOpen,
+  Snowflake,
+  Wind,
+} from "lucide-react";
 import { DormSlugResponse } from "@/features/dormitory/types";
 
 const LineIcon = ({ className }: { className?: string }) => (
@@ -15,31 +26,88 @@ const LineIcon = ({ className }: { className?: string }) => (
 );
 
 export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
-  const { settings, owner } = data;
+  const { settings, owner, availability } = data;
 
   return (
     <div className="overflow-hidden bg-white sm:rounded-2xl">
-      {/* Price */}
       <div className="p-6 pb-5">
-        <p className="mb-1 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-          ราคาเริ่มต้น
-        </p>
-        <div className="flex items-baseline gap-2">
-          {settings?.roomPrice != null ? (
-            <>
-              <span className="text-4xl font-bold text-slate-900">
-                {settings.roomPrice.toLocaleString()}
-              </span>
-              <span className="text-sm font-medium text-slate-500">
-                บาท / เดือน
-              </span>
-            </>
-          ) : (
-            <span className="text-xl font-semibold text-slate-400">
-              ยังไม่กำหนด
-            </span>
+        {/* Header: Price & Status */}
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="mb-1 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+              ราคาเริ่มต้น
+            </p>
+            <div className="flex items-baseline gap-2">
+              {settings?.roomPrice != null ? (
+                <>
+                  <span className="text-4xl font-bold text-slate-900">
+                    {settings.roomPrice.toLocaleString()}
+                  </span>
+                  <span className="text-sm font-medium text-slate-500">
+                    บาท / เดือน
+                  </span>
+                </>
+              ) : (
+                <span className="text-xl font-semibold text-slate-400">
+                  ยังไม่กำหนด
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Status (Right Aligned, No Background, Larger Text) */}
+          {availability && (
+            <div className="mt-1 shrink-0 text-right">
+              {availability.isAvailable ? (
+                <span className="flex items-center justify-end gap-1.5 text-lg font-bold text-emerald-600">
+                  <CheckCircle2 size={20} /> มีห้องว่าง
+                </span>
+              ) : (
+                <span className="flex items-center justify-end gap-1.5 text-lg font-bold text-rose-600">
+                  <XCircle size={20} /> เต็ม
+                </span>
+              )}
+            </div>
           )}
         </div>
+
+        {/* Availability Details */}
+        {availability?.isAvailable && (
+          <div className="mt-5 flex flex-col gap-3">
+            {/* Total Rooms */}
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-base font-semibold text-slate-800">
+                <DoorOpen size={18} className="text-blue-500" /> ห้องว่างทั้งหมด
+              </span>
+              <span className="text-base font-bold text-slate-900">
+                {availability.totalAvailable} ห้อง
+              </span>
+            </div>
+
+            {/* Split Air/Fan */}
+            {(availability.airAvailable > 0 ||
+              availability.fanAvailable > 0) && (
+              <div className="flex flex-col gap-2 border-t border-slate-200 pt-3">
+                {availability.airAvailable > 0 && (
+                  <div className="flex items-center justify-between text-sm font-medium text-slate-600">
+                    <span className="flex items-center gap-2">
+                      <Snowflake size={16} className="text-sky-500" /> แอร์
+                    </span>
+                    <span>{availability.airAvailable} ห้อง</span>
+                  </div>
+                )}
+                {availability.fanAvailable > 0 && (
+                  <div className="flex items-center justify-between text-sm font-medium text-slate-600">
+                    <span className="flex items-center gap-2">
+                      <Wind size={16} className="text-teal-500" /> พัดลม
+                    </span>
+                    <span>{availability.fanAvailable} ห้อง</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Utilities */}
