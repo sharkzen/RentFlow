@@ -15,6 +15,7 @@ import {
   FileText,
   User,
   LogOut,
+  Menu,
 } from "lucide-react";
 
 export default function TenantNavbar() {
@@ -54,10 +55,20 @@ export default function TenantNavbar() {
     <>
       {!sidebarOpen && (
         <button
-          className="fixed top-11 left-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-lg transition-transform hover:cursor-pointer active:scale-95 min-[960px]:hidden"
+          className="fixed top-3 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 min-[960px]:hidden"
           onClick={() => setSidebarOpen(true)}
+          aria-label="Open Menu"
         >
-          <ChevronRight size={24} />
+          <Menu size={24} />
+        </button>
+      )}
+      {sidebarOpen && (
+        <button
+          className="fixed top-3 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 min-[960px]:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close Menu"
+        >
+          <X size={24} />
         </button>
       )}
       <aside
@@ -76,12 +87,6 @@ export default function TenantNavbar() {
                 Tenant Portal
               </p>
             </div>
-            <button
-              className="ml-auto cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 min-[960px]:hidden"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <X size={20} />
-            </button>
           </div>
           <div className="scrollbar-thin scrollbar-thumb-gray-200 flex-1 overflow-y-auto px-4 py-4">
             <nav className="mb-6 space-y-1">

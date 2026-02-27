@@ -25,7 +25,7 @@ export default function DormPaymentSettings({
   updateField,
 }: PaymentSettingsProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-100 bg-white p-5">
       <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
         <CreditCard size={16} />
         ตั้งค่าบัญชีรับเงิน

@@ -141,7 +141,7 @@ export default function TenantContainer() {
           <div className="relative h-full">
             <button
               onClick={() => setIsDormDropdownOpen(!isDormDropdownOpen)}
-              className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium shadow-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:outline-none ${isDormDropdownOpen ? "border-indigo-500 bg-white text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"}`}
+              className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-all focus:ring-2 focus:ring-indigo-500/20 focus:outline-none ${isDormDropdownOpen ? "border-indigo-500 bg-white text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"}`}
             >
               <div className="flex items-center gap-2 overflow-hidden">
                 <Building
@@ -191,7 +191,7 @@ export default function TenantContainer() {
           <div className="relative h-full">
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium shadow-sm transition-all focus:ring-2 focus:ring-indigo-500/20 focus:outline-none ${isFilterOpen ? "border-indigo-500 bg-white text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"}`}
+              className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-all focus:ring-2 focus:ring-indigo-500/20 focus:outline-none ${isFilterOpen ? "border-indigo-500 bg-white text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"}`}
             >
               <div className="flex items-center gap-2 overflow-hidden">
                 <Filter
@@ -211,7 +211,7 @@ export default function TenantContainer() {
                   className="fixed inset-0 z-40 cursor-default"
                   onClick={() => setIsFilterOpen(false)}
                 />
-                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+6px)] right-0 z-50 w-full min-w-[180px] rounded-xl border border-gray-100 bg-white p-1 shadow-xl ring-1 ring-black/5 duration-100 md:right-auto md:left-0">
+                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+6px)] right-0 z-50 w-full min-w-[180px] rounded-xl border border-gray-100 bg-white p-1 ring-1 ring-black/5 duration-100 md:right-auto md:left-0">
                   {filterOptions.map((option) => (
                     <button
                       key={option.value}
@@ -249,13 +249,13 @@ export default function TenantContainer() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="ค้นหาชื่อ / ห้อง / เบอร์โทร"
-            className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pr-4 pl-10 text-sm shadow-sm transition-all placeholder:text-gray-400 hover:border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
+            className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pr-4 pl-10 text-sm transition-all placeholder:text-gray-400 hover:border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none"
           />
         </div>
         <div className="col-span-12 md:col-span-2 lg:col-span-2">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-md focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-700 hover:shadow-md focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95"
           >
             <Plus className="h-5 w-5" />
             <span>เพิ่มผู้เช่า</span>

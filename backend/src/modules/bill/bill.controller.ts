@@ -16,10 +16,11 @@ export const BillController = {
         dormId: string;
       };
 
-      if (!dormId)
+      if (!dormId) {
         return reply.status(400).send({
           message: "DORM_ID_REQUIRED",
         });
+      }
 
       const result = await billService.getBills({
         dormId,

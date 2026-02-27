@@ -157,12 +157,12 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
   return (
     <div className="relative space-y-4 p-4">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-bold text-gray-700">
+        <label className="text-xs font-bold text-gray-700">
           รูปภาพ ({images.length}/5){" "}
-          <span className="text-xs text-red-500">* ขนาดไม่เกิน 10MB/รูป</span>
+          <span className="text-xs text-red-500">* ขนาดไม่เกิน 5MB/รูป</span>
         </label>
         <label
-          className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${images.length >= 5 ? "cursor-not-allowed bg-gray-100 text-gray-400" : "bg-blue-50 text-blue-600 hover:bg-blue-100"}`}
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${images.length >= 5 ? "cursor-not-allowed bg-gray-100 text-gray-400" : "bg-blue-50 text-blue-600 hover:bg-blue-100"}`}
         >
           <ImagePlus size={16} />
           <span>เพิ่มรูปภาพ</span>

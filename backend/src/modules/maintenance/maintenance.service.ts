@@ -15,23 +15,33 @@ export const maintenanceService = {
     page: number = 1,
     limit: number = 10,
   ) => {
-    const isOwner = await prisma.dormitory.findFirst({
-      where: {
-        id: dormId,
+    if (dormId && dormId !== "ALL") {
+      const isOwner = await prisma.dormitory.findFirst({
+        where: {
+          id: dormId,
 
+          owner: {
+            userId: user.sub,
+          },
+        },
+      });
+
+      if (!isOwner) throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    const whereCondition: any = {};
+
+    if (dormId && dormId !== "ALL") {
+      whereCondition.dormitoryId = dormId;
+    } else {
+      whereCondition.dormitory = {
         owner: {
           userId: user.sub,
         },
-      },
-    });
+      };
+    }
 
-    if (!isOwner) throw new Error("FORBIDDEN_ACCESS");
-
-    const whereCondition: any = {
-      dormitoryId: dormId,
-    };
-
-    if (status && status !== "ALL") {
+    if (status && (status as string) !== "ALL") {
       whereCondition.status = status as MaintenanceStatus;
     }
 
@@ -92,6 +102,12 @@ export const maintenanceService = {
       where: whereCondition,
 
       include: {
+        dormitory: {
+          select: {
+            name: true,
+          },
+        },
+
         room: {
           select: {
             roomNumber: true,

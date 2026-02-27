@@ -42,25 +42,30 @@ export const billService = {
     const skip = (page - 1) * limit;
 
     const where: any = {
-      room: {
-        dormitoryId: dormId,
-
-        dormitory: {
-          ownerId: owner.id,
-        },
-      },
-
       archived: false,
     };
 
-    if (status) where.status = status;
+    const roomFilter: any = {
+      dormitory: {
+        ownerId: owner.id,
+      },
+    };
 
-    if (search)
-      where.room = {
-        roomNumber: {
-          contains: search,
-        },
+    if (dormId && dormId !== "ALL") {
+      roomFilter.dormitoryId = dormId;
+    }
+
+    if (search) {
+      roomFilter.roomNumber = {
+        contains: search,
       };
+    }
+
+    where.room = roomFilter;
+
+    if (status && (status as string) !== "ALL") {
+      where.status = status;
+    }
 
     if (month) {
       const startDate = new Date(month);
@@ -79,7 +84,16 @@ export const billService = {
         where,
 
         include: {
-          room: true,
+          room: {
+            include: {
+              dormitory: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
+
           items: true,
 
           tenant: {

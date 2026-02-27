@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
+"use client";
+import React, { useState, useRef, useEffect } from "react";
 import { TenantService } from "@/features/tenant/services/tenant.service";
-import { UploadCloud, X, Loader2 } from "lucide-react";
+import { UploadCloud, X, Loader2, Trash2 } from "lucide-react";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 interface RequestFormProps {
@@ -11,20 +12,38 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    return () => {
+      previews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [previews]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
-      const totalFiles = [...files, ...selectedFiles].slice(0, 2);
-      setFiles(totalFiles);
+      const availableSlots = 2 - files.length;
+
+      if (availableSlots <= 0) return;
+
+      const filesToAdd = selectedFiles.slice(0, availableSlots);
+      const newFiles = [...files, ...filesToAdd];
+      setFiles(newFiles);
+      const newPreviews = filesToAdd.map((file) => URL.createObjectURL(file));
+      setPreviews([...previews, ...newPreviews]);
     }
+
+    if (e.target.value) e.target.value = "";
   };
 
   const removeFile = (index: number) => {
+    URL.revokeObjectURL(previews[index]);
     setFiles(files.filter((_, i) => i !== index));
+    setPreviews(previews.filter((_, i) => i !== index));
   };
 
   const handlePreSubmit = (e: React.FormEvent) => {
@@ -50,10 +69,9 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
       await TenantService.createMaintenance(formData);
       setTitle("");
       setDescription("");
+      previews.forEach((url) => URL.revokeObjectURL(url));
       setFiles([]);
-
-      if (fileInputRef.current) fileInputRef.current.value = "";
-
+      setPreviews([]);
       setIsConfirmOpen(false);
       onSuccess();
     } catch (error) {
@@ -112,54 +130,57 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               รูปประกอบ (สูงสุด 2 รูป)
             </label>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="group relative flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50/50"
-            >
-              <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <div className="mb-2 rounded-full bg-white p-3 shadow-sm transition-transform group-hover:scale-110">
-                  <UploadCloud className="h-6 w-6 text-blue-500" />
+
+            {files.length < 2 && (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="group relative flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50/50"
+              >
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <div className="mb-2 rounded-full bg-white p-3 shadow-sm transition-transform group-hover:scale-110">
+                    <UploadCloud className="h-6 w-6 text-blue-500" />
+                  </div>
+                  <p className="mb-1 text-sm font-medium text-gray-500 group-hover:text-blue-600">
+                    คลิกเพื่ออัปโหลดรูปภาพ
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    PNG, JPG (ไม่เกิน 2 รูป)
+                  </p>
                 </div>
-                <p className="mb-1 text-sm font-medium text-gray-500 group-hover:text-blue-600">
-                  คลิกเพื่ออัปโหลดรูปภาพ
-                </p>
-                <p className="text-xs text-gray-400">
-                  PNG, JPG (ไม่เกิน 2 รูป)
-                </p>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                />
               </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChange}
-                accept="image/*"
-                multiple
-                className="hidden"
-              />
-            </div>
-            {files.length > 0 && (
+            )}
+            {previews.length > 0 && (
               <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {files.map((file, index) => (
+                {previews.map((url, index) => (
                   <div
-                    key={index}
-                    className="group relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+                    key={url}
+                    className="relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
                   >
                     <img
-                      src={URL.createObjectURL(file)}
-                      alt="preview"
+                      src={url}
+                      alt={`preview ${index + 1}`}
                       className="h-full w-full object-cover"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeFile(index);
-                        }}
-                        className="rounded-full bg-white/90 p-1.5 text-red-500 transition-colors hover:bg-white hover:text-red-600"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFile(index);
+                      }}
+                      className="absolute top-2 right-2 z-10 cursor-pointer rounded-full bg-white/80 p-1.5 text-red-500 shadow-sm backdrop-blur-sm transition-colors hover:bg-white hover:text-red-600"
+                      title="ลบรูปภาพ"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -169,9 +190,16 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-700 py-3 font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow-blue-500/30 active:scale-[0.99]"
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-linear-to-r from-blue-600 to-blue-700 py-3 font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow-blue-500/30 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              ยืนยันแจ้งซ่อม
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  กำลังส่งข้อมูล...
+                </>
+              ) : (
+                "ยืนยันแจ้งซ่อม"
+              )}
             </button>
           </div>
         </div>

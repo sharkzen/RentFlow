@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 import MaintenanceFilter, {
   MaintenanceFilterStatus,
 } from "./MaintenanceFilter";
@@ -12,10 +13,16 @@ import { maintenanceService } from "@/features/maintenance/services/maintenance.
 import { MaintenanceRequest } from "@/features/maintenance";
 
 export default function MaintenanceContainer() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlFilter = searchParams.get("filter") as MaintenanceFilterStatus;
+  const urlDormId = searchParams.get("dormId");
   const [dorms, setDorms] = useState<Dormitory[]>([]);
-  const [selectedDorm, setSelectedDorm] = useState<string>();
+  const [selectedDorm, setSelectedDorm] = useState<string>(urlDormId || "ALL");
+  const [status, setStatus] = useState<MaintenanceFilterStatus>(
+    urlFilter || "ALL",
+  );
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<MaintenanceFilterStatus>("ALL");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [maintenances, setMaintenances] = useState<MaintenanceRequest[]>([]);
@@ -29,14 +36,25 @@ export default function MaintenanceContainer() {
   });
 
   useEffect(() => {
+    const currentDormId = searchParams.get("dormId") || "ALL";
+    const currentFilter = searchParams.get("filter") || "ALL";
+
+    if (currentDormId !== selectedDorm || currentFilter !== status) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("dormId", selectedDorm);
+      params.set("filter", status);
+
+      router.replace(`?${params.toString()}`, {
+        scroll: false,
+      });
+    }
+  }, [selectedDorm, status, router, searchParams]);
+
+  useEffect(() => {
     const initDorms = async () => {
       try {
         const res = await DormService.getDorm();
         setDorms(res);
-
-        if (res.length > 0) {
-          setSelectedDorm(res[0].id);
-        }
       } catch (error) {
         log.error("Failed to load dorms", error);
       }
@@ -54,7 +72,7 @@ export default function MaintenanceContainer() {
       const res = await maintenanceService.getMaintenances({
         dormId: selectedDorm,
         search,
-        status,
+        status: status,
         startDate,
         endDate,
         page,
@@ -134,7 +152,7 @@ export default function MaintenanceContainer() {
       {!isLoading && meta.totalPages > 0 && (
         <div className="flex items-center justify-between border-t border-gray-200 pt-4">
           <div className="hidden text-sm text-gray-500 sm:block">
-            แสดง {(page - 1) * LIMIT + 1}ถึง{" "}
+            แสดง {(page - 1) * LIMIT + (meta.total > 0 ? 1 : 0)}ถึง{" "}
             {Math.min(page * LIMIT, meta.total)}จากทั้งหมด {meta.total}รายการ
           </div>
           <div className="text-sm text-gray-500 sm:hidden">

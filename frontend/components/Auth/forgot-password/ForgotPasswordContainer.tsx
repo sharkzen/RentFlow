@@ -72,7 +72,7 @@ export default function ForgotPasswordContainer() {
 
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-slate-50 px-4 py-12 font-sans sm:px-6 lg:px-8">
-      <div className="w-full max-w-110 space-y-8 rounded-2xl border border-slate-100 bg-white p-10 shadow-2xl transition-all">
+      <div className="w-full max-w-110 space-y-8 rounded-2xl border border-slate-100 bg-white p-10 transition-all">
         <div className="text-center">
           <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-xl bg-blue-50">
             <KeyRound className="h-7 w-7 text-blue-600" />
@@ -105,7 +105,7 @@ export default function ForgotPasswordContainer() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="block w-full rounded-lg border border-slate-300 py-3 pr-3 pl-10 text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:text-sm"
+                  className="block w-full rounded-lg border border-slate-300 py-3 pr-3 pl-10 text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:text-sm"
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

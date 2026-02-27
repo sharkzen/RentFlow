@@ -58,13 +58,16 @@ export default function DormFilter() {
     {} as Record<string, Landmark[]>,
   );
 
-  const executeSearch = (overrides?: {
-    search?: string;
-    landmarkId?: string;
-    minPrice?: string;
-    maxPrice?: string;
-  }) => {
-    const params = new URLSearchParams();
+  const executeSearch = (
+    overrides?: {
+      search?: string;
+      landmarkId?: string;
+      minPrice?: number | "";
+      maxPrice?: number | "";
+    },
+    doScroll: boolean = true,
+  ) => {
+    const params = new URLSearchParams(searchParams.toString());
     const currentName =
       overrides?.search !== undefined ? overrides.search : name;
     const currentLocation =
@@ -75,25 +78,48 @@ export default function DormFilter() {
       overrides?.maxPrice !== undefined ? overrides.maxPrice : priceMax;
 
     if (currentName) params.set("search", currentName);
+    else params.delete("search");
 
     if (currentLocation) params.set("landmarkId", currentLocation);
+    else params.delete("landmarkId");
 
     if (currentMin !== "") params.set("minPrice", String(currentMin));
+    else params.delete("minPrice");
 
     if (currentMax !== "") params.set("maxPrice", String(currentMax));
+    else params.delete("maxPrice");
 
     router.push(`/?${params.toString()}`, {
       scroll: false,
     });
 
-    setTimeout(() => {
-      scroller.scrollTo("dorm-filter", {
-        duration: 800,
-        delay: 0,
-        smooth: "easeInOutQuart",
-        offset: -90,
-      });
-    }, 100);
+    if (doScroll) {
+      setTimeout(() => {
+        scroller.scrollTo("dorm-filter", {
+          duration: 800,
+          delay: 0,
+          smooth: "easeInOutQuart",
+          offset: -90,
+        });
+      }, 100);
+    }
+  };
+
+  const handleReset = () => {
+    setName("");
+    setIsError(false);
+    setLocation("");
+    setPriceMin("");
+    setPriceMax("");
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("search");
+    params.delete("landmarkId");
+    params.delete("minPrice");
+    params.delete("maxPrice");
+
+    router.push(`/?${params.toString()}`, {
+      scroll: false,
+    });
   };
 
   const handleSearchClick = () => {
@@ -101,8 +127,19 @@ export default function DormFilter() {
       !name.trim() && !location && priceMin === "" && priceMax === "";
 
     if (isEmpty) {
-      setIsError(true);
-      inputRef.current?.focus();
+      const hasUrlParams =
+        searchParams.get("search") ||
+        searchParams.get("landmarkId") ||
+        searchParams.get("minPrice") ||
+        searchParams.get("maxPrice");
+
+      if (hasUrlParams) {
+        handleReset();
+      } else {
+        setIsError(true);
+        inputRef.current?.focus();
+      }
+
       return;
     }
 
@@ -119,19 +156,7 @@ export default function DormFilter() {
     });
   };
 
-  const handleReset = () => {
-    setName("");
-    setIsError(false);
-    setLocation("");
-    setPriceMin("");
-    setPriceMax("");
-
-    router.push(`/?`, {
-      scroll: false,
-    });
-  };
-
-  const hasFilter = name || location || priceMin || priceMax;
+  const hasFilter = name || location || priceMin !== "" || priceMax !== "";
 
   return (
     <Element name="dorm-filter">
@@ -142,7 +167,7 @@ export default function DormFilter() {
       >
         <div className="flex flex-col rounded-3xl bg-white p-2 shadow ring-1 shadow-slate-200/60 ring-slate-100 md:flex-row md:items-center md:p-1.5">
           <div
-            className={`group relative flex flex-1 flex-col justify-center px-6 py-3 transition-all md:rounded-l-full md:border-r ${isError ? "bg-red-50/30 ring-2 ring-red-500 md:border-transparent" : "md:border-slate-100"}`}
+            className={`group relative flex flex-1 flex-col justify-center border-slate-100 px-6 py-3 transition-all md:rounded-l-full md:border-r`}
           >
             <label
               className={`mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider uppercase ${isError ? "text-red-600" : "text-slate-500"}`}
@@ -165,9 +190,18 @@ export default function DormFilter() {
               className="w-full truncate bg-transparent text-sm font-semibold text-slate-700 placeholder:font-normal placeholder:text-slate-400 focus:outline-none md:text-base"
               value={name}
               onChange={(e) => {
-                setName(e.target.value);
+                const val = e.target.value;
+                setName(val);
 
-                if (e.target.value) setIsError(false);
+                if (val) setIsError(false);
+
+                if (val === "")
+                  executeSearch(
+                    {
+                      search: "",
+                    },
+                    false,
+                  );
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSearchClick();
@@ -175,7 +209,7 @@ export default function DormFilter() {
             />
           </div>
           <div className="group relative flex flex-1 flex-col justify-center px-6 py-3 transition-colors md:border-r md:border-slate-100">
-            <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
+            <label className="my-1 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <MapPin size={14} className="text-rose-500" />
               ทำเล / สถานที่ใกล้เคียง
             </label>
@@ -219,13 +253,21 @@ export default function DormFilter() {
                 min={0}
                 type="number"
                 placeholder="ต่ำสุด"
-                className="w-full min-w-15 bg-transparent text-sm font-semibold text-slate-700 placeholder:font-normal placeholder:text-slate-400 focus:outline-none md:text-base"
+                className="flex w-full min-w-15 items-center bg-transparent text-sm font-semibold text-slate-700 placeholder:font-normal placeholder:text-slate-400 focus:outline-none md:text-base"
                 value={priceMin}
                 onChange={(e) => {
-                  setPriceMin(
-                    e.target.value === "" ? "" : Number(e.target.value),
-                  );
+                  const val =
+                    e.target.value === "" ? "" : Number(e.target.value);
+                  setPriceMin(val);
                   setIsError(false);
+
+                  if (val === "")
+                    executeSearch(
+                      {
+                        minPrice: "",
+                      },
+                      false,
+                    );
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSearchClick();
@@ -239,10 +281,18 @@ export default function DormFilter() {
                 className="w-full min-w-15 bg-transparent text-sm font-semibold text-slate-700 placeholder:font-normal placeholder:text-slate-400 focus:outline-none md:text-base"
                 value={priceMax}
                 onChange={(e) => {
-                  setPriceMax(
-                    e.target.value === "" ? "" : Number(e.target.value),
-                  );
+                  const val =
+                    e.target.value === "" ? "" : Number(e.target.value);
+                  setPriceMax(val);
                   setIsError(false);
+
+                  if (val === "")
+                    executeSearch(
+                      {
+                        maxPrice: "",
+                      },
+                      false,
+                    );
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleSearchClick();

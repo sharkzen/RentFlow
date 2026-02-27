@@ -24,7 +24,7 @@ export default function DormContactSettings({
   updateField,
 }: ContactSettingsProps) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-xl border border-slate-100 bg-white p-5">
       <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
         <User size={16} />
         ข้อมูลการติดต่อ (Owner Profile)

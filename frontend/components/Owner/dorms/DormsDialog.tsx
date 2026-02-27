@@ -177,10 +177,10 @@ export default function DormsDialog({
 
   return (
     <RemoveScroll>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+      <div className="fixed inset-0 z-50 flex justify-center bg-slate-900/40 sm:items-center sm:p-4">
         <div
           ref={closeRef}
-          className="flex h-full max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5"
+          className="flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl ring-1 ring-slate-900/5 sm:max-h-[90vh] sm:max-w-4xl sm:rounded-2xl"
         >
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
             <div className="flex flex-col">
@@ -210,7 +210,7 @@ export default function DormsDialog({
                 handleSave();
               }}
             >
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-xl border border-slate-100 bg-white p-5">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <Home size={16} />
                   ข้อมูลพื้นฐาน
@@ -259,7 +259,7 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-xl border border-slate-100 bg-white p-5">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <MapPin size={16} />
                   ที่ตั้งและแผนที่
@@ -285,7 +285,7 @@ export default function DormsDialog({
                 formData={formData}
                 updateField={updateField}
               />
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-xl border border-slate-100 bg-white p-5">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <Zap size={16} />
                   ค่าสาธารณูปโภค & ค่าธรรมเนียม
@@ -329,7 +329,7 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-xl border border-slate-100 bg-white p-5">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <Calendar size={16} />
                   รอบบิลและการชำระเงิน
@@ -373,12 +373,12 @@ export default function DormsDialog({
                   </div>
                 </div>
               </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="rounded-xl border border-slate-100 bg-white p-5">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                   <CheckCircle2 size={16} />
                   รูปภาพหอพัก
                 </h3>
-                <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4">
+                <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50">
                   <ImageSection dormId={dorm.id} />
                 </div>
               </div>

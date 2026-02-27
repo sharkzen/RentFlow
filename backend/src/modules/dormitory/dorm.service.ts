@@ -28,9 +28,8 @@ export const dormService = {
     const limit = 15;
     const skip = (Number(page) - 1) * limit;
 
-    // 1. สร้างเงื่อนไขพื้นฐาน
     const whereCondition: Prisma.DormitoryWhereInput = {
-      status: "ACTIVE", // หรือ Status.ACTIVE ตามที่ import
+      status: "ACTIVE",
       isPublished: true,
     };
 
@@ -46,7 +45,6 @@ export const dormService = {
         ? landmarkId
         : undefined;
 
-    // 2. เพิ่มเงื่อนไขการค้นหาด้วยชื่อ
     if (hasSearch) {
       whereCondition.name = {
         contains: search,
@@ -54,7 +52,6 @@ export const dormService = {
       };
     }
 
-    // 3. เพิ่มเงื่อนไขการค้นหาด้วยราคา
     const parsedMin =
       minPrice && !isNaN(Number(minPrice)) ? Number(minPrice) : undefined;
     const parsedMax =
@@ -72,32 +69,38 @@ export const dormService = {
     let resultDorms: any[] = [];
     let totalItems = 0;
 
-    // สิ่งที่จะดึงมาพร้อมกับข้อมูลหอพัก
     const dormIncludeQuery = {
       images: true,
       settings: true,
+
       rooms: {
         where: {
           deletedAt: null,
         },
+
         select: {
           status: true,
         },
       },
     };
 
-    // ==========================================
-    // กรณีที่ 1: ค้นหาด้วยสถานที่ (Landmark)
-    // ==========================================
     if (cleanLandmarkId) {
       const targetLandmark = await prisma.landmark.findUnique({
-        where: { id: cleanLandmarkId },
+        where: {
+          id: cleanLandmarkId,
+        },
       });
 
       if (!targetLandmark) {
         return {
           data: [],
-          meta: { page: 1, limit, total: 0, totalPages: 0 },
+
+          meta: {
+            page: 1,
+            limit,
+            total: 0,
+            totalPages: 0,
+          },
         };
       }
 
@@ -108,6 +111,7 @@ export const dormService = {
 
       const dormsWithDistance = allMatchingDorms.map((dorm) => {
         let dist = Infinity;
+
         if (
           dorm.latitude &&
           dorm.longitude &&
@@ -121,10 +125,14 @@ export const dormService = {
             targetLandmark.longitude,
           );
         }
-        return { ...dorm, _distance: dist, _targetLandmark: targetLandmark };
+
+        return {
+          ...dorm,
+          _distance: dist,
+          _targetLandmark: targetLandmark,
+        };
       });
 
-      // เรียงลำดับ: ว่างขึ้นก่อน -> ตามด้วยระยะทางใกล้สุด
       dormsWithDistance.sort((a, b) => {
         const aHasAvailable = a.rooms?.some(
           (r: any) => r.status === "AVAILABLE",
@@ -133,24 +141,29 @@ export const dormService = {
           (r: any) => r.status === "AVAILABLE",
         );
 
-        if (aHasAvailable && !bHasAvailable) return -1; // a ว่าง b เต็ม ให้อยู่หน้า
-        if (!aHasAvailable && bHasAvailable) return 1; // a เต็ม b ว่าง ให้ไปหลัง
+        if (aHasAvailable && !bHasAvailable) return -1;
 
-        return a._distance - b._distance; // ถ้าสถานะเหมือนกัน (ว่างทั้งคู่ หรือ เต็มทั้งคู่) ให้เรียงตามระยะทาง
+        if (!aHasAvailable && bHasAvailable) return 1;
+
+        return a._distance - b._distance;
       });
 
       totalItems = dormsWithDistance.length;
       resultDorms = dormsWithDistance.slice(skip, skip + limit);
-    }
-    // ==========================================
-    // กรณีที่ 2: ไม่ได้ค้นหาอะไรเลย (Default โหลดหน้าแรก)
-    // ==========================================
-    else if (!hasSearch && !hasPriceFilter) {
+    } else if (!hasSearch && !hasPriceFilter) {
       const allDormIds = await prisma.dormitory.findMany({
         where: whereCondition,
+
         select: {
           id: true,
-          images: { select: { id: true }, take: 1 },
+
+          images: {
+            select: {
+              id: true,
+            },
+
+            take: 1,
+          },
         },
       });
 
@@ -159,10 +172,8 @@ export const dormService = {
       const dormsWithoutImages = allDormIds.filter(
         (d) => d.images.length === 0,
       );
-
       shuffleArray(dormsWithImages);
       shuffleArray(dormsWithoutImages);
-
       const sortedIds = [...dormsWithImages, ...dormsWithoutImages].map(
         (d) => d.id,
       );
@@ -170,7 +181,12 @@ export const dormService = {
 
       if (pageIds.length > 0) {
         const fetchedDorms = await prisma.dormitory.findMany({
-          where: { id: { in: pageIds } },
+          where: {
+            id: {
+              in: pageIds,
+            },
+          },
+
           include: dormIncludeQuery,
         });
 
@@ -178,52 +194,72 @@ export const dormService = {
           .map((id) => fetchedDorms.find((d) => d.id === id))
           .filter(Boolean);
       }
-    }
-    // ==========================================
-    // กรณีที่ 3: ค้นหาด้วย "ชื่อ" หรือ "ราคา"
-    // ==========================================
-    else {
-      // 1. หา ID ของหอพักที่มีห้องว่าง (เข้าเงื่อนไขค้นหา)
+    } else {
       const availableDorms = await prisma.dormitory.findMany({
         where: {
           ...whereCondition,
-          rooms: { some: { status: "AVAILABLE", deletedAt: null } },
+
+          rooms: {
+            some: {
+              status: "AVAILABLE",
+              deletedAt: null,
+            },
+          },
         },
-        select: { id: true },
-        orderBy: { createdAt: "desc" }, // หรือจะแก้เป็น settings: { roomPrice: "asc" } ก็ได้
+
+        select: {
+          id: true,
+        },
+
+        orderBy: {
+          createdAt: "desc",
+        },
       });
 
-      // 2. หา ID ของหอพักที่เต็ม (เข้าเงื่อนไขค้นหา)
       const fullDorms = await prisma.dormitory.findMany({
         where: {
           ...whereCondition,
-          NOT: { rooms: { some: { status: "AVAILABLE", deletedAt: null } } },
+
+          NOT: {
+            rooms: {
+              some: {
+                status: "AVAILABLE",
+                deletedAt: null,
+              },
+            },
+          },
         },
-        select: { id: true },
-        orderBy: { createdAt: "desc" },
+
+        select: {
+          id: true,
+        },
+
+        orderBy: {
+          createdAt: "desc",
+        },
       });
 
-      // นำ ID มาต่อกัน (ว่างขึ้นก่อน เต็มต่อท้าย)
       const sortedIds = [...availableDorms, ...fullDorms].map((d) => d.id);
       totalItems = sortedIds.length;
       const pageIds = sortedIds.slice(skip, skip + limit);
 
       if (pageIds.length > 0) {
         const fetchedDorms = await prisma.dormitory.findMany({
-          where: { id: { in: pageIds } },
+          where: {
+            id: {
+              in: pageIds,
+            },
+          },
+
           include: dormIncludeQuery,
         });
 
-        // จัดเรียงกลับให้ตรงตามลำดับ ID (ว่างมาก่อนเสมอ)
         resultDorms = pageIds
           .map((id) => fetchedDorms.find((d) => d.id === id))
           .filter(Boolean);
       }
     }
 
-    // ==========================================
-    // จัดเตรียมข้อมูลสำหรับส่งกลับไปให้ Client
-    // ==========================================
     const finalData = await Promise.all(
       resultDorms.map(async (dorm: any) => {
         const imagesWithUrl = await Promise.all(
@@ -244,7 +280,9 @@ export const dormService = {
           };
         } else if (dorm.latitude && dorm.longitude) {
           const landmarks = await prisma.landmark.findMany({
-            where: { status: "ACTIVE" }, // ใช้ Status.ACTIVE
+            where: {
+              status: "ACTIVE",
+            },
           });
 
           let minDistance = Infinity;
@@ -291,13 +329,14 @@ export const dormService = {
           ...rest,
           images: imagesWithUrl,
           nearby: nearbyData,
-          availabilityStatus, // "AVAILABLE" | "FULL"
+          availabilityStatus,
         };
       }),
     );
 
     return {
       data: finalData,
+
       meta: {
         page: Number(page),
         limit: limit,
@@ -312,12 +351,15 @@ export const dormService = {
       where: {
         slug: slug,
       },
+
       include: {
         settings: true,
+
         images: {
           where: {
-            category: "DORMITORY", // หรือ FileCategory.DORMITORY ตามที่คุณ import ไว้
+            category: "DORMITORY",
           },
+
           orderBy: [
             {
               isCover: "desc",
@@ -327,12 +369,14 @@ export const dormService = {
             },
           ],
         },
+
         owner: true,
-        // ดึงข้อมูลห้องมาเพื่อเช็คสถานะ
+
         rooms: {
           where: {
-            deletedAt: null, // ไม่เอาห้องที่ถูกลบไปแล้ว
+            deletedAt: null,
           },
+
           select: {
             status: true,
             type: true,
@@ -352,14 +396,12 @@ export const dormService = {
       }),
     );
 
-    // คำนวณจำนวนห้องว่างแยกตามประเภท
     let availableRoomsCount = 0;
     let availableAirRoomsCount = 0;
     let availableFanRoomsCount = 0;
 
     if (dorm.rooms && dorm.rooms.length > 0) {
       const availableRooms = dorm.rooms.filter((r) => r.status === "AVAILABLE");
-
       availableRoomsCount = availableRooms.length;
       availableAirRoomsCount = availableRooms.filter(
         (r) => r.type === "AIR",
@@ -369,13 +411,12 @@ export const dormService = {
       ).length;
     }
 
-    // แยกเอา rooms ออกจาก object หลัก (เพื่อไม่ให้ response ใหญ่เกินความจำเป็น)
     const { rooms, ...dormData } = dorm;
 
     return {
       ...dormData,
       images: imagesWithUrls,
-      // เพิ่มชุดข้อมูล availability เข้าไปใน response
+
       availability: {
         isAvailable: availableRoomsCount > 0,
         totalAvailable: availableRoomsCount,

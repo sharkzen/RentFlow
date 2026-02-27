@@ -11,15 +11,19 @@ import { BillService } from "@/features/bill/services/bill.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Bill } from "@/features/bill/types";
 import log from "@/lib/logger";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function BillContainer() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlFilter = searchParams.get("filter");
+  const urlDormId = searchParams.get("dormId");
   const [dorms, setDorms] = useState<any[]>([]);
-  const [selectedDorm, setSelectedDorm] = useState<string>("");
+  const [selectedDorm, setSelectedDorm] = useState<string>(urlDormId || "ALL");
+  const [statusFilter, setStatusFilter] = useState<string>(urlFilter || "ALL");
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
-  const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<Date | null>(null);
   const [page, setPage] = useState(1);
@@ -28,8 +32,6 @@ export default function BillContainer() {
   const LIMIT = 10;
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const searchParams = useSearchParams();
-  const filter = searchParams.get("filter");
 
   const statusOptions = [
     {
@@ -68,16 +70,32 @@ export default function BillContainer() {
     dorms.find((d) => d.id === selectedDorm)?.name || "เลือกหอพัก";
 
   useEffect(() => {
-    if (filter) {
-      setStatusFilter(filter);
-    }
+    const currentDormId = searchParams.get("dormId") || "ALL";
+    const currentFilter = searchParams.get("filter") || "ALL";
 
+    if (currentDormId !== selectedDorm || currentFilter !== statusFilter) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("dormId", selectedDorm);
+      params.set("filter", statusFilter);
+
+      router.replace(`?${params.toString()}`, {
+        scroll: false,
+      });
+    }
+  }, [selectedDorm, statusFilter, router, searchParams]);
+
+  useEffect(() => {
     const fetchDorms = async () => {
       try {
         const res = await DormService.getDorm();
-        setDorms(res);
 
-        if (res.length > 0) setSelectedDorm(res[0].id);
+        setDorms([
+          {
+            id: "ALL",
+            name: "หอพักทั้งหมด",
+          },
+          ...res,
+        ]);
       } catch (err) {
         log.error(err);
       }
@@ -87,10 +105,8 @@ export default function BillContainer() {
   }, []);
 
   useEffect(() => {
-    if (!selectedDorm) return;
-
-    fetchBills();
-  }, [selectedDorm, filter, statusFilter, selectedMonth, page]);
+    if (selectedDorm) fetchBills();
+  }, [selectedDorm, statusFilter, selectedMonth, page]);
 
   useEffect(() => {
     setPage(1);
@@ -142,8 +158,8 @@ export default function BillContainer() {
   };
 
   const handleCreateBill = async (data: any) => {
-    if (!selectedDorm) {
-      toast.error("กรุณาเลือกหอพักก่อน");
+    if (!selectedDorm || selectedDorm === "ALL") {
+      toast.error("กรุณาเลือกหอพักที่ต้องการก่อนสร้างบิล");
       return;
     }
 
@@ -233,7 +249,14 @@ export default function BillContainer() {
             onSelect={setSelectedDorm}
           />
           <button
-            onClick={() => setIsCreateOpen(true)}
+            onClick={() => {
+              if (selectedDorm === "ALL") {
+                toast.warning("กรุณาเลือกหอพักก่อนสร้างบิล");
+                return;
+              }
+
+              setIsCreateOpen(true);
+            }}
             className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 active:scale-95"
           >
             <Plus size={18} />
@@ -264,7 +287,7 @@ export default function BillContainer() {
         </div>
         <div className="flex items-center justify-between border-t border-gray-100 bg-white p-2">
           <div className="text-xs text-gray-500">
-            แสดง {(page - 1) * LIMIT + 1}ถึง{" "}
+            แสดง {(page - 1) * LIMIT + (totalItems > 0 ? 1 : 0)}ถึง{" "}
             {Math.min(page * LIMIT, totalItems)}จาก {totalItems}รายการ
           </div>
           <div className="flex items-center gap-2">

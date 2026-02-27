@@ -23,7 +23,7 @@ interface Dormitory {
 
 interface MaintenanceToolbarProps {
   dorms: Dormitory[];
-  selectedDormId: string | undefined;
+  selectedDormId?: string;
   onDormChange: (id: string) => void;
   searchValue: string;
   onSearchChange: (value: string) => void;
@@ -49,8 +49,20 @@ export default function MaintenanceFilter({
   const [isDormOpen, setIsDormOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [isDateOpen, setIsDateOpen] = useState(false);
+  const activeDormId = selectedDormId || "ALL";
+
+  const displayDorms = dorms.some((d) => d.id === "ALL")
+    ? dorms
+    : [
+        {
+          id: "ALL",
+          name: "หอพักทั้งหมด",
+        },
+        ...dorms,
+      ];
+
   const currentDormName =
-    dorms.find((d) => d.id === selectedDormId)?.name || "เลือกหอพัก";
+    displayDorms.find((d) => d.id === activeDormId)?.name || "หอพักทั้งหมด";
 
   const statusOptions: {
     label: string;
@@ -155,21 +167,25 @@ export default function MaintenanceFilter({
           {isDormOpen && (
             <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-20 w-full min-w-50 rounded-lg border border-gray-100 bg-white p-1 shadow-lg">
               <div className="custom-scrollbar max-h-60 overflow-y-auto">
-                {dorms.map((dorm) => (
-                  <button
-                    key={dorm.id}
-                    onClick={() => {
-                      onDormChange(dorm.id);
-                      setIsDormOpen(false);
-                    }}
-                    className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${selectedDormId === dorm.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
-                  >
-                    <span className="truncate">{dorm.name}</span>
-                    {selectedDormId === dorm.id && (
-                      <Check size={14} className="text-indigo-600" />
-                    )}
-                  </button>
-                ))}
+                {displayDorms.map((dorm) => {
+                  const isSelected = activeDormId === dorm.id;
+
+                  return (
+                    <button
+                      key={dorm.id}
+                      onClick={() => {
+                        onDormChange(dorm.id);
+                        setIsDormOpen(false);
+                      }}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${isSelected ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                    >
+                      <span className="truncate">{dorm.name}</span>
+                      {isSelected && (
+                        <Check size={14} className="text-indigo-600" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

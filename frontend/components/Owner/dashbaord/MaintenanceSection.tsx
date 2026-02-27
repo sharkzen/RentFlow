@@ -1,5 +1,6 @@
 "use client";
 import { Wrench, FileText, AlertCircle, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 
 const MaintenanceCard = ({ title, value, total, color, icon }: any) => {
   const percentage = total > 0 ? (value / total) * 100 : 0;
@@ -67,34 +68,46 @@ export const MaintenanceSection = ({ overview, monthLabel, year }: any) => {
         การแจ้งซ่อม ({monthLabel} {year})
       </h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MaintenanceCard
-          title="แจ้งซ่อมทั้งหมด"
-          value={total}
-          total={total}
-          color="gray"
-          icon={<FileText size={20} />}
-        />
-        <MaintenanceCard
-          title="แจ้งแล้ว (รอรับเรื่อง)"
-          value={overview.maintenance.open}
-          total={total}
-          color="red"
-          icon={<AlertCircle size={20} />}
-        />
-        <MaintenanceCard
-          title="กำลังดำเนินการ"
-          value={overview.maintenance.inProgress}
-          total={total}
-          color="orange"
-          icon={<Wrench size={20} />}
-        />
-        <MaintenanceCard
-          title="ซ่อมเสร็จแล้ว"
-          value={overview.maintenance.completed}
-          total={total}
-          color="green"
-          icon={<CheckCircle2 size={20} />}
-        />
+        <Link href={`/owner/maintenance?filter=ALL&dormId=${overview.dormId}`}>
+          <MaintenanceCard
+            title="แจ้งซ่อมทั้งหมด"
+            value={total}
+            total={total}
+            color="gray"
+            icon={<FileText size={20} />}
+          />
+        </Link>
+        <Link href={`/owner/maintenance?filter=OPEN&dormId=${overview.dormId}`}>
+          <MaintenanceCard
+            title="แจ้งแล้ว (รอรับเรื่อง)"
+            value={overview.maintenance.open}
+            total={total}
+            color="red"
+            icon={<AlertCircle size={20} />}
+          />
+        </Link>
+        <Link
+          href={`/owner/maintenance?filter=IN_PROGRESS&dormId=${overview.dormId}`}
+        >
+          <MaintenanceCard
+            title="กำลังดำเนินการ"
+            value={overview.maintenance.inProgress}
+            total={total}
+            color="orange"
+            icon={<Wrench size={20} />}
+          />
+        </Link>
+        <Link
+          href={`/owner/maintenance?filter=COMPLETED&dormId=${overview.dormId}`}
+        >
+          <MaintenanceCard
+            title="ซ่อมเสร็จแล้ว"
+            value={overview.maintenance.completed}
+            total={total}
+            color="green"
+            icon={<CheckCircle2 size={20} />}
+          />
+        </Link>
       </div>
     </div>
   );

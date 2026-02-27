@@ -143,7 +143,7 @@ export default function OwnerRegisterForm() {
     <div className="grid h-[calc(100vh-65px)] w-full bg-white md:grid-cols-2">
       <div className="relative hidden md:block">
         <img
-          src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267"
+          src="/images/bg-main.jpg"
           alt="Apartment management"
           className="absolute inset-0 h-full w-full object-cover"
         />
@@ -181,7 +181,7 @@ export default function OwnerRegisterForm() {
               </div>
               <form
                 onSubmit={handleSubmit}
-                className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm md:p-8"
+                className="rounded-2xl border border-gray-100 bg-white p-6 md:p-8"
               >
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-5">

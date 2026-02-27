@@ -19,7 +19,7 @@ export const FinancialSection = ({ overview, monthLabel, year }: any) => {
         สถานะการเงิน & ห้องพัก ({monthLabel} {year})
       </h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Link href={"/owner/bills?filter=PAID"}>
+        <Link href={`/owner/bills?filter=PAID&dormId=${overview.dormId}`}>
           <StatCard
             title="ชำระแล้ว (รายได้)"
             value={`฿${(overview.bills.paid?.amount ?? 0).toLocaleString()}`}
@@ -28,7 +28,7 @@ export const FinancialSection = ({ overview, monthLabel, year }: any) => {
             colorClass="bg-green-100 text-green-600"
           />
         </Link>
-        <Link href={"/owner/bills?filter=PENDING"}>
+        <Link href={`/owner/bills?filter=PENDING&dormId=${overview.dormId}`}>
           <StatCard
             title="รอชำระ (ยังไม่จ่าย)"
             value={`฿${(overview.bills.pending?.amount ?? 0).toLocaleString()}`}
@@ -37,7 +37,9 @@ export const FinancialSection = ({ overview, monthLabel, year }: any) => {
             colorClass="bg-yellow-100 text-yellow-600"
           />
         </Link>
-        <Link href={"/owner/bills?filter=WAITING_FOR_VERIFICATION"}>
+        <Link
+          href={`/owner/bills?filter=WAITING_FOR_VERIFICATION&dormId=${overview.dormId}`}
+        >
           <StatCard
             title="รอตรวจสอบ"
             value={`฿${(overview.bills.waiting?.amount ?? 0).toLocaleString()}`}
@@ -46,7 +48,7 @@ export const FinancialSection = ({ overview, monthLabel, year }: any) => {
             colorClass="bg-blue-100 text-blue-600"
           />
         </Link>
-        <Link href={"/owner/bills?filter=OVERDUE"}>
+        <Link href={`/owner/bills?filter=OVERDUE&dormId=${overview.dormId}`}>
           <StatCard
             title="เกินกำหนด (ค้างจ่าย)"
             value={`฿${(overview.bills.overdue?.amount ?? 0).toLocaleString()}`}

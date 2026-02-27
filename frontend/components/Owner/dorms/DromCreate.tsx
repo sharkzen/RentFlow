@@ -1,11 +1,11 @@
 "use client";
-import { useState } from "react";
+import { RefObject, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendErrorMsg";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Building2, X, Loader2, Home } from "lucide-react";
-import { useScrollLock } from "usehooks-ts";
+import { useScrollLock, useOnClickOutside } from "usehooks-ts";
 
 interface Props {
   onClose: () => void;
@@ -16,6 +16,11 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
   useScrollLock();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useOnClickOutside(ref as RefObject<HTMLElement>, () => {
+    onClose();
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +51,10 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 pt-20 sm:items-center sm:pt-0">
-      <div className="w-full max-w-md overflow-hidden rounded-lg border border-gray-100 bg-white shadow-lg">
+      <div
+        ref={ref}
+        className="w-full max-w-md overflow-hidden rounded-lg border border-gray-100 bg-white shadow-lg"
+      >
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-blue-600">
@@ -85,7 +93,7 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
                 />
               </div>
               <p className="mt-1.5 text-xs text-gray-500">
-                คุณสามารถกลับมาแก้ไขรายละเอียดอื่นๆ ได้ในภายหลัง
+                คุณสามารถเพิ่มข้อมูลรายละเอียดอื่นๆ หลังจากสร้างหอพักสำเร็จ
               </p>
             </div>
           </div>

@@ -1,6 +1,12 @@
 "use client";
 import Link from "next/link";
-import { MapPin, Search, CheckCircle2, XCircle } from "lucide-react";
+import {
+  MapPin,
+  Search,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
+} from "lucide-react";
 
 interface DormProps {
   slug: string;
@@ -25,6 +31,7 @@ export default function DormCard({
     image || "https://placehold.co/800x600/f3f4f6/9ca3af?text=No+Image";
   const isFull = availabilityStatus === "FULL";
   const isAvailable = availabilityStatus === "AVAILABLE";
+  const isNotSpecified = !isFull && !isAvailable;
 
   return (
     <Link href={`/dorms/${slug}`} className="group block h-full">
@@ -54,16 +61,25 @@ export default function DormCard({
             ) : (
               <span />
             )}
+
             {isAvailable && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold tracking-wide text-emerald-600 ring-1 ring-emerald-500/20">
                 <CheckCircle2 size={12} strokeWidth={2.5} />
                 มีห้องว่าง
               </span>
             )}
+
             {isFull && (
               <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-bold tracking-wide text-rose-500 ring-1 ring-rose-400/20">
                 <XCircle size={12} strokeWidth={2.5} />
                 เต็มแล้ว
+              </span>
+            )}
+
+            {isNotSpecified && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1 text-[11px] font-bold tracking-wide text-gray-500 ring-1 ring-gray-400/20">
+                <HelpCircle size={12} strokeWidth={2.5} />
+                ไม่ระบุ
               </span>
             )}
           </div>

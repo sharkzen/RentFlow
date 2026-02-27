@@ -132,7 +132,7 @@ export default function MaintenanceDetailDialog({
               </p>
             </div>
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-colors hover:border-indigo-200">
+              <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 transition-colors hover:border-indigo-200">
                 <div className="mb-4 flex items-center gap-2 border-b border-gray-100 pb-2 text-base font-semibold text-gray-900">
                   <Building size={20} className="text-indigo-600" />
                   ข้อมูลพื้นที่
@@ -152,7 +152,7 @@ export default function MaintenanceDetailDialog({
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-colors hover:border-indigo-200">
+              <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 transition-colors hover:border-indigo-200">
                 <div className="mb-4 flex items-center gap-2 border-b border-gray-100 pb-2 text-base font-semibold text-gray-900">
                   <User size={20} className="text-indigo-600" />
                   ผู้แจ้งซ่อม
@@ -187,7 +187,7 @@ export default function MaintenanceDetailDialog({
                   {data.images.map((img, idx) => (
                     <div
                       key={idx}
-                      className="group relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm transition-all hover:shadow-md"
+                      className="group relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition-all hover:shadow-md"
                     >
                       <img
                         src={img.url}
@@ -199,7 +199,7 @@ export default function MaintenanceDetailDialog({
                           href={img.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-900 shadow hover:bg-white"
+                          className="rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-900 hover:bg-white"
                         >
                           ขยายรูป
                         </a>
@@ -241,7 +241,7 @@ export default function MaintenanceDetailDialog({
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="inline-flex w-full cursor-pointer items-center justify-center rounded-xl border border-gray-300 bg-white px-6 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 active:scale-95 sm:w-auto"
+              className="inline-flex w-full cursor-pointer items-center justify-center rounded-xl border border-gray-300 bg-white px-6 py-2.5 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 focus:ring-2 focus:ring-gray-200 active:scale-95 sm:w-auto"
             >
               ปิดหน้าต่าง
             </button>
