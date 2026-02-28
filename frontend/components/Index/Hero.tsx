@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { scroller } from "react-scroll";
-import { Search, Building2, ArrowRight } from "lucide-react";
+import { Search, Building2, ArrowRight, ArrowDown } from "lucide-react";
 
 export default function Hero() {
   const onSearch = () => {
@@ -59,21 +59,15 @@ export default function Hero() {
             <br className="hidden md:block" />
             เจ้าของหอจัดการประกาศและรายได้สะดวกในที่เดียว
           </p>
-          <div className="flex w-full max-w-md flex-col gap-4 sm:flex-row sm:justify-center">
+          <div className="w-full max-w-md">
             <button
               onClick={onSearch}
-              className="group relative flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-8 py-3.5 text-base font-bold text-slate-900 shadow-lg shadow-blue-900/20 transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-xl active:scale-95 sm:w-auto"
+              className="group relative flex w-full cursor-pointer items-center justify-center gap-3 rounded-full bg-white px-8 py-4 text-base font-bold text-slate-800 shadow-[0_0_40px_-10px_rgba(59,130,246,0.4)] transition-all hover:-translate-y-1 hover:shadow-[0_0_60px_-15px_rgba(59,130,246,0.6)] active:scale-95"
             >
-              <Search className="h-4 w-4 text-blue-600" />
-              <span>ค้นหาห้องพัก</span>
+              <Search className="h-5 w-5 text-blue-600 transition-transform duration-300 group-hover:scale-110 group-hover:text-cyan-500" />
+              <span>เริ่มค้นหาห้องพักเลย</span>
+              <ArrowDown className="absolute right-6 h-5 w-5 text-slate-300 opacity-0 transition-all duration-300 group-hover:translate-y-1 group-hover:opacity-100" />
             </button>
-            <Link href="/owner/dashboard" className="w-full sm:w-auto">
-              <button className="group flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-8 py-3.5 text-base font-medium text-white backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/10 active:scale-95">
-                <Building2 className="h-4 w-4 text-slate-300 transition-colors group-hover:text-white" />
-                <span>แดชบอร์ด</span>
-                <ArrowRight className="h-4 w-4 -translate-x-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" />
-              </button>
-            </Link>
           </div>
         </div>
       </div>

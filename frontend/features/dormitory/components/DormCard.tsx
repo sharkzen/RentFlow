@@ -61,21 +61,18 @@ export default function DormCard({
             ) : (
               <span />
             )}
-
             {isAvailable && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold tracking-wide text-emerald-600 ring-1 ring-emerald-500/20">
                 <CheckCircle2 size={12} strokeWidth={2.5} />
                 มีห้องว่าง
               </span>
             )}
-
             {isFull && (
               <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-bold tracking-wide text-rose-500 ring-1 ring-rose-400/20">
                 <XCircle size={12} strokeWidth={2.5} />
                 เต็มแล้ว
               </span>
             )}
-
             {isNotSpecified && (
               <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1 text-[11px] font-bold tracking-wide text-gray-500 ring-1 ring-gray-400/20">
                 <HelpCircle size={12} strokeWidth={2.5} />

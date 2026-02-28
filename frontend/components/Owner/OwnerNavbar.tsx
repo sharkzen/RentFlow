@@ -103,6 +103,7 @@ export default function OwnerNavbar() {
                 <Link
                   key={item.name}
                   href={item.href}
+                  onClick={() => setSidebarOpen(false)}
                   className={`${pathname === item.href ? "bg-slate-50 text-indigo-600" : "text-slate-600"} group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all hover:bg-slate-50 hover:text-indigo-600 active:scale-[0.98]`}
                 >
                   <span className="stroke-current">{item.icon}</span>

@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+input,
+textarea,
+select {
+  font-size: 16px !important;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

@@ -1,18 +1,32 @@
 "use client";
 import { useState, useEffect } from "react";
-import { X, Plus, Save, Calendar, Building } from "lucide-react";
+
+import {
+  X,
+  Plus,
+  Save,
+  Calendar,
+  FileText,
+  FolderOpen,
+  Trash2,
+  Clock,
+  ArrowLeft,
+  RotateCcw,
+} from "lucide-react";
+
 import log from "@/lib/logger";
 import { toast } from "react-toastify";
 import { RoomService } from "@/features/room/services/room.service";
 import BillItemRow from "./BillItemRow";
 import MonthYearPicker from "./MonthYearPicker";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
-interface Props {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: any) => Promise<void> | void;
-  selectedDormId: string;
-  dormName: string;
+interface Draft {
+  id: string;
+  name: string;
+  updatedAt: string;
+  items: BillItem[];
+  selectedDate: string;
 }
 
 interface RoomData {
@@ -32,11 +46,19 @@ interface BillItem {
   tenantName: string;
   prevWater: number;
   currentWater: number | "";
+  waterImage?: string;
   prevElectric: number;
   currentElectric: number | "";
-  commonFee: number;
-  note: string;
+  electricImage?: string;
   isPrevEditable: boolean;
+}
+
+interface Props {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: any) => Promise<void> | void;
+  selectedDormId: string;
+  dormName: string;
 }
 
 export default function CreateBillDialog({
@@ -46,22 +68,16 @@ export default function CreateBillDialog({
   selectedDormId,
   dormName,
 }: Props) {
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
-
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [availableRooms, setAvailableRooms] = useState<RoomData[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewFullImage, setPreviewFullImage] = useState<string | null>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [showDraftList, setShowDraftList] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [draftNameInput, setDraftNameInput] = useState("");
 
   const createEmptyItem = (): BillItem => ({
     id: crypto.randomUUID(),
@@ -72,8 +88,6 @@ export default function CreateBillDialog({
     currentWater: "",
     prevElectric: 0,
     currentElectric: "",
-    commonFee: 0,
-    note: "",
     isPrevEditable: false,
   });
 
@@ -82,8 +96,85 @@ export default function CreateBillDialog({
   useEffect(() => {
     if (isOpen && selectedDormId) {
       fetchRooms();
+      loadDrafts();
     }
   }, [isOpen, selectedDormId]);
+
+  const loadDrafts = () => {
+    const savedDrafts = localStorage.getItem(`drafts_${selectedDormId}`);
+
+    if (savedDrafts) {
+      setDrafts(JSON.parse(savedDrafts));
+    }
+  };
+
+  const handleClearAllRequest = () => {
+    const hasData = items.some(
+      (i) => i.roomId || i.currentWater !== "" || i.currentElectric !== "",
+    );
+
+    if (!hasData) {
+      setItems([createEmptyItem()]);
+      return;
+    }
+
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearAll = () => {
+    setItems([createEmptyItem()]);
+    setShowClearConfirm(false);
+    toast.info("ล้างข้อมูลเรียบร้อยแล้ว");
+  };
+
+  const handleSaveDraft = () => {
+    if (items.every((i) => !i.roomId)) {
+      toast.error("กรุณากรอกข้อมูลก่อนบันทึกฉบับร่าง");
+      return;
+    }
+
+    setIsSavingDraft(true);
+  };
+
+  const confirmSaveDraft = () => {
+    const name =
+      draftNameInput.trim() || `ร่างวันที่ ${new Date().toLocaleDateString()}`;
+
+    const newDraft: Draft = {
+      id: crypto.randomUUID(),
+      name,
+      updatedAt: new Date().toISOString(),
+      items,
+      selectedDate: selectedDate.toISOString(),
+    };
+
+    const updatedDrafts = [newDraft, ...drafts];
+    localStorage.setItem(
+      `drafts_${selectedDormId}`,
+      JSON.stringify(updatedDrafts),
+    );
+    setDrafts(updatedDrafts);
+    setDraftNameInput("");
+    setIsSavingDraft(false);
+    toast.success("บันทึกฉบับร่างเรียบร้อย");
+  };
+
+  const useDraft = (draft: Draft) => {
+    setItems(draft.items);
+    setSelectedDate(new Date(draft.selectedDate));
+    setShowDraftList(false);
+    toast.info(`โหลดฉบับร่าง "${draft.name}" แล้ว`);
+  };
+
+  const deleteDraft = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updatedDrafts = drafts.filter((d) => d.id !== id);
+    localStorage.setItem(
+      `drafts_${selectedDormId}`,
+      JSON.stringify(updatedDrafts),
+    );
+    setDrafts(updatedDrafts);
+  };
 
   const fetchRooms = async () => {
     setIsLoadingRooms(true);
@@ -99,19 +190,6 @@ export default function CreateBillDialog({
     }
   };
 
-  const handleAddItem = () => {
-    setItems([...items, createEmptyItem()]);
-  };
-
-  const handleRemoveItem = (id: string) => {
-    if (items.length === 1) {
-      toast.info("ต้องมีรายการอย่างน้อย 1 รายการ");
-      return;
-    }
-
-    setItems(items.filter((i) => i.id !== id));
-  };
-
   const handleRoomSelect = (index: number, roomId: string) => {
     const roomData = availableRooms.find((r) => r.id === roomId);
 
@@ -123,9 +201,6 @@ export default function CreateBillDialog({
 
     if (isDuplicate) {
       toast.warning(`ห้อง ${roomData.roomNumber} ถูกเลือกไปแล้ว`);
-      const resetItems = [...items];
-      resetItems[index].roomId = "";
-      setItems(resetItems);
       return;
     }
 
@@ -139,7 +214,6 @@ export default function CreateBillDialog({
       isPrevEditable: !roomData.hasLastBill,
       prevWater: roomData.lastWaterUnit,
       prevElectric: roomData.lastElectricUnit,
-      commonFee: roomData.commonFee,
       currentWater: "",
       currentElectric: "",
     };
@@ -158,6 +232,34 @@ export default function CreateBillDialog({
     setItems(newItems);
   };
 
+  const handleCaptureImage = (index: number, type: "WATER" | "ELECTRIC") => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.capture = "environment";
+
+    input.onchange = (e: any) => {
+      const file = e.target.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+          const base64 = event.target?.result as string;
+          handleChange(
+            index,
+            type === "WATER" ? "waterImage" : "electricImage",
+            base64,
+          );
+        };
+
+        reader.readAsDataURL(file);
+      }
+    };
+
+    input.click();
+  };
+
   const handleSubmit = async () => {
     const invalidItems = items.filter(
       (i) => !i.roomId || i.currentWater === "" || i.currentElectric === "",
@@ -168,167 +270,243 @@ export default function CreateBillDialog({
       return;
     }
 
-    const negativeUsage = items.some(
-      (i) =>
-        Number(i.currentWater) < i.prevWater ||
-        Number(i.currentElectric) < i.prevElectric,
-    );
-
-    if (negativeUsage) {
-      toast.error("เลขมิเตอร์ใหม่ ต้องมากกว่าหรือเท่ากับเลขครั้งก่อน");
-      return;
-    }
-
-    const payload = {
-      billingMonth: selectedDate,
-
-      items: items.map((i) => ({
-        roomId: i.roomId,
-        prevWater: Number(i.prevWater),
-        currentWater: Number(i.currentWater),
-        prevElectric: Number(i.prevElectric),
-        currentElectric: Number(i.currentElectric),
-        commonFee: Number(i.commonFee),
-        note: i.note,
-      })),
-    };
-
     setIsSubmitting(true);
 
     try {
-      await onSubmit(payload);
+      await onSubmit({
+        billingMonth: selectedDate,
+        items,
+      });
+
       setItems([createEmptyItem()]);
+      onClose();
     } catch (err) {
-      log.error("Error calling onSubmit:", err);
+      log.error(err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const hasData =
-    items.length > 1 ||
-    items.some(
-      (i) =>
-        i.roomId !== "" ||
-        i.currentWater !== "" ||
-        i.currentElectric !== "" ||
-        i.note !== "",
-    );
-
-  const clearItems = () => {
-    setItems([createEmptyItem()]);
-  };
-
   if (!isOpen) return null;
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 transition-all duration-200 sm:p-4">
-      <div className="flex h-full max-h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-gray-200 sm:rounded-2xl">
-        <div className="flex flex-col border-b border-gray-100 bg-white">
-          <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 shadow-sm">
-                <Calendar size={20} />
-              </div>
-              <div className="flex flex-col">
-                <h2 className="text-base font-bold text-gray-800 sm:text-xl">
-                  สร้างบิลค่าเช่า
-                </h2>
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 sm:text-sm">
-                  <Building size={12} className="shrink-0" />
-                  <span className="line-clamp-1 max-w-37.5 font-medium text-gray-700 sm:max-w-none">
-                    {dormName}
-                  </span>
-                </div>
-              </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/40 p-0 sm:p-4">
+      <div className="relative flex h-full max-h-screen w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl transition-all sm:max-h-[95vh] sm:rounded-xl">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-indigo-50 p-2 text-indigo-600">
+              <Calendar size={20} />
             </div>
+            <div>
+              <h2 className="text-lg font-bold">สร้างบิลค่าเช่า</h2>
+              <p className="text-xs text-gray-500">{dormName}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowDraftList(true)}
+              className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-indigo-100 bg-indigo-50/50 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-100"
+            >
+              <FolderOpen size={14} />
+              {drafts.length > 0 && `(${drafts.length})`}
+            </button>
             <button
               onClick={onClose}
-              disabled={isSubmitting}
-              className="group cursor-pointer rounded-full bg-gray-50 p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              className="cursor-pointer rounded-full p-2 text-gray-400 hover:bg-gray-100"
             >
-              <X size={20} className="transition-transform" />
+              <X size={20} />
             </button>
-          </div>
-          <div className="border-t border-gray-50 bg-gray-50/50 px-4 py-2 sm:border-t-0 sm:bg-transparent sm:px-6 sm:pt-0 sm:pb-4">
-            <MonthYearPicker
-              selectedDate={selectedDate}
-              onChange={setSelectedDate}
-              disabled={isSubmitting}
-            />
           </div>
         </div>
-        {hasData && (
-          <div className="flex items-center justify-end border-b border-gray-50 bg-gray-50/30 px-4 py-2">
+
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-gray-50/50 p-4">
+          <MonthYearPicker
+            selectedDate={selectedDate}
+            onChange={setSelectedDate}
+            disabled={isSubmitting}
+          />
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <button
-              onClick={clearItems}
-              className="flex cursor-pointer items-center gap-1 text-xs font-medium text-red-500 transition-colors hover:text-red-600"
+              onClick={handleClearAllRequest}
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-500 transition-all hover:bg-red-100 sm:flex-none"
             >
-              ล้างค่าทั้งหมด <X size={14} />
+              <RotateCcw size={14} />
+              ล้างข้อมูล
+            </button>
+            <button
+              onClick={handleSaveDraft}
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-600 transition-all hover:bg-amber-100 sm:flex-none"
+            >
+              <FileText size={16} />
+              บันทึกฉบับร่าง
             </button>
           </div>
-        )}
-        <div className="custom-scrollbar flex-1 overflow-y-auto bg-slate-50/50 p-3 sm:p-6">
-          <div className="hidden grid-cols-12 gap-4 px-4 pb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase lg:grid">
-            <div className="col-span-3">ห้องพัก / ผู้เช่า</div>
-            <div className="col-span-3">มิเตอร์น้ำ (หน่วย)</div>
-            <div className="col-span-3">มิเตอร์ไฟ (หน่วย)</div>
-            <div className="col-span-2">ค่าส่วนกลาง / หมายเหตุ</div>
-            <div className="col-span-1 text-center">ลบ</div>
-          </div>
-          <div className="space-y-3">
-            {items.map((item, index) => (
-              <BillItemRow
-                key={item.id}
-                item={item}
-                index={index}
-                availableRooms={availableRooms}
-                isLoadingRooms={isLoadingRooms}
-                isSubmitting={isSubmitting}
-                canRemove={items.length > 1}
-                onRoomSelect={handleRoomSelect}
-                onChange={handleChange}
-                onRemove={handleRemoveItem}
-              />
-            ))}
-          </div>
+        </div>
+
+        <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/30 p-4 pb-20 sm:pb-4">
+          {items.map((item, index) => (
+            <BillItemRow
+              key={item.id}
+              item={item}
+              index={index}
+              availableRooms={availableRooms}
+              isLoadingRooms={isLoadingRooms}
+              isSubmitting={isSubmitting}
+              canRemove={items.length > 1}
+              onRoomSelect={handleRoomSelect}
+              onChange={handleChange}
+              onRemove={(id) => setItems(items.filter((i) => i.id !== id))}
+              onCaptureImage={handleCaptureImage}
+              onViewImage={(url) => setPreviewFullImage(url)}
+            />
+          ))}
           <button
-            onClick={handleAddItem}
-            disabled={isSubmitting}
-            className="mt-6 flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-indigo-200 bg-indigo-50/50 py-3 text-sm font-medium text-indigo-600 transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-sm active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={() => setItems([...items, createEmptyItem()])}
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-indigo-200 py-4 font-medium text-indigo-600 transition-all hover:bg-indigo-50"
           >
             <Plus size={18} />
             เพิ่มรายการห้อง
           </button>
         </div>
-        <div className="flex items-center justify-between border-t border-gray-100 bg-white px-4 py-3 sm:px-6 sm:py-4">
-          <div className="block text-xs text-gray-500 sm:text-sm">
-            <span className="font-medium text-gray-900">{items.length}</span>{" "}
-            รายการ
-          </div>
-          <div className="flex flex-1 justify-end gap-2 sm:flex-none sm:gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
-            >
-              ยกเลิก
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:bg-indigo-400 sm:text-sm"
-            >
-              <Save size={16} className="sm:hidden" />
-              <Save size={18} className="hidden sm:block" />
-              <span>{isSubmitting ? "กำลังบันทึก..." : "บันทึก"}</span>
-              <span className="hidden sm:inline">{!isSubmitting && "บิล"}</span>
-            </button>
+
+        <div className="absolute right-0 bottom-0 left-0 border-t border-slate-100 bg-white p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] sm:relative">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-500">{items.length}รายการ</div>
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                className="cursor-pointer rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-8 py-2 font-bold text-white shadow-md shadow-indigo-100 transition-all hover:bg-indigo-700 disabled:bg-indigo-300"
+              >
+                <Save size={18} />{" "}
+                {isSubmitting ? "กำลังบันทึก..." : "บันทึกและส่งบิล"}
+              </button>
+            </div>
           </div>
         </div>
+
+        {showDraftList && (
+          <div className="animate-in slide-in-from-bottom-5 absolute inset-0 z-40 flex flex-col bg-white">
+            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+              <button
+                onClick={() => setShowDraftList(false)}
+                className="flex cursor-pointer items-center gap-2 font-bold text-indigo-600 hover:text-indigo-700"
+              >
+                <ArrowLeft size={20} />
+                ย้อนกลับ
+              </button>
+              <h3 className="flex items-center gap-2 text-lg font-bold">
+                <Clock className="text-indigo-600" />
+                ฉบับร่างทั้งหมด
+              </h3>
+              <div className="w-10" />
+            </div>
+            <div className="flex-1 overflow-y-auto bg-slate-50/50 p-6">
+              {drafts.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center text-gray-400">
+                  <p className="text-lg font-medium">ยังไม่มีฉบับร่าง</p>
+                </div>
+              ) : (
+                <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2">
+                  {drafts.map((draft) => (
+                    <div
+                      key={draft.id}
+                      onClick={() => useDraft(draft)}
+                      className="group flex cursor-pointer items-center justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-indigo-400 hover:shadow-lg"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="rounded-xl bg-amber-50 p-3 text-amber-600">
+                          <FileText size={24} />
+                        </div>
+                        <div>
+                          <p className="text-base font-bold text-gray-800">
+                            {draft.name}
+                          </p>
+                          <div className="text-[11px] text-gray-400">
+                            {new Date(draft.updatedAt).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => deleteDraft(draft.id, e)}
+                        className="p-3 text-gray-300 hover:text-red-500"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {isSavingDraft && (
+          <div className="animate-in fade-in absolute inset-0 z-50 flex items-center justify-center bg-white px-4">
+            <div className="w-full max-w-sm rounded-3xl bg-white p-8 ring-1 ring-black/5">
+              <h3 className="mb-4 text-xl font-bold text-gray-800">
+                บันทึกฉบับร่าง
+              </h3>
+              <input
+                autoFocus
+                type="text"
+                placeholder="ชื่อฉบับร่าง..."
+                value={draftNameInput}
+                onChange={(e) => setDraftNameInput(e.target.value)}
+                className="mb-6 w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 outline-none focus:border-indigo-500"
+                onKeyDown={(e) => e.key === "Enter" && confirmSaveDraft()}
+              />
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setIsSavingDraft(false)}
+                  className="flex-1 rounded-2xl bg-gray-100 py-4 font-bold text-gray-500"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={confirmSaveDraft}
+                  className="flex-1 rounded-2xl bg-indigo-600 py-4 font-bold text-white"
+                >
+                  บันทึก
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {previewFullImage && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-4"
+          onClick={() => setPreviewFullImage(null)}
+        >
+          <button className="absolute top-5 right-5 text-white/50 hover:text-white">
+            <X size={32} />
+          </button>
+          <img
+            src={previewFullImage}
+            className="max-h-full max-w-full rounded-lg"
+            alt="Preview"
+          />
+        </div>
+      )}
+
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={confirmClearAll}
+        title="ยืนยันการล้างข้อมูล?"
+        description="ข้อมูลห้องพักและเลขมิเตอร์ที่กรอกไว้ทั้งหมดในหน้านี้จะถูกลบออกเพื่อเริ่มต้นใหม่ คุณแน่ใจหรือไม่?"
+        type="error"
+        confirmText="ใช่, ล้างข้อมูลทั้งหมด"
+        cancelText="กลับไปกรอกต่อ"
+      />
     </div>
   );
 }

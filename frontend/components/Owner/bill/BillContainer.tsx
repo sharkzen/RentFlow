@@ -12,6 +12,9 @@ import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Bill } from "@/features/bill/types";
 import log from "@/lib/logger";
 import { useSearchParams, useRouter } from "next/navigation";
+import BillCreateOptionDialog from "./BillCreateOptionDialog";
+import MeterScannerDialog from "./MeterScannerDialog";
+import MeterScannerPreview from "./MeterScannerPreview";
 
 export default function BillContainer() {
   const router = useRouter();
@@ -31,7 +34,11 @@ export default function BillContainer() {
   const [totalItems, setTotalItems] = useState(0);
   const LIMIT = 10;
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isCreateOptionOpen, setIsCreateOptionOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isPreviewScannerOpen, setIsPreviewScannerOpen] = useState(false);
+  const [scannedMeterData, setScannedMeterData] = useState<any[]>([]);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   const statusOptions = [
     {
@@ -203,7 +210,8 @@ export default function BillContainer() {
         },
       });
 
-      setIsCreateOpen(false);
+      setIsPreviewScannerOpen(false);
+      setScannedMeterData([]);
       fetchBills();
     } catch (err) {
       log.error("Create Bill Error:", err);
@@ -255,9 +263,9 @@ export default function BillContainer() {
                 return;
               }
 
-              setIsCreateOpen(true);
+              setIsCreateOptionOpen(true);
             }}
-            className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 active:scale-95"
+            className="ml-auto flex cursor-pointer gap-2 rounded-lg border bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 active:scale-95 sm:ml-0 sm:items-center"
           >
             <Plus size={18} />
             <span>สร้างบิล</span>
@@ -311,15 +319,51 @@ export default function BillContainer() {
           </div>
         </div>
       </div>
-      <BillDetailDialog
-        onRefresh={fetchBills}
-        isOpen={isDetailOpen}
-        bill={selectedBill}
-        onClose={() => {
-          setIsDetailOpen(false);
-          setSelectedBill(null);
+      {isDetailOpen && selectedBill && (
+        <BillDetailDialog
+          onRefresh={fetchBills}
+          isOpen={isDetailOpen}
+          bill={selectedBill}
+          onClose={() => {
+            setIsDetailOpen(false);
+            setSelectedBill(null);
+          }}
+          onUpdateStatus={handleUpdateStatus}
+        />
+      )}
+      <BillCreateOptionDialog
+        isOpen={isCreateOptionOpen}
+        onClose={() => setIsCreateOptionOpen(false)}
+        onSelectManual={() => {
+          setIsCreateOptionOpen(false);
+          setIsCreateOpen(true);
         }}
-        onUpdateStatus={handleUpdateStatus}
+        onSelectScan={() => {
+          setIsCreateOptionOpen(false);
+          setIsScannerOpen(true);
+        }}
+      />
+      <MeterScannerDialog
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        dormId={selectedDorm}
+        onComplete={(data) => {
+          setIsScannerOpen(false);
+          setScannedMeterData(data);
+          setIsPreviewScannerOpen(true);
+        }}
+      />
+      <MeterScannerPreview
+        isOpen={isPreviewScannerOpen}
+        onClose={() => setIsPreviewScannerOpen(false)}
+        scannedData={scannedMeterData}
+        dormName={currentDormName}
+        onSubmit={async (payload) => {
+          await handleCreateBill(payload);
+        }}
+        onRetake={(roomId, type) => {
+          setIsPreviewScannerOpen(false);
+        }}
       />
       <CreateBillDialog
         isOpen={isCreateOpen}

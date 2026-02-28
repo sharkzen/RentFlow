@@ -54,7 +54,6 @@ export default function MaintenanceContainer() {
           แจ้งปัญหาที่เกิดขึ้นภายในห้องพัก หรือติดตามสถานะการซ่อมได้ที่นี่
         </p>
       </div>
-
       <div className="relative mb-8 flex w-full rounded-2xl bg-gray-100/80 p-1.5">
         <button
           onClick={() => setActiveTab("create")}
@@ -101,7 +100,6 @@ export default function MaintenanceContainer() {
           </span>
         </button>
       </div>
-
       <div>
         {activeTab === "create" ? (
           <RequestForm onSuccess={() => setActiveTab("history")} />

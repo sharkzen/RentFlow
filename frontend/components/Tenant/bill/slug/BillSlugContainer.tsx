@@ -131,21 +131,44 @@ export default function BillSlugContainer() {
 
     try {
       const data = await TenantService.printBillTenant(id);
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const blobType = isMobile
+        ? "application/octet-stream"
+        : "application/pdf";
 
       const blob = new Blob([data], {
-        type: "application/pdf",
+        type: blobType,
       });
 
       const url = window.URL.createObjectURL(blob);
-      const printWindow = window.open(url);
+      const fileName = `bill-${id}.pdf`;
 
-      if (printWindow) {
-        printWindow.onload = () => {
-          printWindow.print();
-        };
+      if (isMobile) {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        const printWindow = window.open(url);
+
+        if (printWindow) {
+          printWindow.onload = () => {
+            printWindow.print();
+          };
+        } else {
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
       }
 
       toast.dismiss(toastId);
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
     } catch (error) {
       toast.update(toastId, {
         render: "เกิดข้อผิดพลาดในการสร้างไฟล์ PDF",

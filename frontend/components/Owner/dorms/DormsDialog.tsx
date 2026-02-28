@@ -223,7 +223,6 @@ export default function DormsDialog({
                       value={formData.name}
                       onChange={(e) => updateField("name", e.target.value)}
                       placeholder="เช่น หอพักสุขใจ เรสซิเดนซ์"
-                      autoFocus
                     />
                   </div>
                   <div>

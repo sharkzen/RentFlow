@@ -130,7 +130,6 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
             <label className="mb-2 block text-sm font-semibold text-gray-700">
               รูปประกอบ (สูงสุด 2 รูป)
             </label>
-
             {files.length < 2 && (
               <div
                 onClick={() => fileInputRef.current?.click()}
@@ -169,7 +168,6 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
                       alt={`preview ${index + 1}`}
                       className="h-full w-full object-cover"
                     />
-
                     <button
                       type="button"
                       onClick={(e) => {

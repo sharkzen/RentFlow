@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,13 +19,25 @@ export default function Header() {
   const router = useRouter();
   const initial = user?.fullName?.charAt(0).toUpperCase() || "U";
   const firstName = user?.fullName.trim().split(/\s+/)[0];
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = () => setDropdownOpen(false);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
 
-    if (dropdownOpen) window.addEventListener("click", handleClickOutside);
+    if (dropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
 
-    return () => window.removeEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [dropdownOpen]);
 
   const handleLogout = async () => {
@@ -44,6 +56,7 @@ export default function Header() {
       });
 
       setUser(null);
+      setDropdownOpen(false);
       router.replace("/");
     } catch (error) {
       log.error("Logout error:", error);
@@ -96,15 +109,12 @@ export default function Header() {
                   </Link>
                 </div>
               ) : (
-                <div className="relative">
+                <div className="relative" ref={dropdownRef}>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDropdownOpen(!dropdownOpen);
-                    }}
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
                     className="flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 pr-3 transition-all hover:cursor-pointer hover:bg-white/80 active:scale-95"
                   >
-                    <div className="s flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
                       {initial}
                     </div>
                     <span className="hidden text-sm font-semibold text-slate-700 md:block">
@@ -150,6 +160,7 @@ export default function Header() {
                         <div className="space-y-1">
                           <Link
                             href={"/"}
+                            onClick={() => setDropdownOpen(false)}
                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600"
                           >
                             <Home size={16} />
@@ -157,6 +168,7 @@ export default function Header() {
                           </Link>
                           <Link
                             href={dashbaordRole(user.role)}
+                            onClick={() => setDropdownOpen(false)}
                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600"
                           >
                             <LayoutDashboard size={16} />
