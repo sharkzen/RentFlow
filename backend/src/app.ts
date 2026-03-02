@@ -8,10 +8,22 @@ import os from "os";
 import figlet from "figlet";
 import prisma from "@/lib/prisma";
 import { emailQueue } from "@/queues/email.queue";
+import { getBrowserInstance } from "./modules/tenant/lib/tenant.lib";
+import fastifyStatic from "@fastify/static";
+import path from "path";
 
 export async function buildApp() {
   const app = Fastify({
     logger: true,
+  });
+
+  console.log("🚀 Pre-warming PDF Browser...");
+  await getBrowserInstance();
+  console.log("✅ PDF Browser is ready!");
+
+  app.register(fastifyStatic, {
+    root: path.join(__dirname, "../public"),
+    prefix: "/public/",
   });
 
   app.get("/api/status", async (request, reply) => {

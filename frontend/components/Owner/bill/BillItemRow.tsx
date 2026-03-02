@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Trash2,
   Droplets,
@@ -7,6 +8,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import RoomSelector from "./RoomSelector";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 interface RoomData {
   id: string;
@@ -43,6 +45,7 @@ interface BillItemRowProps {
   onRemove: (id: string) => void;
   onCaptureImage: (index: number, type: "WATER" | "ELECTRIC") => void;
   onViewImage: (url: string) => void;
+  onDeleteImage: (index: number, type: "WATER" | "ELECTRIC") => void;
 }
 
 export default function BillItemRow({
@@ -57,7 +60,12 @@ export default function BillItemRow({
   onRemove,
   onCaptureImage,
   onViewImage,
+  onDeleteImage,
 }: BillItemRowProps) {
+  const [imageToDelete, setImageToDelete] = useState<
+    "WATER" | "ELECTRIC" | null
+  >(null);
+
   const waterUsage =
     (item.currentWater !== "" ? Number(item.currentWater) : 0) - item.prevWater;
   const electricUsage =
@@ -68,12 +76,19 @@ export default function BillItemRow({
     onChange(index, "isPrevEditable", !item.isPrevEditable);
   };
 
+  const handleConfirmDeleteImage = () => {
+    if (imageToDelete) {
+      onDeleteImage(index, imageToDelete);
+    }
+
+    setImageToDelete(null);
+  };
+
   return (
     <div className="group relative grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 pt-8 transition-all hover:border-indigo-300 lg:grid-cols-12 lg:items-start lg:pt-4">
       <div className="absolute top-0 left-0 z-10 flex items-center justify-center rounded-tl-xl rounded-br-lg bg-slate-700 px-3 py-1.5 text-xs font-bold text-white">
         #{index + 1}
       </div>
-
       <div className="col-span-1 lg:col-span-3">
         <RoomSelector
           value={item.roomId}
@@ -88,21 +103,31 @@ export default function BillItemRow({
           </p>
         )}
       </div>
-
       <div className="col-span-1 rounded-lg border border-blue-100 bg-blue-50/30 p-3 lg:col-span-4">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold text-blue-800">
             <Droplets size={14} className="text-blue-600" />
             ประปา
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             {item.waterImage && (
-              <img
-                src={item.waterImage}
-                onClick={() => onViewImage(item.waterImage!)}
-                className="h-7 w-7 cursor-pointer rounded border border-blue-200 object-cover transition-transform hover:scale-110"
-                alt="water"
-              />
+              <>
+                <img
+                  src={item.waterImage}
+                  onClick={() => onViewImage(item.waterImage!)}
+                  className="h-7 w-7 cursor-pointer rounded border border-blue-200 object-cover transition-transform hover:scale-110"
+                  alt="water"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setImageToDelete("WATER")}
+                  className="flex cursor-pointer items-center gap-1 rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-600 transition-colors hover:bg-red-100"
+                >
+                  <Trash2 size={14} />
+                  ลบรูป
+                </button>
+              </>
             )}
             <button
               type="button"
@@ -119,7 +144,6 @@ export default function BillItemRow({
               <label className="text-[10px] font-bold text-gray-400">
                 ครั้งก่อน
               </label>
-
               <button
                 type="button"
                 onClick={toggleEditPrev}
@@ -158,14 +182,25 @@ export default function BillItemRow({
             <Zap size={14} className="text-amber-600" />
             ไฟฟ้า
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             {item.electricImage && (
-              <img
-                src={item.electricImage}
-                onClick={() => onViewImage(item.electricImage!)}
-                className="h-7 w-7 cursor-pointer rounded border border-amber-200 object-cover transition-transform hover:scale-110"
-                alt="electric"
-              />
+              <>
+                <img
+                  src={item.electricImage}
+                  onClick={() => onViewImage(item.electricImage!)}
+                  className="h-7 w-7 cursor-pointer rounded border border-amber-200 object-cover transition-transform hover:scale-110"
+                  alt="electric"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setImageToDelete("ELECTRIC")}
+                  className="flex cursor-pointer items-center gap-1 rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-600 transition-colors hover:bg-red-100"
+                >
+                  <Trash2 size={14} />
+                  ลบรูป
+                </button>
+              </>
             )}
             <button
               type="button"
@@ -182,7 +217,6 @@ export default function BillItemRow({
               <label className="text-[10px] font-bold text-gray-400">
                 ครั้งก่อน
               </label>
-
               <button
                 type="button"
                 onClick={toggleEditPrev}
@@ -216,7 +250,6 @@ export default function BillItemRow({
           </div>
         </div>
       </div>
-
       <div className="col-span-1 flex items-center justify-center lg:h-20">
         <button
           type="button"
@@ -227,6 +260,17 @@ export default function BillItemRow({
           <Trash2 size={20} />
         </button>
       </div>
+
+      <ConfirmDialog
+        isOpen={imageToDelete !== null}
+        onClose={() => setImageToDelete(null)}
+        onConfirm={handleConfirmDeleteImage}
+        title="ยืนยันการลบรูปภาพ"
+        description={`คุณแน่ใจหรือไม่ว่าต้องการลบรูปภาพมิเตอร์${imageToDelete === "WATER" ? "ประปา" : "ไฟฟ้า"}?`}
+        type="error"
+        confirmText="ลบรูปภาพ"
+        cancelText="ยกเลิก"
+      />
     </div>
   );
 }

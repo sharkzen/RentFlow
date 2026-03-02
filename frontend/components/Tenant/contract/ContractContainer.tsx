@@ -4,7 +4,7 @@ import { TenantService } from "@/features/tenant/services/tenant.service";
 import { TenantInfoCard } from "./TenantInfoCard";
 import { FinancialCard } from "./FinancialCard";
 import { DormitoryCard } from "./DormitoryCard";
-import { Printer, ShieldCheck, FileText, MapPin } from "lucide-react";
+import { ShieldCheck, FileText, MapPin } from "lucide-react";
 import { TenantContractDetail } from "@/features/tenant";
 import LoadingPage from "@/components/layout/LoadingPage";
 

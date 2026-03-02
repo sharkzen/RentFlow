@@ -255,7 +255,7 @@ export default function TenantContainer() {
         <div className="col-span-12 md:col-span-2 lg:col-span-2">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-700 hover:shadow-md focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-blue-700 hover:to-blue-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95"
           >
             <Plus className="h-5 w-5" />
             <span>เพิ่มผู้เช่า</span>

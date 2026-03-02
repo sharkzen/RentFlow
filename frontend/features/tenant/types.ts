@@ -91,11 +91,13 @@ export interface TenantDashboardData {
       used: number;
       currentUnit: number;
       prevUnit: number;
+      imageUrl: string | null;
     };
     electric: {
       used: number;
       currentUnit: number;
       prevUnit: number;
+      imageUrl: string | null;
     };
   } | null;
   maintenance: {
@@ -177,6 +179,7 @@ export interface TenantContractDetail {
         electricRate: number;
         commonFee: number;
         dueDay: number;
+        dueMonthOffset: number;
       };
       paymentSetting: {
         bankName: string;

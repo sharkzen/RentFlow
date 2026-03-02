@@ -37,7 +37,7 @@ export default function DormsContainer() {
           onSuccess={refreshDorms}
         />
       )}
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-slate-900">
             หอพักของคุณ
@@ -49,7 +49,7 @@ export default function DormsContainer() {
         <div className="flex max-sm:w-full max-sm:justify-end">
           <button
             onClick={() => setOnCreate(true)}
-            className="flex cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md active:scale-95"
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-5 py-2.5 text-sm font-semibold text-white shadow-blue-200 transition-all hover:from-blue-700 hover:to-blue-600 hover:shadow-lg active:scale-95 max-sm:w-full"
           >
             <Plus size={18} strokeWidth={2.5} />
             <span>เพิ่มหอพักใหม่</span>

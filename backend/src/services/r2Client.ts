@@ -3,7 +3,9 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
   GetObjectCommand,
+  CopyObjectCommand,
 } from "@aws-sdk/client-s3";
+
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 if (!process.env.R2_ACCOUNT_ID) {
@@ -67,4 +69,28 @@ export async function generateSignedUrl(
       expiresIn: expireSeconds,
     },
   );
+}
+
+export async function moveTempFileToPermanent(oldKey: string, newKey: string) {
+  try {
+    await r2Client.send(
+      new CopyObjectCommand({
+        Bucket: env.BUCKET,
+        CopySource: `${env.BUCKET}/${oldKey}`,
+        Key: newKey,
+      }),
+    );
+
+    await r2Client.send(
+      new DeleteObjectCommand({
+        Bucket: env.BUCKET,
+        Key: oldKey,
+      }),
+    );
+
+    return newKey;
+  } catch (error) {
+    console.error("Error moving file in R2:", error);
+    throw new Error("ไม่สามารถย้ายไฟล์รูปภาพได้");
+  }
 }

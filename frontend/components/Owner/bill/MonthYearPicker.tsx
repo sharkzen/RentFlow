@@ -60,9 +60,9 @@ export default function MonthYearPicker({
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2.5 transition-all hover:border-indigo-300 hover:bg-gray-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
+        className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 transition-all hover:border-indigo-300 hover:bg-gray-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:justify-start"
       >
-        <div className="flex items-center gap-2 text-sm text-gray-800">
+        <div className="flex items-center gap-2 text-xs text-gray-800">
           <span className="font-bold">
             {format(selectedDate, "MMMM", {
               locale: th,

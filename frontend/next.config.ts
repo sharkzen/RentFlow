@@ -13,8 +13,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: "/api/scan-meter",
-        destination: "http://localhost:8000/scan-meter",
+        source: "/ocr/:path*",
+        destination: "http://localhost:8000/scan",
       },
 
       {

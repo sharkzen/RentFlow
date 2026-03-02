@@ -37,12 +37,9 @@ export default function ApprovalDetailModal({
   if (!isOpen || !data) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={onClose}
-      />
-      <div className="animate-in fade-in zoom-in-95 relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl duration-200">
+    <div className="fixed inset-0 z-100 flex sm:items-center sm:justify-center sm:p-4">
+      <div className="fixed inset-0 bg-black/60" onClick={onClose} />
+      <div className="animate-in fade-in zoom-in-95 relative flex w-full flex-col overflow-hidden bg-white shadow-2xl duration-200 sm:max-h-[90vh] sm:max-w-4xl sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50 px-6 py-4">
           <div>
             <h3 className="text-xl font-bold text-gray-800">
@@ -185,14 +182,14 @@ export default function ApprovalDetailModal({
         <div className="flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50 p-6">
           <button
             onClick={onReject}
-            className="flex items-center gap-2 rounded-xl border border-red-200 bg-white px-5 py-2.5 text-sm font-bold text-red-600 shadow-sm transition-all hover:border-red-300 hover:bg-red-50"
+            className="flex cursor-pointer items-center gap-2 rounded-xl border border-red-200 bg-white px-5 py-2.5 text-sm font-bold text-red-600 shadow-sm transition-all hover:border-red-300 hover:bg-red-50"
           >
             <Ban size={18} />
             ไม่อนุมัติ / ระงับ
           </button>
           <button
             onClick={onApprove}
-            className="flex transform items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 hover:shadow-lg active:scale-95"
+            className="flex transform cursor-pointer items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-emerald-700 hover:shadow-lg active:scale-95"
           >
             <Check size={18} />
             อนุมัติการใช้งาน

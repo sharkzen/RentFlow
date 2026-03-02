@@ -16,6 +16,7 @@ interface DormsCardProps {
 
 export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
   const [published, setPublished] = useState(dorm.isPublished);
+  const [isImageLoading, setIsImageLoading] = useState(true);
   const cover =
     dorm.images?.find((i) => i.isCover)?.url ?? dorm.images?.[0]?.url ?? null;
   const isLocalImage =
@@ -36,29 +37,40 @@ export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
 
   return (
     <div className="flex h-full min-h-70 flex-col overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
-      <div className="relative aspect-video bg-slate-100">
+      <div className="relative aspect-video bg-slate-200">
         {cover ? (
-          <Image
-            src={cover}
-            alt={dorm.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority={false}
-            unoptimized={isLocalImage}
-          />
+          <>
+            {isImageLoading && (
+              <div className="absolute inset-0 z-10 animate-pulse bg-slate-200">
+                <div className="flex h-full w-full items-center justify-center">
+                  <div className="h-10 w-10 rounded-full bg-slate-300" />
+                </div>
+              </div>
+            )}
+            <Image
+              src={cover}
+              alt={dorm.name}
+              fill
+              className={`object-cover transition-opacity duration-500 ${isImageLoading ? "opacity-0" : "opacity-100"}`}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              unoptimized={isLocalImage}
+              onLoad={() => setIsImageLoading(false)}
+            />
+          </>
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
             <ImageOff size={32} />
             <span className="text-sm font-medium">No Image</span>
           </div>
         )}
+
         <span
-          className={`absolute top-3 left-3 rounded-full px-2 py-0.5 text-xs font-medium ${published ? "bg-emerald-600 text-white" : "bg-slate-700 text-white"}`}
+          className={`absolute top-3 left-3 z-20 rounded-full px-2 py-0.5 text-xs font-medium ${published ? "bg-emerald-600 text-white" : "bg-slate-700 text-white"}`}
         >
           {published ? "Public" : "Draft"}
         </span>
       </div>
+
       <div className="flex flex-1 flex-col gap-2 px-4 py-3">
         <div className="flex items-start justify-between gap-2">
           <h3 className="line-clamp-2 max-h-10 text-sm leading-snug font-semibold text-slate-800">

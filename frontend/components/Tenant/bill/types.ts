@@ -155,6 +155,16 @@ export interface IBillDetail {
     amount: number;
     type: "CHARGE" | "DISCOUNT";
   }>;
+  meterImages: {
+    water: {
+      current: string | null;
+      previous: string | null;
+    };
+    electric: {
+      current: string | null;
+      previous: string | null;
+    };
+  };
 }
 
 export interface QrGenerateResponse {

@@ -20,6 +20,8 @@ import {
 import logger from "@/utils/logger";
 import { UserDecodedDto } from "../auth/dto/user.dto";
 import { createActivityLog } from "@/services/activity-log.service";
+import sharp from "sharp";
+import { moveTempFileToPermanent } from "@/services/r2Client";
 
 export const billService = {
   getBills: async ({
@@ -455,7 +457,7 @@ export const billService = {
   createBills: async (dormId: string, data: any, user: UserDecodedDto) => {
     const { billingMonth, items } = data;
 
-    const [dormInfo, dormSettings, paymentSetting, users] = await Promise.all([
+    const [dormInfo, dormSettings, paymentSetting] = await Promise.all([
       prisma.dormitory.findUnique({
         where: {
           id: dormId,
@@ -475,15 +477,9 @@ export const billService = {
           dormitoryId: dormId,
         },
       }),
-      prisma.user.findUnique({
-        where: {
-          id: user.sub,
-        },
-      }),
     ]);
 
-    if (!dormInfo || !dormInfo.owner)
-      throw new Error("DORM_OR_OWNER_NOT_FOUND");
+    if (!dormInfo) throw new Error("DORM_NOT_FOUND");
 
     if (!dormSettings) throw new Error("DORM_SETTINGS_NOT_FOUND");
 
@@ -494,14 +490,11 @@ export const billService = {
       throw new Error("PAYMENT_METHOD_REQUIRED");
     }
 
-    const senderName = dormInfo.name;
-    const ownerEmail = users?.email;
     const inputDate = new Date(billingMonth);
     const saveDate = new Date(
-      Date.UTC(inputDate.getFullYear(), inputDate.getMonth(), 1, 0, 0, 0),
+      Date.UTC(inputDate.getFullYear(), inputDate.getMonth(), 1),
     );
     const createdBills = [];
-    const emailJobs = [];
 
     for (const item of items) {
       const room = await prisma.room.findUnique({
@@ -535,21 +528,31 @@ export const billService = {
             },
           });
         } else {
-          throw new Error(
-            `DUPLICATE_BILL_FOUND: ห้อง ${room.roomNumber} มีบิลสถานะ ${existingBill.status} อยู่แล้ว`,
-          );
+          throw new Error(`DUPLICATE_BILL_FOUND:${room.roomNumber}`);
         }
       }
 
+      const moveImage = async (tempKey?: string, type?: string) => {
+        if (!tempKey || !tempKey.startsWith("temp-drafts/")) return tempKey;
+
+        const ext = tempKey.split(".").pop();
+        const newKey = `bills/${dormId}/${saveDate.getFullYear()}-${saveDate.getMonth() + 1}/${room.roomNumber}_${type}_${Date.now()}.${ext}`;
+        return await moveTempFileToPermanent(tempKey, newKey);
+      };
+
+      const [finalWaterKey, finalElectricKey] = await Promise.all([
+        moveImage(item.waterImageKey, "WATER"),
+        moveImage(item.electricImageKey, "ELECTRIC"),
+      ]);
+
       const tenant = room.tenants[0];
-      const waterUsed = item.currentWater - item.prevWater;
-      const electricUsed = item.currentElectric - item.prevElectric;
-      const waterRate = dormSettings.waterRate;
-      const electricRate = dormSettings.electricRate;
-      const waterFee = waterUsed * waterRate;
-      const electricFee = electricUsed * electricRate;
-      const roomPrice = room.basePrice;
-      const total = roomPrice + waterFee + electricFee + Number(item.commonFee);
+      const waterUsed = Number(item.currentWater) - Number(item.prevWater);
+      const electricUsed =
+        Number(item.currentElectric) - Number(item.prevElectric);
+      const waterFee = waterUsed * dormSettings.waterRate;
+      const electricFee = electricUsed * dormSettings.electricRate;
+      const total =
+        room.basePrice + waterFee + electricFee + Number(item.commonFee);
       const dueDate = new Date(saveDate);
       dueDate.setDate(dormSettings.dueDay);
       dueDate.setMonth(dueDate.getMonth() + dormSettings.dueMonthOffset);
@@ -562,118 +565,28 @@ export const billService = {
           dueDate: dueDate,
           tenantNameSnapshot: `${tenant.firstName} ${tenant.lastName}`,
           roomNumberSnapshot: room.roomNumber,
-          roomPriceSnapshot: roomPrice,
+          roomPriceSnapshot: room.basePrice,
           prevWaterUnitSnapshot: Number(item.prevWater),
           currentWaterUnitSnapshot: Number(item.currentWater),
           waterUsedSnapshot: waterUsed,
-          waterRateSnapshot: waterRate,
+          waterRateSnapshot: dormSettings.waterRate,
           waterFeeSnapshot: waterFee,
           prevElectricUnitSnapshot: Number(item.prevElectric),
           currentElectricUnitSnapshot: Number(item.currentElectric),
           electricUsedSnapshot: electricUsed,
-          electricRateSnapshot: electricRate,
+          electricRateSnapshot: dormSettings.electricRate,
           electricFeeSnapshot: electricFee,
           commonFeeSnapshot: Number(item.commonFee),
           lateFeeSnapshot: dormSettings.lateFee,
           total: total,
           status: "PENDING",
+          waterImageKey: finalWaterKey,
+          electricImageKey: finalElectricKey,
         },
       });
 
       createdBills.push(newBill);
-
-      if (tenant.email) {
-        const formatThaiDate = (
-          date: Date,
-          options?: {
-            day?: boolean;
-          },
-        ) => {
-          return date.toLocaleDateString("th-TH", {
-            ...(options?.day !== false && {
-              day: "numeric",
-            }),
-
-            month: "long",
-            year: "numeric",
-          });
-        };
-
-        emailJobs.push({
-          type: EmailType.NEW_BILL,
-          to: tenant.email,
-          senderName: senderName,
-          replyTo: ownerEmail,
-
-          data: {
-            dormName: dormInfo.name,
-            ownerPhone: dormInfo.owner?.phone,
-            billId: newBill.id.substring(0, 8).toUpperCase(),
-            currentDate: formatThaiDate(new Date()),
-            roomNumber: room.roomNumber,
-            tenantName: `${tenant.firstName} ${tenant.lastName}`,
-
-            month: formatThaiDate(saveDate, {
-              day: false,
-            }),
-
-            dueDate: formatThaiDate(dueDate),
-            link: `${process.env.FRONTEND_URL}/tenant/bills/${newBill.id}`,
-
-            amount: total.toLocaleString(undefined, {
-              minimumFractionDigits: 2,
-            }),
-
-            details: {
-              rent: roomPrice.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-              }),
-
-              commonFeeRaw: Number(item.commonFee),
-
-              commonFee: Number(item.commonFee).toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-              }),
-
-              water: {
-                prev: Number(item.prevWater),
-                curr: Number(item.currentWater),
-                used: waterUsed,
-                unitPrice: waterRate,
-
-                total: waterFee.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                }),
-              },
-
-              electric: {
-                prev: Number(item.prevElectric),
-                curr: Number(item.currentElectric),
-                used: electricUsed,
-                unitPrice: electricRate,
-
-                total: electricFee.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                }),
-              },
-            },
-          },
-        });
-      }
     }
-
-    if (emailJobs.length > 0) {
-      try {
-        await Promise.all(emailJobs.map((job) => emailQueue.add(job)));
-        logger.info(`📨 Queued ${emailJobs.length} emails.`);
-      } catch (error: any) {
-        logger.error(`⚠️ Email Queue Error: ${error.message}`);
-      }
-    }
-
-    const generatedRoomNumbers = createdBills.map(
-      (bill) => bill.roomNumberSnapshot,
-    );
 
     await createActivityLog({
       userId: user.sub,
@@ -682,9 +595,8 @@ export const billService = {
       entityId: dormId,
 
       metadata: {
-        billingMonth,
+        billingMonth: saveDate,
         generatedCount: createdBills.length,
-        rooms: generatedRoomNumbers,
       },
     });
 
@@ -746,25 +658,31 @@ export const billService = {
         });
       }
 
-      if (bill.payment && bill.payment.slips.length > 0) {
-        for (const slip of bill.payment.slips) {
-          try {
-            await deleteFile(slip.objectKey);
-          } catch (s3Error) {
-            logger.error(
-              `Failed to delete S3 file: ${slip.objectKey} : ${s3Error}`,
-            );
-          }
-        }
+      const filesToDelete: string[] = [];
 
+      if (bill.waterImageKey) filesToDelete.push(bill.waterImageKey);
+
+      if (bill.electricImageKey) filesToDelete.push(bill.electricImageKey);
+
+      if (bill.payment && bill.payment.slips.length > 0) {
+        bill.payment.slips.forEach((slip) =>
+          filesToDelete.push(slip.objectKey),
+        );
+      }
+
+      for (const key of filesToDelete) {
+        deleteFile(key).catch((err) =>
+          logger.error(`Cleanup R2 failed for key: ${key}`, err),
+        );
+      }
+
+      if (bill.payment) {
         await tx.file.deleteMany({
           where: {
             paymentId: bill.payment.id,
           },
         });
-      }
 
-      if (bill.payment) {
         await tx.payment.delete({
           where: {
             id: bill.payment.id,
@@ -794,6 +712,8 @@ export const billService = {
           roomNumber: bill.roomNumberSnapshot,
           tenantName: bill.tenantNameSnapshot,
           total: bill.total,
+          hadImages: !!(bill.waterImageKey || bill.electricImageKey),
+          billingMonth: bill.billingMonth,
         },
       });
 
@@ -1132,6 +1052,8 @@ export const billService = {
     }
 
     const advanceAmount = bill.tenant.advancePayment;
+    const actualDeduction = Math.min(advanceAmount, bill.total);
+    const remainingAdvance = advanceAmount - actualDeduction;
 
     return await prisma.$transaction(async (tx) => {
       await tx.tenantProfile.update({
@@ -1140,7 +1062,7 @@ export const billService = {
         },
 
         data: {
-          advancePayment: 0,
+          advancePayment: remainingAdvance,
         },
       });
 
@@ -1148,12 +1070,12 @@ export const billService = {
         data: {
           billId: billId,
           name: "หักเงินค่าเช่าล่วงหน้า",
-          amount: advanceAmount,
+          amount: actualDeduction,
           type: "DISCOUNT",
         },
       });
 
-      const newTotal = bill.total - advanceAmount;
+      const newTotal = bill.total - actualDeduction;
 
       const updatedBill = await tx.bill.update({
         where: {
@@ -1161,7 +1083,7 @@ export const billService = {
         },
 
         data: {
-          total: newTotal < 0 ? 0 : newTotal,
+          total: newTotal,
         },
 
         include: {
@@ -1176,11 +1098,238 @@ export const billService = {
         entityId: billId,
 
         metadata: {
-          appliedAmount: advanceAmount,
+          appliedAmount: actualDeduction,
+          remainingAdvance: remainingAdvance,
         },
       });
 
       return updatedBill;
     });
+  },
+
+  getDrafts: async ({ dormId, sub }: { dormId: string; sub: string }) => {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: sub,
+      },
+    });
+
+    if (!owner) throw new Error("OWNER_NOT_FOUND");
+
+    const dorm = await prisma.dormitory.findFirst({
+      where: {
+        id: dormId,
+        ownerId: owner.id,
+      },
+    });
+
+    if (!dorm) throw new Error("FORBIDDEN: ไม่สิทธิ์เข้าถึงข้อมูลของตึกนี้");
+
+    const drafts = await prisma.billDraft.findMany({
+      where: {
+        dormitoryId: dormId,
+      },
+
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    return drafts;
+  },
+
+  saveDraft: async ({
+    dormId,
+    name,
+    selectedDate,
+    items,
+    sub,
+    ipAddress,
+  }: {
+    dormId: string;
+    name: string;
+    selectedDate: string;
+    items: any[];
+    sub: string;
+    ipAddress?: string;
+  }) => {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: sub,
+      },
+    });
+
+    if (!owner) throw new Error("OWNER_NOT_FOUND");
+
+    const dorm = await prisma.dormitory.findFirst({
+      where: {
+        id: dormId,
+        ownerId: owner.id,
+      },
+    });
+
+    if (!dorm) throw new Error("FORBIDDEN: ไม่มีสิทธิ์เข้าถึงข้อมูลของตึกนี้");
+
+    const draft = await prisma.billDraft.create({
+      data: {
+        dormitoryId: dormId,
+        name,
+        selectedDate: new Date(selectedDate),
+        items: items,
+      },
+    });
+
+    await createActivityLog({
+      userId: sub,
+      action: "CREATE_BILL_DRAFT",
+      entityType: "BILL_DRAFT",
+      entityId: draft.id,
+      ipAddress,
+
+      metadata: {
+        dormId,
+        name,
+      },
+    });
+
+    return draft;
+  },
+
+  deleteDraft: async ({
+    draftId,
+    sub,
+    ipAddress,
+  }: {
+    draftId: string;
+    sub: string;
+    ipAddress?: string;
+  }) => {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: sub,
+      },
+    });
+
+    if (!owner) throw new Error("OWNER_NOT_FOUND");
+
+    const draft = await prisma.billDraft.findUnique({
+      where: {
+        id: draftId,
+      },
+
+      include: {
+        dormitory: {
+          select: {
+            ownerId: true,
+          },
+        },
+      },
+    });
+
+    if (!draft) throw new Error("DRAFT_NOT_FOUND");
+
+    if (draft.dormitory.ownerId !== owner.id) {
+      throw new Error("FORBIDDEN: ไม่มีสิทธิ์ลบข้อมูลนี้");
+    }
+
+    try {
+      const items = draft.items as any[];
+
+      if (items && Array.isArray(items)) {
+        const keysToDelete: string[] = [];
+
+        items.forEach((item: any) => {
+          if (item.waterImageKey) keysToDelete.push(item.waterImageKey);
+
+          if (item.electricImageKey) keysToDelete.push(item.electricImageKey);
+        });
+
+        if (keysToDelete.length > 0) {
+          await Promise.all(
+            keysToDelete.map((key) =>
+              deleteFile(key).catch((err) =>
+                logger.error(
+                  `Failed to delete draft image from R2: ${key}`,
+                  err,
+                ),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (error) {
+      logger.error(`Error while deleting draft images: ${error}`);
+    }
+
+    await prisma.billDraft.delete({
+      where: {
+        id: draftId,
+      },
+    });
+
+    await createActivityLog({
+      userId: sub,
+      action: "DELETE_BILL_DRAFT",
+      entityType: "BILL_DRAFT",
+      entityId: draftId,
+      ipAddress,
+
+      metadata: {
+        name: draft.name,
+      },
+    });
+
+    return true;
+  },
+
+  uploadTempImage: async ({
+    sub,
+    buffer,
+    mimetype,
+    filename,
+  }: {
+    sub: string;
+    buffer: Buffer;
+    mimetype: string;
+    filename: string;
+  }) => {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: sub,
+      },
+    });
+
+    if (!owner) throw new Error("OWNER_NOT_FOUND");
+
+    const compressedBuffer = await sharp(buffer)
+      .resize({
+        width: 1200,
+        withoutEnlargement: true,
+      })
+      .jpeg({
+        quality: 70,
+      })
+      .toBuffer();
+
+    const finalMimeType = "image/jpeg";
+    const finalFilename = filename.split(".")[0] + ".jpg";
+    const timestamp = Date.now();
+    const objectKey = `temp-drafts/${owner.id}_${timestamp}_${finalFilename}`;
+    await uploadFile(compressedBuffer, objectKey, finalMimeType);
+    const url = await generateSignedUrl(objectKey, 86400);
+
+    return {
+      url,
+      objectKey,
+    };
+  },
+
+  deleteTempImage: async (objectKey: string) => {
+    if (!objectKey.startsWith("temp-drafts/")) {
+      throw new Error("Deleting temporary files (temp-drafts) is not allowed.");
+    }
+
+    await deleteFile(objectKey);
+    return true;
   },
 };

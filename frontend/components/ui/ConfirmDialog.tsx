@@ -79,7 +79,7 @@ export default function ConfirmDialog({
   return (
     <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
       <div
-        className="fixed inset-0 bg-slate-900/50 transition-opacity"
+        className="fixed inset-0 bg-slate-900/50"
         onClick={!isLoading ? onClose : undefined}
       />
       <div className="relative w-full max-w-md scale-100 transform overflow-hidden rounded-2xl bg-white p-6 shadow-2xl transition-all">

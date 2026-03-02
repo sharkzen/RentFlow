@@ -13,6 +13,8 @@ import {
 import { generateSignedUrl } from "@/services/r2Client";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { generateSlug } from "@/lib/text";
+import { emailQueue } from "@/queues/email.queue";
+import { EmailType } from "@/queues/email.types";
 
 export const AdminService = {
   getDashboardStats: async () => {
@@ -221,7 +223,7 @@ export const AdminService = {
   },
 
   approveOwner: async (id: string) => {
-    return prisma.$transaction(async (tx) => {
+    const approvedOwner = await prisma.$transaction(async (tx) => {
       const owner = await tx.ownerProfile.update({
         where: {
           id,
@@ -229,6 +231,10 @@ export const AdminService = {
 
         data: {
           status: OwnerStatus.APPROVED,
+        },
+
+        include: {
+          user: true,
         },
       });
 
@@ -244,10 +250,34 @@ export const AdminService = {
 
       return owner;
     });
+
+    await emailQueue.add(
+      {
+        type: EmailType.OWNER_APPROVED,
+        to: approvedOwner.user.email,
+
+        data: {
+          ownerName: approvedOwner.fullName
+            ? approvedOwner.fullName
+            : "ผู้จัดการหอพัก",
+          email: approvedOwner.user.email,
+        },
+      },
+      {
+        attempts: 3,
+
+        backoff: {
+          type: "exponential",
+          delay: 1000,
+        },
+      },
+    );
+
+    return approvedOwner;
   },
 
   rejectOwner: async (id: string) => {
-    return prisma.$transaction(async (tx) => {
+    const rejectedOwner = await prisma.$transaction(async (tx) => {
       const owner = await tx.ownerProfile.update({
         where: {
           id,
@@ -256,10 +286,38 @@ export const AdminService = {
         data: {
           status: OwnerStatus.SUSPENDED,
         },
+
+        include: {
+          user: true,
+        },
       });
 
       return owner;
     });
+
+    await emailQueue.add(
+      {
+        type: EmailType.OWNER_REJECTED,
+        to: rejectedOwner.user.email,
+
+        data: {
+          ownerName: rejectedOwner.fullName
+            ? rejectedOwner.fullName
+            : "ผู้สมัครหอพัก",
+          email: rejectedOwner.user.email,
+        },
+      },
+      {
+        attempts: 3,
+
+        backoff: {
+          type: "exponential",
+          delay: 1000,
+        },
+      },
+    );
+
+    return rejectedOwner;
   },
 
   getDormitories: async (

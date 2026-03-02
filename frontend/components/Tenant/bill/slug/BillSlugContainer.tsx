@@ -15,10 +15,12 @@ import {
   Clock,
   Edit,
   Receipt,
+  Image as ImageIcon,
 } from "lucide-react";
 
 import { InvoiceVoucher } from "./InvoiceVoucher";
 import PaymentModal from "./PaymentModal";
+import MeterImageViewerModal from "./MeterImageViewerModal";
 import { IBillDetail } from "../types";
 import { toast } from "react-toastify";
 
@@ -30,6 +32,7 @@ export default function BillSlugContainer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [isMeterModalOpen, setIsMeterModalOpen] = useState(false);
   const componentRef = useRef<HTMLDivElement>(null);
   const [printLoading, setPrintLoading] = useState(false);
 
@@ -47,7 +50,7 @@ export default function BillSlugContainer() {
       if (backendMessage === "BILL_NOT_FOUND") {
         setError("บิลนี้ไม่มีอยู่ในระบบ หรืออาจจะถูกเจ้าของหอพักลบไปแล้ว");
       } else if (backendMessage === "FORBIDDEN_ACCESS") {
-        setError("สิทธิ์การเข้าถึงปฏิเสธ: บิลนี้ไม่ใช่ของคุณ");
+        setError("สิทธิ์การเข้าถึงปฏิเสธ");
       } else {
         setError(backendError || "ไม่สามารถโหลดข้อมูลบิลได้ในขณะนี้");
       }
@@ -89,7 +92,7 @@ export default function BillSlugContainer() {
         <h2 className="mb-2 text-2xl font-bold text-slate-800">
           {error?.includes("สิทธิ์") ? "ไม่มีสิทธิ์เข้าถึง" : "ไม่พบข้อมูลบิล"}
         </h2>
-        <p className="mx-auto mb-8 max-w-[300px] leading-relaxed text-slate-500">
+        <p className="mx-auto mb-8 max-w-75 leading-relaxed text-slate-500">
           {error ||
             "บิลนี้อาจถูกลบไปแล้ว หรือคุณอาจเข้าใช้งานด้วยลิงก์ที่ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง"}
         </p>
@@ -184,9 +187,9 @@ export default function BillSlugContainer() {
   const renderPaymentButton = () => {
     if (isCancelled) {
       return (
-        <div className="flex flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-red-100 px-6 py-3 text-sm font-bold text-red-600 shadow-inner max-sm:text-xs sm:flex-none">
-          <XCircle className="h-5 w-5" />
-          ยกเลิกแล้ว
+        <div className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-red-100 px-4 py-3 text-sm font-bold text-red-600 shadow-inner">
+          <XCircle className="h-5 w-5 shrink-0" />
+          <span className="truncate">ยกเลิกแล้ว</span>
         </div>
       );
     }
@@ -195,10 +198,10 @@ export default function BillSlugContainer() {
       return (
         <button
           onClick={() => setIsPayModalOpen(true)}
-          className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-emerald-600 active:scale-95 max-sm:text-xs sm:flex-none"
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-emerald-600 active:scale-95"
         >
-          <CheckCircle size={18} />
-          ชำระเงินแล้ว (ดูสลิป)
+          <CheckCircle size={18} className="shrink-0" />
+          <span className="truncate">ชำระเงินแล้ว</span>
         </button>
       );
     }
@@ -207,10 +210,10 @@ export default function BillSlugContainer() {
       return (
         <button
           onClick={() => setIsPayModalOpen(true)}
-          className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-amber-600 active:scale-95 max-sm:text-xs sm:flex-none"
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-amber-500 px-4 py-3 text-sm font-bold text-white transition-all hover:bg-amber-600 active:scale-95"
         >
-          <Clock size={18} />
-          รอตรวจสอบ (แก้ไขสลิป)
+          <Clock size={18} className="shrink-0" />
+          <span className="truncate">รอตรวจสอบ</span>
         </button>
       );
     }
@@ -218,46 +221,63 @@ export default function BillSlugContainer() {
     return (
       <button
         onClick={() => setIsPayModalOpen(true)}
-        className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-xl active:scale-95 max-sm:text-xs sm:flex-none"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-xl active:scale-95"
       >
-        <CreditCard size={18} />
-        {paymentStatus === "REJECTED"
-          ? "ส่งหลักฐานใหม่ (ถูกปฏิเสธ)"
-          : "ชำระเงิน / แจ้งโอน"}
+        <CreditCard size={18} className="shrink-0" />
+        <span className="truncate">
+          {paymentStatus === "REJECTED" ? "ส่งหลักฐานใหม่" : "ชำระเงิน"}
+        </span>
       </button>
     );
   };
 
   return (
     <div className="min-h-screen pt-8 pb-20">
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="mb-8 flex flex-col gap-5 px-4 sm:flex-row sm:items-center sm:justify-between">
         <button
           onClick={() => router.push("/tenant/bills")}
-          className="group flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+          className="group flex w-max cursor-pointer items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition-all group-hover:bg-slate-200 group-hover:text-slate-700">
             <ChevronLeft size={18} />
           </div>
           ย้อนกลับ
         </button>
-        <div className="flex w-full gap-3 sm:w-auto">
-          <button
-            disabled={printLoading || isCancelled}
-            onClick={() => handlePrint(bill.id)}
-            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 max-sm:text-xs sm:flex-none"
-          >
-            <Printer size={18} />
-            <span className="hidden sm:inline">พิมพ์ / PDF</span>
-            <span className="sm:hidden">พิมพ์</span>
-          </button>
-          {renderPaymentButton()}
+
+        <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:items-center">
+          <div className="order-3 col-span-2 w-full sm:order-1 sm:col-span-1 sm:w-auto">
+            <button
+              onClick={() => setIsMeterModalOpen(true)}
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-50 px-4 py-3 text-sm font-bold text-blue-600 shadow-sm ring-1 ring-blue-100 transition-all hover:bg-blue-100 hover:shadow-md active:scale-95"
+            >
+              <ImageIcon size={18} />
+              รูปมิเตอร์
+            </button>
+          </div>
+
+          <div className="order-1 col-span-1 w-full sm:order-2 sm:col-span-1 sm:w-auto">
+            <button
+              disabled={printLoading || isCancelled}
+              onClick={() => handlePrint(bill.id)}
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Printer size={18} />
+              <span className="truncate">พิมพ์ / PDF</span>
+            </button>
+          </div>
+
+          <div className="order-2 col-span-1 w-full sm:order-3 sm:col-span-1 sm:w-auto">
+            {renderPaymentButton()}
+          </div>
         </div>
       </div>
+
       <div className="flex w-full flex-col">
         <div className="w-full overflow-auto px-4">
           <InvoiceVoucher ref={componentRef} data={bill} />
         </div>
       </div>
+
       {isPayModalOpen && (
         <PaymentModal
           isOpen={isPayModalOpen}
@@ -268,6 +288,13 @@ export default function BillSlugContainer() {
           billId={bill.id}
           currentStatus={paymentStatus === "VERIFIED" ? "PAID" : billStatus}
           currentSlipUrl={currentSlipUrl}
+        />
+      )}
+      {isMeterModalOpen && (
+        <MeterImageViewerModal
+          isOpen={isMeterModalOpen}
+          onClose={() => setIsMeterModalOpen(false)}
+          bill={bill}
         />
       )}
     </div>

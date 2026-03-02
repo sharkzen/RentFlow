@@ -249,7 +249,7 @@ export default function ApprovalContainer() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => setSelectedItem(item)}
-                            className="rounded-lg border border-gray-200 bg-white p-2 text-gray-500 shadow-sm transition-colors hover:bg-gray-50 hover:text-blue-600"
+                            className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 text-gray-500 shadow-sm transition-colors hover:bg-gray-50 hover:text-blue-600"
                             title="ดูรายละเอียด"
                           >
                             <Eye size={16} />
@@ -257,14 +257,14 @@ export default function ApprovalContainer() {
                           <div className="mx-1 h-4 w-px bg-gray-200"></div>
                           <button
                             onClick={() => openRejectConfirm(item)}
-                            className="rounded-lg bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100"
+                            className="cursor-pointer rounded-lg bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100"
                             title="ไม่อนุมัติ"
                           >
                             <XCircle size={16} />
                           </button>
                           <button
                             onClick={() => openApproveConfirm(item)}
-                            className="rounded-lg bg-emerald-50 p-2 text-emerald-600 transition-colors hover:bg-emerald-100"
+                            className="cursor-pointer rounded-lg bg-emerald-50 p-2 text-emerald-600 transition-colors hover:bg-emerald-100"
                             title="อนุมัติ"
                           >
                             <CheckCircle size={16} />

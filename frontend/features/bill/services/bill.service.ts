@@ -92,4 +92,44 @@ export const BillService = {
     const res = await axios.delete(`/api/bills/${billId}`);
     return res.data;
   },
+
+  getDrafts: async (dormId: string) => {
+    const res = await axios.get(`/api/bills/${dormId}/drafts`);
+    return res.data;
+  },
+
+  saveDraft: async (data: {
+    dormId: string;
+    name: string;
+    selectedDate: string;
+    items: any[];
+  }) => {
+    const res = await axios.post(`/api/bills/drafts`, data);
+    return res.data;
+  },
+
+  deleteDraft: async (draftId: string) => {
+    const res = await axios.delete(`/api/bills/drafts/${draftId}`);
+    return res.data;
+  },
+
+  uploadTempImage: async (data: FormData) => {
+    const res = await axios.post(`/api/bills/upload-temp`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return res.data;
+  },
+
+  deleteTempImage: async (objectKey: string) => {
+    const res = await axios.delete(`/api/bills/upload-temp`, {
+      params: {
+        objectKey,
+      },
+    });
+
+    return res.data;
+  },
 };

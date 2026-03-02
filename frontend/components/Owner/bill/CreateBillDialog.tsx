@@ -20,6 +20,7 @@ import { RoomService } from "@/features/room/services/room.service";
 import BillItemRow from "./BillItemRow";
 import MonthYearPicker from "./MonthYearPicker";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { BillService } from "@/features/bill/services/bill.service";
 
 interface Draft {
   id: string;
@@ -47,10 +48,13 @@ interface BillItem {
   prevWater: number;
   currentWater: number | "";
   waterImage?: string;
+  waterImageKey?: string;
   prevElectric: number;
   currentElectric: number | "";
   electricImage?: string;
+  electricImageKey?: string;
   isPrevEditable: boolean;
+  commonFee: number;
 }
 
 interface Props {
@@ -68,6 +72,7 @@ export default function CreateBillDialog({
   selectedDormId,
   dormName,
 }: Props) {
+  const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [availableRooms, setAvailableRooms] = useState<RoomData[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(false);
@@ -89,6 +94,7 @@ export default function CreateBillDialog({
     prevElectric: 0,
     currentElectric: "",
     isPrevEditable: false,
+    commonFee: 0,
   });
 
   const [items, setItems] = useState<BillItem[]>([createEmptyItem()]);
@@ -100,11 +106,12 @@ export default function CreateBillDialog({
     }
   }, [isOpen, selectedDormId]);
 
-  const loadDrafts = () => {
-    const savedDrafts = localStorage.getItem(`drafts_${selectedDormId}`);
-
-    if (savedDrafts) {
-      setDrafts(JSON.parse(savedDrafts));
+  const loadDrafts = async () => {
+    try {
+      const savedDrafts = await BillService.getDrafts(selectedDormId);
+      setDrafts(savedDrafts);
+    } catch (error) {
+      log.error("Failed to load drafts:", error);
     }
   };
 
@@ -136,27 +143,29 @@ export default function CreateBillDialog({
     setIsSavingDraft(true);
   };
 
-  const confirmSaveDraft = () => {
+  const confirmSaveDraft = async () => {
+    setIsSavingDraft(true);
     const name =
       draftNameInput.trim() || `ร่างวันที่ ${new Date().toLocaleDateString()}`;
 
-    const newDraft: Draft = {
-      id: crypto.randomUUID(),
-      name,
-      updatedAt: new Date().toISOString(),
-      items,
-      selectedDate: selectedDate.toISOString(),
-    };
+    try {
+      const newDraft = await BillService.saveDraft({
+        dormId: selectedDormId,
+        name,
+        selectedDate: selectedDate.toISOString(),
+        items: items,
+      });
 
-    const updatedDrafts = [newDraft, ...drafts];
-    localStorage.setItem(
-      `drafts_${selectedDormId}`,
-      JSON.stringify(updatedDrafts),
-    );
-    setDrafts(updatedDrafts);
-    setDraftNameInput("");
-    setIsSavingDraft(false);
-    toast.success("บันทึกฉบับร่างเรียบร้อย");
+      setDrafts([newDraft, ...drafts]);
+      setDraftNameInput("");
+      setShowDraftList(false);
+      toast.success("บันทึกฉบับร่างพร้อมรูปภาพเรียบร้อย");
+    } catch (error) {
+      log.error("Failed to save draft:", error);
+      toast.error("เกิดข้อผิดพลาดในการบันทึกฉบับร่าง");
+    } finally {
+      setIsSavingDraft(false);
+    }
   };
 
   const useDraft = (draft: Draft) => {
@@ -166,14 +175,140 @@ export default function CreateBillDialog({
     toast.info(`โหลดฉบับร่าง "${draft.name}" แล้ว`);
   };
 
-  const deleteDraft = (id: string, e: React.MouseEvent) => {
+  const deleteDraft = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const updatedDrafts = drafts.filter((d) => d.id !== id);
-    localStorage.setItem(
-      `drafts_${selectedDormId}`,
-      JSON.stringify(updatedDrafts),
-    );
-    setDrafts(updatedDrafts);
+
+    try {
+      setDrafts(drafts.filter((d) => d.id !== id));
+      await BillService.deleteDraft(id);
+    } catch (error) {
+      log.error("Failed to delete draft:", error);
+      toast.error("ไม่สามารถลบฉบับร่างได้");
+      loadDrafts();
+    }
+  };
+
+  const confirmDeleteDraft = async () => {
+    if (!draftToDelete) return;
+
+    const id = draftToDelete;
+
+    try {
+      setDrafts((prev) => prev.filter((d) => d.id !== id));
+      setDraftToDelete(null);
+      await BillService.deleteDraft(id);
+    } catch (error) {
+      log.error("Failed to delete draft:", error);
+      toast.error("ไม่สามารถลบฉบับร่างได้");
+      loadDrafts();
+    }
+  };
+
+  const handleDeleteImage = async (
+    index: number,
+    type: "WATER" | "ELECTRIC",
+  ) => {
+    const item = items[index];
+    const imageKey =
+      type === "WATER" ? item.waterImageKey : item.electricImageKey;
+
+    if (imageKey) {
+      try {
+        await BillService.deleteTempImage(imageKey);
+      } catch (error) {
+        log.error("Failed to delete image from R2", error);
+        toast.warning("ลบรูปภาพจากหน้าจอแล้ว แต่ไม่สามารถลบไฟล์บน Cloud ได้");
+      }
+    }
+
+    const newItems = [...items];
+
+    if (type === "WATER") {
+      newItems[index].waterImage = undefined;
+      newItems[index].waterImageKey = undefined;
+    } else {
+      newItems[index].electricImage = undefined;
+      newItems[index].electricImageKey = undefined;
+    }
+
+    setItems(newItems);
+  };
+
+  const handleCaptureImage = (index: number, type: "WATER" | "ELECTRIC") => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+
+    input.onchange = async (e: any) => {
+      const file = e.target.files[0];
+
+      if (file) {
+        const localPreviewUrl = URL.createObjectURL(file);
+
+        setItems((prev) => {
+          const newItems = [...prev];
+
+          if (type === "WATER") {
+            newItems[index].waterImage = localPreviewUrl;
+            newItems[index].waterImageKey = undefined;
+          } else {
+            newItems[index].electricImage = localPreviewUrl;
+            newItems[index].electricImageKey = undefined;
+          }
+
+          return newItems;
+        });
+
+        const currentItem = items[index];
+        const oldImageKey =
+          type === "WATER"
+            ? currentItem.waterImageKey
+            : currentItem.electricImageKey;
+
+        if (oldImageKey) {
+          BillService.deleteTempImage(oldImageKey).catch((err) =>
+            log.error("Failed to clean up old image", err),
+          );
+        }
+
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          const res = await BillService.uploadTempImage(formData);
+
+          setItems((prev) => {
+            const newItems = [...prev];
+
+            if (type === "WATER") {
+              newItems[index].waterImage = res.url;
+              newItems[index].waterImageKey = res.objectKey;
+            } else {
+              newItems[index].electricImage = res.url;
+              newItems[index].electricImageKey = res.objectKey;
+            }
+
+            return newItems;
+          });
+        } catch (error) {
+          log.error("Upload error:", error);
+          toast.error("อัปโหลดไม่สำเร็จ รูปภาพถูกยกเลิก กรุณาถ่ายใหม่");
+
+          setItems((prev) => {
+            const newItems = [...prev];
+
+            if (type === "WATER") {
+              newItems[index].waterImage = undefined;
+            } else {
+              newItems[index].electricImage = undefined;
+            }
+
+            return newItems;
+          });
+        }
+      }
+    };
+
+    input.click();
   };
 
   const fetchRooms = async () => {
@@ -216,6 +351,7 @@ export default function CreateBillDialog({
       prevElectric: roomData.lastElectricUnit,
       currentWater: "",
       currentElectric: "",
+      commonFee: roomData.commonFee || 0,
     };
 
     setItems(newItems);
@@ -230,34 +366,6 @@ export default function CreateBillDialog({
     };
 
     setItems(newItems);
-  };
-
-  const handleCaptureImage = (index: number, type: "WATER" | "ELECTRIC") => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.capture = "environment";
-
-    input.onchange = (e: any) => {
-      const file = e.target.files[0];
-
-      if (file) {
-        const reader = new FileReader();
-
-        reader.onload = (event) => {
-          const base64 = event.target?.result as string;
-          handleChange(
-            index,
-            type === "WATER" ? "waterImage" : "electricImage",
-            base64,
-          );
-        };
-
-        reader.readAsDataURL(file);
-      }
-    };
-
-    input.click();
   };
 
   const handleSubmit = async () => {
@@ -275,13 +383,23 @@ export default function CreateBillDialog({
     try {
       await onSubmit({
         billingMonth: selectedDate,
-        items,
+
+        items: items.map((item) => ({
+          roomId: item.roomId,
+          prevWater: item.prevWater,
+          currentWater: item.currentWater,
+          waterImageKey: item.waterImageKey,
+          prevElectric: item.prevElectric,
+          currentElectric: item.currentElectric,
+          electricImageKey: item.electricImageKey,
+          commonFee: item.commonFee || 0,
+        })),
       });
 
       setItems([createEmptyItem()]);
       onClose();
     } catch (err) {
-      log.error(err);
+      log.error("Submit Bills Error:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -305,10 +423,11 @@ export default function CreateBillDialog({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowDraftList(true)}
-              className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-indigo-100 bg-indigo-50/50 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-100"
+              className="flex cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-indigo-600"
             >
-              <FolderOpen size={14} />
-              {drafts.length > 0 && `(${drafts.length})`}
+              <span className="text-blue-500 underline">
+                ฉบับร่าง {drafts.length > 0 && `(${drafts.length})`}
+              </span>
             </button>
             <button
               onClick={onClose}
@@ -318,7 +437,6 @@ export default function CreateBillDialog({
             </button>
           </div>
         </div>
-
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-gray-50/50 p-4">
           <MonthYearPicker
             selectedDate={selectedDate}
@@ -342,7 +460,6 @@ export default function CreateBillDialog({
             </button>
           </div>
         </div>
-
         <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/30 p-4 pb-20 sm:pb-4">
           {items.map((item, index) => (
             <BillItemRow
@@ -358,6 +475,7 @@ export default function CreateBillDialog({
               onRemove={(id) => setItems(items.filter((i) => i.id !== id))}
               onCaptureImage={handleCaptureImage}
               onViewImage={(url) => setPreviewFullImage(url)}
+              onDeleteImage={handleDeleteImage}
             />
           ))}
           <button
@@ -368,7 +486,6 @@ export default function CreateBillDialog({
             เพิ่มรายการห้อง
           </button>
         </div>
-
         <div className="absolute right-0 bottom-0 left-0 border-t border-slate-100 bg-white p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] sm:relative">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-500">{items.length}รายการ</div>
@@ -390,7 +507,6 @@ export default function CreateBillDialog({
             </div>
           </div>
         </div>
-
         {showDraftList && (
           <div className="animate-in slide-in-from-bottom-5 absolute inset-0 z-40 flex flex-col bg-white">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
@@ -434,8 +550,11 @@ export default function CreateBillDialog({
                         </div>
                       </div>
                       <button
-                        onClick={(e) => deleteDraft(draft.id, e)}
-                        className="p-3 text-gray-300 hover:text-red-500"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDraftToDelete(draft.id);
+                        }}
+                        className="cursor-pointer p-3 text-gray-300 transition-colors hover:text-red-500"
                       >
                         <Trash2 size={20} />
                       </button>
@@ -446,7 +565,6 @@ export default function CreateBillDialog({
             </div>
           </div>
         )}
-
         {isSavingDraft && (
           <div className="animate-in fade-in absolute inset-0 z-50 flex items-center justify-center bg-white px-4">
             <div className="w-full max-w-sm rounded-3xl bg-white p-8 ring-1 ring-black/5">
@@ -480,10 +598,9 @@ export default function CreateBillDialog({
           </div>
         )}
       </div>
-
       {previewFullImage && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-4"
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/95 p-4"
           onClick={() => setPreviewFullImage(null)}
         >
           <button className="absolute top-5 right-5 text-white/50 hover:text-white">
@@ -496,7 +613,6 @@ export default function CreateBillDialog({
           />
         </div>
       )}
-
       <ConfirmDialog
         isOpen={showClearConfirm}
         onClose={() => setShowClearConfirm(false)}
@@ -506,6 +622,16 @@ export default function CreateBillDialog({
         type="error"
         confirmText="ใช่, ล้างข้อมูลทั้งหมด"
         cancelText="กลับไปกรอกต่อ"
+      />
+      <ConfirmDialog
+        isOpen={!!draftToDelete}
+        onClose={() => setDraftToDelete(null)}
+        onConfirm={confirmDeleteDraft}
+        title="ยืนยันการลบฉบับร่าง?"
+        description="ข้อมูลรายการห้องและรูปภาพมิเตอร์ที่บันทึกไว้ในร่างนี้จะถูกลบออกจากระบบอย่างถาวร คุณแน่ใจหรือไม่?"
+        type="error"
+        confirmText="ใช่, ลบฉบับร่าง"
+        cancelText="ยกเลิก"
       />
     </div>
   );

@@ -7,16 +7,18 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev:server": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register --watch src src/server.ts",
     "dev:worker": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register --watch src src/workers/email.worker.ts",
-    "dev": "concurrently --kill-others \"npm run dev:server\" \"npm run dev:worker\"",
+    "dev": "npx prisma db seed && concurrently --kill-others \"npm run dev:server\" \"npm run dev:worker\"",
     "clean": "shx rm -rf dist",
     "prebuild": "npm run clean",
-    "build:server": "esbuild src/server.ts --bundle --platform=node --external:argon2 --external:bull --external:sharp --external:figlet --outdir=dist",
-    "build:worker": "esbuild src/workers/email.worker.ts --bundle --platform=node --external:bull --external:sharp --external:figlet --outdir=dist/workers",
-    "copy:bull": "shx mkdir -p dist/lib && shx cp -r node_modules/bull/lib/* dist/lib/",
-    "build": "npm run build:server && npm run build:worker && npm run copy:bull",
+    "build:server": "esbuild src/server.ts --bundle --platform=node --packages=external --outdir=dist",
+    "build:worker": "esbuild src/workers/email.worker.ts --bundle --platform=node --packages=external --outdir=dist/workers",
+    "build": "npm run build:server && npm run build:worker",
     "start:server": "node dist/server.js",
     "start:worker": "node dist/workers/email.worker.js",
     "start": "concurrently \"npm run start:server\" \"npm run start:worker\""
+  },
+  "prisma": {
+    "seed": "ts-node -r tsconfig-paths/register src/init.ts"
   },
   "_moduleAliases": {
     "@": "dist"
@@ -27,6 +29,7 @@
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.2.0",
     "@fastify/multipart": "^9.3.0",
+    "@fastify/static": "^9.0.0",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@prisma/client": "^6.19.1",
     "argon2": "^0.44.0",

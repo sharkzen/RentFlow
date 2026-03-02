@@ -281,10 +281,10 @@ export default function PaymentModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="fixed inset-0 z-50 flex bg-black/60 sm:items-center sm:justify-center">
         <div
           ref={ref}
-          className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl"
+          className="relative w-full overflow-hidden bg-white shadow-2xl sm:max-w-md sm:rounded-2xl"
         >
           <div className="flex items-center justify-between border-b border-slate-100 p-6">
             <div className="flex items-center gap-2">
@@ -548,7 +548,7 @@ export default function PaymentModal({
                   <button
                     disabled={!selectedFile || isSubmitting || isScanning}
                     onClick={() => setShowConfirm(true)}
-                    className={`mt-4 flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl py-4.5 text-lg font-black text-white shadow-xl transition-all ${!selectedFile || isSubmitting || isScanning ? "cursor-not-allowed bg-slate-200 text-slate-400 shadow-none" : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700 active:scale-95"}`}
+                    className={`mt-4 flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl p-3 text-lg font-black text-white transition-all ${!selectedFile || isSubmitting || isScanning ? "cursor-not-allowed bg-slate-200 text-slate-400 shadow-none" : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700 active:scale-95"}`}
                   >
                     {isSubmitting || isScanning ? (
                       <Loader2 className="animate-spin" size={24} />

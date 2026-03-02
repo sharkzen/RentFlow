@@ -88,9 +88,7 @@ export default function OwnerNavbar() {
               <Building2 size={20} />
             </div>
             <div>
-              <h1 className="font-bold tracking-tight text-slate-800">
-                DormManager
-              </h1>
+              <h1 className="font-bold tracking-tight text-slate-800">Menu</h1>
               <p className="text-xs font-medium text-slate-400">Owner Panel</p>
             </div>
           </div>

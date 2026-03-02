@@ -456,6 +456,211 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
         subject: getSubject("รีเซ็ตรหัสผ่าน"),
         html: getResetPasswordHtml(data.link),
       };
+    case EmailType.OWNER_APPROVED: {
+      const loginLink = process.env.FRONTEND_URL;
+
+      const approveDate = new Date().toLocaleDateString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "Asia/Bangkok",
+      });
+
+      return {
+        subject: getSubject(
+          "บัญชีผู้จัดการหอพักของคุณได้รับการอนุมัติแล้ว | RentFlow",
+        ),
+
+        html: minifyHtml(
+          wrapEmail(
+            "อนุมัติบัญชีสำเร็จ",
+            `
+            <table width="100%" style="margin-bottom: 30px;">
+              <tr>
+                <td align="center">
+                  <div style="background-color: ${THEME.successBg}; width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 4px solid #ffffff; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: 0 auto; padding-top: 22px;">
+                      <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="${THEME.success}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M9 12L11 14L15 10" stroke="${THEME.success}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </div>
+                  <h1 style="color: ${THEME.primary}; margin: 0 0 10px 0; font-size: 28px; font-weight: 800; text-align: center; letter-spacing: -0.5px;">
+                    ยินดีต้อนรับสู่ RentFlow
+                  </h1>
+                  <p style="color: ${THEME.success}; font-size: 16px; font-weight: 700; margin: 0; text-align: center; background-color: ${THEME.successBg}; display: inline-block; padding: 6px 16px; border-radius: 20px;">
+                    ตรวจสอบข้อมูลเรียบร้อยแล้ว
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+            <div style="padding: 0 10px;">
+              <p style="color: ${THEME.text}; font-size: 16px; line-height: 1.6; margin-bottom: 16px;">
+                เรียน คุณ <strong style="color: ${THEME.primary};">${data.ownerName}</strong>,
+              </p>
+              
+              <p style="color: ${THEME.secondary}; font-size: 16px; line-height: 1.8; margin-bottom: 28px;">
+                เราขอแจ้งให้ทราบว่า ข้อมูลและเอกสารของคุณได้ผ่านการตรวจสอบจากทีมงาน <strong>RentFlow</strong> เรียบร้อยแล้ว 
+                ขณะนี้บัญชีของคุณเปิดใช้งานอย่างสมบูรณ์ คุณสามารถเข้าสู่ระบบเพื่อเริ่มต้นบริหารจัดการหอพักได้อย่างเต็มรูปแบบ
+              </p>
+
+              <div style="background-color: #ffffff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                <div style="font-size: 13px; font-weight: 700; color: ${THEME.muted}; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+                  รายละเอียดบัญชีผู้ใช้งาน
+                </div>
+                <table width="100%" style="border-spacing: 0;">
+                  <tr>
+                    <td style="color: ${THEME.secondary}; font-size: 15px; padding-bottom: 12px; width: 35%;">อีเมล:</td>
+                    <td style="color: ${THEME.text}; font-size: 15px; font-weight: 600; padding-bottom: 12px;">${data.email}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: ${THEME.secondary}; font-size: 15px; padding-bottom: 12px;">ระดับบัญชี:</td>
+                    <td style="padding-bottom: 12px;">
+                      <span style="background-color: #f1f5f9; color: ${THEME.primary}; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 4px;">เจ้าของหอพัก (Owner)</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="color: ${THEME.secondary}; font-size: 15px;">วันที่อนุมัติ:</td>
+                    <td style="color: ${THEME.text}; font-size: 15px; font-weight: 600;">${approveDate}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <table width="100%" style="margin-bottom: 36px;">
+                <tr>
+                  <td align="center">
+                    <a href="${loginLink}" 
+                       style="background-color: ${THEME.primary}; 
+                              color: #ffffff; 
+                              padding: 16px 48px; 
+                              text-decoration: none; 
+                              border-radius: 6px; 
+                              font-weight: 700; 
+                              font-size: 16px; 
+                              display: inline-block; 
+                              transition: background-color 0.3s;">
+                      เข้าสู่ระบบเพื่อเริ่มต้นใช้งาน
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="background-color: #f8fafc; border-left: 4px solid ${THEME.primary}; border-radius: 0 8px 8px 0; padding: 20px; text-align: left;">
+                <h3 style="margin: 0 0 12px 0; color: ${THEME.primary}; font-size: 16px; display: flex; align-items: center;">
+                  <span style="margin-right: 8px;">🚀</span> สิ่งที่ควรทำเป็นอันดับแรก:
+                </h3>
+                <table width="100%" style="border-spacing: 0;">
+                  <tr>
+                    <td valign="top" style="padding-bottom: 8px; width: 20px; color: ${THEME.primary};">1.</td>
+                    <td style="color: ${THEME.text}; font-size: 14px; line-height: 1.5; padding-bottom: 8px;">ตั้งค่าข้อมูลพื้นฐานและช่องทางการรับชำระเงินของหอพัก</td>
+                  </tr>
+                  <tr>
+                    <td valign="top" style="padding-bottom: 8px; width: 20px; color: ${THEME.primary};">2.</td>
+                    <td style="color: ${THEME.text}; font-size: 14px; line-height: 1.5; padding-bottom: 8px;">เพิ่มข้อมูลห้องพัก ราคา และค่าน้ำ/ค่าไฟ</td>
+                  </tr>
+                  <tr>
+                    <td valign="top" style="width: 20px; color: ${THEME.primary};">3.</td>
+                    <td style="color: ${THEME.text}; font-size: 14px; line-height: 1.5;">เพิ่มข้อมูลผู้เช่าเพื่อเริ่มออกบิลเรียกเก็บเงิน</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+            `,
+          ),
+        ),
+      };
+    }
+    case EmailType.OWNER_REJECTED: {
+      const contactLink = process.env.FRONTEND_URL
+        ? `${process.env.FRONTEND_URL}/contact`
+        : "mailto:support@rentflow.com";
+
+      const rejectDate = new Date().toLocaleDateString("th-TH", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        timeZone: "Asia/Bangkok",
+      });
+
+      return {
+        subject: getSubject("แจ้งผลการตรวจสอบบัญชีผู้จัดการหอพัก | RentFlow"),
+
+        html: minifyHtml(
+          wrapEmail(
+            "แจ้งผลการพิจารณา",
+            `
+            <table width="100%" style="margin-bottom: 30px;">
+              <tr>
+                <td align="center">
+                  <div style="background-color: ${THEME.dangerBg}; width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 4px solid #ffffff; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.15);">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: 0 auto; padding-top: 22px;">
+                      <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="${THEME.danger}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <path d="M12 8V12" stroke="${THEME.danger}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="12" cy="16" r="1" fill="${THEME.danger}"/>
+                    </svg>
+                  </div>
+                  <h1 style="color: ${THEME.text}; margin: 0 0 10px 0; font-size: 24px; font-weight: 800; text-align: center;">
+                    แจ้งผลการตรวจสอบบัญชี
+                  </h1>
+                </td>
+              </tr>
+            </table>
+
+            <div style="padding: 0 10px;">
+              <p style="color: ${THEME.text}; font-size: 16px; line-height: 1.6; margin-bottom: 16px;">
+                เรียน คุณ <strong style="color: ${THEME.primary};">${data.ownerName}</strong>,
+              </p>
+              
+              <p style="color: ${THEME.secondary}; font-size: 16px; line-height: 1.8; margin-bottom: 24px;">
+                จากการตรวจสอบข้อมูลและเอกสารประกอบการสมัครบัญชีผู้จัดการหอพักของคุณ ทีมงาน RentFlow ขออภัยที่ต้องแจ้งให้ทราบว่า <strong>เราไม่สามารถอนุมัติบัญชีของคุณได้ในขณะนี้</strong>
+              </p>
+
+              <div style="background-color: #fff1f2; border: 1px solid #fecdd3; padding: 20px; border-radius: 8px; margin-bottom: 32px;">
+                <div style="font-size: 14px; font-weight: 700; color: #be123c; margin-bottom: 10px; display: flex; align-items: center;">
+                  สาเหตุเบื้องต้นอาจเกิดจาก:
+                </div>
+                <ul style="margin: 0; padding-left: 20px; color: #9f1239; font-size: 14px; line-height: 1.7;">
+                  <li>เอกสารยืนยันตัวตนหรือเอกสารสิทธิ์ไม่ชัดเจน / ไม่สมบูรณ์</li>
+                  <li>ข้อมูลหอพักที่ระบุไม่สอดคล้องกับเอกสารแนบ</li>
+                  <li>ข้อมูลไม่ตรงตามเงื่อนไขการให้บริการของเรา</li>
+                </ul>
+              </div>
+
+              <p style="color: ${THEME.text}; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
+                เพื่อความปลอดภัยของระบบและผู้ใช้งาน เราจำเป็นต้องตรวจสอบข้อมูลอย่างรัดกุม 
+                หากคุณเชื่อว่านี่เป็นข้อผิดพลาด หรือต้องการส่งเอกสารเพิ่มเติมเพื่อพิจารณาใหม่อีกครั้ง กรุณาติดต่อทีมงานของเรา
+              </p>
+
+              <table width="100%" style="margin-bottom: 36px;">
+                <tr>
+                  <td align="center">
+                    <a href="${contactLink}" 
+                       style="background-color: #ffffff; 
+                              color: ${THEME.text}; 
+                              padding: 14px 40px; 
+                              text-decoration: none; 
+                              border-radius: 6px; 
+                              font-weight: 700; 
+                              font-size: 15px; 
+                              display: inline-block; 
+                              border: 1px solid #cbd5e1;
+                              box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                      ติดต่อฝ่ายบริการลูกค้า
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="text-align: center; color: ${THEME.muted}; font-size: 13px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                รหัสอ้างอิง: REJ-${new Date().getTime().toString().slice(-6)} <br>
+                วันที่ทำรายการ: ${rejectDate}
+              </div>
+            </div>
+            `,
+          ),
+        ),
+      };
+    }
     default:
       throw new Error("Unknown Type");
   }

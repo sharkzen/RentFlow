@@ -46,7 +46,6 @@ export default function BillCreateOptionDialog({
             </div>
             <ChevronRight className="text-indigo-400 transition-transform group-hover:translate-x-1" />
           </button>
-
           <button
             onClick={onSelectManual}
             className="group flex w-full cursor-pointer items-center justify-between rounded-xl border-2 border-gray-100 bg-white p-4 transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-95"

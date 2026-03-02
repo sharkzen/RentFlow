@@ -65,7 +65,8 @@ export default function BillDetailDialog({
       | "UPDATE_STATUS"
       | "USE_ADVANCE_PAYMENT"
       | "DELETE_ITEM"
-      | "DELETE_BILL";
+      | "DELETE_BILL"
+      | "USE_ADVANCE_PAYMENT";
     targetStatus?: string;
     targetItemId?: string;
     title: string;
@@ -235,6 +236,42 @@ export default function BillDetailDialog({
 
       return;
     }
+
+    if (confirmConfig.action === "USE_ADVANCE_PAYMENT") {
+      setIsProcessing(true);
+
+      try {
+        await toast.promise(BillService.applyAdvancePayment(bill.id), {
+          pending: "กำลังดำเนินการหักเงินล่วงหน้า...",
+          success: "หักเงินล่วงหน้าสำเร็จเรียบร้อย",
+
+          error: {
+            render({ data }: any) {
+              const errorData = data?.response?.data;
+
+              if (errorData?.message === "INSUFFICIENT_ADVANCE_PAYMENT") {
+                return "ยอดเงินล่วงหน้าไม่เพียงพอ";
+              }
+
+              if (errorData?.message === "ADVANCE_PAYMENT_ALREADY_APPLIED") {
+                return "บิลนี้มีการหักเงินล่วงหน้าไปแล้ว";
+              }
+
+              return errorData?.message || "เกิดข้อผิดพลาดในการหักเงิน";
+            },
+          },
+        });
+
+        onRefresh();
+      } catch (error) {
+        console.error("USE ADVANCE PAYMENT ERROR:", error);
+      } finally {
+        setIsProcessing(false);
+        setConfirmConfig(null);
+      }
+
+      return;
+    }
   };
 
   const handleUploadSlip = async (file: File) => {
@@ -369,7 +406,7 @@ export default function BillDetailDialog({
 
   return (
     <>
-      <div className="animate-in fade-in fixed inset-0 z-60 flex items-end justify-center bg-black/60 transition-all duration-300 sm:p-4 md:p-6">
+      <div className="animate-in fade-in fixed inset-0 z-60 flex items-center justify-center bg-black/60 transition-all duration-300 sm:p-4 md:p-6">
         <div
           ref={detailRef}
           className="flex h-screen w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-5xl sm:rounded-2xl"
@@ -916,7 +953,8 @@ export default function BillDetailDialog({
                   onClick={() => handleActionClick("DELETE")}
                   className="flex w-full cursor-pointer items-center justify-center rounded-xl border border-red-100 px-6 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 sm:w-auto"
                 >
-                  ลบบิล <Trash2 size={18} />
+                  <Trash2 size={18} />
+                  ลบบิล
                 </button>
                 <button
                   onClick={() => handleActionClick("PAID")}

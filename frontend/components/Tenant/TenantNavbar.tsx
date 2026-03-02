@@ -36,7 +36,7 @@ export default function TenantNavbar() {
       description: "ดูบิลและแจ้งโอน",
     },
     {
-      name: "แจ้งซ่อม",
+      name: "แจ้งซ่อม / แจ้งเรื่อง",
       icon: <Wrench size={20} />,
       href: "/tenant/maintenance",
       description: "แจ้งปัญหาภายในห้อง",
@@ -81,11 +81,9 @@ export default function TenantNavbar() {
             </div>
             <div>
               <h1 className="text-lg font-bold tracking-tight text-slate-800">
-                DormManager
+                Menu
               </h1>
-              <p className="text-xs font-medium text-slate-400">
-                Tenant Portal
-              </p>
+              <p className="text-xs font-medium text-slate-400">Tenant Panel</p>
             </div>
           </div>
           <div className="scrollbar-thin scrollbar-thumb-gray-200 flex-1 overflow-y-auto px-4 py-4">

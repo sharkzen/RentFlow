@@ -65,7 +65,7 @@ export const CustomSelect = ({
       </button>
       {isOpen && (
         <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-40 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 duration-200">
-          <div className="custom-scrollbar max-h-60 overflow-y-auto py-1">
+          <div className="custom-scrollbar max-h-60 overflow-y-auto">
             {options.map((option) => {
               const isActive = option.value === value;
 

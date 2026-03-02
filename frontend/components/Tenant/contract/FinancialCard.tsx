@@ -47,7 +47,8 @@ export const FinancialCard = ({ tenant }: { tenant: TenantContractDetail }) => {
             กำหนดชำระทุกวันที่
           </span>
           <span className="font-bold text-slate-900">
-            {rates.dueDay}ของทุกเดือน
+            {rates.dueDay}{" "}
+            {rates.dueMonthOffset === 1 ? "ของเดือนถัดไป" : "ของเดือนที่ออกบิล"}
           </span>
         </div>
         <div className="flex justify-between text-sm">

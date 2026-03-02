@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { MaintenanceRequest } from "@/features/tenant";
 import { TenantService } from "@/features/tenant/services/tenant.service";
@@ -12,34 +13,35 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Clock,
 } from "lucide-react";
 
 import LoadingPage from "@/components/layout/LoadingPage";
 import MaintenanceDetailModal from "./MaintenanceDetailModal";
 import { toast } from "react-toastify";
 
-const statusConfig = {
+export const statusConfig = {
   OPEN: {
     label: "รอรับเรื่อง",
-    style: "bg-yellow-50 text-yellow-700 border-yellow-200",
-    icon: AlertCircle,
+    style: "bg-amber-50 text-amber-600 ring-amber-200",
+    icon: Clock,
   },
 
   IN_PROGRESS: {
     label: "กำลังดำเนินการ",
-    style: "bg-blue-50 text-blue-700 border-blue-200",
+    style: "bg-blue-50 text-blue-600 ring-blue-200",
     icon: Wrench,
   },
 
   COMPLETED: {
     label: "เสร็จสิ้น",
-    style: "bg-green-50 text-green-700 border-green-200",
+    style: "bg-emerald-50 text-emerald-600 ring-emerald-200",
     icon: CheckCircle2,
   },
 
   CANCELLED: {
     label: "ยกเลิก",
-    style: "bg-gray-50 text-gray-600 border-gray-200",
+    style: "bg-slate-50 text-slate-500 ring-slate-200",
     icon: XCircle,
   },
 };
@@ -110,7 +112,7 @@ export default function RequestHistory({
 
   if (loading && requests.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+      <div className="flex h-60 items-center justify-center">
         <LoadingPage />
       </div>
     );
@@ -118,20 +120,23 @@ export default function RequestHistory({
 
   if (!loading && requests.length === 0) {
     return (
-      <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50">
-          <Wrench className="h-8 w-8 text-gray-300" />
+      <div className="flex min-h-75 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 text-center md:p-12">
+        <div className="mb-4 rounded-full bg-white p-5 text-slate-400 ring-1 ring-slate-100">
+          <Wrench size={40} strokeWidth={1.5} />
         </div>
-        <h3 className="text-lg font-medium text-gray-900">
+        <h3 className="text-lg font-bold text-slate-700">
           ยังไม่มีประวัติการแจ้งซ่อม
         </h3>
+        <p className="mt-1 max-w-sm text-sm text-slate-500">
+          เมื่อคุณแจ้งปัญหาการใช้งานหรือแจ้งซ่อม รายการทั้งหมดจะมาแสดงอยู่ที่นี่
+        </p>
       </div>
     );
   }
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="flex flex-col divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white">
         {requests.map((req) => {
           const StatusIcon = statusConfig[req.status].icon;
 
@@ -139,55 +144,54 @@ export default function RequestHistory({
             <div
               key={req.id}
               onClick={() => setSelectedRequest(req)}
-              className="group cursor-pointer rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-200 hover:border-blue-100 hover:shadow-md"
+              className="group flex w-full cursor-pointer items-center gap-3 p-4 transition-all duration-200 hover:bg-slate-50 active:bg-slate-100 sm:p-5"
+              role="button"
+              tabIndex={0}
             >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 sm:flex">
-                  <Wrench className="h-6 w-6" />
+              <div className="flex flex-1 flex-col gap-1.5">
+                <h4 className="line-clamp-1 text-base font-bold text-slate-800 transition-colors group-hover:text-indigo-600">
+                  {req.title}
+                </h4>
+                <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Calendar size={12} className="shrink-0" />
+                  <span className="truncate">
+                    {format(new Date(req.createdAt), "d MMM yyyy • HH:mm", {
+                      locale: th,
+                    })}{" "}
+                    น.
+                  </span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h4 className="line-clamp-1 text-base font-bold text-gray-900 transition-colors group-hover:text-blue-600">
-                        {req.title}
-                      </h4>
-                      <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
-                        <Calendar className="h-3.5 w-3.5" />
-                        <span>
-                          {format(
-                            new Date(req.createdAt),
-                            "d MMM yyyy • HH:mm",
-                            {
-                              locale: th,
-                            },
-                          )}{" "}
-                          น.
-                        </span>
-                      </div>
-                    </div>
-                    <span
-                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${statusConfig[req.status].style}`}
-                    >
-                      <StatusIcon className="h-3.5 w-3.5" />
-                      {statusConfig[req.status].label}
-                    </span>
-                  </div>
+              </div>
+
+              <div className="flex flex-col items-end justify-center gap-2">
+                <span
+                  className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusConfig[req.status].style}`}
+                >
+                  <StatusIcon size={12} strokeWidth={2.5} />
+                  {statusConfig[req.status].label}
+                </span>
+              </div>
+
+              <div className="ml-1 flex shrink-0 items-center justify-center sm:ml-4">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 transition-all duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-active:scale-95">
+                  <ChevronRight size={20} />
                 </div>
               </div>
             </div>
           );
         })}
       </div>
+
       {meta.totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-center gap-2">
+        <div className="mt-6 flex items-center justify-center gap-4">
           <button
             onClick={() => onPageChange(Math.max(1, meta.page - 1))}
             disabled={meta.page === 1 || loading}
-            className="cursor-pointer rounded-lg border p-2 hover:bg-gray-50 disabled:opacity-50"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft size={20} />
           </button>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm font-medium text-slate-600">
             หน้า {meta.page}จาก {meta.totalPages}
           </span>
           <button
@@ -195,19 +199,22 @@ export default function RequestHistory({
               onPageChange(Math.min(meta.totalPages, meta.page + 1))
             }
             disabled={meta.page === meta.totalPages || loading}
-            className="rounded-lg border p-2 hover:bg-gray-50 disabled:opacity-50"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight size={20} />
           </button>
         </div>
       )}
-      <MaintenanceDetailModal
-        isOpen={!!selectedRequest}
-        onClose={() => setSelectedRequest(null)}
-        request={selectedRequest}
-        onSaveEdit={handleUpdate}
-        onDelete={handleDelete}
-      />
+
+      {selectedRequest && (
+        <MaintenanceDetailModal
+          isOpen={!!selectedRequest}
+          onClose={() => setSelectedRequest(null)}
+          request={selectedRequest}
+          onSaveEdit={handleUpdate}
+          onDelete={handleDelete}
+        />
+      )}
     </>
   );
 }

@@ -362,8 +362,155 @@ export const BillController = {
         });
       }
 
+      if (error.message === "BILL_NOT_PENDING") {
+        return reply.status(400).send({
+          message: "ไม่สามารถหักเงินได้ เนื่องจากบิลนี้ไม่ได้อยู่ในสถานะรอชำระ",
+        });
+      }
+
       return reply.status(500).send({
         message: error.message || "APPLY_ADVANCE_PAYMENT_FAILED",
+      });
+    }
+  },
+
+  getDrafts: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      const { dormId } = request.params as {
+        dormId: string;
+      };
+
+      if (!dormId)
+        return reply.status(400).send({
+          message: "DORM_ID_REQUIRED",
+        });
+
+      const result = await billService.getDrafts({
+        dormId,
+        sub: user.sub,
+      });
+
+      return reply.send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      return reply.status(500).send({
+        message: error.message,
+      });
+    }
+  },
+
+  saveDraft: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+      const body = request.body as any;
+      const ipAddress = request.ip;
+
+      const result = await billService.saveDraft({
+        ...body,
+        sub: user.sub,
+        ipAddress,
+      });
+
+      return reply.status(201).send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      return reply.status(500).send({
+        message: error.message,
+      });
+    }
+  },
+
+  deleteDraft: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      const { draftId } = request.params as {
+        draftId: string;
+      };
+
+      const ipAddress = request.ip;
+
+      if (!draftId)
+        return reply.status(400).send({
+          message: "DRAFT_ID_REQUIRED",
+        });
+
+      await billService.deleteDraft({
+        draftId,
+        sub: user.sub,
+        ipAddress,
+      });
+
+      return reply.send({
+        success: true,
+      });
+    } catch (error: any) {
+      logger.error(error);
+
+      return reply.status(500).send({
+        message: error.message,
+      });
+    }
+  },
+
+  uploadTempImage: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+      const data = await request.file();
+
+      if (!data) {
+        return reply.status(400).send({
+          message: "FILE_REQUIRED",
+        });
+      }
+
+      const buffer = await data.toBuffer();
+      const mimetype = data.mimetype;
+      const filename = data.filename;
+
+      const result = await billService.uploadTempImage({
+        sub: user.sub,
+        buffer,
+        mimetype,
+        filename,
+      });
+
+      return reply.send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      return reply.status(500).send({
+        message: error.message,
+      });
+    }
+  },
+
+  deleteTempImage: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { objectKey } = request.query as {
+        objectKey: string;
+      };
+
+      if (!objectKey) {
+        return reply.status(400).send({
+          message: "OBJECT_KEY_REQUIRED",
+        });
+      }
+
+      await billService.deleteTempImage(objectKey);
+
+      return reply.send({
+        success: true,
+      });
+    } catch (error: any) {
+      logger.error(error);
+
+      return reply.status(500).send({
+        message: error.message,
       });
     }
   },
