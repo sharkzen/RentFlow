@@ -91,7 +91,7 @@ export default function DormSelector({ dorms, selectedDorm, onSelect }: Props) {
               )}
             </div>
           </div>
-          <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent max-h-[240px] overflow-y-auto p-1">
+          <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent max-h-60 space-y-1 overflow-y-auto p-1">
             {filteredDorms.length === 0 ? (
               <div className="py-8 text-center text-sm text-gray-400">
                 ไม่พบหอพักที่ค้นหา

@@ -97,7 +97,7 @@ export default function IndexContainer() {
 
   return (
     <main className="min-h-screen w-full bg-[#F3F4F6] pb-24">
-      <div className="mx-auto px-4">
+      <div className="mx-auto sm:px-4">
         <div className="py-6">
           <DormFilter />
         </div>

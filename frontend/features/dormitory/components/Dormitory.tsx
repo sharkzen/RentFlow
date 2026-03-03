@@ -11,7 +11,7 @@ interface DormitoryProps {
 export default function Dormitory({ dorms, total = 0 }: DormitoryProps) {
   if (!dorms || dorms.length === 0) {
     return (
-      <div className="flex w-full flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white/50 py-32 text-center shadow-sm backdrop-blur-sm">
+      <div className="flex w-full flex-col items-center justify-center border border-dashed border-slate-300 bg-white/50 py-32 text-center sm:rounded-3xl">
         <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50 ring-8 ring-slate-100/50">
           <Frown className="h-10 w-10 text-slate-400" />
         </div>

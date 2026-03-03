@@ -32,7 +32,7 @@ export default function DormSlugContainer() {
   const decodedSlug = decodeURIComponent(slug);
   const [dorm, setDorm] = useState<DormSlugResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  console.log(dorm);
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);

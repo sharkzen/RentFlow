@@ -7,6 +7,7 @@ import {
   RotateCcw,
   Building2,
   ChevronDown,
+  Check,
 } from "lucide-react";
 import { Element, scroller } from "react-scroll";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -32,6 +33,9 @@ export default function DormFilter() {
     searchParams.get("maxPrice") ? Number(searchParams.get("maxPrice")) : "",
   );
   const [landmarks, setLandmarks] = useState<Landmark[]>([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [locationSearch, setLocationSearch] = useState("");
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchLandmarks = async () => {
@@ -46,6 +50,20 @@ export default function DormFilter() {
     fetchLandmarks();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const groupedLandmarks = landmarks.reduce(
     (acc, landmark) => {
       const type = landmark.type || "OTHER";
@@ -53,6 +71,21 @@ export default function DormFilter() {
       if (!acc[type]) acc[type] = [];
 
       acc[type].push(landmark);
+      return acc;
+    },
+    {} as Record<string, Landmark[]>,
+  );
+
+  const filteredGroupedLandmarks = Object.entries(groupedLandmarks).reduce(
+    (acc, [type, items]) => {
+      const filteredItems = items.filter((lm) =>
+        lm.name.toLowerCase().includes(locationSearch.toLowerCase()),
+      );
+
+      if (filteredItems.length > 0) {
+        acc[type] = filteredItems;
+      }
+
       return acc;
     },
     {} as Record<string, Landmark[]>,
@@ -111,6 +144,7 @@ export default function DormFilter() {
     setLocation("");
     setPriceMin("");
     setPriceMax("");
+    setLocationSearch("");
     const params = new URLSearchParams(searchParams.toString());
     params.delete("search");
     params.delete("landmarkId");
@@ -146,17 +180,21 @@ export default function DormFilter() {
     executeSearch();
   };
 
-  const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLocation = e.target.value;
-    setLocation(newLocation);
+  const handleSelectLocation = (id: string) => {
+    setLocation(id);
     setIsError(false);
+    setIsDropdownOpen(false);
+    setLocationSearch("");
 
     executeSearch({
-      landmarkId: newLocation,
+      landmarkId: id,
     });
   };
 
   const hasFilter = name || location || priceMin !== "" || priceMax !== "";
+  const displayLocationName = location
+    ? landmarks.find((l) => l.id === location)?.name || "กำลังโหลด..."
+    : "ทั้งหมด";
 
   return (
     <Element name="dorm-filter">
@@ -165,7 +203,7 @@ export default function DormFilter() {
         data-aos="fade-up"
         className="relative z-20 mx-auto my-8 w-full"
       >
-        <div className="flex flex-col rounded-3xl bg-white p-2 shadow ring-1 shadow-slate-200/60 ring-slate-100 md:flex-row md:items-center md:p-1.5">
+        <div className="flex flex-col bg-white p-2 ring-1 ring-slate-100 sm:rounded-3xl md:flex-row md:items-center md:p-1.5">
           <div
             className={`group relative flex flex-1 flex-col justify-center border-slate-100 px-6 py-3 transition-all md:rounded-l-full md:border-r`}
           >
@@ -208,41 +246,85 @@ export default function DormFilter() {
               }}
             />
           </div>
-          <div className="group relative flex flex-1 flex-col justify-center px-6 py-3 transition-colors md:border-r md:border-slate-100">
+
+          <div
+            ref={dropdownRef}
+            className="group relative flex flex-1 flex-col justify-center px-6 py-3 transition-colors md:border-r md:border-slate-100"
+          >
             <label className="my-1 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <MapPin size={14} className="text-rose-500" />
               ทำเล / สถานที่ใกล้เคียง
             </label>
             <div className="relative">
-              <select
-                className="w-full cursor-pointer appearance-none truncate bg-transparent pr-4 text-sm font-semibold text-slate-700 placeholder:font-normal focus:outline-none md:text-base"
-                value={location}
-                onChange={handleLocationChange}
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex w-full cursor-pointer items-center justify-between bg-transparent text-sm font-semibold text-slate-700 focus:outline-none md:text-base"
               >
-                <option value="">ทั้งหมด</option>
-                {Object.entries(groupedLandmarks).map(([type, items]) => (
-                  <optgroup
-                    key={type}
-                    label={type}
-                    className="font-semibold text-slate-900"
-                  >
-                    {items.map((lm) => (
-                      <option
-                        key={lm.id}
-                        value={lm.id}
-                        className="text-slate-600"
-                      >
-                        {lm.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute top-1/2 right-0 -translate-y-1/2 text-slate-400">
-                <ChevronDown size={14} />
-              </div>
+                <span className="truncate pr-4">{displayLocationName}</span>
+                <ChevronDown
+                  size={14}
+                  className={`text-slate-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 z-[100] mt-3 w-full min-w-[240px] overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl md:-left-4 md:w-[120%]">
+                  <div className="border-b border-slate-100 bg-slate-50 p-2">
+                    <div className="relative">
+                      <Search className="absolute top-2.5 left-3 h-4 w-4 text-slate-400" />
+                      <input
+                        type="text"
+                        className="h-9 w-full rounded-lg bg-white pr-3 pl-9 text-sm text-slate-700 ring-1 ring-slate-200 focus:ring-2 focus:ring-rose-500/20 focus:outline-none"
+                        placeholder="ค้นหาสถานที่..."
+                        value={locationSearch}
+                        onChange={(e) => setLocationSearch(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="max-h-56 overflow-y-auto p-1">
+                    <button
+                      type="button"
+                      onClick={() => handleSelectLocation("")}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${location === "" ? "bg-rose-50 font-semibold text-rose-600" : "text-slate-600 hover:bg-slate-50"}`}
+                    >
+                      ทั้งหมด
+                      {location === "" && <Check size={16} />}
+                    </button>
+                    {Object.keys(filteredGroupedLandmarks).length > 0 ? (
+                      Object.entries(filteredGroupedLandmarks).map(
+                        ([type, items]) => (
+                          <div key={type} className="mt-2">
+                            <div className="px-3 py-1 text-xs font-bold tracking-wider text-slate-400 uppercase">
+                              {type}
+                            </div>
+                            {items.map((lm) => (
+                              <button
+                                key={lm.id}
+                                type="button"
+                                onClick={() => handleSelectLocation(lm.id)}
+                                className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${location === lm.id ? "bg-rose-50 font-semibold text-rose-600" : "text-slate-600 hover:bg-slate-50"}`}
+                              >
+                                <span className="truncate">{lm.name}</span>
+                                {location === lm.id && <Check size={16} />}
+                              </button>
+                            ))}
+                          </div>
+                        ),
+                      )
+                    ) : (
+                      <div className="py-4 text-center text-sm text-slate-500">
+                        ไม่พบสถานที่
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+
           <div className="group relative flex flex-[1.3] flex-col justify-center px-6 py-3 transition-colors">
             <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <Banknote size={14} className="text-emerald-500" />

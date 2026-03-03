@@ -57,7 +57,6 @@ export default function BillItem({ bill, onClick }: Props) {
           </div>
         </div>
       </div>
-
       <div className="flex items-center justify-between gap-4 pl-14 sm:pl-17 md:w-auto md:flex-none md:justify-end md:gap-6 md:pl-0">
         <div className="flex flex-col text-left md:w-32 md:items-end md:text-right lg:w-40">
           <span className="text-[10px] font-medium text-slate-400 md:hidden">
@@ -70,11 +69,9 @@ export default function BillItem({ bill, onClick }: Props) {
             })}
           </span>
         </div>
-
         <div className="flex justify-end md:w-32 md:justify-center lg:w-40">
           <BillStatusBadge status={bill.status} />
         </div>
-
         <div className="flex shrink-0 items-center justify-center pl-2 md:pl-0">
           <div className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 transition-all duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-active:scale-90">
             <ChevronRight size={20} />

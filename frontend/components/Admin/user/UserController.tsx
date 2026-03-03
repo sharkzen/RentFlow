@@ -94,7 +94,7 @@ export default function UserController() {
           </p>
         </div>
       </div>
-      <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-gray-100 bg-white p-4">
         <UserFilter
           search={search}
           onSearchChange={setSearch}

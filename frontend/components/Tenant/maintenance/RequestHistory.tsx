@@ -162,7 +162,6 @@ export default function RequestHistory({
                   </span>
                 </div>
               </div>
-
               <div className="flex flex-col items-end justify-center gap-2">
                 <span
                   className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusConfig[req.status].style}`}
@@ -171,7 +170,6 @@ export default function RequestHistory({
                   {statusConfig[req.status].label}
                 </span>
               </div>
-
               <div className="ml-1 flex shrink-0 items-center justify-center sm:ml-4">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 transition-all duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-active:scale-95">
                   <ChevronRight size={20} />
@@ -181,7 +179,6 @@ export default function RequestHistory({
           );
         })}
       </div>
-
       {meta.totalPages > 1 && (
         <div className="mt-6 flex items-center justify-center gap-4">
           <button
@@ -205,7 +202,6 @@ export default function RequestHistory({
           </button>
         </div>
       )}
-
       {selectedRequest && (
         <MaintenanceDetailModal
           isOpen={!!selectedRequest}

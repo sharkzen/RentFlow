@@ -67,7 +67,6 @@ export default function MaintenanceContainer() {
           แจ้งปัญหาที่เกิดขึ้นภายในห้องพัก หรือติดตามสถานะการซ่อมได้ที่นี่
         </p>
       </div>
-
       <div className="relative mb-8 flex w-full rounded-2xl bg-gray-100 p-1.5">
         {TABS.map((tab) => {
           const Icon = tab.icon;
@@ -100,7 +99,6 @@ export default function MaintenanceContainer() {
           );
         })}
       </div>
-
       <div>
         {activeTab === "create" ? (
           <RequestForm onSuccess={() => setActiveTab("history")} />

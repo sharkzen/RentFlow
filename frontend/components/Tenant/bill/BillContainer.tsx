@@ -112,7 +112,6 @@ export default function BillContainer() {
           <BillFilters filters={filters} onChange={handleFilterChange} />
         </div>
       </div>
-
       <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 md:p-8">
         <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2">
@@ -138,14 +137,12 @@ export default function BillContainer() {
         </div>
         <div className="absolute top-0 right-0 z-0 h-full w-1/2 bg-linear-to-l from-slate-50 to-transparent opacity-60"></div>
       </div>
-
       <div className="space-y-6">
         <div
           className={`transition-opacity duration-300 ${loading ? "pointer-events-none opacity-50" : "opacity-100"}`}
         >
           <BillList bills={bills} onSelectBill={handleBillClick} />
         </div>
-
         {totalPages > 1 && (
           <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row">
             <p className="text-sm text-slate-500">

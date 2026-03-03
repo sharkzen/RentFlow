@@ -318,16 +318,16 @@ model Bill {
   commonFeeSnapshot           Float
   lateFeeSnapshot             Float
 
-  total    Float
-  note     String?
-  status   BillStatus @default(PENDING)
-  archived Boolean    @default(false)
-
-  room      Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
-  tenant    TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  payment   Payment?
-  items     BillItem[]
-  createdAt DateTime      @default(now())
+  total          Float
+  note           String?
+  status         BillStatus    @default(PENDING)
+  archived       Boolean       @default(false)
+  lastNotifiedAt DateTime?
+  room           Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  tenant         TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  payment        Payment?
+  items          BillItem[]
+  createdAt      DateTime      @default(now())
 
   @@unique([roomId, billingMonth])
 }

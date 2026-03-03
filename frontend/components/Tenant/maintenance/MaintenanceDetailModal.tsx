@@ -134,7 +134,6 @@ export default function MaintenanceDetailModal({
               <X className="h-5 w-5 text-slate-400 group-hover:text-slate-600" />
             </button>
           </div>
-
           <div className="scrollbar-thin scrollbar-thumb-slate-200 flex-1 overflow-y-auto px-5 py-6 sm:px-8 sm:py-8">
             {isEditing && canEditOrDelete ? (
               <form
@@ -196,7 +195,6 @@ export default function MaintenanceDetailModal({
                     </div>
                   </div>
                 </div>
-
                 {(existingImages.length > 0 || newFiles.length > 0) && (
                   <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-5">
                     <p className="mb-4 text-xs font-bold tracking-wider text-slate-500 uppercase">
@@ -267,7 +265,6 @@ export default function MaintenanceDetailModal({
                     น.
                   </span>
                 </div>
-
                 <div>
                   <h4 className="text-2xl leading-tight font-bold text-slate-900">
                     {request.title}
@@ -282,7 +279,6 @@ export default function MaintenanceDetailModal({
                     </p>
                   </div>
                 </div>
-
                 {request.images && request.images.length > 0 && (
                   <div>
                     <h5 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-900">
@@ -310,7 +306,6 @@ export default function MaintenanceDetailModal({
               </div>
             )}
           </div>
-
           <div className="pb-safe mt-auto shrink-0 border-t border-slate-100 bg-white p-5 sm:bg-slate-50 sm:px-8 sm:py-5">
             <div className="mx-auto flex max-w-xl flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               {isEditing && canEditOrDelete ? (
@@ -373,7 +368,6 @@ export default function MaintenanceDetailModal({
           </div>
         </div>
       </div>
-
       {selectedImage && (
         <div
           className="animate-in fade-in fixed inset-0 z-60 flex items-center justify-center bg-black/95 p-2 duration-200 sm:p-4"

@@ -113,7 +113,7 @@ export default function RoomContainer() {
             </button>
             {open && (
               <div className="absolute top-full right-0 z-50 mt-2 max-h-60 w-full overflow-hidden overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5">
-                <div className="p-1">
+                <div className="space-y-1 p-1">
                   <button
                     onClick={() => {
                       setSelectedDormId("ALL");

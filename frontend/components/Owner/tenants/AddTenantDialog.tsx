@@ -92,6 +92,26 @@ export default function AddTenantDialog({
     notes: "",
   });
 
+  const fetchRooms = async () => {
+    setIsLoading(true);
+
+    try {
+      const res = await RoomService.getRooms(dormId, "AVAILABLE");
+      setRooms(res);
+    } catch (error) {
+      log.error(error);
+      toast.error("ไม่สามารถดึงข้อมูลห้องพักได้");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && dormId) {
+      fetchRooms();
+    }
+  }, [isOpen, dormId]);
+
   useEffect(() => {
     if (isOpen && initialData) {
       setFormData((prev) => ({

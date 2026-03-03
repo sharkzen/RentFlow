@@ -165,7 +165,7 @@ export default function LandmarkContainer() {
     <div className="min-h-screen bg-gray-50/50">
       <div className="">
         <LandmarkHeader onOpenModal={handleOpenCreateModal} />
-        <div className="mb-6 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="mb-6 rounded-xl border border-gray-100 bg-white p-4">
           <div className="relative max-w-md">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input

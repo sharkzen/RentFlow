@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Send } from "lucide-react";
 import { toast } from "react-toastify";
 import BillTable from "./BillTable";
 import CreateBillDialog from "./CreateBillDialog";
@@ -12,6 +12,7 @@ import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Bill } from "@/features/bill/types";
 import log from "@/lib/logger";
 import { useSearchParams, useRouter } from "next/navigation";
+import SendBillModal, { BillSummary } from "./SendBillModal";
 
 export default function BillContainer() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function BillContainer() {
   const LIMIT = 10;
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isSendDialogOpen, setIsSendDialogOpen] = useState(false);
 
   const statusOptions = [
     {
@@ -66,6 +68,9 @@ export default function BillContainer() {
     },
   ];
 
+  const sendableBills = bills.filter(
+    (b) => b.status === "PENDING" || b.status === "OVERDUE",
+  );
   const currentDormName =
     dorms.find((d) => d.id === selectedDorm)?.name || "เลือกหอพัก";
 
@@ -203,10 +208,11 @@ export default function BillContainer() {
         },
       });
 
-      fetchBills();
+      await fetchBills();
+      setIsCreateOpen(false);
+      setIsSendDialogOpen(true);
     } catch (err) {
       log.error("Create Bill Error:", err);
-      throw err;
     }
   };
 
@@ -230,6 +236,44 @@ export default function BillContainer() {
       });
   };
 
+  const mockBills: BillSummary[] = [
+    {
+      id: "b1",
+      roomId: "r1",
+      roomNumberSnapshot: "101",
+      tenantNameSnapshot: "สมชาย ใจดี",
+      total: 4500,
+      status: "PENDING",
+    },
+    {
+      id: "b2",
+      roomId: "r2",
+      roomNumberSnapshot: "102",
+      tenantNameSnapshot: "สมหญิง รักเรียน",
+      total: 4800,
+      status: "PENDING",
+    },
+    {
+      id: "b3",
+      roomId: "r3",
+      roomNumberSnapshot: "103",
+      tenantNameSnapshot: "มานะ ขยัน",
+      total: 4200,
+      status: "PENDING",
+    },
+  ];
+
+  const handleSendBills = async (selectedIds: string[]) => {
+    try {
+      toast.success(`ส่งแจ้งเตือนจำนวน ${selectedIds.length} รายการสำเร็จ`);
+      setIsSendDialogOpen(false);
+      fetchBills();
+    } catch (err) {
+      toast.error("เกิดข้อผิดพลาดในการส่งแจ้งเตือน");
+      log.error(err);
+    }
+  };
+
   return (
     <div className="relative flex h-[calc(100dvh-2rem)] w-full flex-col gap-4">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -248,6 +292,15 @@ export default function BillContainer() {
             onSelect={setSelectedDorm}
           />
           <button
+            type="button"
+            onClick={() => setIsSendDialogOpen(true)}
+            className="flex cursor-pointer items-center gap-2 rounded-lg border border-blue-200 bg-white px-6 py-2.5 text-sm font-medium text-blue-700 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 active:scale-95"
+          >
+            <Send size={18} />
+            <span>ส่งบิลแจ้งลูกบ้าน</span>
+          </button>
+          <button
+            type="button"
             onClick={() => {
               if (selectedDorm === "ALL") {
                 toast.warning("กรุณาเลือกหอพักก่อนสร้างบิล");
@@ -256,7 +309,7 @@ export default function BillContainer() {
 
               setIsCreateOpen(true);
             }}
-            className="ml-auto flex cursor-pointer gap-2 rounded-lg border bg-linear-to-r from-blue-600 to-blue-500 px-10 py-2.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 hover:from-blue-700 hover:to-blue-600 active:scale-95 sm:ml-0 sm:items-center"
+            className="flex cursor-pointer items-center gap-2 rounded-lg border bg-linear-to-r from-blue-600 to-blue-500 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 hover:from-blue-700 hover:to-blue-600 active:scale-95"
           >
             <Plus size={18} />
             <span>สร้างบิล</span>
@@ -322,13 +375,23 @@ export default function BillContainer() {
           onUpdateStatus={handleUpdateStatus}
         />
       )}
-      <CreateBillDialog
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        onSubmit={handleCreateBill}
-        selectedDormId={selectedDorm}
-        dormName={currentDormName}
-      />
+      {isCreateOpen && (
+        <CreateBillDialog
+          isOpen={isCreateOpen}
+          onClose={() => setIsCreateOpen(false)}
+          onSubmit={handleCreateBill}
+          selectedDormId={selectedDorm}
+          dormName={currentDormName}
+        />
+      )}
+      {isSendDialogOpen && (
+        <SendBillModal
+          isOpen={isSendDialogOpen}
+          onClose={() => setIsSendDialogOpen(false)}
+          bills={sendableBills}
+          onSendBills={handleSendBills}
+        />
+      )}
     </div>
   );
 }

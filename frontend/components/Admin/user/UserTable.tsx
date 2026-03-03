@@ -51,7 +51,7 @@ export default function UserTable({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-gray-600">
           <thead className="bg-gray-50/50 text-xs font-semibold tracking-wider text-gray-500 uppercase">

@@ -188,7 +188,7 @@ export default function DormitoryContainer() {
           รีเฟรช
         </button>
       </div>
-      <div className="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 md:grid-cols-4">
         <div className="relative md:col-span-2">
           <Search className="absolute top-2.5 left-3 text-gray-400" size={18} />
           <input
@@ -229,7 +229,7 @@ export default function DormitoryContainer() {
           </select>
         </div>
       </div>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="border-b border-gray-100 bg-gray-50 font-medium text-gray-500">

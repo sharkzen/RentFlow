@@ -31,7 +31,6 @@ export default function BillList({ bills, onSelectBill }: Props) {
         <div className="w-32 text-center lg:w-40">สถานะ</div>
         <div className="w-8"></div>
       </div>
-
       <div className="flex flex-col divide-y divide-slate-100">
         {bills.map((bill) => (
           <BillItem key={bill.id} bill={bill} onClick={onSelectBill} />

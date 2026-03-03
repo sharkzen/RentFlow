@@ -59,7 +59,6 @@ export default function UtilityUsageCard({ utilities }: Props) {
               </div>
             </div>
             <div className="my-5 h-px w-full bg-slate-100"></div>
-
             <div className="mb-4">
               {utilities.electric.imageUrl ? (
                 <button
@@ -108,7 +107,6 @@ export default function UtilityUsageCard({ utilities }: Props) {
             </div>
           </div>
         </div>
-
         <div className="group flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-blue-300 hover:shadow-lg sm:p-6">
           <div className="flex-1">
             <div className="flex items-start justify-between">
@@ -145,7 +143,6 @@ export default function UtilityUsageCard({ utilities }: Props) {
               </div>
             </div>
             <div className="my-5 h-px w-full bg-slate-100"></div>
-
             <div className="mb-4">
               {utilities.water.imageUrl ? (
                 <button
@@ -195,7 +192,6 @@ export default function UtilityUsageCard({ utilities }: Props) {
           </div>
         </div>
       </div>
-
       {previewImage && (
         <div
           className="animate-in fade-in fixed inset-0 z-999 flex items-center justify-center bg-slate-900/80 p-4 duration-200"
@@ -207,7 +203,6 @@ export default function UtilityUsageCard({ utilities }: Props) {
           >
             <X size={24} />
           </button>
-
           <div
             className="animate-in zoom-in-95 relative flex max-h-full max-w-4xl flex-col items-center justify-center duration-200"
             onClick={(e) => e.stopPropagation()}

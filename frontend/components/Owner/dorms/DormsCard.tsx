@@ -63,14 +63,12 @@ export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
             <span className="text-sm font-medium">No Image</span>
           </div>
         )}
-
         <span
           className={`absolute top-3 left-3 z-20 rounded-full px-2 py-0.5 text-xs font-medium ${published ? "bg-emerald-600 text-white" : "bg-slate-700 text-white"}`}
         >
           {published ? "Public" : "Draft"}
         </span>
       </div>
-
       <div className="flex flex-1 flex-col gap-2 px-4 py-3">
         <div className="flex items-start justify-between gap-2">
           <h3 className="line-clamp-2 max-h-10 text-sm leading-snug font-semibold text-slate-800">

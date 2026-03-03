@@ -190,7 +190,7 @@ export const authService = {
       },
     });
 
-    if (!user) throw new Error("INVALID_EMAIL_OR_PASSWORD");
+    if (!user) throw new Error("EMAIL_NOT_FOUND");
 
     const isValid = await verifyPassword(user.password, data.password);
 

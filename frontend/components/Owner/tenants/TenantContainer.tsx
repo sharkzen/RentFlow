@@ -161,7 +161,7 @@ export default function TenantContainer() {
                   className="fixed inset-0 z-40 cursor-default"
                   onClick={() => setIsDormDropdownOpen(false)}
                 />
-                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+6px)] left-0 z-50 w-full min-w-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white p-1 shadow-xl ring-1 ring-black/5 duration-100">
+                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+6px)] left-0 z-50 w-full min-w-50 overflow-hidden rounded-xl border border-gray-100 bg-white p-1 shadow-xl ring-1 ring-black/5 duration-100">
                   <div className="custom-scrollbar max-h-60 overflow-y-auto">
                     {dorms.map((dorm) => (
                       <button
@@ -211,7 +211,7 @@ export default function TenantContainer() {
                   className="fixed inset-0 z-40 cursor-default"
                   onClick={() => setIsFilterOpen(false)}
                 />
-                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+6px)] right-0 z-50 w-full min-w-[180px] rounded-xl border border-gray-100 bg-white p-1 ring-1 ring-black/5 duration-100 md:right-auto md:left-0">
+                <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+6px)] right-0 z-50 w-full min-w-45 rounded-xl border border-gray-100 bg-white p-1 ring-1 ring-black/5 duration-100 md:right-auto md:left-0">
                   {filterOptions.map((option) => (
                     <button
                       key={option.value}

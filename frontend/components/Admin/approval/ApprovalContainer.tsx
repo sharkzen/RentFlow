@@ -137,7 +137,7 @@ export default function ApprovalContainer() {
             </div>
             อนุมัติผู้ประกอบการ
           </h2>
-          <p className="mt-1 pl-[3.25rem] text-sm text-gray-500">
+          <p className="mt-1 pl-13 text-sm text-gray-500">
             จัดการคำขอสมัครสมาชิกและตรวจสอบข้อมูลหอพัก
           </p>
         </div>
@@ -147,14 +147,14 @@ export default function ApprovalContainer() {
           </div>
           <input
             type="text"
-            className="block w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-3 pl-10 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="block w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-3 pl-10 text-sm text-gray-900 duration-300 placeholder:text-gray-400 focus:border-blue-600 focus:outline-none"
             placeholder="ค้นหาชื่อ, อีเมล, เบอร์โทร..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
         {loading ? (
           <div className="flex h-64 items-center justify-center">
             <div className="flex flex-col items-center gap-3">

@@ -17,7 +17,7 @@ export const StatCard = ({
   subText,
 }: StatCardProps) => {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+    <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
       <div className="flex items-start justify-between">
         <div className="z-10">
           <p className="text-sm font-medium text-gray-500">{title}</p>

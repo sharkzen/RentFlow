@@ -34,7 +34,7 @@ export const LandmarkTable = ({
 
   if (data.length === 0) {
     return (
-      <div className="flex w-full flex-col items-center justify-center rounded-xl border border-gray-100 bg-white py-16 text-gray-400 shadow-sm">
+      <div className="flex w-full flex-col items-center justify-center rounded-xl border border-gray-100 bg-white py-16 text-gray-400">
         <MapPinOff className="mb-3 h-12 w-12 opacity-50" />
         <p>ไม่พบข้อมูลสถานที่</p>
       </div>

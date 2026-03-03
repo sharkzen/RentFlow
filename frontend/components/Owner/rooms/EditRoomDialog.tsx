@@ -167,7 +167,6 @@ export default function EditRoomDialog({
     formState: { errors, isSubmitting },
   } = useForm<EditFormData>();
 
-  console.log(room);
   const isOccupied = room?.status === RoomStatus.OCCUPIED;
 
   const typeOptions = [

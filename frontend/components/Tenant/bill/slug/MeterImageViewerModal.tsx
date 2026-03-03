@@ -95,7 +95,6 @@ export default function MeterImageViewerModal({
               <X size={20} />
             </button>
           </div>
-
           <div className="flex-1 overflow-y-auto p-6">
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               <div className="rounded-2xl border border-amber-100 bg-amber-50/30 p-5">
@@ -121,7 +120,6 @@ export default function MeterImageViewerModal({
                   </div>
                 </div>
               </div>
-
               <div className="rounded-2xl border border-blue-100 bg-blue-50/30 p-5">
                 <div className="mb-4 flex items-center gap-2 text-blue-600">
                   <Droplets size={20} fill="currentColor" />
@@ -149,7 +147,6 @@ export default function MeterImageViewerModal({
           </div>
         </div>
       </div>
-
       {fullScreenImage && (
         <div
           className="animate-in fade-in fixed inset-0 z-[110] flex items-center justify-center bg-black/95 p-4"

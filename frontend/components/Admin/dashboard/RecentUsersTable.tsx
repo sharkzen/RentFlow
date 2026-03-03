@@ -35,7 +35,7 @@ export const RecentUsersTable = ({ users }: RecentUsersTableProps) => {
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
       <div className="flex items-center justify-between border-b border-gray-50 px-6 py-5">
         <h3 className="font-bold text-gray-800">ผู้ใช้งานล่าสุด</h3>
         <span className="text-xs text-gray-400">5 รายการล่าสุด</span>

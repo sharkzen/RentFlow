@@ -166,6 +166,12 @@ export const AuthController = {
         });
       }
 
+      if (error.message === "EMAIL_NOT_FOUND") {
+        return reply.status(404).send({
+          message: "EMAIL_NOT_FOUND",
+        });
+      }
+
       return reply.status(500).send({
         message: "INTERNAL_SERVER_ERROR",
       });

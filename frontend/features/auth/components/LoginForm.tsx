@@ -46,6 +46,7 @@ export default function LoginForm() {
 
     if (Object.keys(newErrors).length === 0) {
       const errorMessages: Record<string, string> = {
+        EMAIL_NOT_FOUND: "อีเมลไม่ถูกต้อง",
         INVALID_EMAIL_OR_PASSWORD: "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
         DATA_ARE_NOT_VALID: "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
         UNAUTHORIZED: "ไม่มีสิทธิ์เข้าใช้งาน",

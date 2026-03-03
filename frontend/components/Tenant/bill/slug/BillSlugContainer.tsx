@@ -243,7 +243,6 @@ export default function BillSlugContainer() {
           </div>
           ย้อนกลับ
         </button>
-
         <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:items-center">
           <div className="order-3 col-span-2 w-full sm:order-1 sm:col-span-1 sm:w-auto">
             <button
@@ -254,7 +253,6 @@ export default function BillSlugContainer() {
               รูปมิเตอร์
             </button>
           </div>
-
           <div className="order-1 col-span-1 w-full sm:order-2 sm:col-span-1 sm:w-auto">
             <button
               disabled={printLoading || isCancelled}
@@ -265,19 +263,16 @@ export default function BillSlugContainer() {
               <span className="truncate">พิมพ์ / PDF</span>
             </button>
           </div>
-
           <div className="order-2 col-span-1 w-full sm:order-3 sm:col-span-1 sm:w-auto">
             {renderPaymentButton()}
           </div>
         </div>
       </div>
-
       <div className="flex w-full flex-col">
         <div className="w-full overflow-auto px-4">
           <InvoiceVoucher ref={componentRef} data={bill} />
         </div>
       </div>
-
       {isPayModalOpen && (
         <PaymentModal
           isOpen={isPayModalOpen}

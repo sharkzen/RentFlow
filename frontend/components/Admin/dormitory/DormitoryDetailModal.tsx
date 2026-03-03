@@ -117,12 +117,12 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex sm:items-center sm:justify-center sm:p-4">
       <div
         className="fixed inset-0 bg-black/60 transition-opacity"
         onClick={onClose}
       />
-      <div className="animate-in fade-in zoom-in-95 relative flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-xl bg-white shadow-xl duration-200">
+      <div className="animate-in fade-in zoom-in-95 relative flex h-screen w-full max-w-6xl flex-col overflow-hidden bg-white shadow-xl duration-200 sm:rounded-xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <div>
             <h2 className="line-clamp-1 text-xl font-bold text-gray-900">

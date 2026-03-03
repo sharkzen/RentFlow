@@ -73,27 +73,13 @@ export default function DashboardContainer() {
           </p>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div>
         <ActionCard
           title="เจ้าของหอพักรออนุมัติ"
           value={data.actionRequired.pendingOwners}
           href="/admin/approvals"
           label="ตรวจสอบทันที"
           variant="warning"
-        />
-        <ActionCard
-          title="หอพักรอตรวจสอบ (Pending)"
-          value={data.actionRequired.pendingDormitories}
-          href="/admin/dormitories"
-          label="ไปที่รายการ"
-          variant="warning"
-        />
-        <ActionCard
-          title="แจ้งซ่อมคงค้าง (Open)"
-          value={data.actionRequired.openMaintenance}
-          href="#"
-          label="ดูภาพรวม"
-          variant="info"
         />
       </div>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

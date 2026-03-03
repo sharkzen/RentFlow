@@ -3,7 +3,7 @@ import { Info } from "lucide-react";
 
 export const SystemInfoCard = () => {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border border-gray-100 bg-white p-6">
       <h3 className="mb-5 flex items-center gap-2 font-bold text-gray-800">
         <div className="rounded-full bg-blue-100 p-1">
           <Info className="h-4 w-4 text-blue-600" />

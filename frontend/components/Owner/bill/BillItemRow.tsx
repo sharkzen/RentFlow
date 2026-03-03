@@ -118,7 +118,6 @@ export default function BillItemRow({
                   className="h-7 w-7 cursor-pointer rounded border border-blue-200 object-cover transition-transform hover:scale-110"
                   alt="water"
                 />
-
                 <button
                   type="button"
                   onClick={() => setImageToDelete("WATER")}
@@ -175,7 +174,6 @@ export default function BillItemRow({
           </div>
         </div>
       </div>
-
       <div className="col-span-1 rounded-lg border border-amber-100 bg-amber-50/30 p-3 lg:col-span-4">
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
@@ -191,7 +189,6 @@ export default function BillItemRow({
                   className="h-7 w-7 cursor-pointer rounded border border-amber-200 object-cover transition-transform hover:scale-110"
                   alt="electric"
                 />
-
                 <button
                   type="button"
                   onClick={() => setImageToDelete("ELECTRIC")}
@@ -260,7 +257,6 @@ export default function BillItemRow({
           <Trash2 size={20} />
         </button>
       </div>
-
       <ConfirmDialog
         isOpen={imageToDelete !== null}
         onClose={() => setImageToDelete(null)}
