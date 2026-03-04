@@ -132,4 +132,12 @@ export const BillService = {
 
     return res.data;
   },
+
+  sendBillEmails: async (billIds: string[]) => {
+    const res = await axios.post(`/api/bills/send-emails`, {
+      billIds,
+    });
+
+    return res.data;
+  },
 };

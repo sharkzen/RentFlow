@@ -721,22 +721,22 @@ export const TenantController = {
       const result = await tenantService.cancelMaintenance(user.sub, requestId);
       return reply.status(200).send(result);
     } catch (error: any) {
-      console.error(error);
+      request.log.error(error);
 
       if (error.message === "Maintenance request not found or not authorized") {
         return reply.status(404).send({
-          message: error.message,
+          message: "ไม่พบรายการแจ้งซ่อม หรือคุณไม่มีสิทธิ์ลบรายการนี้",
         });
       }
 
       if (error.message === "Cannot cancel request that is not OPEN") {
         return reply.status(400).send({
-          message: error.message,
+          message: "ไม่สามารถยกเลิกได้ เนื่องจากเจ้าหน้าที่รับเรื่องไปแล้ว",
         });
       }
 
       return reply.status(500).send({
-        message: "Internal Server Error",
+        message: "เกิดข้อผิดพลาดภายในระบบ ไม่สามารถลบรายการได้",
       });
     }
   },

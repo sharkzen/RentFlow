@@ -35,10 +35,12 @@ export default function SendBillModal({
   onSendBills,
 }: SendBillModalProps) {
   const [selectedBillIds, setSelectedBillIds] = useState<string[]>([]);
+  const neverNotifiedBills = bills.filter((b) => !b.lastNotifiedAt);
+  const neverNotifiedIds = neverNotifiedBills.map((b) => b.id);
 
   useEffect(() => {
     if (isOpen && bills.length > 0) {
-      setSelectedBillIds(bills.map((b) => b.id));
+      setSelectedBillIds(neverNotifiedIds);
     } else {
       setSelectedBillIds([]);
     }
@@ -46,14 +48,15 @@ export default function SendBillModal({
 
   if (!isOpen) return null;
 
-  const isAllSelected =
-    bills.length > 0 && selectedBillIds.length === bills.length;
+  const isAllNeverNotifiedSelected =
+    neverNotifiedIds.length > 0 &&
+    neverNotifiedIds.every((id) => selectedBillIds.includes(id));
 
   const handleToggleSelectAll = () => {
-    if (isAllSelected) {
+    if (isAllNeverNotifiedSelected) {
       setSelectedBillIds([]);
     } else {
-      setSelectedBillIds(bills.map((b) => b.id));
+      setSelectedBillIds(neverNotifiedIds);
     }
   };
 
@@ -89,7 +92,7 @@ export default function SendBillModal({
   };
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex bg-slate-900/50 sm:items-center sm:justify-center sm:p-4 sm:p-6 lg:p-8">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex bg-slate-900/50 sm:items-center sm:justify-center sm:p-6 lg:p-8">
       <div className="animate-in zoom-in-95 flex h-screen w-full max-w-6xl flex-col overflow-hidden bg-white shadow-2xl sm:h-[95vh] sm:rounded-2xl">
         <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
@@ -101,7 +104,8 @@ export default function SendBillModal({
                 ส่งแจ้งเตือนชำระเงิน
               </h2>
               <p className="hidden text-sm text-slate-500 sm:block">
-                รายการที่สามารถส่งแจ้งเตือนได้ (รอดำเนินการ / เกินกำหนด)
+                เลือกรายการบิลเพื่อส่งอีเมลแจ้งเตือน
+                (บิลที่เคยส่งแล้วจะไม่ถูกเลือกอัตโนมัติ)
               </p>
             </div>
           </div>
@@ -112,18 +116,22 @@ export default function SendBillModal({
             <X size={20} />
           </button>
         </div>
-
         <div className="flex shrink-0 flex-col justify-between gap-3 border-b border-slate-50 bg-slate-50/50 px-4 py-3 sm:flex-row sm:items-center sm:px-6">
           <button
             onClick={handleToggleSelectAll}
             className="flex w-fit items-center gap-2 text-sm font-semibold text-slate-700 transition-colors hover:text-blue-600"
           >
-            {isAllSelected ? (
+            {isAllNeverNotifiedSelected ? (
               <CheckSquare size={18} className="text-blue-600" />
             ) : (
               <Square size={18} className="text-slate-400" />
             )}
-            เลือกทั้งหมด ({selectedBillIds.length}/{bills.length})
+            เลือกเฉพาะที่ยังไม่เคยส่ง (
+            {
+              selectedBillIds.filter((id) => neverNotifiedIds.includes(id))
+                .length
+            }
+            /{neverNotifiedIds.length})
           </button>
           <div className="self-end text-sm font-medium text-slate-500 sm:self-auto">
             ยอดรวมที่เลือก:{" "}
@@ -132,7 +140,6 @@ export default function SendBillModal({
             </span>
           </div>
         </div>
-
         <div className="flex-1 overflow-auto bg-slate-50/30">
           {bills.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center py-10 text-slate-400">
@@ -157,16 +164,16 @@ export default function SendBillModal({
                   ส่งล่าสุด
                 </div>
               </div>
-
               <div className="mt-2 flex flex-col gap-2">
                 {bills.map((bill) => {
                   const isSelected = selectedBillIds.includes(bill.id);
                   const isOverdue = bill.status === "OVERDUE";
+                  const hasBeenNotified = !!bill.lastNotifiedAt;
 
                   return (
                     <label
                       key={bill.id}
-                      className={`group grid cursor-pointer grid-cols-12 items-center gap-4 rounded-xl border px-4 py-3 transition-all hover:border-blue-300 hover:bg-blue-50/50 ${isSelected ? "border-blue-400 bg-blue-50/30 shadow-sm" : "border-slate-200 bg-white"} ${isOverdue && !isSelected ? "border-red-200 bg-red-50/20" : ""}`}
+                      className={`group grid cursor-pointer grid-cols-12 items-center gap-4 rounded-xl border px-4 py-3 transition-all hover:border-blue-300 hover:bg-blue-50/50 ${isSelected ? "border-blue-400 bg-blue-50/30 shadow-sm" : "border-slate-200 bg-white"} ${isOverdue && !isSelected ? "border-red-200 bg-red-50/20" : ""} ${hasBeenNotified && !isSelected ? "opacity-80" : ""}`}
                     >
                       <div className="col-span-1 flex items-center justify-center">
                         <input
@@ -176,11 +183,9 @@ export default function SendBillModal({
                           className="h-4 w-4 cursor-pointer rounded border-slate-300 text-blue-600 transition-all focus:ring-blue-500"
                         />
                       </div>
-
                       <div className="col-span-2 flex items-center font-bold text-slate-800">
                         {bill.roomNumberSnapshot}
                       </div>
-
                       <div className="col-span-3 flex items-center gap-2 text-sm text-slate-600">
                         <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
                           <User size={12} />
@@ -189,11 +194,9 @@ export default function SendBillModal({
                           {bill.tenantNameSnapshot}
                         </span>
                       </div>
-
                       <div className="col-span-2 flex items-center justify-end font-semibold text-blue-600">
                         ฿{bill.total.toLocaleString()}
                       </div>
-
                       <div className="col-span-2 flex items-center justify-center">
                         {isOverdue ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-bold text-red-700">
@@ -206,7 +209,6 @@ export default function SendBillModal({
                           </span>
                         )}
                       </div>
-
                       <div className="col-span-2 flex items-center justify-end">
                         {bill.lastNotifiedAt ? (
                           <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50/80 px-2.5 py-1 text-[11px] font-medium text-blue-600">
@@ -226,7 +228,6 @@ export default function SendBillModal({
             </div>
           )}
         </div>
-
         <div className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 bg-white px-4 py-4 sm:justify-end sm:px-6">
           <button
             onClick={onClose}

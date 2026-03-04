@@ -3,6 +3,7 @@ import { UserDecodedDto } from "../auth/dto/user.dto";
 import { generateSignedUrl } from "@/services/r2Client";
 import { MaintenanceStatus } from "@prisma/client";
 import { createActivityLog } from "@/services/activity-log.service";
+import { decrypt } from "@/utils/encryption";
 
 export const maintenanceService = {
   getMaintenance: async (
@@ -143,8 +144,16 @@ export const maintenanceService = {
           })),
         );
 
+        const decryptedTenant = request.tenant
+          ? {
+              ...request.tenant,
+              phone: decrypt(request.tenant.phone),
+            }
+          : null;
+
         return {
           ...request,
+          tenant: decryptedTenant,
           images: imagesWithUrls,
         };
       }),

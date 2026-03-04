@@ -22,7 +22,7 @@ emailQueue.process(async (job) => {
   try {
     const { type, to, senderName, replyTo, data } = job.data;
 
-    console.log(`   📨 Sending email to: ${to}`);
+    console.log(`   📨 Sending email [${type}] to: ${to}`);
 
     const { subject, html } = getEmailTemplate(type, data);
 

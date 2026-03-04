@@ -13,6 +13,7 @@ export async function billRoute(app: FastifyInstance) {
       "preHandler",
       authRoleMiddleware([Role.OWNER, Role.ADMIN]),
     );
+    routeRoles.post("/send-emails", BillController.sendBillEmails);
     routeRoles.get("/:dormId", BillController.getBills);
     routeRoles.post("/", BillController.createBills);
     routeRoles.patch("/:billId/status", BillController.updateStatus);

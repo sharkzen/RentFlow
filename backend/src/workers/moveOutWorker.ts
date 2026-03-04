@@ -1,5 +1,4 @@
 import { Worker, Queue } from "bullmq";
-import { PrismaClient } from "@prisma/client";
 import { redisConnection } from "@/lib/redis";
 import logger from "@/utils/logger";
 import prisma from "@/lib/prisma";

@@ -152,7 +152,7 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
       {/* Contact */}
       <div className="border-t border-slate-100 bg-white px-6 py-5">
         <p className="mb-1 text-xs font-semibold tracking-wider text-slate-400 uppercase">
-          ติดต่อเจ้าของ
+          ติดต่อห้องพัก
         </p>
         <p className="mb-4 text-base font-bold text-slate-900">
           {owner.fullName}

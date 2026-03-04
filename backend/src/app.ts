@@ -17,9 +17,7 @@ export async function buildApp() {
     logger: true,
   });
 
-  console.log("🚀 Pre-warming PDF Browser...");
   await getBrowserInstance();
-  console.log("✅ PDF Browser is ready!");
 
   app.register(fastifyStatic, {
     root: path.join(__dirname, "../public"),

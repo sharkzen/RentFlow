@@ -514,4 +514,33 @@ export const BillController = {
       });
     }
   },
+
+  sendBillEmails: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+
+      const { billIds } = request.body as {
+        billIds: string[];
+      };
+
+      if (!billIds || !Array.isArray(billIds) || billIds.length === 0) {
+        return reply.status(400).send({
+          message: "BILL_IDS_REQUIRED",
+        });
+      }
+
+      const result = await billService.sendBillEmails({
+        sub: user.sub,
+        billIds,
+      });
+
+      return reply.send(result);
+    } catch (error: any) {
+      logger.error(error);
+
+      return reply.status(500).send({
+        message: error.message,
+      });
+    }
+  },
 };

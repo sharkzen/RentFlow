@@ -1332,4 +1332,168 @@ export const billService = {
     await deleteFile(objectKey);
     return true;
   },
+
+  sendBillEmails: async ({
+    sub,
+    billIds,
+  }: {
+    sub: string;
+    billIds: string[];
+  }) => {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: sub,
+      },
+    });
+
+    if (!owner) {
+      logger.error(`[Service]  ไม่พบข้อมูล Owner (userId: ${sub})`);
+      throw new Error("OWNER_NOT_FOUND");
+    }
+
+    const bills = await prisma.bill.findMany({
+      where: {
+        id: {
+          in: billIds,
+        },
+
+        room: {
+          dormitory: {
+            ownerId: owner.id,
+          },
+        },
+      },
+
+      include: {
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+
+        tenant: true,
+        items: true,
+      },
+    });
+
+    if (bills.length === 0)
+      return {
+        success: true,
+        count: 0,
+      };
+
+    let queuedCount = 0;
+
+    for (const bill of bills) {
+      if (!bill.tenant?.email) continue;
+
+      const dueDateTH = new Date(bill.dueDate).toLocaleDateString("th-TH", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+
+      let daysLate = 0;
+
+      if (bill.status === "OVERDUE") {
+        const today = new Date();
+        const due = new Date(bill.dueDate);
+        const diff = Math.floor(
+          (today.getTime() - due.getTime()) / (1000 * 60 * 60 * 24),
+        );
+        daysLate = diff > 0 ? diff : 0;
+      }
+
+      const emailData = {
+        type: EmailType.NEW_BILL,
+        to: bill.tenant.email,
+        senderName: bill.room.dormitory.name,
+
+        data: {
+          dormName: bill.room.dormitory.name,
+          ownerPhone: owner.phone || "-",
+          billId: bill.id.substring(0, 8).toUpperCase(),
+          currentDate: new Date().toLocaleDateString("th-TH"),
+          tenantName: bill.tenantNameSnapshot,
+          roomNumber: bill.roomNumberSnapshot,
+
+          month: new Date(bill.billingMonth).toLocaleDateString("th-TH", {
+            month: "long",
+            year: "numeric",
+          }),
+
+          dueDate: dueDateTH,
+
+          amount: bill.total.toLocaleString("th-TH", {
+            minimumFractionDigits: 2,
+          }),
+
+          link: `${process.env.FRONTEND_URL}/tenant/bills/${bill.id}`,
+          status: bill.status,
+          daysLate: daysLate,
+
+          details: {
+            rent: bill.roomPriceSnapshot.toLocaleString("th-TH", {
+              minimumFractionDigits: 2,
+            }),
+
+            water: {
+              prev: bill.prevWaterUnitSnapshot,
+              curr: bill.currentWaterUnitSnapshot,
+              used: bill.waterUsedSnapshot,
+              unitPrice: bill.waterRateSnapshot,
+
+              total: bill.waterFeeSnapshot.toLocaleString("th-TH", {
+                minimumFractionDigits: 2,
+              }),
+            },
+
+            electric: {
+              prev: bill.prevElectricUnitSnapshot,
+              curr: bill.currentElectricUnitSnapshot,
+              used: bill.electricUsedSnapshot,
+              unitPrice: bill.electricRateSnapshot,
+
+              total: bill.electricFeeSnapshot.toLocaleString("th-TH", {
+                minimumFractionDigits: 2,
+              }),
+            },
+
+            commonFee: bill.commonFeeSnapshot.toLocaleString("th-TH", {
+              minimumFractionDigits: 2,
+            }),
+
+            commonFeeRaw: bill.commonFeeSnapshot,
+            lateFee: bill.lateFeeSnapshot,
+            items: bill.items || [],
+          },
+        },
+      };
+
+      try {
+        await emailQueue.add(emailData);
+        queuedCount++;
+
+        await prisma.bill.update({
+          where: {
+            id: bill.id,
+          },
+
+          data: {
+            lastNotifiedAt: new Date(),
+          },
+        });
+      } catch (queueErr) {
+        logger.error(
+          `[Service] ❌ เกิดข้อผิดพลาดตอนโยนเข้า Queue (บิล ${bill.id}): ${queueErr}`,
+        );
+      }
+    }
+
+    return {
+      success: true,
+      count: queuedCount,
+      message: `เตรียมส่งอีเมลสำเร็จ ${queuedCount} รายการ`,
+    };
+  },
 };

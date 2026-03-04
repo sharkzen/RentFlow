@@ -99,12 +99,12 @@ export default function MaintenanceTable({
       setSelectedItem(null);
 
       if (onChangeFilterStatus) {
-        if (pendingAction.status === "IN_PROGRESS") {
-          onChangeFilterStatus("IN_PROGRESS");
-        } else if (pendingAction.status === "COMPLETED") {
-          onChangeFilterStatus("COMPLETED");
-        } else if (pendingAction.status === "CANCELLED") {
-          onChangeFilterStatus("CANCELLED");
+        if (
+          ["IN_PROGRESS", "COMPLETED", "CANCELLED"].includes(
+            pendingAction.status,
+          )
+        ) {
+          onChangeFilterStatus(pendingAction.status as MaintenanceFilterStatus);
         } else {
           onRefresh?.();
         }
@@ -166,26 +166,7 @@ export default function MaintenanceTable({
   if (loading) {
     return (
       <div className="flex h-[60vh] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
-        <div className="text-center text-gray-500">
-          <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin text-indigo-600" />
-          กำลังโหลดรายการแจ้งซ่อม...
-        </div>
-      </div>
-    );
-  }
-
-  if (!data || data.length === 0) {
-    return (
-      <div className="flex h-[60vh] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
-        <div className="text-center text-gray-400">
-          <FileSearch className="mx-auto mb-2 h-10 w-10 opacity-50" />
-          <h3 className="text-base font-semibold text-gray-900">
-            ไม่พบรายการแจ้งซ่อม
-          </h3>
-          <p className="mt-1 text-sm">
-            ลองปรับตัวกรองหรือคำค้นหาดูใหม่อีกครั้ง
-          </p>
-        </div>
+        <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
       </div>
     );
   }
@@ -215,19 +196,8 @@ export default function MaintenanceTable({
                   <div>
                     <MaintenanceStatusBadge status={item.status} />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
-                        <span className="text-xs font-bold">
-                          {item.room.roomNumber}
-                        </span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-gray-500">
-                          ชั้น {item.room.floor}
-                        </span>
-                      </div>
-                    </div>
+                  <div className="font-bold text-slate-700">
+                    {item.room.roomNumber}
                   </div>
                   <div className="min-w-0 pr-4">
                     <div className="truncate text-sm font-medium text-gray-900">
@@ -236,33 +206,14 @@ export default function MaintenanceTable({
                     <div className="truncate text-xs text-gray-500">
                       {item.description}
                     </div>
-                    {item.images.length > 0 && (
-                      <div className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-indigo-600">
-                        <FileImage size={14} />
-                        <span>{item.images.length}รูปภาพ</span>
-                      </div>
-                    )}
                   </div>
-                  <div className="flex flex-col">
-                    <span className="truncate text-sm font-medium text-gray-900">
-                      {item.tenant.firstName} {item.tenant.lastName}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {item.tenant.phone || "-"}
-                    </span>
+                  <div className="text-sm">
+                    {item.tenant.firstName} {item.tenant.lastName}
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <Calendar size={14} className="text-gray-400" />
-                    {item.createdAt
-                      ? new Date(item.createdAt).toLocaleDateString("th-TH", {
-                          year: "2-digit",
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "-"}
+                  <div className="text-xs text-gray-500">
+                    {new Date(item.createdAt).toLocaleDateString("th-TH")}
                   </div>
+
                   <div
                     className="flex items-center justify-end gap-1"
                     onClick={(e) => e.stopPropagation()}
@@ -271,39 +222,21 @@ export default function MaintenanceTable({
                       <>
                         <button
                           onClick={(e) => initiateAction(e, item.id, "ACCEPT")}
-                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-green-50 text-green-600 transition-colors hover:bg-green-100 hover:text-green-700 hover:shadow-sm"
-                          title="รับเรื่อง"
+                          className="rounded-full p-2 text-green-600 hover:bg-green-50"
                         >
                           <CheckCircle2 size={16} />
                         </button>
                         <button
                           onClick={(e) => initiateAction(e, item.id, "CANCEL")}
-                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-red-50 text-red-600 transition-colors hover:bg-red-100 hover:text-red-700 hover:shadow-sm"
-                          title="ยกเลิก"
+                          className="rounded-full p-2 text-red-600 hover:bg-red-50"
                         >
                           <XCircle size={16} />
                         </button>
-                        <div className="mx-1 h-4 w-px bg-gray-200"></div>
-                      </>
-                    )}
-                    {item.status === "IN_PROGRESS" && (
-                      <>
-                        <button
-                          onClick={(e) =>
-                            initiateAction(e, item.id, "COMPLETE")
-                          }
-                          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-colors hover:bg-blue-100 hover:text-blue-700 hover:shadow-sm"
-                          title="ปิดงานซ่อม"
-                        >
-                          <Check size={16} />
-                        </button>
-                        <div className="mx-1 h-4 w-px bg-gray-200"></div>
                       </>
                     )}
                     <button
                       onClick={() => setSelectedItem(item)}
-                      className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-all hover:bg-gray-100 hover:text-indigo-600"
-                      title="ดูรายละเอียด"
+                      className="p-2 text-gray-400 hover:text-indigo-600"
                     >
                       <Eye size={16} />
                     </button>
@@ -314,6 +247,7 @@ export default function MaintenanceTable({
           </div>
         </div>
       </div>
+
       {selectedItem && (
         <MaintenanceDetailDialog
           isOpen={!!selectedItem}
@@ -324,12 +258,12 @@ export default function MaintenanceTable({
 
             if (status === "IN_PROGRESS") actionType = "ACCEPT";
             else if (status === "CANCELLED") actionType = "CANCEL";
-            else if (status === "COMPLETED") actionType = "COMPLETE";
 
             initiateAction(null, id, actionType);
           }}
         />
       )}
+
       <ConfirmDialog
         isOpen={!!pendingAction}
         onClose={() => setPendingAction(null)}

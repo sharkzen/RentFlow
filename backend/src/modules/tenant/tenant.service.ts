@@ -961,8 +961,9 @@ export const tenantService = {
     }
 
     const skip = (page - 1) * limit;
+    const today = new Date();
 
-    const [items, total, totalPendingAgg] = await Promise.all([
+    const [rawItems, total] = await Promise.all([
       prisma.bill.findMany({
         where,
         skip,
@@ -979,20 +980,64 @@ export const tenantService = {
       prisma.bill.count({
         where,
       }),
-      prisma.bill.aggregate({
-        where: {
-          tenantId: tenant.id,
-
-          status: {
-            in: ["PENDING", "OVERDUE"],
-          },
-        },
-
-        _sum: {
-          total: true,
-        },
-      }),
     ]);
+
+    let items = rawItems.map((bill) => {
+      let currentStatus = bill.status;
+      let currentTotal = bill.total;
+
+      if (bill.status === "PENDING" && today > new Date(bill.dueDate)) {
+        currentStatus = "OVERDUE" as any;
+        currentTotal = bill.total + (bill.lateFeeSnapshot || 0);
+      }
+
+      return {
+        ...bill,
+        status: currentStatus,
+        total: currentTotal,
+      };
+    });
+
+    items.sort((a, b) => {
+      const priority: Record<string, number> = {
+        OVERDUE: 1,
+        WAITING_FOR_VERIFICATION: 2,
+        PENDING: 3,
+        PAID: 4,
+        CANCELLED: 5,
+      };
+
+      const scoreA = priority[a.status] || 99;
+      const scoreB = priority[b.status] || 99;
+
+      if (scoreA !== scoreB) {
+        return scoreA - scoreB;
+      }
+
+      return (
+        new Date(b.billingMonth).getTime() - new Date(a.billingMonth).getTime()
+      );
+    });
+
+    const allPendingBills = await prisma.bill.findMany({
+      where: {
+        tenantId: tenant.id,
+
+        status: {
+          in: ["PENDING", "OVERDUE"],
+        },
+      },
+    });
+
+    const totalPending = allPendingBills.reduce((sum, bill) => {
+      let billAmount = bill.total;
+
+      if (bill.status === "PENDING" && today > new Date(bill.dueDate)) {
+        billAmount += bill.lateFeeSnapshot || 0;
+      }
+
+      return sum + billAmount;
+    }, 0);
 
     return {
       items,
@@ -1002,7 +1047,7 @@ export const tenantService = {
       totalPages: Math.ceil(total / limit),
 
       summary: {
-        totalPending: totalPendingAgg._sum.total || 0,
+        totalPending: totalPending,
       },
     };
   },
@@ -1831,6 +1876,7 @@ export const tenantService = {
     const tenant = await prisma.tenantProfile.findFirst({
       where: {
         userId,
+        isActive: true,
       },
     });
 
@@ -1840,6 +1886,10 @@ export const tenantService = {
       where: {
         id: requestId,
         tenantId: tenant.id,
+      },
+
+      include: {
+        images: true,
       },
     });
 
@@ -1851,26 +1901,22 @@ export const tenantService = {
       throw new Error("Cannot cancel request that is not OPEN");
     }
 
-    const attachedFiles = await prisma.file.findMany({
-      where: {
-        maintenanceId: requestId,
-      },
-    });
-
-    await Promise.all(
-      attachedFiles.map(async (file) => {
+    if (maintenanceRequest.images.length > 0) {
+      const deletePromises = maintenanceRequest.images.map((file) => {
         if (file.objectKey) {
-          try {
-            await deleteFile(file.objectKey);
-          } catch (err) {
-            console.error(
-              `Failed to delete file from S3: ${file.objectKey}`,
+          return deleteFile(file.objectKey).catch((err) => {
+            logger.error(
+              `❌ Failed to delete file from R2: ${file.objectKey}`,
               err,
             );
-          }
+          });
         }
-      }),
-    );
+
+        return Promise.resolve();
+      });
+
+      await Promise.all(deletePromises);
+    }
 
     await prisma.$transaction([
       prisma.file.deleteMany({
@@ -1890,10 +1936,16 @@ export const tenantService = {
       action: "CANCEL_MAINTENANCE",
       entityType: "MaintenanceRequest",
       entityId: requestId,
+
+      metadata: {
+        title: maintenanceRequest.title,
+        roomNumber: maintenanceRequest.roomId,
+      },
     });
 
     return {
-      message: "Maintenance request cancelled successfully",
+      success: true,
+      message: "ลบรายการแจ้งซ่อมและรูปภาพประกอบเรียบร้อยแล้ว",
     };
   },
 

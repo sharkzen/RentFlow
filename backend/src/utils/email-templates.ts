@@ -101,7 +101,63 @@ const wrapEmail = (title: string, contentHtml: string) => {
 
 export const getEmailTemplate = (type: EmailType, data: any) => {
   switch (type) {
-    case EmailType.NEW_BILL:
+    case EmailType.NEW_BILL: {
+      const formatMoney = (amount: number) =>
+        Number(amount).toLocaleString("th-TH", {
+          minimumFractionDigits: 2,
+        });
+
+      const chargeItems =
+        data.details.items?.filter((item: any) => item.type === "CHARGE") || [];
+      const discountItems =
+        data.details.items?.filter((item: any) => item.type === "DISCOUNT") ||
+        [];
+
+      const lateFeeHtml =
+        data.status === "OVERDUE" && Number(data.details.lateFee) > 0
+          ? `
+        <tr>
+          <td style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border};">
+            <div style="font-weight: 700; color: ${THEME.danger};">ค่าปรับล่าช้า</div>
+            ${data.daysLate > 0 ? `<div style="font-size: 12px; color: ${THEME.muted}; margin-top: 4px;">(ค้างชำระ ${data.daysLate} วัน)</div>` : ""}
+          </td>
+          <td align="center" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; color: ${THEME.muted};">-</td>
+          <td align="right" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; color: ${THEME.muted};">-</td>
+          <td align="right" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; font-weight: 700; color: ${THEME.danger};">${formatMoney(data.details.lateFee)}</td>
+        </tr>
+      `
+          : "";
+
+      const chargeItemsHtml = chargeItems
+        .map(
+          (item: any) => `
+        <tr>
+          <td style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; font-weight: 700; color: ${THEME.text};">${item.name}</td>
+          <td align="center" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; color: ${THEME.muted};">-</td>
+          <td align="right" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; color: ${THEME.muted};">-</td>
+          <td align="right" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; font-weight: 700; color: ${THEME.text};">${formatMoney(item.amount)}</td>
+        </tr>
+      `,
+        )
+        .join("");
+
+      const discountItemsHtml = discountItems
+        .map(
+          (item: any) => `
+        <tr>
+          <td style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border};">
+            <div style="font-weight: 700; color: ${THEME.danger};">
+              ${item.name} <span style="margin-left: 8px; font-size: 11px; color: #ef4444;">(ส่วนลด/หักลบ)</span>
+            </div>
+          </td>
+          <td align="center" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; color: ${THEME.muted};">-</td>
+          <td align="right" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; color: ${THEME.muted};">-</td>
+          <td align="right" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; font-weight: 700; color: ${THEME.danger};">-${formatMoney(item.amount)}</td>
+        </tr>
+      `,
+        )
+        .join("");
+
       return {
         subject: getSubject(
           `🧾 บิลค่าเช่าห้อง ${data.roomNumber} ประจำเดือน ${data.month}`,
@@ -229,6 +285,10 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
                     : ""
                 }
 
+                ${lateFeeHtml}
+                ${chargeItemsHtml}
+                ${discountItemsHtml}
+
               </tbody>
             </table>
           </div>
@@ -268,6 +328,7 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
           ),
         ),
       };
+    }
     case EmailType.PAYMENT_RECEIVED: {
       const isAuto = data.isAutoVerified;
       const statusColor = isAuto ? THEME.success : THEME.warning;

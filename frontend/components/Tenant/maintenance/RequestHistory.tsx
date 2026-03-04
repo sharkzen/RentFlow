@@ -99,15 +99,32 @@ export default function RequestHistory({
   };
 
   const handleDelete = async (id: string) => {
-    try {
-      await TenantService.cancelMaintenance(id);
-      toast.success("ยกเลิกรายการแจ้งซ่อมแล้ว");
+    const deletePromise = TenantService.cancelMaintenance(id).then((res) => {
       onRefreshNeeded();
       setSelectedRequest(null);
-    } catch (error) {
-      handleError(error);
-      throw error;
-    }
+      return res;
+    });
+
+    toast.promise(deletePromise, {
+      pending: "กำลังดำเนินการยกเลิกรายการแจ้งซ่อม...",
+      success: "ยกเลิกรายการแจ้งซ่อมเรียบร้อยแล้ว",
+
+      error: {
+        render({ data }: { data: any }) {
+          const errorMsg = data?.response?.data?.message;
+
+          if (errorMsg === "Maintenance request not found or not authorized") {
+            return "ไม่พบรายการแจ้งซ่อม หรือคุณไม่มีสิทธิ์ลบรายการนี้";
+          }
+
+          if (errorMsg === "Cannot cancel request that is not OPEN") {
+            return "ไม่สามารถยกเลิกได้ เนื่องจากเจ้าหน้าที่รับเรื่องไปแล้ว";
+          }
+
+          return errorMsg || "เกิดข้อผิดพลาดในการลบรายการ กรุณาลองใหม่อีกครั้ง";
+        },
+      },
+    });
   };
 
   if (loading && requests.length === 0) {

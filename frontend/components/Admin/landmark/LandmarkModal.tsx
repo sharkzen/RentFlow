@@ -114,7 +114,6 @@ export const LandmarkModal = ({
               }
             />
           </div>
-
           <div className="space-y-1.5" ref={dropdownRef}>
             <label className="text-sm font-semibold text-gray-700">
               ประเภท <span className="text-red-500">*</span>
@@ -130,7 +129,6 @@ export const LandmarkModal = ({
                   className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                 />
               </button>
-
               {isDropdownOpen && (
                 <div className="absolute top-full left-0 z-[110] mt-1 w-full overflow-hidden rounded-lg border border-gray-100 bg-white shadow-lg">
                   <div className="border-b border-gray-50 bg-white p-2">
@@ -146,7 +144,6 @@ export const LandmarkModal = ({
                       />
                     </div>
                   </div>
-
                   <div className="max-h-48 space-y-1 overflow-y-auto p-1">
                     {filteredTypes.length > 0 ? (
                       filteredTypes.map((t) => (
@@ -180,7 +177,6 @@ export const LandmarkModal = ({
               )}
             </div>
           </div>
-
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-gray-700">
               ลิงก์ Google Maps <span className="text-red-500">*</span>

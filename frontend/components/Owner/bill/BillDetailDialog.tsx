@@ -119,7 +119,7 @@ export default function BillDetailDialog({
         isOpen: true,
         action: "UPDATE_STATUS",
         targetStatus: "PAID",
-        title: hasSlip ? "ยืนยันการชำระเงิน" : "ยืนยันการรับเงินสด",
+        title: hasSlip ? "ยืนยันการชำระเงิน" : "ยืนยันการชำระเงิน?",
         description: hasSlip
           ? "ตรวจสอบยอดเงินและหลักฐานถูกต้องแล้วใช่หรือไม่?"
           : "บิลนี้ไม่มีหลักฐานการโอนแนบมา คุณได้รับ 'เงินสด' และต้องการยืนยันสถานะเป็นชำระแล้ว ใช่หรือไม่?",

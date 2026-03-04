@@ -246,7 +246,6 @@ export default function DormFilter() {
               }}
             />
           </div>
-
           <div
             ref={dropdownRef}
             className="group relative flex flex-1 flex-col justify-center px-6 py-3 transition-colors md:border-r md:border-slate-100"
@@ -267,7 +266,6 @@ export default function DormFilter() {
                   className={`text-slate-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                 />
               </button>
-
               {isDropdownOpen && (
                 <div className="absolute top-full left-0 z-[100] mt-3 w-full min-w-[240px] overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl md:-left-4 md:w-[120%]">
                   <div className="border-b border-slate-100 bg-slate-50 p-2">
@@ -283,7 +281,6 @@ export default function DormFilter() {
                       />
                     </div>
                   </div>
-
                   <div className="max-h-56 overflow-y-auto p-1">
                     <button
                       type="button"
@@ -324,7 +321,6 @@ export default function DormFilter() {
               )}
             </div>
           </div>
-
           <div className="group relative flex flex-[1.3] flex-col justify-center px-6 py-3 transition-colors">
             <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
               <Banknote size={14} className="text-emerald-500" />

@@ -236,42 +236,42 @@ export default function BillContainer() {
       });
   };
 
-  const mockBills: BillSummary[] = [
-    {
-      id: "b1",
-      roomId: "r1",
-      roomNumberSnapshot: "101",
-      tenantNameSnapshot: "สมชาย ใจดี",
-      total: 4500,
-      status: "PENDING",
-    },
-    {
-      id: "b2",
-      roomId: "r2",
-      roomNumberSnapshot: "102",
-      tenantNameSnapshot: "สมหญิง รักเรียน",
-      total: 4800,
-      status: "PENDING",
-    },
-    {
-      id: "b3",
-      roomId: "r3",
-      roomNumberSnapshot: "103",
-      tenantNameSnapshot: "มานะ ขยัน",
-      total: 4200,
-      status: "PENDING",
-    },
-  ];
+  const ERROR_MESSAGES: Record<string, string> = {
+    BILL_IDS_REQUIRED: "กรุณาเลือกรายการบิลอย่างน้อย 1 รายการ",
+    OWNER_NOT_FOUND: "ไม่พบข้อมูลสิทธิ์การจัดการหอพักของคุณ",
+    "Network Error":
+      "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต",
+  };
 
   const handleSendBills = async (selectedIds: string[]) => {
-    try {
-      toast.success(`ส่งแจ้งเตือนจำนวน ${selectedIds.length} รายการสำเร็จ`);
-      setIsSendDialogOpen(false);
-      fetchBills();
-    } catch (err) {
-      toast.error("เกิดข้อผิดพลาดในการส่งแจ้งเตือน");
-      log.error(err);
-    }
+    if (!selectedIds || selectedIds.length === 0) return;
+
+    const sendEmailPromise = BillService.sendBillEmails(selectedIds).then(
+      (res) => {
+        setIsSendDialogOpen(false);
+        fetchBills();
+        return res;
+      },
+    );
+
+    toast.promise(sendEmailPromise, {
+      pending: "กำลังดำเนินการส่งอีเมลแจ้งเตือน...",
+      success: `ส่งแจ้งเตือนจำนวน ${selectedIds.length} รายการสำเร็จ`,
+
+      error: {
+        render({ data }: { data: any }) {
+          const errorCode =
+            data?.response?.data?.message || data?.message || "UNKNOWN_ERROR";
+          const thaiMessage =
+            ERROR_MESSAGES[errorCode] ||
+            (errorCode !== "UNKNOWN_ERROR"
+              ? errorCode
+              : "เกิดข้อผิดพลาดในการประมวลผล");
+          console.error("Send Email Error Details:", data);
+          return `แจ้งเตือน: ${thaiMessage}`;
+        },
+      },
+    });
   };
 
   return (
@@ -293,8 +293,9 @@ export default function BillContainer() {
           />
           <button
             type="button"
+            disabled={sendableBills.length === 0}
             onClick={() => setIsSendDialogOpen(true)}
-            className="flex cursor-pointer items-center gap-2 rounded-lg border border-blue-200 bg-white px-6 py-2.5 text-sm font-medium text-blue-700 shadow-xs transition-all hover:border-blue-300 hover:bg-blue-50 active:scale-95"
+            className={`flex items-center gap-2 rounded-lg border px-6 py-2.5 text-sm font-medium shadow-xs transition-all active:scale-95 ${loading || sendableBills.length === 0 ? "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-400 opacity-50" : "cursor-pointer border-blue-200 bg-white text-blue-700 hover:border-blue-300 hover:bg-blue-50"}`}
           >
             <Send size={18} />
             <span>ส่งบิลแจ้งลูกบ้าน</span>
