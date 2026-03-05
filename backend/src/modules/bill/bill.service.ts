@@ -22,6 +22,7 @@ import { UserDecodedDto } from "../auth/dto/user.dto";
 import { createActivityLog } from "@/services/activity-log.service";
 import sharp from "sharp";
 import { moveTempFileToPermanent } from "@/services/r2Client";
+import { formatDateTH } from "@/utils/date";
 
 export const billService = {
   getBills: async ({
@@ -1387,12 +1388,6 @@ export const billService = {
     for (const bill of bills) {
       if (!bill.tenant?.email) continue;
 
-      const dueDateTH = new Date(bill.dueDate).toLocaleDateString("th-TH", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-
       let daysLate = 0;
 
       if (bill.status === "OVERDUE") {
@@ -1413,16 +1408,11 @@ export const billService = {
           dormName: bill.room.dormitory.name,
           ownerPhone: owner.phone || "-",
           billId: bill.id.substring(0, 8).toUpperCase(),
-          currentDate: new Date().toLocaleDateString("th-TH"),
+          currentDate: formatDateTH(new Date()),
           tenantName: bill.tenantNameSnapshot,
           roomNumber: bill.roomNumberSnapshot,
-
-          month: new Date(bill.billingMonth).toLocaleDateString("th-TH", {
-            month: "long",
-            year: "numeric",
-          }),
-
-          dueDate: dueDateTH,
+          month: formatDateTH(bill.billingMonth),
+          dueDate: formatDateTH(bill.dueDate),
 
           amount: bill.total.toLocaleString("th-TH", {
             minimumFractionDigits: 2,
@@ -1485,7 +1475,7 @@ export const billService = {
         });
       } catch (queueErr) {
         logger.error(
-          `[Service] ❌ เกิดข้อผิดพลาดตอนโยนเข้า Queue (บิล ${bill.id}): ${queueErr}`,
+          `[Service]เกิดข้อผิดพลาดตอนโยนเข้า Queue (บิล ${bill.id}): ${queueErr}`,
         );
       }
     }

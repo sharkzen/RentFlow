@@ -33,3 +33,35 @@ export interface CreateMaintenanceParams {
     file: Buffer;
   }>;
 }
+
+export interface GetTenantDormParams {
+  dormId: string;
+  sub: string;
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}
+
+export interface GetBillsParams {
+  userId: string;
+  page?: number;
+  limit?: number;
+  month?: string;
+  year?: string;
+  status?: string;
+}
+
+export interface GetMaintenanceParams {
+  page: number;
+  limit: number;
+  status?: string;
+  search?: string;
+}
+
+export interface UpdateMaintenanceData {
+  title?: string;
+  description?: string;
+  images?: any[];
+  deletedImageIds?: string | string[];
+}

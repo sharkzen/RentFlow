@@ -133,7 +133,6 @@ export default function MaintenanceDetailModal({
               <X size={24} />
             </button>
           </div>
-
           <div className="custom-scrollbar flex-1 overflow-y-auto bg-white px-5 py-6 sm:px-8">
             {isEditing ? (
               <form id="edit-form" onSubmit={handleSave} className="space-y-6">
@@ -184,7 +183,6 @@ export default function MaintenanceDetailModal({
                     </p>
                   </div>
                 </div>
-
                 {(existingImages.length > 0 || newFiles.length > 0) && (
                   <div className="grid grid-cols-4 gap-3">
                     {existingImages.map((img) => (
@@ -287,7 +285,6 @@ export default function MaintenanceDetailModal({
               </div>
             )}
           </div>
-
           <div className="shrink-0 border-t border-slate-100 bg-white p-5 sm:px-8">
             {!isEditing && (
               <div className="flex w-full items-center justify-between gap-3">
@@ -316,7 +313,6 @@ export default function MaintenanceDetailModal({
                 )}
               </div>
             )}
-
             {isEditing && (
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button
@@ -342,7 +338,6 @@ export default function MaintenanceDetailModal({
           </div>
         </div>
       </div>
-
       {selectedImage && (
         <div
           className="fixed inset-0 z-60 flex items-center justify-center bg-black/90 p-4"
@@ -358,7 +353,6 @@ export default function MaintenanceDetailModal({
           />
         </div>
       )}
-
       <ConfirmDialog
         isOpen={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}

@@ -46,7 +46,7 @@ export default function MoveOutDialog({
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100"
+            className="cursor-pointer rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100"
             disabled={isLoading}
           >
             <X size={20} />

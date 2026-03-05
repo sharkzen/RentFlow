@@ -390,10 +390,7 @@ export default function EditTenantDialog({
               onClick={onClose}
               className="group cursor-pointer rounded-full bg-gray-50 p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 active:scale-95"
             >
-              <X
-                size={20}
-                className="transition-transform group-hover:rotate-90"
-              />
+              <X size={20} />
             </button>
           </div>
         </div>

@@ -3,78 +3,38 @@ import generatePayload from "promptpay-qr";
 import QRCode from "qrcode";
 import { hashPassword } from "@/modules/auth/lib/password";
 import { encrypt, decrypt } from "@/utils/encryption";
-
 import {
-  RoomStatus,
-  UserRole,
-  Status,
   BillStatus,
   MaintenanceStatus,
   PaymentStatus,
   FileCategory,
 } from "@prisma/client";
 
-import puppeteer, { Browser } from "puppeteer";
-
 import {
   buildBillHtmlTemplate,
   createPdfFromHtml,
-  formatDate,
-  formatLongDate,
-  formatMoney,
   formatThaiDateTime,
   getCachedStamps,
   matchAccount,
 } from "./lib/tenant.lib";
 
-import path from "path";
-import fs from "fs";
 import { slipOkService } from "@/services/slipok.service";
 import { uuidv4 } from "zod";
 import { deleteFile, generateSignedUrl, uploadFile } from "@/services/r2Client";
-import { env } from "@/config/env";
 import logger from "@/utils/logger";
+
 import {
   CreateMaintenanceParams,
-  SlipApiErrorResponse,
-  VerifiedPaymentData,
+  GetBillsParams,
+  GetMaintenanceParams,
+  GetTenantDormParams,
+  UpdateMaintenanceData,
 } from "./dto/tenant.dto";
+
 import { emailQueue } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import { randomUUID } from "crypto";
 import { createActivityLog } from "@/services/activity-log.service";
-
-interface GetTenantDormParams {
-  dormId: string;
-  sub: string;
-  page?: number;
-  limit?: number;
-  search?: string;
-  status?: string;
-}
-
-interface GetBillsParams {
-  userId: string;
-  page?: number;
-  limit?: number;
-  month?: string;
-  year?: string;
-  status?: string;
-}
-
-interface GetMaintenanceParams {
-  page: number;
-  limit: number;
-  status?: string;
-  search?: string;
-}
-
-interface UpdateMaintenanceData {
-  title?: string;
-  description?: string;
-  images?: any[];
-  deletedImageIds?: string | string[];
-}
 
 export const tenantService = {
   getTenantDorm: async ({
@@ -139,18 +99,6 @@ export const tenantService = {
           },
         },
         {
-          phone: {
-            contains: search,
-            mode: "insensitive",
-          },
-        },
-        {
-          idCard: {
-            contains: search,
-            mode: "insensitive",
-          },
-        },
-        {
           email: {
             contains: search,
             mode: "insensitive",
@@ -175,7 +123,7 @@ export const tenantService = {
       ];
     }
 
-    const [items, total] = await Promise.all([
+    const [rawItems, total] = await Promise.all([
       prisma.tenantProfile.findMany({
         where,
         skip,
@@ -205,6 +153,12 @@ export const tenantService = {
         where,
       }),
     ]);
+
+    const items = rawItems.map((item) => ({
+      ...item,
+      phone: decrypt(item.phone),
+      idCard: decrypt(item.idCard),
+    }));
 
     return {
       items,

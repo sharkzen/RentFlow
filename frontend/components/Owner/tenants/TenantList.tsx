@@ -89,7 +89,7 @@ export default function TenantList({
 
   if (isLoading) {
     return (
-      <div className="flex h-[60vh] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex h-[60vh] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
         <div
           className={`grid ${gridTemplate} gap-4 border-b border-gray-200 bg-gray-50 px-6 py-4`}
         >
@@ -152,7 +152,7 @@ export default function TenantList({
           onSuccess={onEditSuccess!}
         />
       )}
-      <div className="flex h-[60vh] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex h-[60vh] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
         <div
           className={`grid ${gridTemplate} shrink-0 items-center gap-4 border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-semibold tracking-wider text-gray-500 uppercase sm:px-6 sm:py-4`}
         >
@@ -217,7 +217,7 @@ export default function TenantList({
                 <div className="text-right">
                   <button
                     onClick={(e) => handleEditClick(e, tenant.id)}
-                    className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white p-2 text-gray-700 shadow-sm transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95 sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1.5"
+                    className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-gray-200 bg-white p-2 text-gray-700 transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95 sm:w-auto sm:gap-1.5 sm:px-3 sm:py-1.5"
                     title="แก้ไขข้อมูล"
                   >
                     <Pencil size={14} />

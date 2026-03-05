@@ -20,7 +20,7 @@ async function main() {
   });
 
   if (existingAdmin) {
-    logger.info(`Admin user '${adminEmail}' already exists. Skipping.`);
+    logger.info(`Admin user already exists.`);
   } else {
     const hashedPassword = await hashPassword(adminPassword);
 

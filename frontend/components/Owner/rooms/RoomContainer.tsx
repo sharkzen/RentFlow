@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { RoomService } from "@/features/room/services/room.service";
@@ -8,6 +8,7 @@ import CreateRoomWithDialog from "./CreateRoomWithDialog";
 import RoomCard from "./RoomCard";
 import RoomFilters from "./RoomFilters";
 import log from "@/lib/logger";
+import { useOnClickOutside } from "usehooks-ts";
 
 export default function RoomContainer() {
   const [open, setOpen] = useState(false);
@@ -16,6 +17,10 @@ export default function RoomContainer() {
   const [floorFilter, setFloorFilter] = useState("");
   const [selectedDormId, setSelectedDormId] = useState<string>("ALL");
   const [page, setPage] = useState(1);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  useOnClickOutside(menuRef as React.RefObject<HTMLDivElement>, () =>
+    setOpen(false),
+  );
 
   const [meta, setMeta] = useState({
     total: 0,
@@ -113,7 +118,7 @@ export default function RoomContainer() {
             </button>
             {open && (
               <div className="absolute top-full right-0 z-50 mt-2 max-h-60 w-full overflow-hidden overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5">
-                <div className="space-y-1 p-1">
+                <div ref={menuRef} className="space-y-1 p-1">
                   <button
                     onClick={() => {
                       setSelectedDormId("ALL");

@@ -375,7 +375,6 @@ export default function MaintenanceDetailDialog({
           </div>
         </div>
       </div>
-
       {selectedImageUrl && (
         <div
           className="animate-in fade-in fixed inset-0 z-[100] flex items-center justify-center bg-black/90 duration-300"
@@ -399,7 +398,6 @@ export default function MaintenanceDetailDialog({
           </div>
         </div>
       )}
-
       <ConfirmDialog
         isOpen={confirmConfig.isOpen}
         onClose={() =>

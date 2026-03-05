@@ -213,7 +213,6 @@ export default function MaintenanceTable({
                   <div className="text-xs text-gray-500">
                     {new Date(item.createdAt).toLocaleDateString("th-TH")}
                   </div>
-
                   <div
                     className="flex items-center justify-end gap-1"
                     onClick={(e) => e.stopPropagation()}
@@ -247,7 +246,6 @@ export default function MaintenanceTable({
           </div>
         </div>
       </div>
-
       {selectedItem && (
         <MaintenanceDetailDialog
           isOpen={!!selectedItem}
@@ -263,7 +261,6 @@ export default function MaintenanceTable({
           }}
         />
       )}
-
       <ConfirmDialog
         isOpen={!!pendingAction}
         onClose={() => setPendingAction(null)}

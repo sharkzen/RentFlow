@@ -277,10 +277,7 @@ export default function AddTenantDialog({
             onClick={onClose}
             className="group cursor-pointer rounded-full bg-gray-50 p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 active:scale-95"
           >
-            <X
-              size={20}
-              className="transition-transform group-hover:rotate-90"
-            />
+            <X size={20} />
           </button>
         </div>
         <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto bg-gray-50/30 p-2">
