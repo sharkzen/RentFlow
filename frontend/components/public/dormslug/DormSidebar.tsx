@@ -64,7 +64,7 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
                 </span>
               ) : (
                 <span className="flex items-center justify-end gap-1.5 text-lg font-bold text-rose-600">
-                  <XCircle size={20} /> เต็ม
+                  <XCircle size={20} /> ไม่ว่าง
                 </span>
               )}
             </div>

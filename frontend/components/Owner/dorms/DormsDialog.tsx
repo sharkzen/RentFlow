@@ -295,11 +295,14 @@ export default function DormsDialog({
                       ค่าไฟ (บาท/หน่วย)
                     </Label>
                     <Input
-                      min={0}
                       type="number"
+                      min={0}
                       value={formData.electricRate}
                       onChange={(e) =>
-                        updateField("electricRate", parseFloat(e.target.value))
+                        updateField(
+                          "electricRate",
+                          Math.max(0, Number(e.target.value) || 0),
+                        )
                       }
                     />
                   </div>
@@ -312,7 +315,10 @@ export default function DormsDialog({
                       type="number"
                       value={formData.waterRate}
                       onChange={(e) =>
-                        updateField("waterRate", parseFloat(e.target.value))
+                        updateField(
+                          "waterRate",
+                          Math.max(0, Number(e.target.value) || 0),
+                        )
                       }
                     />
                   </div>
@@ -322,7 +328,10 @@ export default function DormsDialog({
                       type="number"
                       value={formData.commonFee}
                       onChange={(e) =>
-                        updateField("commonFee", parseFloat(e.target.value))
+                        updateField(
+                          "commonFee",
+                          Math.max(0, Number(e.target.value) || 0),
+                        )
                       }
                     />
                   </div>

@@ -6,7 +6,7 @@
     "db:backup": "powershell -Command \"if (!(Test-Path backups)) { New-Item backups -ItemType Directory } ; Get-ChildItem backups\\rentflow_*.backup -ErrorAction SilentlyContinue | Remove-Item -Force ; $ts = Get-Date -Format yyyyMMdd_HHmmss ; docker exec rentflow-postgres pg_dump -U rentflow -F c -f /tmp/rentflow_$ts.backup rentflow ; docker cp rentflow-postgres:/tmp/rentflow_$ts.backup backups/rentflow_$ts.backup\"",
     "db:restore": "powershell -Command \"$f = Get-ChildItem backups\\rentflow_*.backup | Sort-Object LastWriteTime -Descending | Select-Object -First 1 ; docker cp $f.FullName rentflow-postgres:/tmp/rentflow.backup ; docker exec rentflow-postgres pg_restore -U rentflow -d rentflow --clean --if-exists /tmp/rentflow.backup\"",
     "backup:all": "npm run db:backup",
-    "restore:all": "npm run minio:restore",
+    "restore:all": "npm run db:restore",
     "clean:comments": "npx jscodeshift -t ./scripts/remove-all-comments.js frontend/app frontend/components frontend/features frontend/lib frontend/hooks frontend/context frontend/middlewares backend/src --extensions=js,jsx,ts,tsx --parser=tsx --run-in-band --ignore-pattern \"**/.next/**\" --ignore-pattern \"**/node_modules/**\" --ignore-pattern \"**/public/**\" --ignore-pattern \"**/prisma/**\"",
     "clean:all": "npm run clean:comments && prettier --write frontend/app frontend/components frontend/features frontend/lib frontend/hooks frontend/context frontend/middlewares backend/src"
   },

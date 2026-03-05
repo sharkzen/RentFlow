@@ -29,7 +29,7 @@ export default function Dormitory({ dorms, total = 0 }: DormitoryProps) {
   return (
     <Element name="dorm-results" className="w-full">
       <div suppressHydrationWarning data-aos="fade-up" className="w-full">
-        <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 px-2 pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-yellow-500" />
@@ -48,7 +48,7 @@ export default function Dormitory({ dorms, total = 0 }: DormitoryProps) {
             </span>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 px-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {dorms.map((dorm) => {
             const coverImage =
               dorm.images?.find((img: any) => img.isCover)?.url ||

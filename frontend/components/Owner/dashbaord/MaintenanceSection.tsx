@@ -38,7 +38,7 @@ const MaintenanceCard = ({ title, value, total, color, icon }: any) => {
   const theme = colors[color] || colors.gray;
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 transition-all hover:shadow-md">
+    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
       <div className="flex items-center justify-between">
         <span className="font-medium text-gray-500">{title}</span>
         <div className={theme.icon}>{icon}</div>
