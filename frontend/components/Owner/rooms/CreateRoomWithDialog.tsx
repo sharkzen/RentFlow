@@ -402,10 +402,10 @@ export default function CreateRoomWithDialog({
         </button>
       </div>
       {isOpen && (
-        <div className="fixed inset-0 z-999 flex items-center justify-center overflow-hidden bg-black/60 p-4 transition-all">
+        <div className="fixed inset-0 z-999 flex overflow-hidden bg-black/60 transition-all sm:items-center sm:justify-center sm:p-4">
           <div
             ref={modalRef}
-            className="relative flex h-[85vh] w-full max-w-5xl flex-col rounded-xl bg-white shadow-2xl"
+            className="relative flex w-full flex-col bg-white sm:h-[85vh] sm:max-w-5xl sm:rounded-xl sm:shadow-2xl"
           >
             <div className="flex flex-col gap-4 border-b border-slate-100 p-6 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>

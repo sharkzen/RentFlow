@@ -80,6 +80,8 @@ export const roomService = {
               name: true,
             },
           },
+
+          tenants: true,
         },
 
         orderBy: [
