@@ -313,7 +313,6 @@ export default function EditRoomDialog({
     <>
       <div className="fixed inset-0 z-999 flex sm:items-center sm:justify-center sm:p-4">
         <div className="fixed inset-0 bg-black/20" onClick={onClose} />
-
         <div
           ref={modalRef}
           onClick={(e) => e.stopPropagation()}
@@ -325,7 +324,6 @@ export default function EditRoomDialog({
           >
             <X className="h-5 w-5" />
           </button>
-
           <div className="border-b border-gray-100 p-5 pr-12">
             <h3 className="text-lg font-bold text-gray-800">
               แก้ไขข้อมูลห้องพัก
@@ -353,7 +351,6 @@ export default function EditRoomDialog({
               )}
             </div>
           </div>
-
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col p-6">
             <div className="flex-1 space-y-5">
               <div className="grid grid-cols-2 gap-4">
@@ -396,7 +393,6 @@ export default function EditRoomDialog({
                   )}
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-gray-600">
@@ -426,7 +422,6 @@ export default function EditRoomDialog({
                   </div>
                 </div>
               </div>
-
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
                   สถานะห้อง
@@ -462,7 +457,6 @@ export default function EditRoomDialog({
                   </div>
                 )}
               </div>
-
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-gray-600">
                   รายละเอียดเพิ่มเติม
@@ -479,7 +473,6 @@ export default function EditRoomDialog({
                 </div>
               </div>
             </div>
-
             <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
               <button
                 type="button"

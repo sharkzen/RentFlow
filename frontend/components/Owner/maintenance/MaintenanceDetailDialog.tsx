@@ -211,7 +211,7 @@ export default function MaintenanceDetailDialog({
             </div>
             <button
               onClick={onClose}
-              className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100"
+              className="cursor-pointer rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100"
             >
               <X size={24} />
             </button>

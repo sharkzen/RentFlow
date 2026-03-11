@@ -102,7 +102,7 @@ export default function RoomContainer() {
           </p>
         </div>
         <div className="flex w-full flex-col justify-between gap-3 sm:flex-row sm:items-center lg:w-auto">
-          <div className="relative w-full sm:w-64">
+          <div ref={menuRef} className="relative w-full sm:w-64">
             <button
               onClick={() => setOpen((v) => !v)}
               className="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
@@ -118,7 +118,7 @@ export default function RoomContainer() {
             </button>
             {open && (
               <div className="absolute top-full right-0 z-50 mt-2 max-h-60 w-full overflow-hidden overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5">
-                <div ref={menuRef} className="space-y-1 p-1">
+                <div className="space-y-1 p-1">
                   <button
                     onClick={() => {
                       setSelectedDormId("ALL");

@@ -60,10 +60,10 @@ function FilterDropdown({
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative w-full" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-10 min-w-35 cursor-pointer items-center justify-between gap-2 rounded-lg border bg-white px-3 text-sm font-medium transition-all hover:bg-gray-50 focus:outline-none ${isOpen ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-200"} ${value !== "ALL" ? "text-blue-600" : "text-gray-700"}`}
+        className={`flex h-10 w-full min-w-35 cursor-pointer items-center justify-between gap-2 rounded-lg border bg-white px-3 text-sm font-medium transition-all hover:bg-gray-50 focus:outline-none ${isOpen ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-200"} ${value !== "ALL" ? "text-blue-600" : "text-gray-700"}`}
       >
         <div className="flex items-center gap-2">
           {icon && <span className="text-gray-400">{icon}</span>}
@@ -172,8 +172,8 @@ export default function RoomFilters({
         )}
       </div>
       <div className="hidden h-8 w-px bg-gray-200 sm:block"></div>
-      <div className="flex flex-wrap gap-2 sm:flex-nowrap">
-        <div className="relative w-24 sm:w-28">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-nowrap">
+        <div className="relative w-full sm:w-28">
           <Layers className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -183,19 +183,25 @@ export default function RoomFilters({
             className="h-10 w-full rounded-lg border border-gray-200 pr-3 pl-9 text-sm transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           />
         </div>
-        <FilterDropdown
-          value={statusFilter}
-          onChange={setStatusFilter}
-          options={statusOptions}
-          placeholder="สถานะ"
-          icon={<Filter className="h-4 w-4" />}
-        />
-        <FilterDropdown
-          value={typeFilter}
-          onChange={setTypeFilter}
-          options={typeOptions}
-          placeholder="ประเภท"
-        />
+
+        <div className="w-full sm:w-auto">
+          <FilterDropdown
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={statusOptions}
+            placeholder="สถานะ"
+            icon={<Filter className="h-4 w-4" />}
+          />
+        </div>
+
+        <div className="col-span-2 w-full sm:col-span-1 sm:w-auto">
+          <FilterDropdown
+            value={typeFilter}
+            onChange={setTypeFilter}
+            options={typeOptions}
+            placeholder="ประเภท"
+          />
+        </div>
       </div>
     </div>
   );

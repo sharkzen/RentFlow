@@ -219,15 +219,13 @@ export default function RequestHistory({
           </button>
         </div>
       )}
-      {selectedRequest && (
-        <MaintenanceDetailModal
-          isOpen={!!selectedRequest}
-          onClose={() => setSelectedRequest(null)}
-          request={selectedRequest}
-          onSaveEdit={handleUpdate}
-          onDelete={handleDelete}
-        />
-      )}
+      <MaintenanceDetailModal
+        isOpen={!!selectedRequest}
+        onClose={() => setSelectedRequest(null)}
+        request={selectedRequest}
+        onSaveEdit={handleUpdate}
+        onDelete={handleDelete}
+      />
     </>
   );
 }

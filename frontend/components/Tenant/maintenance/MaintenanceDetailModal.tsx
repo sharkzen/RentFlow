@@ -353,16 +353,18 @@ export default function MaintenanceDetailModal({
           />
         </div>
       )}
-      <ConfirmDialog
-        isOpen={isDeleteConfirmOpen}
-        onClose={() => setIsDeleteConfirmOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title="ยกเลิกรายการแจ้งซ่อม?"
-        description="คุณแน่ใจหรือไม่ที่จะยกเลิกและลบรายการแจ้งซ่อมนี้? ข้อมูลและรูปภาพจะถูกลบออกจากระบบทันที"
-        type="error"
-        confirmText="ยืนยันยกเลิก"
-        isLoading={actionLoading}
-      />
+      {isDeleteConfirmOpen && (
+        <ConfirmDialog
+          isOpen={isDeleteConfirmOpen}
+          onClose={() => setIsDeleteConfirmOpen(false)}
+          onConfirm={handleConfirmDelete}
+          title="ยกเลิกรายการแจ้งซ่อม?"
+          description="คุณแน่ใจหรือไม่ที่จะยกเลิกและลบรายการแจ้งซ่อมนี้? ข้อมูลและรูปภาพจะถูกลบออกจากระบบทันที"
+          type="error"
+          confirmText="ยืนยันยกเลิก"
+          isLoading={actionLoading}
+        />
+      )}
     </>
   );
 }
