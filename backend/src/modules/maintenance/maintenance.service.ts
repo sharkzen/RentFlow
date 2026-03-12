@@ -4,6 +4,8 @@ import { generateSignedUrl } from "@/services/r2Client";
 import { MaintenanceStatus } from "@prisma/client";
 import { createActivityLog } from "@/services/activity-log.service";
 import { decrypt } from "@/utils/encryption";
+import { EmailType } from "@/queues/email.types";
+import { emailQueue } from "@/queues/email.queue";
 
 export const maintenanceService = {
   getMaintenance: async (
@@ -174,7 +176,8 @@ export const maintenanceService = {
   updateStatus: async (
     user: UserDecodedDto,
     maintenanceId: string,
-    status: string,
+    status: MaintenanceStatus,
+    note?: string,
   ) => {
     const existingRequest = await prisma.maintenanceRequest.findUnique({
       where: {
@@ -187,16 +190,21 @@ export const maintenanceService = {
             owner: true,
           },
         },
+
+        tenant: {
+          include: {
+            user: true,
+          },
+        },
+
+        room: true,
       },
     });
 
-    if (!existingRequest) {
-      throw new Error("NOT_FOUND");
-    }
+    if (!existingRequest) throw new Error("NOT_FOUND");
 
-    if (existingRequest.dormitory.owner.userId !== user.sub) {
+    if (existingRequest.dormitory.owner.userId !== user.sub)
       throw new Error("FORBIDDEN_ACCESS");
-    }
 
     const updatedRequest = await prisma.maintenanceRequest.update({
       where: {
@@ -204,9 +212,50 @@ export const maintenanceService = {
       },
 
       data: {
-        status: status as MaintenanceStatus,
+        status: status,
+        ownerNote: note || null,
       },
     });
+
+    const tenantEmail = existingRequest.tenant.user.email;
+
+    if (tenantEmail) {
+      let emailType: EmailType | null = null;
+
+      if (status === "IN_PROGRESS")
+        emailType = EmailType.MAINTENANCE_IN_PROGRESS;
+      else if (status === "CANCELLED")
+        emailType = EmailType.MAINTENANCE_CANCELLED;
+      else if (status === "COMPLETED")
+        emailType = EmailType.MAINTENANCE_COMPLETED;
+
+      if (emailType) {
+        try {
+          await emailQueue.add({
+            type: emailType,
+            to: tenantEmail,
+            senderName: existingRequest.dormitory.name,
+
+            data: {
+              dormName: existingRequest.dormitory.name,
+              roomNumber: existingRequest.room.roomNumber,
+              tenantName: existingRequest.tenant.firstName,
+              title: existingRequest.title,
+              note:
+                note ||
+                (status === "COMPLETED"
+                  ? "ดำเนินการซ่อมแซมเรียบร้อยแล้ว"
+                  : "รับเรื่องเรียบร้อยแล้ว"),
+              link: `${process.env.FRONTEND_URL}/tenant/maintenance`,
+            },
+          });
+
+          console.log(`✅ [Email Queue] Added: ${emailType} to ${tenantEmail}`);
+        } catch (err) {
+          console.error("❌ [Email Queue] Error:", err);
+        }
+      }
+    }
 
     await createActivityLog({
       userId: user.sub,
@@ -218,6 +267,7 @@ export const maintenanceService = {
         title: existingRequest.title,
         oldStatus: existingRequest.status,
         newStatus: status,
+        note: note,
       },
     });
 

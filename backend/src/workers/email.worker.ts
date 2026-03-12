@@ -17,7 +17,9 @@ emailQueue.on("error", (err) => {
 });
 
 emailQueue.process(async (job) => {
-  console.log(`⚡ [Worker] Picked up Job ID: ${job.id}`);
+  console.log(
+    `⚡ [Worker] Picked up Job ID: ${job.id} (Type: ${job.data.type})`,
+  );
 
   try {
     const { type, to, senderName, replyTo, data } = job.data;
@@ -31,8 +33,9 @@ emailQueue.process(async (job) => {
     }
 
     const fromAddress = `"${senderName || "RentFlow System"}" <${process.env.MAIL_USER}>`;
+    console.log(` 📧 [Worker] Sending email to: ${to}...`);
 
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: fromAddress,
       to,
       replyTo,
@@ -40,6 +43,7 @@ emailQueue.process(async (job) => {
       html,
     });
 
+    console.log(` ✅ [Worker] Job ${job.id} SENT SUCCESS: ${info.messageId}`);
     return Promise.resolve();
   } catch (error) {
     console.error(`❌ [Worker] Job ${job.id} Failed:`, error);

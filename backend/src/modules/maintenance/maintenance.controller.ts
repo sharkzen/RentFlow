@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { maintenanceService } from "./maintenance.service";
 import logger from "@/utils/logger";
 import { UserDecodedDto } from "../auth/dto/user.dto";
+import { MaintenanceStatus } from "@prisma/client";
 
 interface GetMaintenanceQuery {
   dormId: string;
@@ -69,7 +70,10 @@ export const MaintenanceController = {
   updateStatus: async (
     request: FastifyRequest<{
       Params: MaintenanceParams;
-      Body: UpdateStatusBody;
+      Body: {
+        status: MaintenanceStatus;
+        note?: string;
+      };
     }>,
     reply: FastifyReply,
   ) => {
@@ -77,10 +81,15 @@ export const MaintenanceController = {
 
     const { id } = request.params;
 
-    const { status } = request.body;
+    const { status, note } = request.body;
 
     try {
-      const result = await maintenanceService.updateStatus(user, id, status);
+      const result = await maintenanceService.updateStatus(
+        user,
+        id,
+        status,
+        note,
+      );
       return reply.send(result);
     } catch (error: any) {
       logger.error(error.message);

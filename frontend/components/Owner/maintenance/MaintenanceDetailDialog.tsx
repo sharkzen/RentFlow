@@ -1,6 +1,5 @@
 "use client";
 import {
-  MapPin,
   User,
   Phone,
   Calendar,
@@ -11,8 +10,8 @@ import {
   FileText,
   Building,
   X,
-  UserPlus,
   ZoomIn,
+  MessageSquare,
 } from "lucide-react";
 
 import { MaintenanceRequest, MaintenanceStatus } from "@/features/maintenance";
@@ -26,7 +25,11 @@ interface MaintenanceDetailDialogProps {
   isOpen: boolean;
   onClose: () => void;
   data: MaintenanceRequest | null;
-  onUpdateStatus: (id: string, newStatus: MaintenanceStatus) => void;
+  onUpdateStatus: (
+    id: string,
+    newStatus: MaintenanceStatus,
+    note?: string,
+  ) => void;
   isLoading?: boolean;
 }
 
@@ -40,6 +43,7 @@ export default function MaintenanceDetailDialog({
   const { lock, unlock } = useScrollLock();
 
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [ownerNote, setOwnerNote] = useState("");
 
   const [confirmConfig, setConfirmConfig] = useState<{
     isOpen: boolean;
@@ -47,13 +51,20 @@ export default function MaintenanceDetailDialog({
     title: string;
     description: string;
     type: ConfirmDialogType;
+    inputPlaceholder: string;
   }>({
     isOpen: false,
     newStatus: null,
     title: "",
     description: "",
     type: "warning",
+    inputPlaceholder: "",
   });
+
+  const handleClose = () => {
+    setOwnerNote("");
+    onClose();
+  };
 
   useEffect(() => {
     if (isOpen) lock();
@@ -64,6 +75,8 @@ export default function MaintenanceDetailDialog({
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+
       if (selectedImageUrl) {
         setSelectedImageUrl(null);
       } else if (confirmConfig.isOpen) {
@@ -71,14 +84,14 @@ export default function MaintenanceDetailDialog({
           ...prev,
           isOpen: false,
         }));
-      } else if (isOpen && e.key === "Escape") {
-        onClose();
+      } else if (isOpen) {
+        handleClose();
       }
     };
 
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, [isOpen, onClose, selectedImageUrl, confirmConfig.isOpen]);
+  }, [isOpen, selectedImageUrl, confirmConfig.isOpen]);
 
   if (!isOpen || !data) return null;
 
@@ -92,28 +105,33 @@ export default function MaintenanceDetailDialog({
       case "CANCELLED":
         config = {
           ...config,
-          title: "ยืนยันการยกเลิกรายการ?",
+          title: "ระบุเหตุผลการยกเลิก",
           description:
-            "คุณต้องการยกเลิกรายการแจ้งซ่อมนี้ใช่หรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้",
+            "กรุณาระบุเหตุผลเพื่อให้ผู้เช่าทราบถึงสาเหตุที่ยกเลิกรายการนี้",
           type: "error",
+          inputPlaceholder: "ระบุเหตุผลการยกเลิก...",
         };
 
         break;
       case "IN_PROGRESS":
         config = {
           ...config,
-          title: "เริ่มดำเนินการซ่อม?",
-          description: "ยืนยันการรับเรื่องและเริ่มดำเนินการซ่อมสำหรับรายการนี้",
+          title: "รับเรื่องและเริ่มดำเนินการ",
+          description:
+            "คุณสามารถระบุนัดหมายหรือข้อความแจ้งผู้เช่าได้ที่นี่ (ไม่บังคับ)",
           type: "info",
+          inputPlaceholder: "เช่น ช่างจะเข้าวันเสาร์นี้ตอน 10:00 น. ...",
         };
 
         break;
       case "COMPLETED":
         config = {
           ...config,
-          title: "ยืนยันการปิดงาน?",
-          description: "คุณได้ดำเนินการซ่อมแซมเสร็จสิ้นแล้วใช่หรือไม่?",
+          title: "ยืนยันการปิดงานซ่อม",
+          description: "แจ้งผลการดำเนินการหรือสรุปงานซ่อมให้ผู้เช่าทราบ",
           type: "success",
+          inputPlaceholder:
+            "เช่น ดำเนินการเปลี่ยนก๊อกน้ำใหม่ให้เรียบร้อยแล้ว...",
         };
 
         break;
@@ -124,12 +142,14 @@ export default function MaintenanceDetailDialog({
 
   const handleConfirmUpdate = () => {
     if (confirmConfig.newStatus && data) {
-      onUpdateStatus(data.id, confirmConfig.newStatus);
+      onUpdateStatus(data.id, confirmConfig.newStatus, ownerNote);
 
       setConfirmConfig((prev) => ({
         ...prev,
         isOpen: false,
       }));
+
+      setOwnerNote("");
     }
   };
 
@@ -190,9 +210,9 @@ export default function MaintenanceDetailDialog({
       <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-6">
         <div
           className="fixed inset-0 bg-black/60 transition-opacity duration-300"
-          onClick={onClose}
+          onClick={handleClose}
         />
-        <div className="animate-in fade-in zoom-in-95 relative flex max-h-screen w-full max-w-3xl flex-col overflow-hidden bg-white ring-1 ring-gray-900/5 duration-200 sm:max-h-[90vh] sm:rounded-2xl">
+        <div className="animate-in fade-in zoom-in-95 relative flex max-h-screen w-full max-w-3xl flex-col overflow-hidden bg-white shadow-2xl ring-1 ring-gray-900/5 duration-200 sm:max-h-[90vh] sm:rounded-2xl">
           <div className="flex items-start justify-between border-b border-gray-100 bg-white px-6 py-5 sm:px-8">
             <div>
               <div className="flex items-center gap-3">
@@ -210,12 +230,13 @@ export default function MaintenanceDetailDialog({
               </h3>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="cursor-pointer rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100"
             >
               <X size={24} />
             </button>
           </div>
+
           <div className="custom-scrollbar flex-1 overflow-y-auto bg-white px-6 py-6 sm:px-8">
             <div className="flex flex-col gap-8">
               <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-5">
@@ -240,12 +261,6 @@ export default function MaintenanceDetailDialog({
                         {data.room.roomNumber}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">ชั้น</span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {data.room.floor}
-                      </span>
-                    </div>
                   </div>
                 </div>
                 <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 transition-colors hover:border-indigo-200">
@@ -262,25 +277,13 @@ export default function MaintenanceDetailDialog({
                         {data.tenant.firstName} {data.tenant.lastName}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">
-                        เบอร์โทรศัพท์
-                      </span>
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
-                        <Phone size={14} className="text-gray-400" />{" "}
-                        {data.tenant.phone || "-"}
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
               <div>
                 <div className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900">
                   <ImageIcon size={20} className="text-indigo-600" />{" "}
-                  รูปภาพประกอบ{" "}
-                  <span className="text-sm font-normal text-gray-400">
-                    ({data.images.length})
-                  </span>
+                  รูปภาพประกอบ
                 </div>
                 {data.images.length > 0 ? (
                   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
@@ -303,14 +306,14 @@ export default function MaintenanceDetailDialog({
                   </div>
                 ) : (
                   <div className="flex h-32 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 text-gray-400">
-                    <ImageIcon size={32} className="mb-2 opacity-20" />
+                    <ImageIcon size={32} className="mb-2 opacity-20" />{" "}
                     <span className="text-sm">ไม่มีรูปภาพแนบ</span>
                   </div>
                 )}
               </div>
               <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-gray-100 pt-4 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
-                  <Calendar size={16} />
+                  <Calendar size={16} />{" "}
                   <span>
                     แจ้งเมื่อ:{" "}
                     <span className="font-medium text-gray-700">
@@ -319,7 +322,7 @@ export default function MaintenanceDetailDialog({
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock size={16} />
+                  <Clock size={16} />{" "}
                   <span>
                     อัปเดตล่าสุด:{" "}
                     <span className="font-medium text-gray-700">
@@ -330,10 +333,11 @@ export default function MaintenanceDetailDialog({
               </div>
             </div>
           </div>
+
           <div className="border-t border-gray-100 bg-gray-50/50 px-6 py-5 sm:px-8">
             <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isLoading}
                 className="inline-flex w-full cursor-pointer items-center justify-center rounded-xl border border-gray-300 bg-white px-6 py-2.5 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 active:scale-95 sm:w-auto"
               >
@@ -353,7 +357,7 @@ export default function MaintenanceDetailDialog({
                     <button
                       onClick={() => triggerUpdateStatus("IN_PROGRESS")}
                       disabled={isLoading}
-                      className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-blue-700 active:scale-95 sm:w-auto"
+                      className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-700 active:scale-95 sm:w-auto"
                     >
                       <CheckCircle size={18} />
                       รับเรื่อง / ดำเนินการ
@@ -364,10 +368,10 @@ export default function MaintenanceDetailDialog({
                   <button
                     onClick={() => triggerUpdateStatus("COMPLETED")}
                     disabled={isLoading}
-                    className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-green-700 active:scale-95 sm:w-auto"
+                    className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-green-500/20 transition-all hover:bg-green-700 active:scale-95 sm:w-auto"
                   >
                     <CheckCircle size={18} />
-                    ปิดงานซ่อม
+                    เสร็จสิ้น / ปิดงาน
                   </button>
                 )}
               </div>
@@ -375,6 +379,7 @@ export default function MaintenanceDetailDialog({
           </div>
         </div>
       </div>
+
       {selectedImageUrl && (
         <div
           className="animate-in fade-in fixed inset-0 z-[100] flex items-center justify-center bg-black/90 duration-300"
@@ -398,6 +403,7 @@ export default function MaintenanceDetailDialog({
           </div>
         </div>
       )}
+
       <ConfirmDialog
         isOpen={confirmConfig.isOpen}
         onClose={() =>
@@ -412,6 +418,10 @@ export default function MaintenanceDetailDialog({
         type={confirmConfig.type}
         isLoading={isLoading}
         confirmText="ยืนยันดำเนินการ"
+        showInput={true}
+        inputValue={ownerNote}
+        onInputChange={setOwnerNote}
+        inputPlaceholder={confirmConfig.inputPlaceholder}
       />
     </>
   );

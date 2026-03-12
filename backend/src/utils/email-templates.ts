@@ -722,6 +722,212 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
         ),
       };
     }
+    case EmailType.MAINTENANCE_CREATED: {
+      return {
+        subject: getSubject(
+          `🛠️ แจ้งซ่อมใหม่: ห้อง ${data.roomNumber} - ${data.title}`,
+        ),
+
+        html: minifyHtml(
+          wrapEmail(
+            "แจ้งซ่อมใหม่",
+            `
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td align="center" style="padding-bottom: 32px;">
+              <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                <tr>
+                  <td align="center" bgcolor="${THEME.bg}" style="width: 80px; height: 80px; border-radius: 40px; vertical-align: middle;">
+                    <span style="font-size: 38px; line-height: 80px; display: block;">🛠️</span>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="color: ${THEME.primary}; margin: 24px 0 8px 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">มีการแจ้งซ่อมใหม่</h1>
+              <p style="color: ${THEME.muted}; margin: 0; font-size: 16px;">หอพัก: <strong style="color: ${THEME.primary};">${data.dormName}</strong></p>
+            </td>
+          </tr>
+        </table>
+
+        <div style="background-color: #ffffff; border: 1px solid ${THEME.border}; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); margin-bottom: 32px;">
+          <div style="background-color: ${THEME.primary}; padding: 14px 24px;">
+            <table width="100%">
+              <tr>
+                <td style="color: #ffffff; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">Maintenance Request</td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="padding: 24px; background-color: #ffffff;">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td style="padding-bottom: 16px; width: 100px; color: ${THEME.muted}; font-size: 14px; font-weight: 600;">ห้องพัก:</td>
+                <td style="padding-bottom: 16px; color: ${THEME.primary}; font-weight: 800; font-size: 20px;">${data.roomNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding-bottom: 16px; width: 100px; color: ${THEME.muted}; font-size: 14px; font-weight: 600;">ผู้แจ้ง:</td>
+                <td style="padding-bottom: 16px; color: ${THEME.text}; font-weight: 600;">${data.tenantName}</td>
+              </tr>
+              <tr>
+                <td style="padding-bottom: 16px; width: 100px; color: ${THEME.muted}; font-size: 14px; font-weight: 600;">หัวข้อ:</td>
+                <td style="padding-bottom: 16px; color: ${THEME.text}; font-weight: 700;">${data.title}</td>
+              </tr>
+              <tr>
+                <td valign="top" style="padding-top: 4px; width: 100px; color: ${THEME.muted}; font-size: 14px; font-weight: 600;">รายละเอียด:</td>
+                <td style="color: ${THEME.text}; line-height: 1.6; font-size: 15px; background-color: #f8fafc; padding: 12px; border-radius: 8px;">${data.description}</td>
+              </tr>
+            </table>
+
+            ${
+              data.hasImages
+                ? `
+              <div style="margin-top: 20px; padding: 12px; border: 1px dashed #cbd5e1; border-radius: 8px; text-align: center; background-color: #fffbeb;">
+                <p style="margin: 0; color: #92400e; font-size: 14px; font-weight: 600;">📸 มีรูปภาพประกอบแนบมาในระบบ</p>
+              </div>
+            `
+                : ""
+            }
+          </div>
+        </div>
+
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td align="center">
+              <a href="${data.link}" style="background-color: ${THEME.primary}; color: #ffffff; padding: 18px 48px; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 16px; display: inline-block; box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.3);">
+                ดูรูปภาพและรับเรื่องซ่อม
+              </a>
+              <p style="margin-top: 24px; color: ${THEME.muted}; font-size: 12px;">
+                คลิกปุ่มด้านบนเพื่อตรวจสอบรูปภาพและดำเนินการต่อในระบบ RentFlow
+              </p>
+            </td>
+          </tr>
+        </table>
+        `,
+          ),
+        ),
+      };
+    }
+    case EmailType.MAINTENANCE_IN_PROGRESS: {
+      return {
+        subject: getSubject(
+          `🛠️ รับเรื่องแจ้งซ่อมแล้ว: ${data.title} (ห้อง ${data.roomNumber})`,
+        ),
+
+        html: minifyHtml(
+          wrapEmail(
+            "รับเรื่องแจ้งซ่อม",
+            `
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center" style="padding-bottom: 24px;">
+                  <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                    <tr>
+                      <td align="center" bgcolor="${THEME.successBg}" style="width: 70px; height: 70px; border-radius: 35px; vertical-align: middle;">
+                        <span style="font-size: 32px; line-height: 70px; display: block;">⚙️</span>
+                      </td>
+                    </tr>
+                  </table>
+                  <h2 style="color: ${THEME.primary}; margin: 16px 0 4px 0; font-size: 22px;">เจ้าหน้าที่รับเรื่องแล้ว</h2>
+                  <p style="color: ${THEME.muted}; margin: 0;">หอพัก <strong>${data.dormName}</strong> กำลังดำเนินการแก้ไขให้ท่าน</p>
+                </td>
+              </tr>
+            </table>
+
+            <div style="background-color: #f8fafc; border: 1px solid ${THEME.border}; border-radius: 12px; padding: 24px; margin-bottom: 30px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="padding-bottom: 8px; color: ${THEME.muted}; font-size: 13px; font-weight: 700; text-transform: uppercase;">ข้อความจากเจ้าหน้าที่:</td>
+                </tr>
+                <tr>
+                  <td style="color: ${THEME.primary}; font-size: 16px; font-weight: 600; line-height: 1.6; font-style: italic;">
+                    "${data.note}"
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center">
+                  <a href="${data.link}" style="background-color: ${THEME.primary}; color: #ffffff; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-weight: 700; display: inline-block; box-shadow: 0 4px 10px rgba(15,23,42,0.2);">
+                    ตรวจสอบสถานะปัจจุบัน
+                  </a>
+                </td>
+              </tr>
+            </table>
+            `,
+          ),
+        ),
+      };
+    }
+    case EmailType.MAINTENANCE_COMPLETED: {
+      return {
+        subject: getSubject(`✅ ซ่อมแซมเสร็จสิ้น: ${data.title}`),
+
+        html: minifyHtml(
+          wrapEmail(
+            "ซ่อมแซมเสร็จสิ้น",
+            `
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center" style="padding-bottom: 24px;">
+                  <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                    <tr>
+                      <td align="center" bgcolor="${THEME.successBg}" style="width: 70px; height: 70px; border-radius: 35px; vertical-align: middle;">
+                        <span style="font-size: 32px; line-height: 70px;">✅</span>
+                      </td>
+                    </tr>
+                  </table>
+                  <h2 style="color: ${THEME.success}; margin: 16px 0 4px 0;">ดำเนินการซ่อมเสร็จสิ้น</h2>
+                  <p style="color: ${THEME.muted};">รายการแจ้งซ่อม "<strong>${data.title}</strong>" สำเร็จแล้ว</p>
+                </td>
+              </tr>
+            </table>
+
+            <div style="background-color: #ecfdf5; border: 1px solid #86efac; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+              <p style="margin: 0 0 10px 0; font-size: 13px; font-weight: 700; color: #065f46; text-transform: uppercase;">สรุปการซ่อม:</p>
+              <div style="color: #065f46; font-size: 16px; font-weight: 600; line-height: 1.6;">
+                "${data.note || "ดำเนินการแก้ไขเรียบร้อยแล้ว ขอบคุณที่แจ้งให้ทราบ"}"
+              </div>
+            </div>
+            `,
+          ),
+        ),
+      };
+    }
+    case EmailType.MAINTENANCE_CANCELLED: {
+      return {
+        subject: getSubject(`❌ ยกเลิกรายการแจ้งซ่อม: ${data.title}`),
+
+        html: minifyHtml(
+          wrapEmail(
+            "ยกเลิกการแจ้งซ่อม",
+            `
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center" style="padding-bottom: 24px;">
+                  <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                    <tr>
+                      <td align="center" bgcolor="${THEME.dangerBg}" style="width: 70px; height: 70px; border-radius: 35px; vertical-align: middle;">
+                        <span style="font-size: 32px; line-height: 70px;">🚫</span>
+                      </td>
+                    </tr>
+                  </table>
+                  <h2 style="color: ${THEME.danger}; margin: 16px 0 4px 0;">รายการแจ้งซ่อมถูกยกเลิก</h2>
+                </td>
+              </tr>
+            </table>
+
+            <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px;">
+              <p style="margin: 0 0 10px 0; font-size: 14px; color: #991b1b; font-weight: 700;">สาเหตุ / หมายเหตุ:</p>
+              <div style="color: #991b1b; font-size: 16px; line-height: 1.6;">
+                "${data.note || "ข้อมูลไม่ชัดเจน หรือมีการแจ้งซ้ำ"}"
+              </div>
+            </div>
+            `,
+          ),
+        ),
+      };
+    }
     default:
       throw new Error("Unknown Type");
   }

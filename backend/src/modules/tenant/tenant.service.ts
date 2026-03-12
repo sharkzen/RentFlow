@@ -1528,12 +1528,24 @@ export const tenantService = {
   }: CreateMaintenanceParams) => {
     const tenant = await prisma.tenantProfile.findFirst({
       where: {
-        userId: userId,
+        userId,
         isActive: true,
       },
 
       include: {
-        room: true,
+        room: {
+          include: {
+            dormitory: {
+              include: {
+                owner: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -1593,8 +1605,34 @@ export const tenantService = {
       },
     });
 
+    const ownerEmail = tenant?.room?.dormitory?.owner?.user?.email;
+
+    if (ownerEmail) {
+      const emailData = {
+        type: EmailType.MAINTENANCE_CREATED,
+        to: ownerEmail,
+        senderName: tenant.room.dormitory.name,
+
+        data: {
+          dormName: tenant.room.dormitory.name,
+          roomNumber: tenant.room.roomNumber,
+          tenantName: `${tenant.firstName} ${tenant.lastName}`,
+          title: title,
+          description: description || "-",
+          link: `${process.env.FRONTEND_URL}/owner/maintenance/${request.id}`,
+          hasImages: request.images.length > 0,
+        },
+      };
+
+      try {
+        await emailQueue.add(emailData);
+      } catch (err) {
+        console.error("Failed to queue email:", err);
+      }
+    }
+
     await createActivityLog({
-      userId: userId,
+      userId,
       action: "CREATE_MAINTENANCE",
       entityType: "MaintenanceRequest",
       entityId: request.id,
@@ -1612,11 +1650,12 @@ export const tenantService = {
 
     const tenant = await prisma.tenantProfile.findFirst({
       where: {
-        userId,
+        userId: userId,
+        isActive: true,
       },
     });
 
-    if (!tenant)
+    if (!tenant) {
       return {
         data: [],
 
@@ -1627,6 +1666,7 @@ export const tenantService = {
           totalPages: 0,
         },
       };
+    }
 
     const whereCondition: any = {
       tenantId: tenant.id,

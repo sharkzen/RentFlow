@@ -391,10 +391,13 @@ model MaintenanceRequest {
   title       String
   description String
   status      MaintenanceStatus @default(OPEN)
-  images      File[]            @relation("MaintenanceImages")
-  dormitory   Dormitory         @relation(fields: [dormitoryId], references: [id], onDelete: Restrict)
-  room        Room              @relation(fields: [roomId], references: [id], onDelete: Restrict)
-  tenant      TenantProfile     @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  ownerNote String?
+
+  images    File[]        @relation("MaintenanceImages")
+  dormitory Dormitory     @relation(fields: [dormitoryId], references: [id], onDelete: Restrict)
+  room      Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  tenant    TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

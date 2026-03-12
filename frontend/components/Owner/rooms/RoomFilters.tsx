@@ -183,7 +183,6 @@ export default function RoomFilters({
             className="h-10 w-full rounded-lg border border-gray-200 pr-3 pl-9 text-sm transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           />
         </div>
-
         <div className="w-full sm:w-auto">
           <FilterDropdown
             value={statusFilter}
@@ -193,7 +192,6 @@ export default function RoomFilters({
             icon={<Filter className="h-4 w-4" />}
           />
         </div>
-
         <div className="col-span-2 w-full sm:col-span-1 sm:w-auto">
           <FilterDropdown
             value={typeFilter}

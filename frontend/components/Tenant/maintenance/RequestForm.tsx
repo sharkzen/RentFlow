@@ -1,8 +1,9 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { TenantService } from "@/features/tenant/services/tenant.service";
-import { UploadCloud, X, Loader2, Trash2 } from "lucide-react";
+import { UploadCloud, Loader2, Trash2 } from "lucide-react";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { toast } from "react-toastify";
 
 interface RequestFormProps {
   onSuccess: () => void;
@@ -28,7 +29,10 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
       const selectedFiles = Array.from(e.target.files);
       const availableSlots = 2 - files.length;
 
-      if (availableSlots <= 0) return;
+      if (availableSlots <= 0) {
+        toast.warn("คุณสามารถเลือกรูปภาพได้สูงสุด 2 รูป");
+        return;
+      }
 
       const filesToAdd = selectedFiles.slice(0, availableSlots);
       const newFiles = [...files, ...filesToAdd];
@@ -49,7 +53,10 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
   const handlePreSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      toast.error("กรุณาระบุหัวข้อปัญหา");
+      return;
+    }
 
     setIsConfirmOpen(true);
   };
@@ -67,6 +74,7 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
       });
 
       await TenantService.createMaintenance(formData);
+      toast.success("ส่งข้อมูลแจ้งซ่อมสำเร็จเรียบร้อยแล้ว");
       setTitle("");
       setDescription("");
       previews.forEach((url) => URL.revokeObjectURL(url));
@@ -74,9 +82,22 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
       setPreviews([]);
       setIsConfirmOpen(false);
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
+      const serverMessage = error.response?.data?.message;
+      let errorMessage = "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง";
+
+      if (serverMessage === "Max 2 images allowed") {
+        errorMessage = "อัปโหลดรูปภาพได้สูงสุด 2 รูปเท่านั้น";
+      } else if (serverMessage === "Title is required") {
+        errorMessage = "กรุณาระบุหัวข้อการแจ้งซ่อม";
+      } else if (error.response?.status === 401) {
+        errorMessage = "เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง";
+      } else if (error.response?.status === 413) {
+        errorMessage = "ขนาดไฟล์ใหญ่เกินไป กรุณาลดขนาดไฟล์ภาพ";
+      }
+
+      toast.error(errorMessage);
       setIsConfirmOpen(false);
     } finally {
       setIsSubmitting(false);
