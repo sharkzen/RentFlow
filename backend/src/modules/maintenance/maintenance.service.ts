@@ -6,6 +6,7 @@ import { createActivityLog } from "@/services/activity-log.service";
 import { decrypt } from "@/utils/encryption";
 import { EmailType } from "@/queues/email.types";
 import { emailQueue } from "@/queues/email.queue";
+import logger from "@/utils/logger";
 
 export const maintenanceService = {
   getMaintenance: async (
@@ -221,13 +222,19 @@ export const maintenanceService = {
 
     if (tenantEmail) {
       let emailType: EmailType | null = null;
+      let defaultNote = "";
 
-      if (status === "IN_PROGRESS")
+      if (status === "IN_PROGRESS") {
         emailType = EmailType.MAINTENANCE_IN_PROGRESS;
-      else if (status === "CANCELLED")
+        defaultNote = "รับเรื่องแจ้งซ่อมเรียบร้อยแล้ว";
+      } else if (status === "CANCELLED") {
         emailType = EmailType.MAINTENANCE_CANCELLED;
-      else if (status === "COMPLETED")
+        defaultNote =
+          "ทางหอพักได้ยกเลิกรายการแจ้งซ่อมนี้ (ไม่มีข้อความเพิ่มเติม)";
+      } else if (status === "COMPLETED") {
         emailType = EmailType.MAINTENANCE_COMPLETED;
+        defaultNote = "ดำเนินการซ่อมแซมเรียบร้อยแล้ว";
+      }
 
       if (emailType) {
         try {
@@ -241,18 +248,12 @@ export const maintenanceService = {
               roomNumber: existingRequest.room.roomNumber,
               tenantName: existingRequest.tenant.firstName,
               title: existingRequest.title,
-              note:
-                note ||
-                (status === "COMPLETED"
-                  ? "ดำเนินการซ่อมแซมเรียบร้อยแล้ว"
-                  : "รับเรื่องเรียบร้อยแล้ว"),
+              note: note || defaultNote,
               link: `${process.env.FRONTEND_URL}/tenant/maintenance`,
             },
           });
-
-          console.log(`✅ [Email Queue] Added: ${emailType} to ${tenantEmail}`);
         } catch (err) {
-          console.error("❌ [Email Queue] Error:", err);
+          logger.error(`[Email Queue] Error: ${err}`);
         }
       }
     }

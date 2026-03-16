@@ -37,9 +37,14 @@ export const maintenanceService = {
     return res.data;
   },
 
-  updateStatus: async (id: string, status: MaintenanceStatus) => {
+  updateStatus: async (
+    id: string,
+    status: MaintenanceStatus,
+    note?: string,
+  ) => {
     const res = await axios.patch(`/api/maintenances/${id}/status`, {
       status,
+      note,
     });
 
     return res.data;

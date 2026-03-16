@@ -42,6 +42,7 @@ export default function MaintenanceDetailDialog({
 }: MaintenanceDetailDialogProps) {
   const { lock, unlock } = useScrollLock();
 
+  console.log(data);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [ownerNote, setOwnerNote] = useState("");
 
@@ -236,7 +237,6 @@ export default function MaintenanceDetailDialog({
               <X size={24} />
             </button>
           </div>
-
           <div className="custom-scrollbar flex-1 overflow-y-auto bg-white px-6 py-6 sm:px-8">
             <div className="flex flex-col gap-8">
               <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-5">
@@ -275,6 +275,12 @@ export default function MaintenanceDetailDialog({
                       </span>
                       <span className="text-sm font-medium text-gray-900">
                         {data.tenant.firstName} {data.tenant.lastName}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">เบอร์ติดต่อ</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {data.tenant.phone || "-"}
                       </span>
                     </div>
                   </div>
@@ -333,7 +339,6 @@ export default function MaintenanceDetailDialog({
               </div>
             </div>
           </div>
-
           <div className="border-t border-gray-100 bg-gray-50/50 px-6 py-5 sm:px-8">
             <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
               <button
@@ -379,14 +384,13 @@ export default function MaintenanceDetailDialog({
           </div>
         </div>
       </div>
-
       {selectedImageUrl && (
         <div
-          className="animate-in fade-in fixed inset-0 z-[100] flex items-center justify-center bg-black/90 duration-300"
+          className="animate-in fade-in fixed inset-0 z-100 flex items-center justify-center bg-black/90 duration-300"
           onClick={() => setSelectedImageUrl(null)}
         >
           <button
-            className="absolute top-6 right-6 z-[110] rounded-full bg-white/10 p-3 text-white transition-all hover:rotate-90 hover:bg-white/20 active:scale-90"
+            className="absolute top-6 right-6 z-100 cursor-pointer rounded-full bg-white/10 p-3 text-white transition-all hover:bg-white/20 active:scale-90"
             onClick={() => setSelectedImageUrl(null)}
           >
             <X size={32} />
@@ -403,7 +407,6 @@ export default function MaintenanceDetailDialog({
           </div>
         </div>
       )}
-
       <ConfirmDialog
         isOpen={confirmConfig.isOpen}
         onClose={() =>

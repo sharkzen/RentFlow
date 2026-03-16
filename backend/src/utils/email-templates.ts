@@ -920,7 +920,7 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
             <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px;">
               <p style="margin: 0 0 10px 0; font-size: 14px; color: #991b1b; font-weight: 700;">สาเหตุ / หมายเหตุ:</p>
               <div style="color: #991b1b; font-size: 16px; line-height: 1.6;">
-                "${data.note || "ข้อมูลไม่ชัดเจน หรือมีการแจ้งซ้ำ"}"
+                "${data.note}"
               </div>
             </div>
             `,

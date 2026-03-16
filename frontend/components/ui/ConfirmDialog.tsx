@@ -90,7 +90,6 @@ export default function ConfirmDialog({
         className="fixed inset-0 bg-slate-900/50 transition-opacity"
         onClick={!isLoading ? onClose : undefined}
       />
-
       <div
         className="relative w-full max-w-md scale-100 transform overflow-hidden rounded-2xl bg-white p-6 shadow-2xl transition-all"
         onClick={(e) => e.stopPropagation()}
@@ -111,7 +110,6 @@ export default function ConfirmDialog({
           {description && (
             <p className="mb-4 text-sm text-slate-500">{description}</p>
           )}
-
           {showInput && (
             <div className="mb-6 w-full text-left">
               <textarea
@@ -124,7 +122,6 @@ export default function ConfirmDialog({
               />
             </div>
           )}
-
           <div className="flex w-full gap-3">
             <button
               type="button"

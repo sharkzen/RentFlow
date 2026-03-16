@@ -22,6 +22,7 @@ import { toast } from "react-toastify";
 import { MaintenanceFilterStatus } from "./MaintenanceFilter";
 import log from "@/lib/logger";
 import MaintenanceStatusBadge from "./MaintenanceStatusBadge";
+import { formatThaiDate } from "@/lib/dateFormatter";
 
 interface MaintenanceTableProps {
   data: MaintenanceRequest[];
@@ -34,6 +35,7 @@ type PendingAction = {
   id: string;
   status: MaintenanceStatus;
   type: "ACCEPT" | "CANCEL" | "COMPLETE";
+  note?: string;
 } | null;
 
 export default function MaintenanceTable({
@@ -47,11 +49,13 @@ export default function MaintenanceTable({
   );
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [actionNote, setActionNote] = useState("");
 
   const initiateAction = (
     e: React.MouseEvent | null,
     id: string,
     actionType: "ACCEPT" | "CANCEL" | "COMPLETE",
+    note?: string,
   ) => {
     e?.stopPropagation();
     let nextStatus: MaintenanceStatus;
@@ -64,6 +68,7 @@ export default function MaintenanceTable({
       id,
       status: nextStatus,
       type: actionType,
+      note,
     });
   };
 
@@ -74,7 +79,11 @@ export default function MaintenanceTable({
 
     try {
       await toast.promise(
-        maintenanceService.updateStatus(pendingAction.id, pendingAction.status),
+        maintenanceService.updateStatus(
+          pendingAction.id,
+          pendingAction.status,
+          pendingAction.note || actionNote,
+        ),
         {
           pending: "กำลังบันทึกข้อมูล...",
           success: "อัปเดตสถานะเรียบร้อยแล้ว",
@@ -97,6 +106,7 @@ export default function MaintenanceTable({
 
       setPendingAction(null);
       setSelectedItem(null);
+      setActionNote("");
 
       if (onChangeFilterStatus) {
         if (
@@ -124,6 +134,7 @@ export default function MaintenanceTable({
         title: "",
         desc: "",
         type: "info" as ConfirmDialogType,
+        inputPlaceholder: "",
       };
 
     switch (pendingAction.type) {
@@ -134,6 +145,7 @@ export default function MaintenanceTable({
           type: "info" as ConfirmDialogType,
           confirmText: "รับเรื่อง",
           cancelText: "ยกเลิก",
+          inputPlaceholder: "เช่น ช่างจะเข้าวันเสาร์นี้ตอน 10:00 น. ...",
         };
       case "CANCEL":
         return {
@@ -142,6 +154,7 @@ export default function MaintenanceTable({
           type: "error" as ConfirmDialogType,
           confirmText: "ยืนยันยกเลิก",
           cancelText: "กลับ",
+          inputPlaceholder: "ระบุเหตุผลการยกเลิก...",
         };
       case "COMPLETE":
         return {
@@ -150,12 +163,15 @@ export default function MaintenanceTable({
           type: "success" as ConfirmDialogType,
           confirmText: "ปิดงานซ่อม",
           cancelText: "ยังไม่เสร็จ",
+          inputPlaceholder:
+            "เช่น ดำเนินการเปลี่ยนก๊อกน้ำใหม่ให้เรียบร้อยแล้ว...",
         };
       default:
         return {
           title: "",
           desc: "",
           type: "info" as ConfirmDialogType,
+          inputPlaceholder: "",
         };
     }
   };
@@ -211,7 +227,7 @@ export default function MaintenanceTable({
                     {item.tenant.firstName} {item.tenant.lastName}
                   </div>
                   <div className="text-xs text-gray-500">
-                    {new Date(item.createdAt).toLocaleDateString("th-TH")}
+                    {formatThaiDate(item.createdAt, "short-datetime")}
                   </div>
                   <div
                     className="flex items-center justify-end gap-1"
@@ -221,13 +237,13 @@ export default function MaintenanceTable({
                       <>
                         <button
                           onClick={(e) => initiateAction(e, item.id, "ACCEPT")}
-                          className="rounded-full p-2 text-green-600 hover:bg-green-50"
+                          className="cursor-pointer rounded-full p-2 text-green-600 hover:bg-green-50"
                         >
                           <CheckCircle2 size={16} />
                         </button>
                         <button
                           onClick={(e) => initiateAction(e, item.id, "CANCEL")}
-                          className="rounded-full p-2 text-red-600 hover:bg-red-50"
+                          className="cursor-pointer rounded-full p-2 text-red-600 hover:bg-red-50"
                         >
                           <XCircle size={16} />
                         </button>
@@ -235,7 +251,7 @@ export default function MaintenanceTable({
                     )}
                     <button
                       onClick={() => setSelectedItem(item)}
-                      className="p-2 text-gray-400 hover:text-indigo-600"
+                      className="cursor-pointer p-2 text-gray-400 hover:text-indigo-600"
                     >
                       <Eye size={16} />
                     </button>
@@ -246,24 +262,60 @@ export default function MaintenanceTable({
           </div>
         </div>
       </div>
-      {selectedItem && (
-        <MaintenanceDetailDialog
-          isOpen={!!selectedItem}
-          onClose={() => setSelectedItem(null)}
-          data={selectedItem}
-          onUpdateStatus={(id, status) => {
-            let actionType: "ACCEPT" | "CANCEL" | "COMPLETE" = "COMPLETE";
+      <MaintenanceDetailDialog
+        isOpen={!!selectedItem}
+        onClose={() => setSelectedItem(null)}
+        data={selectedItem}
+        onUpdateStatus={async (id, status, note) => {
+          setSelectedItem(null);
+          setIsProcessing(true);
 
-            if (status === "IN_PROGRESS") actionType = "ACCEPT";
-            else if (status === "CANCELLED") actionType = "CANCEL";
+          try {
+            await toast.promise(
+              maintenanceService.updateStatus(id, status, note),
+              {
+                pending: "กำลังบันทึกข้อมูล...",
+                success: "อัปเดตสถานะเรียบร้อยแล้ว",
 
-            initiateAction(null, id, actionType);
-          }}
-        />
-      )}
+                error: {
+                  render({ data }: any) {
+                    const message =
+                      data?.response?.data?.message || data?.message;
+
+                    if (message === "FORBIDDEN_ACCESS")
+                      return "คุณไม่มีสิทธิ์ดำเนินการรายการนี้";
+
+                    if (message === "NOT_FOUND")
+                      return "ไม่พบรายการแจ้งซ่อมนี้ในระบบ";
+
+                    return "เกิดข้อผิดพลาดในการอัปเดตสถานะ";
+                  },
+                },
+              },
+            );
+
+            if (onChangeFilterStatus) {
+              if (["IN_PROGRESS", "COMPLETED", "CANCELLED"].includes(status)) {
+                onChangeFilterStatus(status as MaintenanceFilterStatus);
+              } else {
+                onRefresh?.();
+              }
+            } else {
+              onRefresh?.();
+            }
+          } catch (error) {
+            log.error("Update status failed:", error);
+          } finally {
+            setIsProcessing(false);
+          }
+        }}
+      />
       <ConfirmDialog
         isOpen={!!pendingAction}
-        onClose={() => setPendingAction(null)}
+        onClose={() => {
+          setPendingAction(null);
+          setActionNote("");
+        }}
         onConfirm={handleConfirmAction}
         isLoading={isProcessing}
         title={dialogConfig.title}
@@ -271,6 +323,10 @@ export default function MaintenanceTable({
         type={dialogConfig.type}
         confirmText={dialogConfig.confirmText}
         cancelText={dialogConfig.cancelText}
+        showInput={true}
+        inputValue={actionNote}
+        onInputChange={setActionNote}
+        inputPlaceholder={dialogConfig.inputPlaceholder}
       />
     </>
   );
