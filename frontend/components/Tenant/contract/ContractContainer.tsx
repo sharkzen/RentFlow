@@ -77,26 +77,6 @@ export default function ContractContainer() {
           </div>
           <div className="space-y-6 lg:col-span-4">
             <TenantInfoCard tenant={tenantData} />
-            <div className="overflow-hidden rounded-2xl bg-slate-900 p-6 text-white shadow-xl">
-              <h4 className="mb-4 text-xs font-bold tracking-widest text-slate-400 uppercase">
-                System Status
-              </h4>
-              <div className="space-y-4">
-                <div className="flex justify-between border-b border-slate-800 pb-3">
-                  <span className="text-sm text-slate-400">Account ID</span>
-                  <span className="font-mono text-sm text-slate-200">
-                    {tenantData?.userId.split("-")[0]}...
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-400">Status</span>
-                  <span className="flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-400 ring-1 ring-emerald-500/20">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                    {tenantData.user.status}
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

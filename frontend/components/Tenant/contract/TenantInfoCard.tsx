@@ -44,10 +44,6 @@ export const TenantInfoCard = ({
             <Mail size={16} className="text-slate-400" />
             <span className="truncate">{tenant.email}</span>
           </div>
-          <div className="flex items-center gap-3 text-sm text-slate-600">
-            <Fingerprint size={16} className="text-slate-400" />
-            <span>เลขบัตร: {tenant.idCard.replace(/.(?=.{4})/g, "*")}</span>
-          </div>
         </div>
         <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 p-4">
           <p className="text-[10px] font-black tracking-tighter text-slate-400 uppercase">
@@ -55,11 +51,11 @@ export const TenantInfoCard = ({
           </p>
           <div className="mt-1 flex items-center justify-between text-xs font-medium">
             <div className="text-slate-700">
-              เริ่ม: {formatDate(tenant.contractStartDate)}
+              เข้าพัก: {formatDate(tenant.contractStartDate)}
             </div>
             <div className="text-slate-300">|</div>
             <div className="text-slate-700">
-              สิ้นสุด:{" "}
+              สิ้นสุดสัญญา:{" "}
               {tenant.contractEndDate
                 ? formatDate(tenant.contractEndDate)
                 : "ไม่มีกำหนด"}
