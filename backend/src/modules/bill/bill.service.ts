@@ -23,6 +23,8 @@ import { createActivityLog } from "@/services/activity-log.service";
 import sharp from "sharp";
 import { moveTempFileToPermanent } from "@/services/r2Client";
 import { formatDateTH } from "@/utils/date";
+import * as fs from "fs";
+import * as path from "path";
 
 export const billService = {
   getBills: async ({
@@ -1485,5 +1487,112 @@ export const billService = {
       count: queuedCount,
       message: `เตรียมส่งอีเมลสำเร็จ ${queuedCount} รายการ`,
     };
+  },
+
+  scanMeter: async (imageBase64: string, scanType: string = "ELECTRIC") => {
+    try {
+      const debugDir = path.join(process.cwd(), "debug_images");
+
+      if (!fs.existsSync(debugDir)) {
+        fs.mkdirSync(debugDir, {
+          recursive: true,
+        });
+      }
+
+      const fileName = `scan_${Date.now()}.jpg`;
+      const filePath = path.join(debugDir, fileName);
+      fs.writeFileSync(filePath, Buffer.from(imageBase64, "base64"));
+      logger.info(`[Service] 📸 บันทึกรูป Debug สำเร็จ: ${fileName}`);
+    } catch (err: any) {
+      logger.error(`[Service] ❌ ไม่สามารถเซฟรูป Debug ได้: ${err.message}`);
+    }
+
+    const apiKey = process.env.GOOGLE_VISION_API_KEY;
+
+    if (!apiKey) {
+      logger.error("[Service] GOOGLE_VISION_API_KEY is missing in .env");
+      throw new Error("VISION_API_KEY_NOT_CONFIGURED");
+    }
+
+    const visionApiUrl = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+    const EXPECTED_DIGIT_LENGTH = scanType === "WATER" ? 4 : 5;
+
+    const payload = {
+      requests: [
+        {
+          image: {
+            content: imageBase64,
+          },
+
+          features: [
+            {
+              type: "DOCUMENT_TEXT_DETECTION",
+            },
+          ],
+
+          imageContext: {
+            languageHints: ["en"],
+          },
+        },
+      ],
+    };
+
+    try {
+      const response = await fetch(visionApiUrl, {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        logger.error(
+          `[Service] Google Vision API Error: ${JSON.stringify(data)}`,
+        );
+        throw new Error("VISION_API_ERROR");
+      }
+
+      const textAnnotations = data.responses?.[0]?.textAnnotations;
+
+      if (textAnnotations && textAnnotations.length > 0) {
+        const fullText = textAnnotations[0].description;
+        let correctedText = fullText
+          .toUpperCase()
+          .replace(/[OQDo]/g, "0")
+          .replace(/[Il|]/g, "1")
+          .replace(/[Zz]/g, "2")
+          .replace(/[Ss]/g, "5")
+          .replace(/[B]/g, "8");
+        let allDigitsStr = correctedText.replace(/[^0-9]/g, "");
+
+        if (allDigitsStr.length > 0) {
+          if (allDigitsStr.length > EXPECTED_DIGIT_LENGTH) {
+            allDigitsStr = allDigitsStr.substring(0, EXPECTED_DIGIT_LENGTH);
+          }
+
+          const finalNumber = allDigitsStr;
+
+          return {
+            success: true,
+            number: finalNumber,
+            rawText: fullText,
+            correctedText: correctedText,
+          };
+        }
+      }
+
+      return {
+        success: false,
+        message: "NO_NUMBERS_FOUND_IN_IMAGE",
+      };
+    } catch (error: any) {
+      logger.error(`[Service] scanMeter HTTP Error: ${error.message}`);
+      throw new Error("FAILED_TO_PROCESS_OCR");
+    }
   },
 };

@@ -20,7 +20,9 @@ import { RoomService } from "@/features/room/services/room.service";
 import BillItemRow from "./BillItemRow";
 import MonthYearPicker from "./MonthYearPicker";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import MeterScannerModal from "./MeterScannerModal";
 import { BillService } from "@/features/bill/services/bill.service";
+import { v4 as uuidv4 } from "uuid";
 
 interface Draft {
   id: string;
@@ -46,11 +48,11 @@ interface BillItem {
   roomNumber: string;
   tenantName: string;
   prevWater: number;
-  currentWater: number | "";
+  currentWater: string | "";
   waterImage?: string;
   waterImageKey?: string;
   prevElectric: number;
-  currentElectric: number | "";
+  currentElectric: string | "";
   electricImage?: string;
   electricImageKey?: string;
   isPrevEditable: boolean;
@@ -84,8 +86,84 @@ export default function CreateBillDialog({
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [draftNameInput, setDraftNameInput] = useState("");
 
+  const [scanConfig, setScanConfig] = useState<{
+    isOpen: boolean;
+    type: "WATER" | "ELECTRIC";
+    index: number;
+  }>({
+    isOpen: false,
+    type: "WATER",
+    index: 0,
+  });
+
+  const handleStartScan = (type: "WATER" | "ELECTRIC") => {
+    if (items.length <= 1 && !items[0].roomId && availableRooms.length > 0) {
+      const newItems = availableRooms.map((room) => ({
+        ...createEmptyItem(),
+        roomId: room.id,
+        roomNumber: room.roomNumber,
+        tenantName: room.tenantName || "-",
+        isPrevEditable: !room.hasLastBill,
+        prevWater: room.lastWaterUnit,
+        prevElectric: room.lastElectricUnit,
+        commonFee: room.commonFee || 0,
+      }));
+
+      setItems(newItems);
+    }
+
+    setScanConfig({
+      isOpen: true,
+      type,
+      index: 0,
+    });
+  };
+
+  const handleScanConfirm = async (ocrValue: string, file: File) => {
+    const { index, type } = scanConfig;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await BillService.uploadTempImage(formData);
+
+    setItems((prev) => {
+      const newItems = [...prev];
+
+      if (type === "WATER") {
+        newItems[index].currentWater = ocrValue;
+        newItems[index].waterImage = res.url;
+        newItems[index].waterImageKey = res.objectKey;
+      } else {
+        newItems[index].currentElectric = ocrValue;
+        newItems[index].electricImage = res.url;
+        newItems[index].electricImageKey = res.objectKey;
+      }
+
+      return newItems;
+    });
+
+    handleScanNext();
+  };
+
+  const handleScanNext = () => {
+    if (scanConfig.index < items.length - 1) {
+      setScanConfig((prev) => ({
+        ...prev,
+        index: prev.index + 1,
+      }));
+    } else {
+      setScanConfig({
+        isOpen: false,
+        type: "WATER",
+        index: 0,
+      });
+
+      toast.success("สแกนครบทุกห้องเรียบร้อยแล้ว!");
+    }
+  };
+
   const createEmptyItem = (): BillItem => ({
-    id: crypto.randomUUID(),
+    id: uuidv4(),
     roomId: "",
     roomNumber: "",
     tenantName: "",
@@ -98,6 +176,14 @@ export default function CreateBillDialog({
   });
 
   const [items, setItems] = useState<BillItem[]>([createEmptyItem()]);
+
+  const hasNegativeUsage = items.some(
+    (item) =>
+      (item.currentWater !== "" &&
+        Number(item.currentWater) < item.prevWater) ||
+      (item.currentElectric !== "" &&
+        Number(item.currentElectric) < item.prevElectric),
+  );
 
   useEffect(() => {
     if (isOpen && selectedDormId) {
@@ -173,19 +259,6 @@ export default function CreateBillDialog({
     setSelectedDate(new Date(draft.selectedDate));
     setShowDraftList(false);
     toast.info(`โหลดฉบับร่าง "${draft.name}" แล้ว`);
-  };
-
-  const deleteDraft = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    try {
-      setDrafts(drafts.filter((d) => d.id !== id));
-      await BillService.deleteDraft(id);
-    } catch (error) {
-      log.error("Failed to delete draft:", error);
-      toast.error("ไม่สามารถลบฉบับร่างได้");
-      loadDrafts();
-    }
   };
 
   const confirmDeleteDraft = async () => {
@@ -369,6 +442,23 @@ export default function CreateBillDialog({
   };
 
   const handleSubmit = async () => {
+    if (hasNegativeUsage) {
+      const errorRooms = items
+        .filter(
+          (i) =>
+            (i.currentWater !== "" && Number(i.currentWater) < i.prevWater) ||
+            (i.currentElectric !== "" &&
+              Number(i.currentElectric) < i.prevElectric),
+        )
+        .map((i) => i.roomNumber)
+        .join(", ");
+
+      toast.error(
+        `บันทึกไม่ได้! พบเลขล่าสุดน้อยกว่าครั้งก่อนที่ห้อง: ${errorRooms}`,
+      );
+      return;
+    }
+
     const invalidItems = items.filter(
       (i) => !i.roomId || i.currentWater === "" || i.currentElectric === "",
     );
@@ -387,10 +477,10 @@ export default function CreateBillDialog({
         items: items.map((item) => ({
           roomId: item.roomId,
           prevWater: item.prevWater,
-          currentWater: item.currentWater,
+          currentWater: Number(item.currentWater),
           waterImageKey: item.waterImageKey,
           prevElectric: item.prevElectric,
-          currentElectric: item.currentElectric,
+          currentElectric: Number(item.currentElectric),
           electricImageKey: item.electricImageKey,
           commonFee: item.commonFee || 0,
         })),
@@ -437,27 +527,45 @@ export default function CreateBillDialog({
             </button>
           </div>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-gray-50/50 p-4">
-          <MonthYearPicker
-            selectedDate={selectedDate}
-            onChange={setSelectedDate}
-            disabled={isSubmitting}
-          />
-          <div className="flex w-full items-center gap-2 sm:w-auto">
-            <button
-              onClick={handleClearAllRequest}
-              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-500 transition-all hover:bg-red-100 sm:flex-none"
-            >
-              <RotateCcw size={14} />
-              ล้างข้อมูล
-            </button>
-            <button
-              onClick={handleSaveDraft}
-              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-600 transition-all hover:bg-amber-100 sm:flex-none"
-            >
-              <FileText size={16} />
-              บันทึกฉบับร่าง
-            </button>
+        <div className="flex flex-col items-start justify-between gap-4 border-b border-slate-100 bg-gray-50/50 p-4 lg:flex-row lg:items-center">
+          <div className="w-full sm:w-auto">
+            <MonthYearPicker
+              selectedDate={selectedDate}
+              onChange={setSelectedDate}
+              disabled={isSubmitting}
+            />
+          </div>
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end lg:w-auto lg:flex-nowrap">
+            <div className="flex w-full gap-2 sm:w-auto">
+              <button
+                onClick={handleClearAllRequest}
+                className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-500 transition-all hover:bg-red-100 sm:flex-none"
+              >
+                <RotateCcw size={14} />
+                ล้างข้อมูล
+              </button>
+              <button
+                onClick={handleSaveDraft}
+                className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-600 transition-all hover:bg-amber-100 sm:flex-none"
+              >
+                <FileText size={16} />
+                บันทึกฉบับร่าง
+              </button>
+            </div>
+            <div className="flex w-full gap-2 sm:w-auto">
+              <button
+                onClick={() => handleStartScan("WATER")}
+                className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-100 px-4 py-2 text-xs font-bold text-blue-700 transition-all hover:bg-blue-200 sm:flex-none"
+              >
+                📷 สแกนน้ำต่อเนื่อง
+              </button>
+              <button
+                onClick={() => handleStartScan("ELECTRIC")}
+                className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-yellow-100 px-4 py-2 text-xs font-bold text-yellow-700 transition-all hover:bg-yellow-200 sm:flex-none"
+              >
+                📷 สแกนไฟต่อเนื่อง
+              </button>
+            </div>
           </div>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/30 p-4 pb-20 sm:pb-4">
@@ -496,10 +604,11 @@ export default function CreateBillDialog({
               >
                 ยกเลิก
               </button>
+
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-8 py-2 font-bold text-white shadow-md shadow-indigo-100 transition-all hover:bg-indigo-700 disabled:bg-indigo-300"
+                disabled={isSubmitting || hasNegativeUsage}
+                className={`flex cursor-pointer items-center gap-2 rounded-lg px-8 py-2 font-bold text-white shadow-md transition-all ${isSubmitting || hasNegativeUsage ? "cursor-not-allowed bg-slate-300 shadow-none" : "bg-indigo-600 shadow-indigo-100 hover:bg-indigo-700"} `}
               >
                 <Save size={18} />{" "}
                 {isSubmitting ? "กำลังบันทึก..." : "บันทึกและส่งบิล"}
@@ -507,6 +616,7 @@ export default function CreateBillDialog({
             </div>
           </div>
         </div>
+
         {showDraftList && (
           <div className="animate-in slide-in-from-bottom-5 absolute inset-0 z-40 flex flex-col bg-white">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
@@ -633,6 +743,22 @@ export default function CreateBillDialog({
         confirmText="ใช่, ลบฉบับร่าง"
         cancelText="ยกเลิก"
       />
+      {scanConfig.isOpen && (
+        <MeterScannerModal
+          isOpen={scanConfig.isOpen}
+          onClose={() =>
+            setScanConfig((prev) => ({
+              ...prev,
+              isOpen: false,
+            }))
+          }
+          scanType={scanConfig.type}
+          roomNumber={items[scanConfig.index]?.roomNumber || ""}
+          tenantName={items[scanConfig.index]?.tenantName || ""}
+          onConfirm={handleScanConfirm}
+          onSkip={handleScanNext}
+        />
+      )}
     </div>
   );
 }

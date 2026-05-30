@@ -42,7 +42,6 @@ export default function MaintenanceDetailDialog({
 }: MaintenanceDetailDialogProps) {
   const { lock, unlock } = useScrollLock();
 
-  console.log(data);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [ownerNote, setOwnerNote] = useState("");
 

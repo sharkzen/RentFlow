@@ -10,9 +10,8 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   try {
-    const me = await fetchWithRefresh(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
-    );
+    const baseUrl = process.env.API_URL || "http://localhost:3001";
+    const me = await fetchWithRefresh(`${baseUrl}/api/auth/me`);
 
     if ((me.role as Role) !== Role.ADMIN) redirect("/403");
 

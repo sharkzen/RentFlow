@@ -30,6 +30,7 @@ export async function billRoute(app: FastifyInstance) {
     routeRoles.delete("/drafts/:draftId", BillController.deleteDraft);
     routeRoles.post("/upload-temp", BillController.uploadTempImage);
     routeRoles.delete("/upload-temp", BillController.deleteTempImage);
+    routeRoles.post("/ocr", BillController.scanMeter);
   });
 
   app.register(async (routeRoles) => {

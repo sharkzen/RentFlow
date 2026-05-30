@@ -1,12 +1,5 @@
 import { useState } from "react";
-import {
-  Trash2,
-  Droplets,
-  Zap,
-  Edit,
-  Camera,
-  Image as ImageIcon,
-} from "lucide-react";
+import { Trash2, Droplets, Zap, Edit, Camera, AlertCircle } from "lucide-react";
 import RoomSelector from "./RoomSelector";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
@@ -25,10 +18,10 @@ interface BillItem {
   roomNumber: string;
   tenantName: string;
   prevWater: number;
-  currentWater: number | "";
+  currentWater: string | "";
   waterImage?: string;
   prevElectric: number;
-  currentElectric: number | "";
+  currentElectric: string | "";
   electricImage?: string;
   isPrevEditable: boolean;
 }
@@ -66,11 +59,14 @@ export default function BillItemRow({
     "WATER" | "ELECTRIC" | null
   >(null);
 
-  const waterUsage =
-    (item.currentWater !== "" ? Number(item.currentWater) : 0) - item.prevWater;
-  const electricUsage =
-    (item.currentElectric !== "" ? Number(item.currentElectric) : 0) -
-    item.prevElectric;
+  const isWaterEmpty = item.currentWater === "";
+  const waterUsage = isWaterEmpty
+    ? 0
+    : Number(item.currentWater) - item.prevWater;
+  const isElectricEmpty = item.currentElectric === "";
+  const electricUsage = isElectricEmpty
+    ? 0
+    : Number(item.currentElectric) - item.prevElectric;
 
   const toggleEditPrev = () => {
     onChange(index, "isPrevEditable", !item.isPrevEditable);
@@ -85,10 +81,15 @@ export default function BillItemRow({
   };
 
   return (
-    <div className="group relative grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 pt-8 transition-all hover:border-indigo-300 lg:grid-cols-12 lg:items-start lg:pt-4">
-      <div className="absolute top-0 left-0 z-10 flex items-center justify-center rounded-tl-xl rounded-br-lg bg-slate-700 px-3 py-1.5 text-xs font-bold text-white">
+    <div
+      className={`group relative grid grid-cols-1 gap-4 rounded-xl border bg-white p-4 pt-8 transition-all lg:grid-cols-12 lg:items-start lg:pt-4 ${waterUsage < 0 || electricUsage < 0 ? "border-red-400 shadow-[0_0_15px_rgba(248,113,113,0.3)]" : "border-gray-200 hover:border-indigo-300"} `}
+    >
+      <div
+        className={`absolute top-0 left-0 z-10 flex items-center justify-center rounded-tl-xl rounded-br-lg px-3 py-1.5 text-xs font-bold text-white ${waterUsage < 0 || electricUsage < 0 ? "bg-red-500" : "bg-slate-700"} `}
+      >
         #{index + 1}
       </div>
+
       <div className="col-span-1 lg:col-span-3">
         <RoomSelector
           value={item.roomId}
@@ -103,10 +104,22 @@ export default function BillItemRow({
           </p>
         )}
       </div>
-      <div className="col-span-1 rounded-lg border border-blue-100 bg-blue-50/30 p-3 lg:col-span-4">
+
+      <div
+        className={`col-span-1 rounded-lg border p-3 transition-colors lg:col-span-4 ${!isWaterEmpty && waterUsage < 0 ? "border-red-200 bg-red-50/50" : "border-blue-100 bg-blue-50/30"} `}
+      >
         <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-blue-800">
-            <Droplets size={14} className="text-blue-600" />
+          <div
+            className={`flex items-center gap-2 text-xs font-bold ${!isWaterEmpty && waterUsage < 0 ? "text-red-700" : "text-blue-800"}`}
+          >
+            <Droplets
+              size={14}
+              className={
+                !isWaterEmpty && waterUsage < 0
+                  ? "text-red-500"
+                  : "text-blue-600"
+              }
+            />
             ประปา
           </div>
           <div className="flex items-center gap-2">
@@ -160,8 +173,11 @@ export default function BillItemRow({
               className={`h-9 w-full rounded-lg border text-center text-sm font-bold transition-all outline-none ${item.isPrevEditable ? "border-indigo-300 bg-white ring-2 ring-indigo-100" : "border-gray-200 bg-gray-100 text-gray-500"}`}
             />
           </div>
+
           <div className="flex-1">
-            <label className="mb-1 block text-[10px] font-bold text-blue-600">
+            <label
+              className={`mb-1 block text-[10px] font-bold ${!isWaterEmpty && waterUsage < 0 ? "text-red-600" : "text-blue-600"}`}
+            >
               ล่าสุด
             </label>
             <input
@@ -169,15 +185,42 @@ export default function BillItemRow({
               value={item.currentWater}
               disabled={isSubmitting}
               onChange={(e) => onChange(index, "currentWater", e.target.value)}
-              className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 focus:ring-blue-200 ${waterUsage < 0 ? "border-red-300 bg-red-50" : "border-blue-200"}`}
+              className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isWaterEmpty && waterUsage < 0 ? "border-red-400 bg-white text-red-600 focus:ring-red-200" : "border-blue-200 focus:ring-blue-200"} `}
             />
           </div>
         </div>
+
+        {!isWaterEmpty && (
+          <div
+            className={`mt-2 flex items-center justify-end text-[11px] font-bold ${waterUsage < 0 ? "text-red-500" : "text-blue-600"}`}
+          >
+            {waterUsage < 0 ? (
+              <span className="flex animate-pulse items-center gap-1">
+                <AlertCircle size={12} />
+                ค่าต้องมากกว่าครั้งก่อน!
+              </span>
+            ) : (
+              <span>ใช้ไป: {waterUsage}หน่วย</span>
+            )}
+          </div>
+        )}
       </div>
-      <div className="col-span-1 rounded-lg border border-amber-100 bg-amber-50/30 p-3 lg:col-span-4">
+
+      <div
+        className={`col-span-1 rounded-lg border p-3 transition-colors lg:col-span-4 ${!isElectricEmpty && electricUsage < 0 ? "border-red-200 bg-red-50/50" : "border-amber-100 bg-amber-50/30"} `}
+      >
         <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
-            <Zap size={14} className="text-amber-600" />
+          <div
+            className={`flex items-center gap-2 text-xs font-bold ${!isElectricEmpty && electricUsage < 0 ? "text-red-700" : "text-amber-800"}`}
+          >
+            <Zap
+              size={14}
+              className={
+                !isElectricEmpty && electricUsage < 0
+                  ? "text-red-500"
+                  : "text-amber-600"
+              }
+            />
             ไฟฟ้า
           </div>
           <div className="flex items-center gap-2">
@@ -231,8 +274,11 @@ export default function BillItemRow({
               className={`h-9 w-full rounded-lg border text-center text-sm font-bold transition-all outline-none ${item.isPrevEditable ? "border-indigo-300 bg-white ring-2 ring-indigo-100" : "border-gray-200 bg-gray-100 text-gray-500"}`}
             />
           </div>
+
           <div className="flex-1">
-            <label className="mb-1 block text-[10px] font-bold text-amber-600">
+            <label
+              className={`mb-1 block text-[10px] font-bold ${!isElectricEmpty && electricUsage < 0 ? "text-red-600" : "text-amber-600"}`}
+            >
               ล่าสุด
             </label>
             <input
@@ -242,10 +288,25 @@ export default function BillItemRow({
               onChange={(e) =>
                 onChange(index, "currentElectric", e.target.value)
               }
-              className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 focus:ring-amber-200 ${electricUsage < 0 ? "border-red-300 bg-red-50" : "border-amber-200"}`}
+              className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isElectricEmpty && electricUsage < 0 ? "border-red-400 bg-white text-red-600 focus:ring-red-200" : "border-amber-200 focus:ring-amber-200"} `}
             />
           </div>
         </div>
+
+        {!isElectricEmpty && (
+          <div
+            className={`mt-2 flex items-center justify-end text-[11px] font-bold ${electricUsage < 0 ? "text-red-500" : "text-amber-600"}`}
+          >
+            {electricUsage < 0 ? (
+              <span className="flex animate-pulse items-center gap-1">
+                <AlertCircle size={12} />
+                ค่าต้องมากกว่าครั้งก่อน!
+              </span>
+            ) : (
+              <span>ใช้ไป: {electricUsage}หน่วย</span>
+            )}
+          </div>
+        )}
       </div>
       <div className="col-span-1 flex items-center justify-center lg:h-20">
         <button

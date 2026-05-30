@@ -543,4 +543,30 @@ export const BillController = {
       });
     }
   },
+
+  scanMeter: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { imageBase64, scanType } = request.body as {
+        imageBase64: string;
+        scanType: "WATER" | "ELECTRIC";
+      };
+
+      if (!imageBase64) {
+        return reply.status(400).send({
+          success: false,
+          message: "IMAGE_BASE64_REQUIRED",
+        });
+      }
+
+      const result = await billService.scanMeter(imageBase64, scanType);
+      return reply.send(result);
+    } catch (error: any) {
+      logger.error(`[Controller - scanMeter] ${error.message}`);
+
+      return reply.status(500).send({
+        success: false,
+        message: error.message || "INTERNAL_SERVER_ERROR",
+      });
+    }
+  },
 };

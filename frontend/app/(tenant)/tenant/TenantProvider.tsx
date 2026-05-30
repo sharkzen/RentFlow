@@ -3,6 +3,7 @@ import React from "react";
 import { useAuth } from "@/context/AuthProvider";
 import LoadingPage from "@/components/layout/LoadingPage";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function TenantProvider({
   children,
@@ -13,6 +14,12 @@ export default function TenantProvider({
 
   const { user, loading: authLoading } = useAuth();
 
+  useEffect(() => {
+    if (user && user.role !== "TENANT") {
+      router.push("/");
+    }
+  }, [user, router]);
+
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -22,7 +29,6 @@ export default function TenantProvider({
   }
 
   if (user?.role !== "TENANT") {
-    router.push("/");
     return <LoadingPage />;
   }
 

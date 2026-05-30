@@ -3,28 +3,28 @@ import { cookies } from "next/headers";
 export async function fetchWithRefresh(url: string, options: RequestInit = {}) {
   const cookieStore = await cookies();
   const allCookies = cookieStore.getAll();
-  const cookieHeader = allCookies.map(c => `${c.name}=${c.value}`).join("; ");
-
+  const cookieHeader = allCookies.map((c) => `${c.name}=${c.value}`).join("; ");
+  const baseUrl = process.env.API_URL || "http://localhost:3001";
   let res = await fetch(url, {
     ...options,
 
     headers: {
       ...options.headers,
-      Cookie: cookieHeader
+      Cookie: cookieHeader,
     },
 
-    cache: "no-store"
+    cache: "no-store",
   });
 
   if (res.status === 401) {
-    const refreshUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`;
+    const refreshUrl = `${baseUrl}/api/auth/refresh`;
 
     const refreshRes = await fetch(refreshUrl, {
       method: "POST",
 
       headers: {
-        Cookie: cookieHeader
-      }
+        Cookie: cookieHeader,
+      },
     });
 
     if (refreshRes.ok) {
@@ -45,10 +45,10 @@ export async function fetchWithRefresh(url: string, options: RequestInit = {}) {
 
         headers: {
           ...options.headers,
-          Cookie: retryHeader
+          Cookie: retryHeader,
         },
 
-        cache: "no-store"
+        cache: "no-store",
       });
     } else {
       throw new Error("REFRESH_FAILED");

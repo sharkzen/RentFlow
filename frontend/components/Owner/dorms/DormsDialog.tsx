@@ -373,7 +373,7 @@ export default function DormsDialog({
                       onChange={(e) =>
                         updateField("dueMonthOffset", parseInt(e.target.value))
                       }
-                      className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none"
+                      className="h-[42px] w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none"
                     >
                       <option value={0}>ชำระภายในเดือนที่ออกบิล</option>
                       <option value={1}>ชำระเดือนถัดไป</option>

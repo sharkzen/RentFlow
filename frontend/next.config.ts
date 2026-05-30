@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: [
+    "100.85.106.52",
+    "100.85.106.52:3000",
+    "http://100.85.106.52",
+    "http://100.85.106.52:3000",
+    "localhost",
+    "localhost:3000",
+  ],
   images: {
     remotePatterns: [
       {
@@ -12,11 +20,6 @@ const nextConfig: NextConfig = {
 
   async rewrites() {
     return [
-      {
-        source: "/ocr/:path*",
-        destination: "http://localhost:8000/scan",
-      },
-
       {
         source: "/api/:path*",
         destination: "http://localhost:3001/api/:path*",

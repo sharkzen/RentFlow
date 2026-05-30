@@ -13,9 +13,8 @@ export default async function OwnerLayout({
   let me: User;
 
   try {
-    me = await fetchWithRefresh(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
-    );
+    const baseUrl = process.env.API_URL || "http://localhost:3001";
+    me = await fetchWithRefresh(`${baseUrl}/api/auth/me`);
   } catch (error) {
     redirect("/auth/login");
   }

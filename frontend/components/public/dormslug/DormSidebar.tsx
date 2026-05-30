@@ -173,7 +173,7 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             >
               {owner.lineId && (
                 <a
-                  href={`https://line.me/ti/p/~${owner.lineId.replace("@", "")}`}
+                  href={`https://line.me/ti/p/~${owner.lineId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 rounded-xl bg-[#06C755]/10 px-4 py-3 text-sm font-semibold text-[#06C755] transition-colors hover:bg-[#06C755]/20 active:scale-95"

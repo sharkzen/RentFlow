@@ -23,7 +23,6 @@ function isTokenExpired(token: string) {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // 1️⃣ public + asset → ผ่านทันที
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
@@ -32,7 +31,6 @@ export async function proxy(request: NextRequest) {
   ) {
     const accessToken = request.cookies.get("access_token")?.value;
 
-    // login/register แต่มี token → เด้งกลับ home
     if (
       accessToken &&
       !isTokenExpired(accessToken) &&
@@ -50,15 +48,14 @@ export async function proxy(request: NextRequest) {
 
   if ((!accessToken || isTokenExpired(accessToken)) && refreshToken) {
     try {
-      const refreshRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
-        {
-          method: "POST",
-          headers: {
-            Cookie: `refresh_token=${refreshToken}`,
-          },
+      const baseUrl = process.env.API_URL || "http://localhost:3001";
+
+      const refreshRes = await fetch(`${baseUrl}/api/auth/refresh`, {
+        method: "POST",
+        headers: {
+          Cookie: `refresh_token=${refreshToken}`,
         },
-      );
+      });
 
       if (refreshRes.ok) {
         const response = NextResponse.next();
@@ -79,7 +76,9 @@ export async function proxy(request: NextRequest) {
           }
         }
       }
-    } catch {}
+    } catch (error) {
+      console.error("Refresh Token Error in Middleware:", error); // แอบใส่ log ไว้เผื่อพังคราวหน้าจะได้รู้
+    }
   }
 
   if (!accessToken && !refreshToken) {
