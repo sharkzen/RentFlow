@@ -67,6 +67,8 @@ export const getBrowserInstance = async () => {
   if (!browserInstance) {
     browserInstance = await puppeteer.launch({
       headless: true,
+      executablePath:
+        process.env.PUPPETEER_EXECUTABLE_PATH || "/usr/bin/chromium-browser",
 
       args: [
         "--no-sandbox",

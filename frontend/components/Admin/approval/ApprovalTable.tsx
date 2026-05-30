@@ -1,5 +1,4 @@
-import React from "react";
-import { OwnerApproval } from "@/features/admin/services/approval.service";
+import { OwnerApproval } from "@/features/admin";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { Eye, Clock } from "lucide-react";

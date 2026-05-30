@@ -1,0 +1,112 @@
+version: "3.9"
+
+# ตั้งค่า Logging กลางเพื่อไม่ให้ Log ของ Docker กินพื้นที่ VPS จนเต็ม
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # เพิ่ม Caddy เป็น Reverse Proxy รับ HTTPS ให้อัตโนมัติ
+  caddy:
+    image: caddy:2-alpine
+    container_name: rentflow-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data # เก็บ SSL Certificate
+      - caddy_config:/config
+    logging: *default-logging
+
+  frontend:
+    build: ./frontend
+    container_name: rentflow-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      API_URL: http://backend:3001
+    logging: *default-logging
+
+  backend:
+    build: ./backend
+    container_name: rentflow-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - ./backend/.env.production # แนะนำให้แยก .env เป็นของ prod
+    # ลบ ports: - "3001:3001" ออก
+    logging: *default-logging
+
+  postgres:
+    image: postgres:16
+    container_name: rentflow-postgres
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.production # เอาพวก POSTGRES_PASSWORD ไปใส่ใน .env
+    # ลบ ports: - "5432:5432" ออก เพื่อความปลอดภัย
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: *default-logging
+
+  pgadmin:
+    image: dpage/pgadmin4:8.4 # ใช้เวอร์ชันระบุชัดเจนแทน latest
+    container_name: rentflow-pgadmin
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.production # ซ่อน PGADMIN_DEFAULT_PASSWORD ไว้ในนี้
+    environment:
+      PGADMIN_CONFIG_SERVER_MODE: "True" # บน Prod ควรเป็น True เพื่อความปลอดภัย
+    # ลบ ports: - "5050:80" ออก
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    logging: *default-logging
+
+  redis:
+    image: redis:7-alpine # ใช้ alpine ลดขนาด
+    container_name: rentflow-redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    environment:
+      TZ: Asia/Bangkok
+    # ลบ ports: - "6379:6379" ออก
+    volumes:
+      - redis_data:/data
+    logging: *default-logging
+
+  worker:
+    build: ./backend
+    container_name: rentflow-worker
+    command: npm run start:worker
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./backend/.env.production
+    logging: *default-logging
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  redis_data:
+  caddy_data:
+  caddy_config:

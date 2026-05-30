@@ -248,7 +248,6 @@ export default function MeterScannerModal({
             <X size={20} />
           </button>
         </div>
-
         <div className="flex-1 p-6 text-center">
           <div className="mb-4">
             <h2 className="text-2xl font-black text-indigo-700">
@@ -295,7 +294,6 @@ export default function MeterScannerModal({
                 </p>
               </div>
             )}
-
             {step === "result" && (
               <div className="animate-in fade-in absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 px-6 backdrop-blur-md">
                 {isComplete ? (
@@ -339,7 +337,6 @@ export default function MeterScannerModal({
             )}
           </div>
         </div>
-
         <div className="border-t border-slate-100 bg-white p-6 pt-0">
           {step === "camera" ? (
             <div className="mt-6 flex gap-4">
@@ -367,7 +364,6 @@ export default function MeterScannerModal({
               >
                 <RefreshCw size={20} className="mx-auto" />
               </button>
-
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || step === "processing" || !isComplete}

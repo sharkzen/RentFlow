@@ -89,7 +89,6 @@ export default function BillItemRow({
       >
         #{index + 1}
       </div>
-
       <div className="col-span-1 lg:col-span-3">
         <RoomSelector
           value={item.roomId}
@@ -104,7 +103,6 @@ export default function BillItemRow({
           </p>
         )}
       </div>
-
       <div
         className={`col-span-1 rounded-lg border p-3 transition-colors lg:col-span-4 ${!isWaterEmpty && waterUsage < 0 ? "border-red-200 bg-red-50/50" : "border-blue-100 bg-blue-50/30"} `}
       >
@@ -173,7 +171,6 @@ export default function BillItemRow({
               className={`h-9 w-full rounded-lg border text-center text-sm font-bold transition-all outline-none ${item.isPrevEditable ? "border-indigo-300 bg-white ring-2 ring-indigo-100" : "border-gray-200 bg-gray-100 text-gray-500"}`}
             />
           </div>
-
           <div className="flex-1">
             <label
               className={`mb-1 block text-[10px] font-bold ${!isWaterEmpty && waterUsage < 0 ? "text-red-600" : "text-blue-600"}`}
@@ -189,7 +186,6 @@ export default function BillItemRow({
             />
           </div>
         </div>
-
         {!isWaterEmpty && (
           <div
             className={`mt-2 flex items-center justify-end text-[11px] font-bold ${waterUsage < 0 ? "text-red-500" : "text-blue-600"}`}
@@ -205,7 +201,6 @@ export default function BillItemRow({
           </div>
         )}
       </div>
-
       <div
         className={`col-span-1 rounded-lg border p-3 transition-colors lg:col-span-4 ${!isElectricEmpty && electricUsage < 0 ? "border-red-200 bg-red-50/50" : "border-amber-100 bg-amber-50/30"} `}
       >
@@ -274,7 +269,6 @@ export default function BillItemRow({
               className={`h-9 w-full rounded-lg border text-center text-sm font-bold transition-all outline-none ${item.isPrevEditable ? "border-indigo-300 bg-white ring-2 ring-indigo-100" : "border-gray-200 bg-gray-100 text-gray-500"}`}
             />
           </div>
-
           <div className="flex-1">
             <label
               className={`mb-1 block text-[10px] font-bold ${!isElectricEmpty && electricUsage < 0 ? "text-red-600" : "text-amber-600"}`}
@@ -292,7 +286,6 @@ export default function BillItemRow({
             />
           </div>
         </div>
-
         {!isElectricEmpty && (
           <div
             className={`mt-2 flex items-center justify-end text-[11px] font-bold ${electricUsage < 0 ? "text-red-500" : "text-amber-600"}`}

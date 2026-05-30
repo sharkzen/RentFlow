@@ -604,7 +604,6 @@ export default function CreateBillDialog({
               >
                 ยกเลิก
               </button>
-
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || hasNegativeUsage}
@@ -616,7 +615,6 @@ export default function CreateBillDialog({
             </div>
           </div>
         </div>
-
         {showDraftList && (
           <div className="animate-in slide-in-from-bottom-5 absolute inset-0 z-40 flex flex-col bg-white">
             <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">

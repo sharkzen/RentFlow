@@ -1,0 +1,15 @@
+# โดเมนหลัก วิ่งไปหา Next.js (Frontend)
+yourdomain.com {
+    reverse_proxy frontend:3000
+}
+
+# ซับโดเมน API วิ่งไปหา Fastify (Backend)
+api.yourdomain.com {
+    reverse_proxy backend:3001
+}
+
+# (ทางเลือก) ซับโดเมนสำหรับ pgAdmin เพื่อจัดการ Database ผ่านหน้าเว็บ
+# แนะนำให้ตั้งรหัสผ่าน pgAdmin ให้คาดเดายากที่สุดถ้าเปิดใช้อันนี้
+db.yourdomain.com {
+    reverse_proxy pgadmin:80
+}

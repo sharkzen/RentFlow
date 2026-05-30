@@ -116,7 +116,6 @@ export default function SendBillModal({
             <X size={20} />
           </button>
         </div>
-
         <div className="flex shrink-0 flex-col justify-between gap-3 border-b border-slate-50 bg-slate-50/50 px-4 py-3 sm:flex-row sm:items-center sm:px-6">
           <button
             onClick={handleToggleSelectAll}
@@ -141,7 +140,6 @@ export default function SendBillModal({
             </span>
           </div>
         </div>
-
         <div className="flex-1 overflow-auto bg-slate-50/30">
           {bills.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center py-10 text-slate-400">
@@ -166,7 +164,6 @@ export default function SendBillModal({
                   ส่งล่าสุด
                 </div>
               </div>
-
               <div className="mt-2 flex flex-col gap-2">
                 {bills.map((bill) => {
                   const isSelected = selectedBillIds.includes(bill.id);
@@ -231,7 +228,6 @@ export default function SendBillModal({
             </div>
           )}
         </div>
-
         <div className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 bg-white px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end sm:px-6 sm:pb-4">
           <button
             onClick={onClose}

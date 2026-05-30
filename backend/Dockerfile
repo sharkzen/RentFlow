@@ -1,5 +1,16 @@
 FROM node:20-alpine
 
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
 RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
@@ -10,7 +21,7 @@ RUN npm install
 
 COPY . .
 
-ENV DATABASE_URL="postgresql://user:password@localhost:5432/mydb?schema=public"
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
 RUN npx prisma generate
 

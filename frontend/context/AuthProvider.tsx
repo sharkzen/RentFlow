@@ -24,9 +24,15 @@ const AuthContext = createContext<AuthContextType>({
 
 const PUBLIC_ROUTES = ["/auth/login", "/auth/register"];
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+export function AuthProvider({
+  children,
+  initialUser,
+}: {
+  children: ReactNode;
+  initialUser?: User | null;
+}) {
+  const [user, setUser] = useState<User | null>(initialUser ?? null);
+  const [loading, setLoading] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -40,6 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const fetchMe = async () => {
+      setLoading(true);
+
       try {
         const res = await authService.getMe();
         setUser(res);

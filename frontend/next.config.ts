@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
+// ดึงค่า URL ของ Backend หรือใช้ localhost เป็นค่าเริ่มต้น
+const API_URL = process.env.API_URL || "http://localhost:3001";
+
 const nextConfig: NextConfig = {
+  output: "standalone",
   allowedDevOrigins: [
     "100.85.106.52",
     "100.85.106.52:3000",
@@ -22,7 +26,8 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:3001/api/:path*",
+
+        destination: `${API_URL}/api/:path*`,
       },
     ];
   },

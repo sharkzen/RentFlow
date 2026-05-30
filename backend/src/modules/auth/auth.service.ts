@@ -15,11 +15,6 @@ import {
   verifyResetToken,
 } from "@/utils/jwt";
 import { generateSlug } from "@/lib/text";
-import {
-  getEmailTemplate,
-  getResetPasswordHtml,
-} from "@/utils/email-templates";
-import { emailQueue } from "@/queues/email.queue";
 import logger from "@/utils/logger";
 import { sendEmailImmediate } from "@/utils/mail-sender";
 import { EmailType } from "@/queues/email.types";

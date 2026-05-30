@@ -8,3 +8,7 @@ docker-compose.yml
 *.log
 uploads
 minio-data
+npm-debug.log
+.next
+build
+
