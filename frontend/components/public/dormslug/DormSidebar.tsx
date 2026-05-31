@@ -143,7 +143,7 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             <span
               className={`text-sm font-semibold ${settings?.commonFee > 0 ? "text-slate-800" : "text-emerald-500"}`}
             >
-              {settings?.commonFee > 0 ? `${settings.commonFee} บาท` : "ฟรี"}
+              {settings?.commonFee > 0 ? `${settings.commonFee} บาท` : "ไม่มี"}
             </span>
           </div>
         </div>

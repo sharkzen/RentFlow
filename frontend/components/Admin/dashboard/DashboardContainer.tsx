@@ -1,14 +1,18 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { AdminService } from "@/features/admin/services/admin.service";
-import { DashboardData } from "@/features/admin";
+import type { DashboardData } from "@/features/admin";
+
 import {
   Users,
   Building2,
   UserCheck,
   DoorOpen,
   LayoutDashboard,
+  Database,
+  HardDrive,
 } from "lucide-react";
+
 import { StatCard } from "./StatCard";
 import { ActionCard } from "./ActionCard";
 import { RecentUsersTable } from "./RecentUsersTable";
@@ -35,6 +39,8 @@ export default function DashboardContainer() {
 
     fetchData();
   }, []);
+
+  console.log("Dashboard data:", data);
 
   if (loading) return <DashboardSkeleton />;
 
@@ -82,7 +88,8 @@ export default function DashboardContainer() {
           variant="warning"
         />
       </div>
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3">
         <StatCard
           title="ผู้ใช้งานทั้งหมด"
           value={data.overview.totalUsers}
@@ -110,6 +117,24 @@ export default function DashboardContainer() {
           icon={UserCheck}
           colorClass="bg-amber-500"
           subText="ยืนยันตัวตนแล้ว"
+        />
+        <StatCard
+          title="PostgreSQL Database"
+          value={data.storage.database.displayValue}
+          icon={Database}
+          colorClass={
+            data.storage.database.shouldOptimize
+              ? "bg-red-500"
+              : "bg-purple-500"
+          }
+          subText={data.storage.database.aiAdvice}
+        />
+        <StatCard
+          title="R2 Storage"
+          value={data.storage.r2.displayValue}
+          icon={HardDrive}
+          colorClass="bg-cyan-500"
+          subText={`จำนวนไฟล์ในระบบ: ${data.storage.r2.totalFiles} ไฟล์`}
         />
       </div>
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">

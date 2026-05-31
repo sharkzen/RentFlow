@@ -243,7 +243,7 @@ export default function MeterScannerModal({
           </h3>
           <button
             onClick={onClose}
-            className="rounded-full bg-slate-100 p-2 text-slate-500 transition-colors hover:bg-red-100 hover:text-red-600"
+            className="cursor-pointer rounded-full bg-slate-100 p-2 text-slate-500 transition-colors hover:bg-red-100 hover:text-red-600"
           >
             <X size={20} />
           </button>
@@ -342,14 +342,14 @@ export default function MeterScannerModal({
             <div className="mt-6 flex gap-4">
               <button
                 onClick={onSkip}
-                className="flex-1 rounded-2xl bg-slate-100 py-4 font-bold text-slate-600 transition hover:bg-slate-200"
+                className="flex-1 cursor-pointer rounded-2xl bg-slate-100 py-4 font-bold text-slate-600 transition hover:bg-slate-200"
               >
                 ข้าม
               </button>
               <button
                 onClick={takePictureAndScan}
                 disabled={!isCameraReady}
-                className="flex flex-[2] items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-4 text-lg font-bold text-white shadow-lg transition hover:bg-indigo-700 active:scale-95 disabled:opacity-50"
+                className="flex flex-[2] cursor-pointer items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-4 text-lg font-bold text-white shadow-lg transition hover:bg-indigo-700 active:scale-95 disabled:opacity-50"
               >
                 <Camera size={24} />
                 สแกน
@@ -367,7 +367,7 @@ export default function MeterScannerModal({
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || step === "processing" || !isComplete}
-                className={`flex flex-[3] items-center justify-center gap-2 rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition active:scale-95 ${isComplete ? "bg-emerald-500 hover:bg-emerald-600" : "cursor-not-allowed bg-slate-300 opacity-70"}`}
+                className={`flex flex-[3] cursor-pointer items-center justify-center gap-2 rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition active:scale-95 ${isComplete ? "bg-emerald-500 hover:bg-emerald-600" : "cursor-not-allowed bg-slate-300 opacity-70"}`}
               >
                 {isSubmitting ? (
                   <RefreshCw className="animate-spin" size={24} />

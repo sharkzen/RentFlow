@@ -3,7 +3,7 @@ import { LucideIcon } from "lucide-react";
 
 interface StatCardProps {
   title: string;
-  value: number;
+  value: number | string;
   icon: LucideIcon;
   colorClass: string;
   subText?: string;
@@ -22,7 +22,7 @@ export const StatCard = ({
         <div className="z-10">
           <p className="text-sm font-medium text-gray-500">{title}</p>
           <h3 className="mt-2 text-3xl font-bold tracking-tight text-gray-800">
-            {value.toLocaleString()}
+            {typeof value === "number" ? value.toLocaleString() : value}
           </h3>
           {subText && (
             <p className="mt-2 text-xs font-medium text-gray-400">{subText}</p>

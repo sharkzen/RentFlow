@@ -15,6 +15,8 @@ import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { generateSlug } from "@/lib/text";
 import { emailQueue } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
+import { getBucketSize } from "@/services/r2Client";
+import { formatBytes } from "@/utils/formatBytes";
 
 export const AdminService = {
   getDashboardStats: async () => {
@@ -28,6 +30,7 @@ export const AdminService = {
       totalRooms,
       openMaintenance,
       recentUsers,
+      r2Stats,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({
@@ -79,7 +82,30 @@ export const AdminService = {
           status: true,
         },
       }),
+      getBucketSize(),
     ]);
+
+    const dbSizeResult = await prisma.$queryRaw<{ size: bigint }[]>`
+    SELECT pg_database_size(current_database()) as size
+  `;
+
+    const dbSizeBytes = Number(dbSizeResult[0]?.size || 0);
+    const r2SizeBytes = r2Stats.totalSizeBytes;
+    const dbFormatted = formatBytes(dbSizeBytes);
+    const r2Formatted = formatBytes(r2SizeBytes);
+    const dbSizeGB = dbSizeBytes / (1024 * 1024 * 1024);
+    let dbAiAdvice = "ฐานข้อมูลอยู่ในเกณฑ์ปกติ ไม่จำเป็นต้องจัดการเพิ่มเติม";
+    let shouldOptimizeDb = false;
+
+    if (dbSizeGB > 10) {
+      dbAiAdvice =
+        "AI แนะนำ: ความจุเกิน 10GB ควรทำการล้างตาราง Log หรือสลับข้อมูลเก่าไปยังชุดเก็บเอกสาร (Archive)";
+      shouldOptimizeDb = true;
+    } else if (dbSizeGB > 5) {
+      dbAiAdvice =
+        "AI แนะนำ: เริ่มมีปริมาณข้อมูลสูง ควรตรวจสอบดัชนี (Indexing) ประสิทธิภาพคิวรี";
+      shouldOptimizeDb = true;
+    }
 
     return {
       overview: {
@@ -94,6 +120,19 @@ export const AdminService = {
         pendingOwners,
         pendingDormitories,
         openMaintenance,
+      },
+
+      storage: {
+        database: {
+          displayValue: `${dbFormatted.value} ${dbFormatted.unit}`,
+          aiAdvice: dbAiAdvice,
+          shouldOptimize: shouldOptimizeDb,
+        },
+
+        r2: {
+          displayValue: `${r2Formatted.value} ${r2Formatted.unit}`,
+          totalFiles: r2Stats.totalFiles,
+        },
       },
 
       recentUsers,

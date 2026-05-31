@@ -1490,23 +1490,6 @@ export const billService = {
   },
 
   scanMeter: async (imageBase64: string, scanType: string = "ELECTRIC") => {
-    try {
-      const debugDir = path.join(process.cwd(), "debug_images");
-
-      if (!fs.existsSync(debugDir)) {
-        fs.mkdirSync(debugDir, {
-          recursive: true,
-        });
-      }
-
-      const fileName = `scan_${Date.now()}.jpg`;
-      const filePath = path.join(debugDir, fileName);
-      fs.writeFileSync(filePath, Buffer.from(imageBase64, "base64"));
-      logger.info(`[Service] 📸 บันทึกรูป Debug สำเร็จ: ${fileName}`);
-    } catch (err: any) {
-      logger.error(`[Service] ❌ ไม่สามารถเซฟรูป Debug ได้: ${err.message}`);
-    }
-
     const apiKey = process.env.GOOGLE_VISION_API_KEY;
 
     if (!apiKey) {

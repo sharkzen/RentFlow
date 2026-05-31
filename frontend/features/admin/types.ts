@@ -1,3 +1,11 @@
+export interface RecentUser {
+  id: string;
+  email: string;
+  role: "ADMIN" | "OWNER" | "TENANT";
+  status: string;
+  createdAt: string;
+}
+
 export interface DashboardData {
   overview: {
     totalUsers: number;
@@ -11,13 +19,18 @@ export interface DashboardData {
     pendingDormitories: number;
     openMaintenance: number;
   };
-  recentUsers: Array<{
-    id: string;
-    email: string;
-    role: "ADMIN" | "OWNER" | "TENANT";
-    status: string;
-    createdAt: string;
-  }>;
+  storage: {
+    database: {
+      displayValue: string;
+      aiAdvice: string;
+      shouldOptimize: boolean;
+    };
+    r2: {
+      displayValue: string;
+      totalFiles: number;
+    };
+  };
+  recentUsers: RecentUser[];
 }
 
 export interface OwnerApproval {
