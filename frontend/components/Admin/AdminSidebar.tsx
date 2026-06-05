@@ -46,6 +46,11 @@ export default function AdminSidebar() {
       href: "/admin/landmarks",
       icon: <MapPin size={20} />,
     },
+    {
+      name: "ฟีเจอร์ (Features)",
+      href: "/admin/features",
+      icon: <Settings size={20} />,
+    },
   ];
 
   return (
@@ -69,7 +74,7 @@ export default function AdminSidebar() {
         </button>
       )}
       <aside
-        className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} /* Desktop (>960px): Sticky */ min-[960px]:sticky min-[960px]:translate-x-0`}
+        className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} min-[960px]:sticky min-[960px]:translate-x-0`}
       >
         <div className="flex h-20 items-center gap-3 border-b border-gray-50 px-6">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 shadow-lg shadow-indigo-200">

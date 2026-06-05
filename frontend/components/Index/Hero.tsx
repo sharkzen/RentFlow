@@ -35,9 +35,6 @@ export default function Hero() {
         className="relative z-10 w-full px-6 py-12 md:px-12 lg:px-20"
       >
         <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
-          <span className="mb-6 inline-flex items-center rounded-full border border-blue-500/20 bg-blue-500/10 px-4 py-1.5 text-xs font-medium tracking-wide text-blue-200 backdrop-blur-sm">
-            ✨ แพลตฟอร์มหาหอพักยุคใหม่ ครบ จบ ในที่เดียว
-          </span>
           <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-white md:text-7xl lg:text-8xl">
             Rent
             <span className="ml-3 bg-linear-to-br from-blue-400 to-cyan-300 bg-clip-text text-transparent">
@@ -57,7 +54,7 @@ export default function Hero() {
           <p className="mb-10 max-w-2xl text-base leading-7 text-slate-400 md:text-lg">
             แพลตฟอร์มครบวงจรสำหรับหอพัก — ผู้เช่าค้นหาห้องสวยได้ง่าย ๆ
             <br className="hidden md:block" />
-            เจ้าของหอจัดการประกาศและรายได้สะดวกในที่เดียว
+            เจ้าของหอจัดการประกาศและลูกบ้านชำระเงินได้สะดวกในที่เดียว
           </p>
           <div className="w-full max-w-md">
             <button

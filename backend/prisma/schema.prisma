@@ -453,17 +453,25 @@ model ActivityLog {
 model BillDraft {
   id           String   @id @default(uuid())
   dormitoryId  String
-  name         String // ชื่อ Draft เช่น "ร่างวันที่ 10/10/2024"
-  selectedDate DateTime // เดือน/ปี ของบิลที่เลือกตอนสร้าง Draft
-  items        Json // เก็บ Array ของ BillItem ทั้งก้อน (ง่ายต่อการเปลี่ยนแปลงโครงสร้าง)
+  name         String
+  selectedDate DateTime
+  items        Json
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // สร้าง Relation กับ Dormitory (เผื่อต้องการลบ Draft ทิ้งถ้าลบตึก)
   dormitory Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+}
 
-  // ถ้าอยากให้ผูกกับ User (Owner/Admin) ที่เป็นคนสร้าง ก็เพิ่มได้ (Option)
-  // createdById String
-  // createdBy   User    @relation(fields: [createdById], references: [id])
+model Feature {
+  id String @id @default(cuid())
+
+  key         String  @unique
+  name        String
+  description String?
+
+  enabled Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

@@ -13,6 +13,8 @@ import { Bill } from "@/features/bill/types";
 import log from "@/lib/logger";
 import { useSearchParams, useRouter } from "next/navigation";
 import SendBillModal, { BillSummary } from "./SendBillModal";
+import { Feature, ApiResponse_Feature } from "@/features/feature/services";
+import { FeatureService } from "@/features/feature/services/feature.service";
 
 export default function BillContainer() {
   const router = useRouter();
@@ -34,6 +36,10 @@ export default function BillContainer() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSendDialogOpen, setIsSendDialogOpen] = useState(false);
+
+  const [features, setFeatures] = useState<
+    ApiResponse_Feature<Feature> | undefined
+  >();
 
   const statusOptions = [
     {
@@ -124,6 +130,19 @@ export default function BillContainer() {
 
     return () => clearTimeout(timer);
   }, [search]);
+
+  useEffect(() => {
+    const fetchFeatures = async () => {
+      try {
+        const res = await FeatureService.getFeature("OCR_BILL");
+        setFeatures(res);
+      } catch (err) {
+        log.error("Failed to fetch features:", err);
+      }
+    };
+
+    fetchFeatures();
+  }, []);
 
   const fetchBills = async () => {
     setLoading(true);
@@ -383,6 +402,7 @@ export default function BillContainer() {
           onSubmit={handleCreateBill}
           selectedDormId={selectedDorm}
           dormName={currentDormName}
+          ocrFeatureEnabled={features?.data?.enabled || false}
         />
       )}
       {isSendDialogOpen && (

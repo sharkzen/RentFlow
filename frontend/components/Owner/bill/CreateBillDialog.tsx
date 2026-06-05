@@ -65,6 +65,7 @@ interface Props {
   onSubmit: (data: any) => Promise<void> | void;
   selectedDormId: string;
   dormName: string;
+  ocrFeatureEnabled: boolean;
 }
 
 export default function CreateBillDialog({
@@ -73,6 +74,7 @@ export default function CreateBillDialog({
   onSubmit,
   selectedDormId,
   dormName,
+  ocrFeatureEnabled,
 }: Props) {
   const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -552,20 +554,42 @@ export default function CreateBillDialog({
                 บันทึกฉบับร่าง
               </button>
             </div>
-            <div className="flex w-full gap-2 sm:w-auto">
-              <button
-                onClick={() => handleStartScan("WATER")}
-                className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-100 px-4 py-2 text-xs font-bold text-blue-700 transition-all hover:bg-blue-200 sm:flex-none"
-              >
-                📷 สแกนน้ำต่อเนื่อง
-              </button>
-              <button
-                onClick={() => handleStartScan("ELECTRIC")}
-                className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-yellow-100 px-4 py-2 text-xs font-bold text-yellow-700 transition-all hover:bg-yellow-200 sm:flex-none"
-              >
-                📷 สแกนไฟต่อเนื่อง
-              </button>
-            </div>
+            {ocrFeatureEnabled ? (
+              <div className="flex w-full gap-2 sm:w-auto">
+                <button
+                  onClick={() => handleStartScan("WATER")}
+                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-100 px-4 py-2 text-xs font-bold text-blue-700 transition-all hover:bg-blue-200 sm:flex-none"
+                >
+                  📷 สแกนน้ำต่อเนื่อง
+                </button>
+                <button
+                  onClick={() => handleStartScan("ELECTRIC")}
+                  className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-yellow-100 px-4 py-2 text-xs font-bold text-yellow-700 transition-all hover:bg-yellow-200 sm:flex-none"
+                >
+                  📷 สแกนไฟต่อเนื่อง
+                </button>
+              </div>
+            ) : (
+              <div className="flex w-full items-center justify-center rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 sm:w-auto">
+                <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                  <span>ระบบสแกน OCR ไม่พร้อมใช้งาน</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/30 p-4 pb-20 sm:pb-4">
