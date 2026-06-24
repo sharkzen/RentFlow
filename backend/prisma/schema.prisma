@@ -64,6 +64,7 @@ enum FileCategory {
   ROOM
   PAYMENT_SLIP
   MAINTENANCE
+  ANNOUNCEMENT
 }
 
 enum Status {
@@ -104,6 +105,9 @@ model File {
   isCover Boolean @default(false)
 
   createdAt DateTime @default(now())
+
+  announcementId String?
+  announcement   Announcement? @relation("AnnouncementImages", fields: [announcementId], references: [id])
 }
 
 /**
@@ -171,6 +175,7 @@ model Dormitory {
   billDrafts          BillDraft[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
+  announcements       Announcement[]
 }
 
 model DormitorySetting {
@@ -281,7 +286,8 @@ model TenantProfile {
   room                Room?                @relation(fields: [roomId], references: [id], onDelete: Restrict)
   bills               Bill[]
 
-  createdAt DateTime @default(now())
+  createdAt            DateTime              @default(now())
+  announcementReadLogs AnnouncementReadLog[]
 }
 
 /**
@@ -474,4 +480,45 @@ model Feature {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+/**
+ * =======================
+ * ANNOUNCEMENT
+ * =======================
+ */
+enum AnnouncementType {
+  NORMAL
+  IMPORTANT
+  URGENT
+}
+
+model Announcement {
+  id          String           @id @default(uuid())
+  dormitoryId String
+  title       String
+  content     String // ถ้ายาวมาก ใน Postgres แนะนำให้ใช้เนื้อหาแบบ Text (Prisma จะจัดการให้)
+  type        AnnouncementType @default(NORMAL)
+  isActive    Boolean          @default(true) // สำหรับเจ้าของหอใช้เปิด-ปิดประกาศ
+  isEmailSent Boolean          @default(false) // กันการส่งเมลซ้ำเมื่อเจ้าของหอมากดแก้ไขประกาศภายหลัง
+
+  dormitory Dormitory             @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+  images    File[]                @relation("AnnouncementImages")
+  readLogs  AnnouncementReadLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AnnouncementReadLog {
+  id             String   @id @default(uuid())
+  announcementId String
+  tenantId       String
+  readAt         DateTime @default(now()) // เวลาที่ลูกบ้านกดปิด/อ่านรับทราบ
+
+  announcement Announcement  @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  tenant       TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // ลูกบ้าน 1 คน ควรกดรับทราบประกาศแต่ละตัวได้แค่ครั้งเดียว
+  @@unique([announcementId, tenantId])
 }

@@ -12,6 +12,7 @@ import {
   ReceiptText,
   User2,
   Menu,
+  Megaphone,
 } from "lucide-react";
 
 import { usePathname } from "next/navigation";
@@ -26,6 +27,11 @@ export default function OwnerNavbar() {
       name: "ภาพรวม",
       icon: <LayoutDashboard size={20} />,
       href: "/owner/dashboard",
+    },
+    {
+      name: "ประกาศ",
+      icon: <Megaphone size={20} />,
+      href: "/owner/announcements",
     },
     {
       name: "จัดการหอพัก",

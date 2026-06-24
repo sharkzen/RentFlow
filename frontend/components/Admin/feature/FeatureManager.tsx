@@ -149,7 +149,6 @@ export default function FeatureManager() {
           เพิ่มฟีเจอร์ใหม่
         </button>
       </div>
-
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-200 bg-white p-4 sm:p-5">
           <div className="relative max-w-md">
@@ -166,7 +165,6 @@ export default function FeatureManager() {
             />
           </div>
         </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="border-b border-slate-200 bg-slate-50/50 text-xs text-slate-500 uppercase">
@@ -242,7 +240,7 @@ export default function FeatureManager() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center justify-center gap-2 opacity-100 transition-opacity group-hover:opacity-100 sm:opacity-0">
+                      <div className="flex items-center justify-center gap-2 transition-opacity">
                         <button
                           onClick={() => handleOpenEditModal(feature)}
                           className="cursor-pointer rounded-lg p-2 text-slate-400 transition-all hover:bg-blue-50 hover:text-blue-600"
@@ -265,7 +263,6 @@ export default function FeatureManager() {
             </tbody>
           </table>
         </div>
-
         <div className="flex items-center justify-between border-t border-slate-200 bg-white p-4 text-sm text-slate-500">
           <span>หน้า 1 จาก 1</span>
           <div className="flex gap-2">
@@ -284,7 +281,6 @@ export default function FeatureManager() {
           </div>
         </div>
       </div>
-
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 transition-opacity">
           <div className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all">
@@ -354,7 +350,6 @@ export default function FeatureManager() {
                   placeholder="รายละเอียดเพิ่มเติมของฟีเจอร์นี้..."
                 />
               </div>
-
               <div className="mt-2 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-slate-900">
@@ -401,7 +396,6 @@ export default function FeatureManager() {
           </div>
         </div>
       )}
-
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 transition-opacity">
           <div className="w-full max-w-sm transform overflow-hidden rounded-2xl bg-white p-6 text-center shadow-2xl transition-all">

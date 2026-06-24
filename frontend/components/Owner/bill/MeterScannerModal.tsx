@@ -192,10 +192,27 @@ export default function MeterScannerModal({
         }),
       });
 
+      if (!res.ok) {
+        let errorMessage = `เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ (${res.status})`;
+
+        try {
+          const errorData = await res.json();
+          const serverMsg = errorData.error || errorData.message;
+
+          if (serverMsg) errorMessage += `: ${serverMsg}`;
+        } catch (e) {}
+
+        toast.error(errorMessage);
+        setOcrValue("");
+        setStep("result");
+        return;
+      }
+
       const data = await res.json();
 
       if (data.success && data.number) {
         setOcrValue(data.number);
+        toast.success("สแกนสำเร็จ!");
       } else {
         toast.warning("หาตัวเลขไม่พบ กรุณาพิมพ์เอง");
         setOcrValue("");
@@ -204,7 +221,7 @@ export default function MeterScannerModal({
       setStep("result");
     } catch (error) {
       log.error("Scanning Error:", error);
-      toast.error("ระบบสแกนขัดข้อง");
+      toast.error("ระบบหน้าบ้านขัดข้อง กรุณาลองใหม่");
       setStep("camera");
       startCamera();
     }

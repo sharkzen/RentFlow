@@ -9,6 +9,7 @@ import { maintenanceRoute } from "./modules/maintenance/maintenance.route";
 import { adminRoute } from "./modules/admin/admin.route";
 import { FastifyInstance } from "fastify";
 import { featureRoute } from "./modules/feature/feature.route";
+import { announcementRoute } from "./modules/announcement/announcement.route";
 
 export async function indexRoute(app: FastifyInstance) {
   app.register(authRoute, {
@@ -49,5 +50,9 @@ export async function indexRoute(app: FastifyInstance) {
 
   app.register(featureRoute, {
     prefix: "/features",
+  });
+
+  app.register(announcementRoute, {
+    prefix: "/announcements",
   });
 }
