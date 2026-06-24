@@ -1,11 +1,75 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CreateAnnouncementModal from "./CreateAnnouncementModal";
 import AnnouncementList from "./AnnouncementList";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search } from "lucide-react";
+import { AnnouncementService } from "@/features/announcement/services/announcement.service";
+import { DormService } from "@/features/dormitory/services/dorm.service"; // ✅ นำเข้า DormService (แก้ path ให้ตรงกับโปรเจกต์ของคุณ)
 
 export default function AnnouncementClient() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // State สำหรับประกาศ
+  const [announcements, setAnnouncements] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // ✅ State สำหรับหอพัก
+  const [dorms, setDorms] = useState<any[]>([]);
+  const [isDormsLoading, setIsDormsLoading] = useState(true);
+
+  // State สำหรับ Filter
+  const [selectedDormitory, setSelectedDormitory] = useState(""); // ✅ เริ่มต้นเป็นค่าว่าง รอข้อมูลจริง
+  const [page, setPage] = useState(1);
+
+  // ✅ ฟังก์ชันดึงข้อมูลรายชื่อหอพัก
+  useEffect(() => {
+    const fetchDorms = async () => {
+      try {
+        setIsDormsLoading(true);
+        const result = await DormService.getDorm(); // หรือ getAllDroms() ขึ้นอยู่กับว่า Backend ให้ใช้อันไหน
+
+        // ป้องกันกรณี result ไม่ใช่ Array โดยตรง (เช่นเป็น { data: [...] })
+        const dormData = Array.isArray(result) ? result : result?.data || [];
+        setDorms(dormData);
+
+        // ✅ ตั้งค่าให้เลือกหอพักแรกเป็นค่าเริ่มต้นโดยอัตโนมัติ
+        if (dormData.length > 0) {
+          setSelectedDormitory(dormData[0].id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dormitories:", error);
+      } finally {
+        setIsDormsLoading(false);
+      }
+    };
+
+    fetchDorms();
+  }, []);
+
+  // ฟังก์ชันดึงข้อมูลประกาศ
+  const fetchAnnouncements = async () => {
+    if (!selectedDormitory) return; // ✅ ถ้ายังไม่มี ID หอพัก จะยังไม่ดึงข้อมูลประกาศ
+
+    try {
+      setIsLoading(true);
+      const result = await AnnouncementService.ownerGetAnnouncements({
+        dormitoryId: selectedDormitory,
+        page: page,
+        limit: 10,
+      });
+
+      setAnnouncements(result.data);
+    } catch (error) {
+      console.error("Failed to fetch announcements:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ดึงข้อมูลประกาศใหม่ทุกครั้งที่ หอพัก หรือ หน้า เปลี่ยนแปลง
+  useEffect(() => {
+    fetchAnnouncements();
+  }, [selectedDormitory, page]);
 
   return (
     <div className="space-y-6">
@@ -18,7 +82,8 @@ export default function AnnouncementClient() {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-blue-700"
+          disabled={!selectedDormitory} // ✅ ปิดปุ่มถ้ายังไม่มีหอพัก
+          className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus size={18} />
           <span>สร้างประกาศใหม่</span>
@@ -38,10 +103,26 @@ export default function AnnouncementClient() {
           />
         </div>
         <div className="flex gap-3">
-          <select className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-            <option>ทั้งหมดทุกหอพัก</option>
-            <option>ทดสอบ เพลส</option>
+          {/* ✅ วนลูปแสดงข้อมูลหอพักจริง */}
+          <select
+            className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100"
+            value={selectedDormitory}
+            onChange={(e) => setSelectedDormitory(e.target.value)}
+            disabled={isDormsLoading || dorms.length === 0}
+          >
+            {isDormsLoading ? (
+              <option value="">กำลังโหลด...</option>
+            ) : dorms.length === 0 ? (
+              <option value="">ไม่พบหอพัก</option>
+            ) : (
+              dorms.map((dorm) => (
+                <option key={dorm.id} value={dorm.id}>
+                  {dorm.name}
+                </option>
+              ))
+            )}
           </select>
+
           <select className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none">
             <option>ทุกประเภท</option>
             <option>ประกาศทั่วไป</option>
@@ -50,10 +131,20 @@ export default function AnnouncementClient() {
         </div>
       </div>
 
-      <AnnouncementList />
+      <AnnouncementList
+        data={announcements}
+        isLoading={isLoading || isDormsLoading}
+        onRefresh={fetchAnnouncements}
+      />
 
       {isModalOpen && (
-        <CreateAnnouncementModal onClose={() => setIsModalOpen(false)} />
+        <CreateAnnouncementModal
+          onClose={() => {
+            setIsModalOpen(false);
+            fetchAnnouncements();
+          }}
+          dormitoryId={selectedDormitory}
+        />
       )}
     </div>
   );

@@ -1,13 +1,16 @@
 "use client";
 import React, { useState } from "react";
 import { X, Image as ImageIcon, AlertCircle } from "lucide-react";
+import { AnnouncementService } from "@/features/announcement/services/announcement.service";
 
 interface CreateAnnouncementModalProps {
   onClose: () => void;
+  dormitoryId: string;
 }
 
 export default function CreateAnnouncementModal({
   onClose,
+  dormitoryId,
 }: CreateAnnouncementModalProps) {
   const [formData, setFormData] = useState({
     title: "",
@@ -15,6 +18,26 @@ export default function CreateAnnouncementModal({
     type: "NORMAL",
     sendEmail: true,
   });
+
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.content) return;
+
+    const fd = new FormData();
+    fd.append("dormitoryId", dormitoryId);
+    fd.append("title", formData.title);
+    fd.append("content", formData.content);
+    fd.append("type", formData.type);
+    fd.append("sendEmail", String(formData.sendEmail));
+
+    // ดึงไฟล์จาก input
+    const fileInput = document.getElementById("imageInput") as HTMLInputElement;
+    if (fileInput?.files?.[0]) {
+      fd.append("image", fileInput.files[0]);
+    }
+
+    await AnnouncementService.createAnnouncement(fd);
+    onClose();
+  };
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -95,6 +118,7 @@ export default function CreateAnnouncementModal({
               </label>
               <div className="relative cursor-pointer rounded-xl border-2 border-dashed border-gray-200 p-6 text-center transition-colors hover:bg-gray-50">
                 <input
+                  id="imageInput"
                   type="file"
                   accept="image/*"
                   className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
@@ -210,7 +234,10 @@ export default function CreateAnnouncementModal({
           >
             ยกเลิก
           </button>
-          <button className="rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700">
+          <button
+            onClick={handleSubmit}
+            className="rounded-lg bg-blue-600 px-5 py-2.5 font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+          >
             สร้างประกาศ
           </button>
         </div>

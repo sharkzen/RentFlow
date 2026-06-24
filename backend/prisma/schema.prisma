@@ -502,12 +502,17 @@ model Announcement {
   isActive    Boolean          @default(true) // สำหรับเจ้าของหอใช้เปิด-ปิดประกาศ
   isEmailSent Boolean          @default(false) // กันการส่งเมลซ้ำเมื่อเจ้าของหอมากดแก้ไขประกาศภายหลัง
 
+  order    Int     @default(0) // สำหรับจัดเรียงเองแบบ manual
+  isPinned Boolean @default(false)
+
   dormitory Dormitory             @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
   images    File[]                @relation("AnnouncementImages")
   readLogs  AnnouncementReadLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([isPinned, order, createdAt])
 }
 
 model AnnouncementReadLog {

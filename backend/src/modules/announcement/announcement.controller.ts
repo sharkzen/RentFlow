@@ -89,4 +89,47 @@ export const AnnouncementController = {
       });
     }
   },
+  createAnnouncement: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const parts = request.parts(); // iterate multipart parts
+
+      let dormitoryId = "";
+      let title = "";
+      let content = "";
+      let type = "NORMAL";
+      let sendEmail = true;
+      let imageFile: any = null;
+
+      for await (const part of parts) {
+        if (part.type === "field") {
+          if (part.fieldname === "dormitoryId")
+            dormitoryId = part.value as string;
+          if (part.fieldname === "title") title = part.value as string;
+          if (part.fieldname === "content") content = part.value as string;
+          if (part.fieldname === "type") type = part.value as string;
+          if (part.fieldname === "sendEmail") sendEmail = part.value === "true";
+        } else if (part.type === "file" && part.fieldname === "image") {
+          imageFile = part; // เก็บ stream ไว้
+        }
+      }
+
+      if (!dormitoryId || !title || !content) {
+        return reply.status(400).send({ error: "กรุณากรอกข้อมูลให้ครบ" });
+      }
+
+      const result = await AnnouncementService.createAnnouncement({
+        dormitoryId,
+        title,
+        content,
+        type: type as any,
+        sendEmail,
+        imageFile,
+      });
+
+      return reply.status(201).send(result);
+    } catch (error) {
+      logger.error(error);
+      return reply.status(500).send({ error: "Internal Server Error" });
+    }
+  },
 };

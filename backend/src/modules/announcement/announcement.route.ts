@@ -11,6 +11,7 @@ export async function announcementRoute(app: FastifyInstance) {
     ownerRoutes.addHook("preHandler", authMiddleware);
     ownerRoutes.addHook("preHandler", authRoleMiddleware([Role.OWNER]));
     ownerRoutes.get("/owner", AnnouncementController.getOwnerAnnouncements);
+    ownerRoutes.post("/", AnnouncementController.createAnnouncement);
   });
 
   app.register(async (tenantRoutes) => {
