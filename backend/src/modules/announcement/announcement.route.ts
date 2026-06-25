@@ -12,11 +12,17 @@ export async function announcementRoute(app: FastifyInstance) {
     ownerRoutes.addHook("preHandler", authRoleMiddleware([Role.OWNER]));
     ownerRoutes.get("/owner", AnnouncementController.getOwnerAnnouncements);
     ownerRoutes.post("/", AnnouncementController.createAnnouncement);
+    ownerRoutes.put("/:id", AnnouncementController.updateAnnouncement);
+    ownerRoutes.delete("/:id", AnnouncementController.deleteAnnouncement);
+    ownerRoutes.delete("/image/:imageId", AnnouncementController.deleteImage);
+    ownerRoutes.patch("/:id/pin", AnnouncementController.togglePinAnnouncement);
+    ownerRoutes.put("/reorder", AnnouncementController.reorderAnnouncements);
   });
 
   app.register(async (tenantRoutes) => {
     tenantRoutes.addHook("preHandler", authMiddleware);
     tenantRoutes.addHook("preHandler", authRoleMiddleware([Role.TENANT]));
     tenantRoutes.get("/tenant", AnnouncementController.getTenantAnnouncements);
+    tenantRoutes.post("/tenant/:id/read", AnnouncementController.markAsRead);
   });
 }

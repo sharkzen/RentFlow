@@ -7,6 +7,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 export type ConfirmDialogType = "success" | "warning" | "error" | "info";
 
 interface ConfirmDialogProps {
@@ -84,8 +85,8 @@ export default function ConfirmDialog({
   const style = variants[type];
   const Icon = style.icon;
 
-  return (
-    <div className="fixed inset-0 z-999 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div
         className="fixed inset-0 bg-slate-900/50 transition-opacity"
         onClick={!isLoading ? onClose : undefined}
@@ -142,6 +143,7 @@ export default function ConfirmDialog({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

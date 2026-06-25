@@ -40,8 +40,6 @@ export default function DashboardContainer() {
     fetchData();
   }, []);
 
-  console.log("Dashboard data:", data);
-
   if (loading) return <DashboardSkeleton />;
 
   if (error || !data) {

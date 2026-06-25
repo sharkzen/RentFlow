@@ -928,6 +928,134 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
         ),
       };
     }
+    case EmailType.ANNOUNCEMENT: {
+      const typeConfig =
+        data.type === "URGENT"
+          ? {
+              accentColor: "#b91c1c",
+              label: "ประกาศด่วนที่สุด",
+            }
+          : data.type === "IMPORTANT"
+            ? {
+                accentColor: "#1e40af",
+                label: "ประกาศสำคัญ",
+              }
+            : {
+                accentColor: "#475569",
+                label: "ประกาศทั่วไป",
+              };
+
+      return {
+        subject: getSubject(
+          data.type === "URGENT"
+            ? `[ด่วนที่สุด] ${data.title} — ${data.dormName}`
+            : data.type === "IMPORTANT"
+              ? `[สำคัญ] ${data.title} — ${data.dormName}`
+              : `[ประกาศ] ${data.title} — ${data.dormName}`,
+        ),
+
+        html: `<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${data.title}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body, table, td, p, a, span {
+      font-family: 'Sarabun', 'TH Sarabun New', Arial, sans-serif !important;
+    }
+    body { 
+      margin: 0; 
+      padding: 0; 
+      background-color: #f4f4f5; 
+      -webkit-font-smoothing: antialiased;
+    }
+    @media only screen and (max-width: 480px) {
+      .container { width: 100% !important; padding: 0 !important; }
+      .content-area { padding: 24px 20px !important; }
+      .title-text { font-size: 20px !important; }
+      .meta-text { display: block !important; margin-top: 4px !important; }
+    }
+  </style>
+</head>
+<body style="background-color: #f4f4f5; padding: 40px 0;">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f5;">
+  <tr>
+    <td align="center" style="padding: 0 16px;">
+      <table class="container" width="100%" border="0" cellspacing="0" cellpadding="0"
+             style="max-width: 600px; background-color: #ffffff; border-top: 4px solid ${typeConfig.accentColor}; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+
+        <tr>
+          <td class="content-area" style="padding: 32px 40px 16px; border-bottom: 1px solid #e4e4e7;">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="left" style="font-size: 14px; color: #52525b; font-weight: 600;">
+                  ${data.dormName}
+                </td>
+                <td align="right" class="meta-text" style="font-size: 13px; color: #a1a1aa;">
+                  ${data.date}
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="content-area" style="padding: 24px 40px 16px;">
+            <div style="display: inline-block; padding: 4px 12px; background-color: #f4f4f5; color: ${typeConfig.accentColor}; font-size: 12px; font-weight: 600; border-radius: 4px; margin-bottom: 16px; letter-spacing: 0.5px;">
+              ${typeConfig.label}
+            </div>
+            <div class="title-text" style="font-size: 22px; font-weight: 700; color: #18181b; line-height: 1.4;">
+              ${data.title}
+            </div>
+          </td>
+        </tr>
+
+        ${
+          data.imageUrl
+            ? `<tr>
+                <td style="padding: 0 40px 16px;" class="content-area">
+                  <img src="${data.imageUrl}"
+                       alt="${data.title}"
+                       width="100%"
+                       style="display: block; max-height: 360px; object-fit: cover; border-radius: 4px; border: 1px solid #e4e4e7;" />
+                </td>
+               </tr>`
+            : ""
+        }
+
+        <tr>
+          <td class="content-area" style="padding: 0 40px 32px;">
+            <p style="margin: 0; color: #3f3f46; font-size: 15px; line-height: 1.8; white-space: pre-line;">
+              ${data.content}
+            </p>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="content-area" style="background-color: #fafafa; padding: 24px 40px; border-top: 1px solid #e4e4e7;">
+            <p style="margin: 0 0 8px 0; font-size: 13px; color: #71717a; line-height: 1.6;">
+              หากท่านมีข้อสงสัยเกี่ยวกับการแจ้งเตือนนี้ กรุณาติดต่อสำนักงาน <strong>${data.dormName}</strong> โดยตรง
+            </p>
+            <p style="margin: 0; font-size: 12px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">
+              &copy; 2026 RentFlow Management System
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>`,
+      };
+    }
     default:
       throw new Error("Unknown Type");
   }
