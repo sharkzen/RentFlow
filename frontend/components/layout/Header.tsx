@@ -14,12 +14,17 @@ import log from "@/lib/logger";
 export default function Header() {
   const { user, loading: authLoading, setUser } = useAuth();
 
+  const [isMounted, setIsMounted] = useState(false);
   const logoutMutation = useLogout();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const router = useRouter();
   const initial = user?.fullName?.charAt(0).toUpperCase() || "U";
-  const firstName = user?.fullName.trim().split(/\s+/)[0];
+  const firstName = user?.fullName?.trim().split(/\s+/)[0];
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -57,9 +62,11 @@ export default function Header() {
 
       setUser(null);
       setDropdownOpen(false);
-      router.replace("/");
+      window.location.href = "/";
     } catch (error) {
       log.error("Logout error:", error);
+    } finally {
+      setDropdownOpen(false);
     }
   };
 
@@ -81,7 +88,7 @@ export default function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
         <Link
           href="/"
-          className={`group flex items-center text-xl font-bold tracking-tight text-slate-900 ${user ? "max-sm:pl-10" : ""}`}
+          className={`group flex items-center text-xl font-bold tracking-tight text-slate-900 ${user ? "max-[960px]:pl-10" : ""}`}
         >
           Rent
           <span className="ml-1 bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
@@ -89,7 +96,7 @@ export default function Header() {
           </span>
         </Link>
         <div className="flex items-center gap-3">
-          {authLoading ? (
+          {!isMounted || authLoading ? (
             <Skeleton className="h-8 w-32 rounded-full bg-white/50" />
           ) : (
             <>

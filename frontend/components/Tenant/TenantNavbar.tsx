@@ -16,6 +16,7 @@ import {
   User,
   LogOut,
   Menu,
+  Megaphone,
 } from "lucide-react";
 
 export default function TenantNavbar() {
@@ -40,6 +41,12 @@ export default function TenantNavbar() {
       icon: <Wrench size={20} />,
       href: "/tenant/maintenance",
       description: "แจ้งปัญหาภายในห้อง",
+    },
+    {
+      name: "ประกาศ",
+      icon: <Megaphone size={20} />,
+      href: "/tenant/announcements",
+      description: "ประกาศจากหอพัก",
     },
   ];
 

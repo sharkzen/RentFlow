@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,11 +7,318 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/**
- * =======================
- * ENUMS
- * =======================
- */
+model File {
+  id             String              @id @default(uuid())
+  tenantId       String?
+  ownerId        String?
+  bucket         String
+  dormitoryId    String?
+  roomId         String?
+  paymentId      String?
+  maintenanceId  String?
+  category       FileCategory
+  objectKey      String
+  mimeType       String
+  size           Int
+  order          Int?
+  isCover        Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  announcementId String?
+  announcement   Announcement?       @relation("AnnouncementImages", fields: [announcementId], references: [id])
+  dormitory      Dormitory?          @relation("DormitoryImages", fields: [dormitoryId], references: [id])
+  maintenance    MaintenanceRequest? @relation("MaintenanceImages", fields: [maintenanceId], references: [id])
+  payment        Payment?            @relation("PaymentSlips", fields: [paymentId], references: [id])
+  room           Room?               @relation("RoomImages", fields: [roomId], references: [id])
+}
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  password       String
+  role           UserRole
+  deletedAt      DateTime?
+  status         Status          @default(PENDING)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  ownerProfile   OwnerProfile?
+  tenantProfiles TenantProfile[]
+}
+
+model OwnerProfile {
+  id          String      @id @default(uuid())
+  userId      String      @unique
+  status      OwnerStatus @default(PENDING)
+  fullName    String
+  lineId      String?
+  phone       String?
+  facebook    String?
+  deletedAt   DateTime?
+  createdAt   DateTime    @default(now())
+  dormitories Dormitory[]
+  user        User        @relation(fields: [userId], references: [id])
+}
+
+model Dormitory {
+  id                  String               @id @default(uuid())
+  ownerId             String
+  name                String
+  slug                String               @unique
+  description         Json?
+  address             String
+  latitude            Float
+  longitude           Float
+  mapUrl              String
+  status              Status               @default(PENDING)
+  isPublished         Boolean              @default(false)
+  deletedAt           DateTime?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  announcements       Announcement[]
+  billDrafts          BillDraft[]
+  owner               OwnerProfile         @relation(fields: [ownerId], references: [id])
+  settings            DormitorySetting?
+  images              File[]               @relation("DormitoryImages")
+  maintenanceRequests MaintenanceRequest[]
+  paymentSetting      PaymentSetting?
+  rooms               Room[]
+}
+
+model DormitorySetting {
+  id             String    @id @default(uuid())
+  dormitoryId    String    @unique
+  roomPrice      Float?
+  waterRate      Float
+  electricRate   Float
+  commonFee      Float     @default(0)
+  lateFee        Float     @default(0)
+  dueDay         Int
+  dueMonthOffset Int       @default(1)
+  dormitory      Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+}
+
+model PaymentSetting {
+  id             String         @id @default(uuid())
+  dormitoryId    String         @unique
+  promptPayType  PromptPayType?
+  promptPayValue String?
+  bankName       String?
+  bankAccount    String?
+  bankHolder     String?
+  isActive       Boolean        @default(true)
+  dormitory      Dormitory      @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+}
+
+model Room {
+  id                  String               @id @default(uuid())
+  dormitoryId         String
+  roomNumber          String
+  floor               Int
+  type                RoomType?
+  description         String?
+  basePrice           Float
+  status              RoomStatus           @default(AVAILABLE)
+  deletedAt           DateTime?
+  createdAt           DateTime             @default(now())
+  bills               Bill[]
+  images              File[]               @relation("RoomImages")
+  maintenanceRequests MaintenanceRequest[]
+  dormitory           Dormitory            @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+  tenants             TenantProfile[]
+
+  @@unique([dormitoryId, roomNumber])
+}
+
+model TenantProfile {
+  id                    String                @id @default(uuid())
+  userId                String
+  roomId                String?
+  firstName             String
+  lastName              String
+  phone                 String?
+  email                 String?
+  idCard                String?
+  address               String?
+  numberOfResidents     Int                   @default(1)
+  tenantNameSnapshot    String?
+  securityDeposit       Float                 @default(0)
+  advancePayment        Float                 @default(0)
+  entranceFee           Float                 @default(0)
+  contractStartDate     DateTime?
+  contractEndDate       DateTime?
+  moveInDate            DateTime?
+  moveOutDate           DateTime?
+  isActive              Boolean               @default(true)
+  deletedAt             DateTime?
+  notes                 String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  createdAt             DateTime              @default(now())
+  announcementReadLogs  AnnouncementReadLog[]
+  bills                 Bill[]
+  maintenanceRequests   MaintenanceRequest[]
+  room                  Room?                 @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  user                  User                  @relation(fields: [userId], references: [id])
+}
+
+model Bill {
+  id                          String        @id @default(uuid())
+  roomId                      String
+  tenantId                    String
+  tenantNameSnapshot          String
+  roomNumberSnapshot          String
+  roomPriceSnapshot           Float
+  billingMonth                DateTime
+  dueDate                     DateTime
+  prevWaterUnitSnapshot       Float
+  currentWaterUnitSnapshot    Float
+  waterUsedSnapshot           Float
+  waterRateSnapshot           Float
+  waterFeeSnapshot            Float
+  prevElectricUnitSnapshot    Float
+  currentElectricUnitSnapshot Float
+  electricUsedSnapshot        Float
+  electricRateSnapshot        Float
+  electricFeeSnapshot         Float
+  waterImageKey               String?
+  electricImageKey            String?
+  commonFeeSnapshot           Float
+  lateFeeSnapshot             Float
+  total                       Float
+  note                        String?
+  status                      BillStatus    @default(PENDING)
+  archived                    Boolean       @default(false)
+  createdAt                   DateTime      @default(now())
+  lastNotifiedAt              DateTime?
+  room                        Room          @relation(fields: [roomId], references: [id])
+  tenant                      TenantProfile @relation(fields: [tenantId], references: [id])
+  items                       BillItem[]
+  payment                     Payment?
+
+  @@unique([roomId, billingMonth])
+}
+
+model BillItem {
+  id        String       @id @default(uuid())
+  billId    String
+  name      String
+  amount    Float
+  type      BillItemType @default(CHARGE)
+  createdAt DateTime     @default(now())
+  bill      Bill         @relation(fields: [billId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id             String         @id @default(uuid())
+  billId         String         @unique
+  status         PaymentStatus  @default(WAITING_VERIFY)
+  verifiedBy     String?
+  verifiedAt     DateTime?
+  paymentMethod  PaymentMethod?
+  transferRef    String?        @unique
+  transferAmount Float?
+  transferBank   String?
+  senderName     String?
+  paidAt         DateTime?
+  updatedAt      DateTime       @default(now()) @updatedAt
+  createdAt      DateTime       @default(now())
+  slips          File[]         @relation("PaymentSlips")
+  bill           Bill           @relation(fields: [billId], references: [id])
+}
+
+model MaintenanceRequest {
+  id          String            @id @default(uuid())
+  dormitoryId String
+  roomId      String
+  tenantId    String
+  title       String
+  description String
+  status      MaintenanceStatus @default(OPEN)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  ownerNote   String?
+  images      File[]            @relation("MaintenanceImages")
+  dormitory   Dormitory         @relation(fields: [dormitoryId], references: [id])
+  room        Room              @relation(fields: [roomId], references: [id])
+  tenant      TenantProfile     @relation(fields: [tenantId], references: [id])
+}
+
+model Landmark {
+  id        String       @id @default(uuid())
+  name      String
+  slug      String       @unique
+  type      LandmarkType
+  latitude  Float
+  longitude Float
+  mapUrl    String
+  status    Status       @default(ACTIVE)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  userId     String?  @map("user_id")
+  tenantId   String?  @map("tenant_id")
+  action     String
+  entityType String?  @map("entity_type")
+  entityId   String?  @map("entity_id")
+  metadata   Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("activity_logs")
+}
+
+model BillDraft {
+  id           String    @id @default(uuid())
+  dormitoryId  String
+  name         String
+  selectedDate DateTime
+  items        Json
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  dormitory    Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+}
+
+model Feature {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  enabled     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Announcement {
+  id          String                @id @default(uuid())
+  dormitoryId String
+  title       String
+  content     String
+  type        AnnouncementType      @default(NORMAL)
+  isActive    Boolean               @default(true)
+  isEmailSent Boolean               @default(false)
+  order       Int                   @default(0)
+  isPinned    Boolean               @default(false)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  dormitory   Dormitory             @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+  readLogs    AnnouncementReadLog[]
+  images      File[]                @relation("AnnouncementImages")
+
+  @@index([isPinned, order, createdAt])
+}
+
+model AnnouncementReadLog {
+  id             String        @id @default(uuid())
+  announcementId String
+  tenantId       String
+  readAt         DateTime      @default(now())
+  announcement   Announcement  @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  tenant         TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, tenantId])
+}
 
 enum UserRole {
   ADMIN
@@ -68,127 +369,15 @@ enum FileCategory {
 }
 
 enum Status {
-  PENDING // รออนุมัติ
-  ACTIVE // ใช้งานปกติ
-  BANNED // ระงับการใช้งาน (ทำผิดกฎ)
-  INACTIVE // ย้ายออกแล้ว / เลิกใช้งาน
+  PENDING
+  ACTIVE
+  BANNED
+  INACTIVE
 }
 
 enum BillItemType {
-  CHARGE // ยอดบวก (เพิ่มหนี้) เช่น ค่าเช่า, ค่าน้ำไฟ, ค่าล้างแอร์
-  DISCOUNT // ยอดลบ (ลดหนี้) เช่น ส่วนลด, หักค่าเช่าล่วงหน้า
-}
-
-//  
-model File {
-  id          String     @id @default(uuid())
-  tenantId    String?
-  ownerId     String?
-  bucket      String
-  dormitoryId String?
-  dormitory   Dormitory? @relation("DormitoryImages", fields: [dormitoryId], references: [id])
-
-  roomId String?
-  room   Room?   @relation("RoomImages", fields: [roomId], references: [id])
-
-  paymentId String?
-  payment   Payment? @relation("PaymentSlips", fields: [paymentId], references: [id])
-
-  maintenanceId String?
-  maintenance   MaintenanceRequest? @relation("MaintenanceImages", fields: [maintenanceId], references: [id])
-  category      FileCategory
-  objectKey     String
-  mimeType      String
-  size          Int
-
-  order   Int?
-  isCover Boolean @default(false)
-
-  createdAt DateTime @default(now())
-
-  announcementId String?
-  announcement   Announcement? @relation("AnnouncementImages", fields: [announcementId], references: [id])
-}
-
-/**
- * =======================
- * USER & PROFILES
- * =======================
- */
-
-model User {
-  id             String          @id @default(uuid())
-  email          String          @unique
-  password       String
-  role           UserRole
-  deletedAt      DateTime?
-  status         Status          @default(PENDING)
-  ownerProfile   OwnerProfile?
-  tenantProfiles TenantProfile[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model OwnerProfile {
-  id        String      @id @default(uuid())
-  userId    String      @unique
-  status    OwnerStatus @default(PENDING)
-  fullName  String
-  lineId    String?
-  phone     String?
-  facebook  String?
-  deletedAt DateTime?
-
-  user        User        @relation(fields: [userId], references: [id], onDelete: Restrict)
-  dormitories Dormitory[]
-
-  createdAt DateTime @default(now())
-}
-
-/**
- * =======================
- * DORMITORY
- * =======================
- */
-
-model Dormitory {
-  id             String          @id @default(uuid())
-  ownerId        String
-  name           String
-  slug           String          @unique
-  description    Json?
-  address        String
-  latitude       Float
-  longitude      Float
-  mapUrl         String
-  images         File[]          @relation("DormitoryImages")
-  status         Status          @default(PENDING)
-  isPublished    Boolean         @default(false)
-  deletedAt      DateTime?
-  paymentSetting PaymentSetting?
-
-  owner               OwnerProfile         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  settings            DormitorySetting?
-  rooms               Room[]
-  maintenanceRequests MaintenanceRequest[]
-  billDrafts          BillDraft[]
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  announcements       Announcement[]
-}
-
-model DormitorySetting {
-  id             String    @id @default(uuid())
-  dormitoryId    String    @unique
-  roomPrice      Float?
-  waterRate      Float
-  electricRate   Float
-  commonFee      Float     @default(0)
-  lateFee        Float     @default(0)
-  dueDay         Int
-  dueMonthOffset Int       @default(1)
-  dormitory      Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+  CHARGE
+  DISCOUNT
 }
 
 enum PromptPayType {
@@ -197,216 +386,22 @@ enum PromptPayType {
   E_WALLET
 }
 
-model PaymentSetting {
-  id String @id @default(uuid())
-
-  dormitoryId    String         @unique
-  promptPayType  PromptPayType?
-  promptPayValue String?
-
-  bankName    String?
-  bankAccount String?
-  bankHolder  String?
-
-  isActive Boolean @default(true)
-
-  dormitory Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
-}
-
-/**
- * =======================
- * ROOM
- * =======================
- */
+/// *
+///  * =======================
+///  * ROOM
+///  * =======================
 enum RoomType {
   AIR
   FAN
 }
 
-model Room {
-  id                  String               @id @default(uuid())
-  dormitoryId         String
-  roomNumber          String
-  floor               Int
-  type                RoomType?
-  description         String?
-  images              File[]               @relation("RoomImages")
-  basePrice           Float
-  status              RoomStatus           @default(AVAILABLE)
-  deletedAt           DateTime?
-  maintenanceRequests MaintenanceRequest[]
-  dormitory           Dormitory            @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
-  tenants             TenantProfile[]
-  bills               Bill[]
-
-  createdAt DateTime @default(now())
-
-  @@unique([dormitoryId, roomNumber])
-}
-
-/**
- * =======================
- * TENANT / CONTRACT
- * =======================
- */
-
-model TenantProfile {
-  id        String  @id @default(uuid())
-  userId    String
-  roomId    String?
-  firstName String
-  lastName  String
-  phone     String?
-  email     String?
-  idCard    String?
-
-  address           String?
-  numberOfResidents Int     @default(1)
-
-  tenantNameSnapshot String?
-
-  securityDeposit Float @default(0)
-  advancePayment  Float @default(0)
-  entranceFee     Float @default(0)
-
-  contractStartDate DateTime?
-  contractEndDate   DateTime?
-
-  moveInDate  DateTime?
-  moveOutDate DateTime?
-  isActive    Boolean   @default(true)
-  deletedAt   DateTime?
-  notes       String?
-
-  emergencyContactName  String?
-  emergencyContactPhone String?
-
-  maintenanceRequests MaintenanceRequest[]
-  user                User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
-  room                Room?                @relation(fields: [roomId], references: [id], onDelete: Restrict)
-  bills               Bill[]
-
-  createdAt            DateTime              @default(now())
-  announcementReadLogs AnnouncementReadLog[]
-}
-
-/**
- * =======================
- * BILLING
- * =======================
- */
-
-model Bill {
-  id       String @id @default(uuid())
-  roomId   String
-  tenantId String
-
-  tenantNameSnapshot String
-  roomNumberSnapshot String
-  roomPriceSnapshot  Float
-
-  billingMonth DateTime
-  dueDate      DateTime
-
-  prevWaterUnitSnapshot    Float
-  currentWaterUnitSnapshot Float
-  waterUsedSnapshot        Float
-  waterRateSnapshot        Float
-  waterFeeSnapshot         Float
-
-  prevElectricUnitSnapshot    Float
-  currentElectricUnitSnapshot Float
-  electricUsedSnapshot        Float
-  electricRateSnapshot        Float
-  electricFeeSnapshot         Float
-  waterImageKey               String?
-  electricImageKey            String?
-  commonFeeSnapshot           Float
-  lateFeeSnapshot             Float
-
-  total          Float
-  note           String?
-  status         BillStatus    @default(PENDING)
-  archived       Boolean       @default(false)
-  lastNotifiedAt DateTime?
-  room           Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
-  tenant         TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-  payment        Payment?
-  items          BillItem[]
-  createdAt      DateTime      @default(now())
-
-  @@unique([roomId, billingMonth])
-}
-
-model BillItem {
-  id     String       @id @default(uuid())
-  billId String
-  name   String // ชื่อรายการ เช่น "ค่าล้างแอร์", "หักค่าเช่าล่วงหน้า 1 เดือน"
-  amount Float // จำนวนเงิน (เก็บเป็นค่าบวกเสมอ แล้วไปใช้ Type ในการคำนวณ)
-  type   BillItemType @default(CHARGE)
-
-  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-}
-
-/**
- * =======================
- * PAYMENT
- * =======================
- */
+/// *
+///  * =======================
+///  * PAYMENT
+///  * =======================
 enum PaymentMethod {
   CASH
   TRANSFER
-}
-
-model Payment {
-  id     String @id @default(uuid())
-  billId String @unique
-
-  slips         File[]         @relation("PaymentSlips")
-  status        PaymentStatus  @default(WAITING_VERIFY)
-  verifiedBy    String?
-  verifiedAt    DateTime?
-  paymentMethod PaymentMethod?
-
-  transferRef    String?   @unique
-  transferAmount Float?
-  transferBank   String?
-  senderName     String?
-  paidAt         DateTime?
-  // -------------------------------------------
-
-  bill      Bill     @relation(fields: [billId], references: [id], onDelete: Restrict)
-  updatedAt DateTime @default(now()) @updatedAt
-  createdAt DateTime @default(now())
-}
-
-/**
- * =======================
- * MAINTENANCE
- * =======================
- */
-
-model MaintenanceRequest {
-  id          String @id @default(uuid())
-  dormitoryId String
-  roomId      String
-  tenantId    String
-
-  title       String
-  description String
-  status      MaintenanceStatus @default(OPEN)
-
-  ownerNote String?
-
-  images    File[]        @relation("MaintenanceImages")
-  dormitory Dormitory     @relation(fields: [dormitoryId], references: [id], onDelete: Restrict)
-  room      Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
-  tenant    TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Restrict)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 enum LandmarkType {
@@ -420,110 +415,12 @@ enum LandmarkType {
   OTHER
 }
 
-model Landmark {
-  id   String       @id @default(uuid())
-  name String
-  slug String       @unique
-  type LandmarkType
-
-  latitude  Float
-  longitude Float
-
-  mapUrl String
-  status Status @default(ACTIVE)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model ActivityLog {
-  id         String   @id @default(uuid())
-  userId     String?  @map("user_id")
-  tenantId   String?  @map("tenant_id")
-  action     String
-  entityType String?  @map("entity_type")
-  entityId   String?  @map("entity_id")
-  metadata   Json?
-  ipAddress  String?  @map("ip_address")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@map("activity_logs")
-}
-
-/**
- * =======================
- * BILLING
- * =======================
- */
-
-model BillDraft {
-  id           String   @id @default(uuid())
-  dormitoryId  String
-  name         String
-  selectedDate DateTime
-  items        Json
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  dormitory Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
-}
-
-model Feature {
-  id String @id @default(cuid())
-
-  key         String  @unique
-  name        String
-  description String?
-
-  enabled Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-/**
- * =======================
- * ANNOUNCEMENT
- * =======================
- */
+/// *
+///  * =======================
+///  * ANNOUNCEMENT
+///  * =======================
 enum AnnouncementType {
   NORMAL
   IMPORTANT
   URGENT
-}
-
-model Announcement {
-  id          String           @id @default(uuid())
-  dormitoryId String
-  title       String
-  content     String // ถ้ายาวมาก ใน Postgres แนะนำให้ใช้เนื้อหาแบบ Text (Prisma จะจัดการให้)
-  type        AnnouncementType @default(NORMAL)
-  isActive    Boolean          @default(true) // สำหรับเจ้าของหอใช้เปิด-ปิดประกาศ
-  isEmailSent Boolean          @default(false) // กันการส่งเมลซ้ำเมื่อเจ้าของหอมากดแก้ไขประกาศภายหลัง
-
-  order    Int     @default(0) // สำหรับจัดเรียงเองแบบ manual
-  isPinned Boolean @default(false)
-
-  dormitory Dormitory             @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
-  images    File[]                @relation("AnnouncementImages")
-  readLogs  AnnouncementReadLog[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([isPinned, order, createdAt])
-}
-
-model AnnouncementReadLog {
-  id             String   @id @default(uuid())
-  announcementId String
-  tenantId       String
-  readAt         DateTime @default(now()) // เวลาที่ลูกบ้านกดปิด/อ่านรับทราบ
-
-  announcement Announcement  @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  tenant       TenantProfile @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  // ลูกบ้าน 1 คน ควรกดรับทราบประกาศแต่ละตัวได้แค่ครั้งเดียว
-  @@unique([announcementId, tenantId])
 }

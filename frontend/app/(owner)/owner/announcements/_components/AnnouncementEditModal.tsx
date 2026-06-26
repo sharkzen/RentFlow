@@ -22,6 +22,7 @@ export default function AnnouncementEditModal({
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [type, setType] = useState("NORMAL");
+  const [isActive, setIsActive] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [existingImageId, setExistingImageId] = useState<string | null>(null);
@@ -47,6 +48,7 @@ export default function AnnouncementEditModal({
       setTitle(item.title || "");
       setContent(item.content || "");
       setType(item.type || "NORMAL");
+      setIsActive(item.isActive !== undefined ? item.isActive : true);
       setImageFile(null);
 
       if (item.images && item.images.length > 0 && item.images[0].url) {
@@ -146,6 +148,7 @@ export default function AnnouncementEditModal({
       fd.append("title", title);
       fd.append("content", content);
       fd.append("type", type);
+      fd.append("isActive", String(isActive));
 
       if (imageFile) {
         fd.append("image", imageFile);
@@ -187,6 +190,24 @@ export default function AnnouncementEditModal({
             ref={scrollContainerRef}
             className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6"
           >
+            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+              <div>
+                <p className="font-medium text-gray-900">แสดงประกาศนี้</p>
+                <p className="text-sm text-gray-500">
+                  ปิดการใช้งานเพื่อซ่อนประกาศชั่วคราวโดยไม่ต้องลบ
+                </p>
+              </div>
+              <label className="relative inline-flex cursor-pointer items-center">
+                <input
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  disabled={isLoading}
+                />
+                <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white disabled:opacity-50"></div>
+              </label>
+            </div>
             <div className="flex flex-col gap-4 sm:flex-row">
               <div className="flex-1">
                 <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -313,7 +334,6 @@ export default function AnnouncementEditModal({
           </div>
         </div>
       </div>
-
       <ConfirmDialog
         isOpen={isConfirmDeleteImageOpen}
         onClose={() => setIsConfirmDeleteImageOpen(false)}

@@ -45,7 +45,6 @@ export default function AnnouncementPreviewModal({
           <h3 className="text-base font-bold break-words text-gray-900">
             {item.title}
           </h3>
-
           {imageUrl && (
             <div className="w-full shrink-0 overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
               <img
@@ -59,7 +58,6 @@ export default function AnnouncementPreviewModal({
             {item.content}
           </div>
         </div>
-
         <div className="shrink-0 border-t border-gray-100 bg-white p-4">
           <button
             onClick={onClose}

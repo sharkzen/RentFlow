@@ -9,6 +9,7 @@ import {
   Info,
   X,
 } from "lucide-react";
+import { formatThaiDate } from "@/lib/dateFormatter";
 
 interface Announcement {
   id: string;
@@ -33,6 +34,7 @@ export default function TenantAnnouncementModal() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [displayIndex, setDisplayIndex] = useState(0);
+  console.log(announcements);
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
@@ -202,15 +204,17 @@ export default function TenantAnnouncementModal() {
                 ปักหมุด
               </span>
             )}
+            <div className="text-xs">
+              เมื่อ {formatThaiDate(currentAnn.createdAt)}
+            </div>
           </div>
           <button
             onClick={handleSnooze}
-            className="rounded-full p-1 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600"
+            className="cursor-pointer rounded-full p-1 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-
         <div className="flex-1 overflow-y-auto p-6">
           <div
             className={`transform transition-all duration-300 ease-out ${getAnimationClass()}`}
@@ -232,7 +236,6 @@ export default function TenantAnnouncementModal() {
             </div>
           </div>
         </div>
-
         <div className="flex flex-col gap-4 border-t border-slate-100 bg-slate-50/50 p-4">
           <div className="flex items-center justify-between text-xs text-gray-500 md:text-sm">
             <label className="group flex cursor-pointer items-center gap-2 select-none">

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import CreateAnnouncementModal from "./CreateAnnouncementModal";
 import AnnouncementList from "./AnnouncementList";
-import { Plus, Megaphone } from "lucide-react";
+import { Plus, Megaphone, BellOff } from "lucide-react";
 import { AnnouncementService } from "@/features/announcement/services/announcement.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 
@@ -87,7 +87,6 @@ export default function AnnouncementClient() {
           <span>สร้างประกาศใหม่</span>
         </button>
       </div>
-
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
         <select
           className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none disabled:bg-gray-50 sm:w-auto"
@@ -119,11 +118,32 @@ export default function AnnouncementClient() {
         </select>
       </div>
 
-      <AnnouncementList
-        data={filteredAnnouncements}
-        isLoading={isLoading || isDormsLoading}
-        onRefresh={fetchAnnouncements}
-      />
+      {!isLoading && !isDormsLoading && filteredAnnouncements.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-gray-50 px-4 py-16 text-center">
+          <div className="mb-4 rounded-full bg-white p-4 shadow-sm">
+            <BellOff size={32} className="text-gray-300" />
+          </div>
+          <h3 className="text-lg font-bold text-gray-700">ยังไม่มีประกาศ</h3>
+          <p className="mt-1 max-w-sm text-sm text-gray-500">
+            คุณยังไม่ได้สร้างประกาศใดๆ สำหรับหอพักนี้
+            หรืออาจจะไม่มีประกาศในประเภทที่คุณเลือก
+          </p>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            disabled={!selectedDormitory}
+            className="mt-6 flex cursor-pointer items-center gap-2 rounded-xl bg-blue-50 px-5 py-2.5 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus size={18} />
+            สร้างประกาศแรกเลย
+          </button>
+        </div>
+      ) : (
+        <AnnouncementList
+          data={filteredAnnouncements}
+          isLoading={isLoading || isDormsLoading}
+          onRefresh={fetchAnnouncements}
+        />
+      )}
       {isModalOpen && (
         <CreateAnnouncementModal
           dormitoryId={selectedDormitory}

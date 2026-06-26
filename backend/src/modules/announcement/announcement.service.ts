@@ -339,6 +339,7 @@ export const AnnouncementService = {
       title: string;
       content: string;
       type: AnnouncementType;
+      isActive: boolean;
       removeImage: boolean;
       imageBuffer?: Buffer;
     },
@@ -423,6 +424,7 @@ export const AnnouncementService = {
         title: data.title,
         content: data.content,
         type: data.type,
+        isActive: data.isActive,
         images: imageConnectOrCreate,
       },
 

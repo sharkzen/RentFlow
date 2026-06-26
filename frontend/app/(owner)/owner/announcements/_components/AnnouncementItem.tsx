@@ -41,7 +41,6 @@ export default function AnnouncementItem({
               </span>
             </div>
           </div>
-
           <div className="flex items-center gap-1">
             <button
               onClick={onTogglePin}
@@ -55,7 +54,6 @@ export default function AnnouncementItem({
               )}
             </button>
             <div className="mx-1 h-4 w-px bg-slate-200"></div>
-
             <button
               onClick={onPreview}
               className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-600"
@@ -63,7 +61,6 @@ export default function AnnouncementItem({
             >
               <Eye className="h-4 w-4" />
             </button>
-
             <button
               onClick={onEdit}
               className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-amber-50 hover:text-amber-600"
@@ -71,7 +68,6 @@ export default function AnnouncementItem({
             >
               <Edit2 className="h-4 w-4" />
             </button>
-
             <button
               onClick={onDelete}
               className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600"

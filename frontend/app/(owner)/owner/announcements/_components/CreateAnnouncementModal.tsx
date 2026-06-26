@@ -1,6 +1,12 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { X, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
+import {
+  X,
+  Image as ImageIcon,
+  Loader2,
+  Trash2,
+  ExternalLink,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { AnnouncementService } from "@/features/announcement/services/announcement.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
@@ -73,7 +79,7 @@ export default function CreateAnnouncementModal({
   );
 
   const handleImageChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
 
       if (!file) return;
@@ -87,30 +93,13 @@ export default function CreateAnnouncementModal({
       setImageFile(file);
       const url = URL.createObjectURL(file);
       setPreviewImage(url);
-
-      setTimeout(() => {
-        const img = new Image();
-
-        img.onload = () => {
-          URL.revokeObjectURL(url);
-          const MAX = 1200;
-          const scale = img.width > MAX ? MAX / img.width : 1;
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
-          canvas
-            .getContext("2d")
-            ?.drawImage(img, 0, 0, canvas.width, canvas.height);
-          setPreviewImage(canvas.toDataURL("image/jpeg", 0.8));
-        };
-
-        img.src = url;
-      }, 0);
     },
     [],
   );
 
-  const handleRemoveImage = useCallback(() => {
+  const handleRemoveImage = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+
     setPreviewImage((prev) => {
       if (prev) URL.revokeObjectURL(prev);
 
@@ -177,7 +166,6 @@ export default function CreateAnnouncementModal({
             <X size={20} />
           </button>
         </div>
-
         <div className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6">
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -238,48 +226,58 @@ export default function CreateAnnouncementModal({
             </div>
           </div>
           <div>
-            <div className="mb-1 flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">
-                รูปภาพแนบ (ถ้ามี)
-              </label>
-              {previewImage && (
-                <button
-                  onClick={handleRemoveImage}
-                  disabled={isLoading}
-                  className="flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-xs text-red-500 transition-colors hover:bg-red-100 hover:text-red-700 disabled:opacity-50"
+            <label className="mb-1 block text-sm font-medium text-gray-700">
+              รูปภาพแนบ (ถ้ามี)
+            </label>
+
+            {previewImage ? (
+              <div className="flex items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <div
+                  className="group relative h-24 w-24 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+                  onClick={() => window.open(previewImage, "_blank")}
+                  title="คลิกเพื่อดูรูปขนาดเต็ม"
                 >
-                  <Trash2 size={14} />
-                  ลบรูปภาพ
-                </button>
-              )}
-            </div>
-            <div
-              className={`relative cursor-pointer overflow-hidden rounded-xl border-2 border-dashed border-gray-200 text-center transition-colors hover:border-gray-300 hover:bg-gray-50 ${isLoading ? "pointer-events-none opacity-50" : ""} ${previewImage ? "border-blue-200 bg-gray-50" : "p-6"}`}
-            >
-              <input
-                id="imageInput"
-                type="file"
-                accept=".jpg,.jpeg,.png,.webp"
-                disabled={isLoading}
-                className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                onChange={handleImageChange}
-              />
-              {previewImage ? (
-                <div className="group relative flex aspect-4/3 w-full items-center justify-center bg-gray-50">
                   <img
                     src={previewImage}
-                    alt="Preview"
-                    decoding="async"
-                    className="h-full w-full object-contain"
+                    alt="Preview Thumbnail"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                    <span className="flex items-center gap-2 rounded-lg bg-white/90 px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm">
-                      <ImageIcon size={16} />
-                      คลิกเพื่อเปลี่ยนรูปภาพ
-                    </span>
+                    <ExternalLink size={20} className="text-white" />
                   </div>
                 </div>
-              ) : (
+                <div className="flex flex-col gap-2 pt-1">
+                  <span className="line-clamp-1 max-w-[200px] text-sm font-medium text-gray-700 sm:max-w-xs">
+                    {imageFile?.name || "รูปภาพแนบ"}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    ขนาด:{" "}
+                    {imageFile ? (imageFile.size / 1024 / 1024).toFixed(2) : 0}{" "}
+                    MB
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    disabled={isLoading}
+                    className="mt-1 flex w-fit items-center gap-1.5 rounded-md bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 disabled:opacity-50"
+                  >
+                    <Trash2 size={14} />
+                    ลบรูปภาพและเลือกใหม่
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div
+                className={`relative cursor-pointer overflow-hidden rounded-xl border-2 border-dashed border-gray-200 p-6 text-center transition-colors hover:border-gray-300 hover:bg-gray-50 ${isLoading ? "pointer-events-none opacity-50" : ""}`}
+              >
+                <input
+                  id="imageInput"
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp"
+                  disabled={isLoading}
+                  className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
+                  onChange={handleImageChange}
+                />
                 <div className="flex flex-col items-center gap-2 text-gray-500">
                   <div className="mb-1 rounded-full bg-blue-50 p-3 text-blue-500">
                     <ImageIcon size={28} />
@@ -291,8 +289,8 @@ export default function CreateAnnouncementModal({
                     รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 5MB
                   </span>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -324,7 +322,6 @@ export default function CreateAnnouncementModal({
             </label>
           </div>
         </div>
-
         <div className="flex shrink-0 justify-end gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50/50 p-4 sm:px-6">
           <button
             onClick={onClose}

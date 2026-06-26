@@ -180,6 +180,7 @@ export const AnnouncementController = {
       let content = "";
       let type = "NORMAL";
       let removeImage = false;
+      let isActive = true;
       let imageBuffer: Buffer | undefined = undefined;
 
       for await (const part of parts) {
@@ -189,6 +190,8 @@ export const AnnouncementController = {
           else if (part.fieldname === "type") type = part.value as string;
           else if (part.fieldname === "removeImage")
             removeImage = part.value === "true";
+          else if (part.fieldname === "isActive")
+            isActive = part.value === "true";
         } else if (part.type === "file" && part.fieldname === "image") {
           imageBuffer = await part.toBuffer();
         }
@@ -207,6 +210,7 @@ export const AnnouncementController = {
           title,
           content,
           type: type as any,
+          isActive,
           removeImage,
           imageBuffer,
         },

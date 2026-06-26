@@ -131,7 +131,7 @@ export default function AnnouncementList({
 
     try {
       setIsDeleting(true);
-      await AnnouncementService.delete(itemToDelete.id);
+      await AnnouncementService.deleteAnnouncement(itemToDelete.id);
       toast.success("ลบประกาศเรียบร้อยแล้ว");
       onRefresh();
       setItemToDelete(null);
@@ -191,7 +191,6 @@ export default function AnnouncementList({
               </Droppable>
             </div>
           )}
-
           {normalItems.length > 0 && (
             <div>
               <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-wide text-slate-500 uppercase">
@@ -223,14 +222,12 @@ export default function AnnouncementList({
           )}
         </div>
       </DragDropContext>
-
       {previewItem && (
         <AnnouncementPreviewModal
           item={previewItem}
           onClose={() => setPreviewItem(null)}
         />
       )}
-
       <AnnouncementEditModal
         item={editItem}
         isOpen={!!editItem}

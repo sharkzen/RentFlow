@@ -68,7 +68,7 @@ export const AnnouncementService = {
     return res.data;
   },
 
-  delete: async (id: string) => {
+  deleteAnnouncement: async (id: string) => {
     const res = await axios.delete(`/api/announcements/${id}`);
     return res.data;
   },
