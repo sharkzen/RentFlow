@@ -34,6 +34,13 @@ services:
   #     REDIS_PORT: 6379
   #   ports:
   #     - "3001:3001"
+  ocr-service:
+    build:
+      context: ./ocr-service # ชี้ไปยังโฟลเดอร์ที่เราเพิ่งสร้าง
+    container_name: ocr-server
+    ports:
+      - "8899:8899" # แมปพอร์ตเครื่อง : พอร์ตในคอนเทนเนอร์
+    restart: unless-stopped
 
   postgres:
     image: postgres:16
