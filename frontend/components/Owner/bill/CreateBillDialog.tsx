@@ -124,44 +124,51 @@ export default function CreateBillDialog({
   const handleScanConfirm = async (ocrValue: string, file: File) => {
     const { index, type } = scanConfig;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await BillService.uploadTempImage(formData);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await BillService.uploadTempImage(formData);
 
-    setItems((prev) => {
-      const newItems = [...prev];
+      setItems((prev) => {
+        const newItems = [...prev];
 
-      if (type === "WATER") {
-        newItems[index].currentWater = ocrValue;
-        newItems[index].waterImage = res.url;
-        newItems[index].waterImageKey = res.objectKey;
-      } else {
-        newItems[index].currentElectric = ocrValue;
-        newItems[index].electricImage = res.url;
-        newItems[index].electricImageKey = res.objectKey;
-      }
+        if (type === "WATER") {
+          newItems[index].currentWater = ocrValue;
+          newItems[index].waterImage = res.url;
+          newItems[index].waterImageKey = res.objectKey;
+        } else {
+          newItems[index].currentElectric = ocrValue;
+          newItems[index].electricImage = res.url;
+          newItems[index].electricImageKey = res.objectKey;
+        }
 
-      return newItems;
-    });
+        return newItems;
+      });
 
-    handleScanNext();
+      handleScanNext();
+    } catch (error) {
+      toast.error("อัปโหลดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+    }
   };
 
   const handleScanNext = () => {
-    if (scanConfig.index < items.length - 1) {
-      setScanConfig((prev) => ({
-        ...prev,
-        index: prev.index + 1,
-      }));
-    } else {
-      setScanConfig({
-        isOpen: false,
-        type: "WATER",
-        index: 0,
-      });
-
-      toast.success("สแกนครบทุกห้องเรียบร้อยแล้ว!");
-    }
+    setScanConfig((prev) => {
+      // เช็คจำนวนจาก items.length และใช้ prev.index เพื่อความแม่นยำ
+      if (prev.index < items.length - 1) {
+        return {
+          ...prev,
+          isOpen: true, // บังคับให้เปิดไว้เสมอเพื่อสแกนห้องถัดไป
+          index: prev.index + 1,
+        };
+      } else {
+        toast.success("สแกนครบทุกห้องเรียบร้อยแล้ว!");
+        return {
+          isOpen: false,
+          type: "WATER",
+          index: 0,
+        };
+      }
+    });
   };
 
   const createEmptyItem = (): BillItem => ({
@@ -767,6 +774,7 @@ export default function CreateBillDialog({
       />
       {scanConfig.isOpen && (
         <MeterScannerModal
+          key={`${scanConfig.type}-${scanConfig.index}`}
           isOpen={scanConfig.isOpen}
           onClose={() =>
             setScanConfig((prev) => ({

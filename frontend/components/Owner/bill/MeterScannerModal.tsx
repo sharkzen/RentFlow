@@ -237,7 +237,6 @@ export default function MeterScannerModal({
     setIsSubmitting(true);
     await onConfirm(ocrValue, file);
     setIsSubmitting(false);
-    onClose();
   };
 
   const handleRetake = () => {
