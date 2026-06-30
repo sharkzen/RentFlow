@@ -559,6 +559,12 @@ export const BillController = {
       }
 
       const result = await billService.scanMeter(imageBase64, scanType);
+
+      // 💡 ถ้า Service คืนค่า success: false (เช่น ภาพเบลอ) ให้ตอบกลับเป็น 400 หรือ 422
+      if (!result.success) {
+        return reply.status(400).send(result);
+      }
+
       return reply.send(result);
     } catch (error: any) {
       logger.error(`[Controller - scanMeter] ${error.message}`);

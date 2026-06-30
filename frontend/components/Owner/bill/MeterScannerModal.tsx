@@ -1,14 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
-import {
-  X,
-  Camera,
-  Save,
-  RefreshCw,
-  ChevronRight,
-  Edit3,
-  AlertTriangle,
-} from "lucide-react";
+import { X, Camera, RefreshCw, ChevronRight, Edit3 } from "lucide-react";
 import { toast } from "react-toastify";
 import log from "@/lib/logger";
 
@@ -39,7 +31,7 @@ export default function MeterScannerModal({
   const [ocrValue, setOcrValue] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
-  const EXPECTED_DIGITS = scanType === "WATER" ? 4 : 5;
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -67,16 +59,13 @@ export default function MeterScannerModal({
           facingMode: {
             ideal: "environment",
           },
-
           width: {
             ideal: 1920,
           },
-
           height: {
             ideal: 1080,
           },
         },
-
         audio: false,
       });
 
@@ -152,11 +141,13 @@ export default function MeterScannerModal({
 
       setFile(fullFile);
       setPreview(URL.createObjectURL(fullFile));
+
       const visibleSquareSize = Math.min(videoW, videoH);
       const cropW = visibleSquareSize * (5 / 11);
       const cropH = visibleSquareSize * (1.5 / 11);
       const startX = (videoW - cropW) / 2;
       const startY = (videoH - cropH) / 2;
+
       const cropCanvas = document.createElement("canvas");
       const cropCtx = cropCanvas.getContext("2d");
 
@@ -175,17 +166,16 @@ export default function MeterScannerModal({
         cropW,
         cropH,
       );
+
       const croppedBase64 = cropCanvas
         .toDataURL("image/jpeg", 1.0)
         .split(",")[1];
 
       const res = await fetch(`/api/bills/ocr`, {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
-
         body: JSON.stringify({
           imageBase64: croppedBase64,
           scanType: scanType,
@@ -197,9 +187,11 @@ export default function MeterScannerModal({
 
         try {
           const errorData = await res.json();
-          const serverMsg = errorData.error || errorData.message;
+          // ใช้ Error Message จาก Backend ที่ตั้งไว้ (เช่น ภาพไม่ชัด อ่านได้ไม่ครบ)
+          const serverMsg =
+            errorData.error || errorData.message || errorData.detail?.message;
 
-          if (serverMsg) errorMessage += `: ${serverMsg}`;
+          if (serverMsg) errorMessage = serverMsg;
         } catch (e) {}
 
         toast.error(errorMessage);
@@ -221,15 +213,16 @@ export default function MeterScannerModal({
       setStep("result");
     } catch (error) {
       log.error("Scanning Error:", error);
-      toast.error("ระบบหน้าบ้านขัดข้อง กรุณาลองใหม่");
+      toast.error("ระบบขัดข้อง กรุณาลองใหม่");
       setStep("camera");
       startCamera();
     }
   };
 
   const handleSubmit = async () => {
-    if (!file || ocrValue.length !== EXPECTED_DIGITS) {
-      toast.error(`กรุณาระบุตัวเลขให้ครบ ${EXPECTED_DIGITS} หลัก`);
+    // ให้ผ่านได้เลยขอแค่มีตัวเลข และมีรูปภาพ
+    if (!file || !ocrValue) {
+      toast.error("กรุณาระบุตัวเลขมิเตอร์");
       inputRef.current?.focus();
       return;
     }
@@ -247,8 +240,6 @@ export default function MeterScannerModal({
   };
 
   if (!isOpen) return null;
-
-  const isComplete = ocrValue.length === EXPECTED_DIGITS;
 
   return (
     <div className="fixed inset-0 z-60 flex justify-center bg-black/80">
@@ -312,29 +303,22 @@ export default function MeterScannerModal({
             )}
             {step === "result" && (
               <div className="animate-in fade-in absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 px-6 backdrop-blur-md">
-                {isComplete ? (
-                  <p className="mb-3 text-sm font-bold text-emerald-400">
-                    ✅ ตรวจสอบความถูกต้อง
-                  </p>
-                ) : (
-                  <p className="mb-3 flex animate-pulse items-center gap-1 text-sm font-bold text-amber-400">
-                    <AlertTriangle size={16} />
-                    ได้เลขไม่ครบ เติมให้เต็ม {EXPECTED_DIGITS}หลัก
-                  </p>
-                )}
+                <p className="mb-3 text-sm font-bold text-emerald-400">
+                  ✅ ตรวจสอบความถูกต้อง
+                </p>
                 <div className="relative w-full">
                   <input
                     ref={inputRef}
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    maxLength={EXPECTED_DIGITS}
                     value={ocrValue}
                     onChange={(e) => {
                       const onlyNums = e.target.value.replace(/[^0-9]/g, "");
                       setOcrValue(onlyNums);
                     }}
-                    className={`w-full rounded-2xl border-4 bg-white py-4 text-center text-5xl font-black tracking-[0.2em] text-slate-800 transition-all outline-none ${isComplete ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.4)]"}`}
+                    // ลบเงื่อนไข border สีส้มออก ใช้สีเขียวอย่างเดียวเมื่อมีค่า
+                    className={`w-full rounded-2xl border-4 bg-white py-4 text-center text-5xl font-black tracking-[0.2em] text-slate-800 transition-all outline-none ${ocrValue ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-slate-300"}`}
                     placeholder="00000"
                   />
                   <Edit3
@@ -342,13 +326,6 @@ export default function MeterScannerModal({
                     size={24}
                   />
                 </div>
-                <p className="mt-3 text-sm text-white/80">
-                  สแกนได้{" "}
-                  <span className="font-bold text-white">
-                    {ocrValue.length}
-                  </span>{" "}
-                  / {EXPECTED_DIGITS}หลัก
-                </p>
               </div>
             )}
           </div>
@@ -376,14 +353,15 @@ export default function MeterScannerModal({
               <button
                 onClick={handleRetake}
                 disabled={isSubmitting || step === "processing"}
-                className="flex-1 rounded-2xl bg-slate-100 py-4 font-bold text-slate-600 transition hover:bg-slate-200 disabled:opacity-50"
+                className="flex-1 cursor-pointer rounded-2xl bg-slate-100 py-4 font-bold text-slate-600 transition hover:bg-slate-200 disabled:opacity-50"
               >
                 <RefreshCw size={20} className="mx-auto" />
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || step === "processing" || !isComplete}
-                className={`flex flex-[3] cursor-pointer items-center justify-center gap-2 rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition active:scale-95 ${isComplete ? "bg-emerald-500 hover:bg-emerald-600" : "cursor-not-allowed bg-slate-300 opacity-70"}`}
+                // เช็คแค่ว่ากำลัง submit อยู่ไหม และมีค่า ocrValue หรือไม่
+                disabled={isSubmitting || step === "processing" || !ocrValue}
+                className={`flex flex-[3] cursor-pointer items-center justify-center gap-2 rounded-2xl py-4 text-lg font-bold text-white shadow-lg transition active:scale-95 ${ocrValue ? "bg-emerald-500 hover:bg-emerald-600" : "cursor-not-allowed bg-slate-300 opacity-70"}`}
               >
                 {isSubmitting ? (
                   <RefreshCw className="animate-spin" size={24} />

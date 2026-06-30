@@ -1490,88 +1490,75 @@ export const billService = {
   },
 
   scanMeter: async (imageBase64: string, scanType: string = "ELECTRIC") => {
-    const apiKey = process.env.GOOGLE_VISION_API_KEY;
+    const ocrServiceUrl = process.env.OCR_SERVICE_URL!;
 
-    if (!apiKey) {
-      logger.error("[Service] GOOGLE_VISION_API_KEY is missing in .env");
-      throw new Error("VISION_API_KEY_NOT_CONFIGURED");
+    if (!ocrServiceUrl) {
+      logger.error(
+        "[Service] OCR_SERVICE_URL is not set in environment variables.",
+      );
+      throw new Error("OCR_SERVICE_URL_NOT_CONFIGURED");
     }
 
-    const visionApiUrl = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
-    const EXPECTED_DIGIT_LENGTH = scanType === "WATER" ? 4 : 5;
-
-    const payload = {
-      requests: [
-        {
-          image: {
-            content: imageBase64,
-          },
-
-          features: [
-            {
-              type: "DOCUMENT_TEXT_DETECTION",
-            },
-          ],
-
-          imageContext: {
-            languageHints: ["en"],
-          },
-        },
-      ],
-    };
+    const EXPECTED_DIGIT_LENGTH = scanType === "WATER" ? 4 : 4;
 
     try {
-      const response = await fetch(visionApiUrl, {
+      // 1. ตัด Prefix ของ Base64 ออก
+      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+
+      // 2. แปลง Base64 เป็น Buffer
+      const buffer = Buffer.from(base64Data, "base64");
+
+      // ========================================================
+      // 🐛 [DEBUG MODE] เซฟรูปภาพลงเครื่องเพื่อดูว่าหน้าบ้านส่งอะไรมา
+      // ========================================================
+      try {
+        // จะเซฟไฟล์ชื่อ debug_from_frontend.jpg ไว้ที่โฟลเดอร์รันโปรเจกต์
+        const debugPath = path.join(process.cwd(), "debug_from_frontend.jpg");
+        fs.writeFileSync(debugPath, buffer);
+        logger.info(
+          `📸 [DEBUG] เซฟรูปจากหน้าบ้านสำเร็จ เปิดดูรูปได้ที่: ${debugPath}`,
+        );
+      } catch (fsError) {
+        logger.error(`[DEBUG] เซฟรูปไม่สำเร็จ: ${fsError}`);
+      }
+      // ========================================================
+
+      const blob = new Blob([buffer], { type: "image/jpeg" });
+
+      // 3. นำไฟล์ใส่ FormData
+      const formData = new FormData();
+      formData.append("file", blob, "meter.jpg");
+
+      // 4. ยิง API ไปยัง Python EasyOCR
+      const response = await fetch(ocrServiceUrl, {
         method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        logger.error(
-          `[Service] Google Vision API Error: ${JSON.stringify(data)}`,
+        logger.warn(
+          `[Service] OCR Service Rejected Image: ${JSON.stringify(data)}`,
         );
-        throw new Error("VISION_API_ERROR");
+        return {
+          success: false,
+          message: data.detail?.message || "UNREADABLE_IMAGE",
+          errorCode: data.detail?.error_code || "OCR_ERROR",
+        };
       }
 
-      const textAnnotations = data.responses?.[0]?.textAnnotations;
+      let finalNumber = data.meter_number;
 
-      if (textAnnotations && textAnnotations.length > 0) {
-        const fullText = textAnnotations[0].description;
-        let correctedText = fullText
-          .toUpperCase()
-          .replace(/[OQDo]/g, "0")
-          .replace(/[Il|]/g, "1")
-          .replace(/[Zz]/g, "2")
-          .replace(/[Ss]/g, "5")
-          .replace(/[B]/g, "8");
-        let allDigitsStr = correctedText.replace(/[^0-9]/g, "");
-
-        if (allDigitsStr.length > 0) {
-          if (allDigitsStr.length > EXPECTED_DIGIT_LENGTH) {
-            allDigitsStr = allDigitsStr.substring(0, EXPECTED_DIGIT_LENGTH);
-          }
-
-          const finalNumber = allDigitsStr;
-
-          return {
-            success: true,
-            number: finalNumber,
-            rawText: fullText,
-            correctedText: correctedText,
-          };
-        }
+      if (finalNumber && finalNumber.length > EXPECTED_DIGIT_LENGTH) {
+        finalNumber = finalNumber.substring(0, EXPECTED_DIGIT_LENGTH);
       }
 
       return {
-        success: false,
-        message: "NO_NUMBERS_FOUND_IN_IMAGE",
+        success: true,
+        number: finalNumber,
+        rawText: finalNumber,
+        correctedText: finalNumber,
       };
     } catch (error: any) {
       logger.error(`[Service] scanMeter HTTP Error: ${error.message}`);
