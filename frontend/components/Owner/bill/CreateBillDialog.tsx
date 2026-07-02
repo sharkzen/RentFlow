@@ -40,6 +40,8 @@ interface RoomData {
   lastElectricUnit: number;
   hasLastBill: boolean;
   commonFee: number;
+  waterMeterDigits?: number | null;
+  electricMeterDigits?: number | null;
 }
 
 interface BillItem {
@@ -57,6 +59,7 @@ interface BillItem {
   electricImageKey?: string;
   isPrevEditable: boolean;
   commonFee: number;
+  waterMeterDigits?: number | null;
 }
 
 interface Props {
@@ -109,6 +112,7 @@ export default function CreateBillDialog({
         prevWater: room.lastWaterUnit,
         prevElectric: room.lastElectricUnit,
         commonFee: room.commonFee || 0,
+        waterMeterDigits: room.waterMeterDigits ?? null,
       }));
 
       setItems(newItems);
@@ -152,23 +156,21 @@ export default function CreateBillDialog({
   };
 
   const handleScanNext = () => {
-    setScanConfig((prev) => {
-      // เช็คจำนวนจาก items.length และใช้ prev.index เพื่อความแม่นยำ
-      if (prev.index < items.length - 1) {
-        return {
-          ...prev,
-          isOpen: true, // บังคับให้เปิดไว้เสมอเพื่อสแกนห้องถัดไป
-          index: prev.index + 1,
-        };
-      } else {
-        toast.success("สแกนครบทุกห้องเรียบร้อยแล้ว!");
-        return {
-          isOpen: false,
-          type: "WATER",
-          index: 0,
-        };
-      }
-    });
+    if (scanConfig.index < items.length - 1) {
+      setScanConfig((prev) => ({
+        ...prev,
+        isOpen: true,
+        index: prev.index + 1,
+      }));
+    } else {
+      toast.success("สแกนครบทุกห้องเรียบร้อยแล้ว");
+
+      setScanConfig({
+        isOpen: false,
+        type: "WATER",
+        index: 0,
+      });
+    }
   };
 
   const createEmptyItem = (): BillItem => ({
@@ -299,7 +301,7 @@ export default function CreateBillDialog({
         await BillService.deleteTempImage(imageKey);
       } catch (error) {
         log.error("Failed to delete image from R2", error);
-        toast.warning("ลบรูปภาพจากหน้าจอแล้ว แต่ไม่สามารถลบไฟล์บน Cloud ได้");
+        toast.warning("ลบรูปภาพจากหน้าจอแล้ว แต่ไม่สามารถลบไฟล์บนฐานข้อมูลได้");
       }
     }
 
@@ -434,6 +436,7 @@ export default function CreateBillDialog({
       currentWater: "",
       currentElectric: "",
       commonFee: roomData.commonFee || 0,
+      waterMeterDigits: roomData.waterMeterDigits ?? null,
     };
 
     setItems(newItems);
@@ -536,7 +539,7 @@ export default function CreateBillDialog({
             </button>
           </div>
         </div>
-        <div className="flex flex-col items-start justify-between gap-4 border-b border-slate-100 bg-gray-50/50 p-4 lg:flex-row lg:items-center">
+        <div className="relative z-40 flex flex-col items-start justify-between gap-4 border-b border-slate-100 bg-gray-50/50 p-4 lg:flex-row lg:items-center">
           <div className="w-full sm:w-auto">
             <MonthYearPicker
               selectedDate={selectedDate}
@@ -782,11 +785,16 @@ export default function CreateBillDialog({
               isOpen: false,
             }))
           }
+          roomId={items[scanConfig.index]?.roomId}
+          waterMeterDigits={items[scanConfig.index]?.waterMeterDigits}
           scanType={scanConfig.type}
           roomNumber={items[scanConfig.index]?.roomNumber || ""}
           tenantName={items[scanConfig.index]?.tenantName || ""}
           onConfirm={handleScanConfirm}
           onSkip={handleScanNext}
+          onSetupSuccess={() => {
+            fetchRooms();
+          }}
         />
       )}
     </div>

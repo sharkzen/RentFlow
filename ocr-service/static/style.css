@@ -1,0 +1,190 @@
+:root {
+  --bg: #121212;
+  --card: #1e1e1e;
+  --text: #e0e0e0;
+  --primary: #bb86fc;
+  --primary-hover: #9965f4;
+  --border: #333;
+  --error: #cf6679;
+  --success: #03dac6;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.container {
+  max-width: 800px;
+  width: 100%;
+}
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+header h1 {
+  font-size: 2.5rem;
+}
+header span {
+  color: var(--primary);
+}
+header p {
+  color: #888;
+  margin-top: 0.5rem;
+}
+
+.upload-section {
+  background: var(--card);
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition: 0.3s;
+}
+.upload-section:hover,
+.upload-section.dragover {
+  border-color: var(--primary);
+}
+.drop-content {
+  text-align: center;
+}
+.drop-content i {
+  font-size: 3rem;
+  color: #888;
+}
+.highlight {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+#preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: none;
+  background: #000;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+.btn {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn.primary {
+  background: var(--primary);
+  color: #000;
+}
+.btn.primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+.btn.secondary {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn.secondary:hover:not(:disabled) {
+  background: #2a2a2a;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#loading {
+  text-align: center;
+  margin: 2rem 0;
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.result-card,
+.error-card {
+  background: var(--card);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-top: 1.5rem;
+  text-align: center;
+  border-top: 4px solid var(--success);
+}
+.error-card {
+  border-top-color: var(--error);
+  color: var(--error);
+}
+.metric h2 {
+  font-size: 3rem;
+  letter-spacing: 2px;
+  color: var(--success);
+  margin: 0.5rem 0;
+}
+.stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #aaa;
+}
+.stats strong {
+  color: var(--text);
+}
+
+.debug-section {
+  margin-top: 2rem;
+  border-top: 1px solid var(--border);
+  padding-top: 2rem;
+}
+.debug-section h3 {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.debug-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+.debug-item {
+  background: var(--card);
+  padding: 0.5rem;
+  border-radius: 8px;
+  text-align: center;
+}
+.debug-item img {
+  width: 100%;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+.debug-item span {
+  font-size: 0.8rem;
+  color: #aaa;
+}

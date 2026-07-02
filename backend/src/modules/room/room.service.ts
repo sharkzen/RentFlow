@@ -82,6 +82,7 @@ export const roomService = {
           },
 
           tenants: true,
+          meterSetting: true,
         },
 
         orderBy: [
@@ -135,12 +136,10 @@ export const roomService = {
     const existingRooms = await prisma.room.findMany({
       where: {
         dormitoryId,
-
         roomNumber: {
           in: rooms.map((r) => r.roomNumber),
         },
       },
-
       select: {
         roomNumber: true,
       },
@@ -175,21 +174,52 @@ export const roomService = {
     let createdCount = 0;
 
     if (validRooms.length > 0) {
-      const result = await prisma.room.createMany({
-        data: validRooms,
-        skipDuplicates: true,
-      });
+      // ใช้ Transaction เพื่อความปลอดภัย หาก error จะไม่บันทึกเลยทั้งคู่
+      await prisma.$transaction(async (tx) => {
+        // 1. สร้างห้อง
+        const result = await tx.room.createMany({
+          data: validRooms,
+          skipDuplicates: true,
+        });
 
-      createdCount = result.count;
+        createdCount = result.count;
+
+        if (createdCount > 0) {
+          // 2. ดึง ID ของห้องที่เพิ่งสร้างสำเร็จ (ดึงจาก roomNumber ที่อยู่ใน validRooms)
+          const newlyCreatedRooms = await tx.room.findMany({
+            where: {
+              dormitoryId,
+              roomNumber: {
+                in: validRooms.map((r) => r.roomNumber),
+              },
+            },
+            select: {
+              id: true,
+            },
+          });
+
+          // 3. เตรียมข้อมูลสร้าง Meter Setting
+          const meterSettingsData = newlyCreatedRooms.map((room) => ({
+            roomId: room.id,
+            electricMeterDigits: 5, // ค่าเริ่มต้น
+            waterMeterDigits: null, // ปล่อยเป็น null ตาม requirement
+          }));
+
+          // 4. สร้าง Meter Setting
+          await tx.roomMeterSetting.createMany({
+            data: meterSettingsData,
+            skipDuplicates: true,
+          });
+        }
+      });
 
       await createActivityLog({
         userId: user.sub,
         action: "CREATE_BULK_ROOMS",
         entityType: "Dormitory",
         entityId: dormitoryId,
-
         metadata: {
-          createdCount: result.count,
+          createdCount,
           failedCount: duplicatedRooms.length,
         },
       });
@@ -216,15 +246,18 @@ export const roomService = {
       basePrice?: number;
       description?: string;
       status?: RoomStatus;
+      // เพิ่มฟิลด์สำหรับมิเตอร์
+      electricMeterDigits?: number;
+      waterMeterDigits?: number | null;
     },
   ) {
     const room = await prisma.room.findUnique({
       where: {
         id: roomId,
       },
-
       include: {
         dormitory: true,
+        meterSetting: true, // ดึงข้อมูลมิเตอร์มาดูด้วยเผื่อจำเป็น
       },
     });
 
@@ -261,7 +294,6 @@ export const roomService = {
         where: {
           dormitoryId: room.dormitoryId,
           roomNumber: data.roomNumber,
-
           id: {
             not: roomId,
           },
@@ -271,14 +303,43 @@ export const roomService = {
       if (duplicate) throw new Error("DUPLICATE_ROOM_NUMBER");
     }
 
+    // แยกข้อมูลมิเตอร์ออกจากข้อมูลห้องปกติ
+    const { electricMeterDigits, waterMeterDigits, ...roomData } = data;
+
+    // ตรวจสอบว่ามีการส่งข้อมูลมิเตอร์มาอัปเดตด้วยหรือไม่
+    const hasMeterSettingUpdate =
+      electricMeterDigits !== undefined || waterMeterDigits !== undefined;
+
     const updatedRoom = await prisma.room.update({
       where: {
         id: roomId,
       },
-
       data: {
-        ...data,
-        floor: data.floor ? Number(data.floor) : undefined,
+        ...roomData,
+        floor:
+          roomData.floor !== undefined ? Number(roomData.floor) : undefined,
+
+        // ใช้ Nested Upsert เพื่อจัดการ Relation 1-to-1
+        ...(hasMeterSettingUpdate && {
+          meterSetting: {
+            upsert: {
+              create: {
+                electricMeterDigits: electricMeterDigits ?? 5,
+                waterMeterDigits: waterMeterDigits ?? null,
+              },
+              update: {
+                ...(electricMeterDigits !== undefined && {
+                  electricMeterDigits,
+                }),
+                ...(waterMeterDigits !== undefined && { waterMeterDigits }),
+              },
+            },
+          },
+        }),
+      },
+      // Include กลับไปให้ Frontend ได้ข้อมูลครบถ้วน
+      include: {
+        meterSetting: true,
       },
     });
 
@@ -287,7 +348,6 @@ export const roomService = {
       action: "UPDATE_ROOM",
       entityType: "Room",
       entityId: roomId,
-
       metadata: {
         roomNumber: updatedRoom.roomNumber,
         changes: data,
@@ -334,23 +394,21 @@ export const roomService = {
           where: {
             isActive: true,
           },
-
           take: 1,
         },
-
         bills: {
           orderBy: {
             billingMonth: "desc",
           },
-
           take: 1,
-
           where: {
             status: {
               not: "CANCELLED",
             },
           },
         },
+
+        meterSetting: true,
       },
 
       orderBy: [
@@ -382,6 +440,10 @@ export const roomService = {
         lastElectricUnit: lastBill?.currentElectricUnitSnapshot ?? 0,
         hasLastBill: !!lastBill,
         commonFee: dormSettings?.commonFee ?? 0,
+
+        // ✅ 2. Map ข้อมูลออกมาส่งให้หน้าบ้าน (เผื่อมิเตอร์ไฟไว้ด้วยเลย)
+        waterMeterDigits: room.meterSetting?.waterMeterDigits || null,
+        electricMeterDigits: room.meterSetting?.electricMeterDigits || null,
       };
     });
   },

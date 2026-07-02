@@ -545,22 +545,34 @@ export const BillController = {
   },
 
   scanMeter: async (request: FastifyRequest, reply: FastifyReply) => {
+    // ดึง user จาก token มาเพื่อใช้เช็คสิทธิ์
+    const user = request.user as UserDecodedDto;
+
+    if (!user) {
+      return reply.status(401).send({ message: "UNAUTHORIZED" });
+    }
+
     try {
-      const { imageBase64, scanType } = request.body as {
+      const { imageBase64, scanType, roomId } = request.body as {
         imageBase64: string;
         scanType: "WATER" | "ELECTRIC";
+        roomId: string;
       };
 
-      if (!imageBase64) {
+      if (!imageBase64 || !roomId) {
         return reply.status(400).send({
           success: false,
-          message: "IMAGE_BASE64_REQUIRED",
+          message: "IMAGE_AND_ROOM_ID_REQUIRED",
         });
       }
 
-      const result = await billService.scanMeter(imageBase64, scanType);
+      const result = await billService.scanMeter(
+        imageBase64,
+        scanType,
+        roomId,
+        user,
+      );
 
-      // 💡 ถ้า Service คืนค่า success: false (เช่น ภาพเบลอ) ให้ตอบกลับเป็น 400 หรือ 422
       if (!result.success) {
         return reply.status(400).send(result);
       }

@@ -19,6 +19,8 @@ import {
   ChevronDown,
   Check,
   Trash2,
+  Zap, // เพิ่ม Icon มิเตอร์ไฟ
+  Droplets, // เพิ่ม Icon มิเตอร์น้ำ
 } from "lucide-react";
 
 import { RoomService } from "@/features/room/services/room.service";
@@ -28,127 +30,13 @@ import { showBackendError } from "@/lib/backendErrorMsg";
 import { useClickOutsideModal } from "@/lib/useClickOutsideModal";
 import { useScrollLock } from "usehooks-ts";
 import log from "@/lib/logger";
-
-enum RoomType {
-  AIR = "AIR",
-  FAN = "FAN",
-}
-
-enum RoomStatus {
-  AVAILABLE = "AVAILABLE",
-  OCCUPIED = "OCCUPIED",
-  MAINTENANCE = "MAINTENANCE",
-}
-
-interface EditRoomProps {
-  room: any;
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess?: () => void;
-}
-
-interface EditFormData {
-  roomNumber: string;
-  floor: string | number;
-  type: RoomType;
-  basePrice: number;
-  status: RoomStatus;
-  description?: string;
-}
-
-interface Option {
-  value: string;
-  label: string;
-  icon?: React.ReactNode;
-  disabled?: boolean;
-}
-
-interface CustomSelectProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: Option[];
-  disabled?: boolean;
-  placeholder?: string;
-  icon?: React.ReactNode;
-}
-
-const CustomSelect = ({
-  value,
-  onChange,
-  options,
-  disabled = false,
-  icon,
-}: CustomSelectProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const selectedOption = options.find((opt) => opt.value === value);
-
-  return (
-    <div ref={containerRef} className="relative w-full">
-      {icon && (
-        <div className="absolute top-2.5 left-3 text-gray-400">{icon}</div>
-      )}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          !disabled && setIsOpen(!isOpen);
-        }}
-        disabled={disabled}
-        className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm transition-all outline-none ${icon ? "pl-10" : ""} ${disabled ? "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400" : isOpen ? "border-blue-500 bg-white ring-2 ring-blue-100" : "border-gray-200 bg-white hover:border-gray-300"}`}
-      >
-        <span className="flex items-center gap-2 truncate">
-          {selectedOption?.icon}
-          {selectedOption?.label || "เลือกข้อมูล"}
-        </span>
-        <ChevronDown
-          className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
-      {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 duration-100">
-          <ul className="max-h-60 overflow-auto py-1">
-            {options.map((option) => (
-              <li key={option.value}>
-                <button
-                  type="button"
-                  disabled={option.disabled}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onChange(option.value);
-                    setIsOpen(false);
-                  }}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-colors ${option.value === value ? "bg-blue-50 font-medium text-blue-600" : "text-gray-700 hover:bg-gray-50"} ${option.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
-                >
-                  <span className="flex items-center gap-2">
-                    {option.icon}
-                    {option.label}
-                  </span>
-                  {option.value === value && <Check className="h-3.5 w-3.5" />}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-};
+import {
+  EditFormData,
+  EditRoomProps,
+  RoomStatus,
+  RoomType,
+} from "@/features/room/types";
+import { CustomSelect } from "./CustomSelect";
 
 export default function EditRoomDialog({
   room,
@@ -163,7 +51,6 @@ export default function EditRoomDialog({
     watch,
     setValue,
     setError,
-
     formState: { errors, isSubmitting },
   } = useForm<EditFormData>();
 
@@ -210,6 +97,9 @@ export default function EditRoomDialog({
         basePrice: room.basePrice,
         status: room.status,
         description: room.description || "",
+        // เซ็ตค่าเริ่มต้นให้มิเตอร์ (ถ้า meterSetting เป็น null ให้ไฟเป็น 5 น้ำเป็นค่าว่าง)
+        electricMeterDigits: room.meterSetting?.electricMeterDigits ?? 5,
+        waterMeterDigits: room.meterSetting?.waterMeterDigits ?? "",
       });
     }
   }, [isOpen, room, reset]);
@@ -223,6 +113,11 @@ export default function EditRoomDialog({
         floor: Number(data.floor),
         basePrice: Number(data.basePrice),
         status: isOccupied ? RoomStatus.OCCUPIED : data.status,
+        // จัดการค่ามิเตอร์ก่อนส่งไป Backend
+        electricMeterDigits: Number(data.electricMeterDigits),
+        waterMeterDigits: data.waterMeterDigits
+          ? Number(data.waterMeterDigits)
+          : null,
       };
 
       await RoomService.updateRoom(room.id, payload);
@@ -261,12 +156,11 @@ export default function EditRoomDialog({
     }
   };
 
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const { modalRef } = useClickOutsideModal({
-    isOpen,
+    isOpen: isOpen && !isConfirmOpen,
     onClose: onClose,
   });
-
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const getErrorMessage = (error: any) => {
     const code = error.response?.data?.message || "INTERNAL_SERVER_ERROR";
@@ -290,7 +184,6 @@ export default function EditRoomDialog({
       await toast.promise(RoomService.deleteRoom(room.id), {
         pending: "กำลังลบข้อมูลห้องพัก...",
         success: "ลบห้องพักเรียบร้อยแล้ว",
-
         error: {
           render({ data }: any) {
             return `${getErrorMessage(data)}`;
@@ -311,12 +204,12 @@ export default function EditRoomDialog({
 
   return (
     <>
-      <div className="fixed inset-0 z-999 flex sm:items-center sm:justify-center sm:p-4">
+      <div className="fixed inset-0 z-[999] flex sm:items-center sm:justify-center sm:p-4">
         <div className="fixed inset-0 bg-black/20" onClick={onClose} />
         <div
           ref={modalRef}
           onClick={(e) => e.stopPropagation()}
-          className="animate-in zoom-in-95 relative w-full border border-gray-200 bg-white shadow-lg duration-200 max-sm:min-h-screen sm:max-w-lg sm:rounded-xl"
+          className="animate-in zoom-in-95 relative flex w-full flex-col border border-gray-200 bg-white shadow-lg duration-200 max-sm:min-h-screen sm:max-w-lg sm:rounded-xl"
         >
           <button
             onClick={onClose}
@@ -351,8 +244,13 @@ export default function EditRoomDialog({
               )}
             </div>
           </div>
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col p-6">
-            <div className="flex-1 space-y-5">
+
+          {/* เพิ่ม overflow-y-auto เพื่อให้ฟอร์มเลื่อนได้หากเนื้อหาเยอะเกินจอ */}
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-1 flex-col overflow-hidden"
+          >
+            <div className="flex-1 space-y-5 overflow-y-auto p-6">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-gray-600">
@@ -400,13 +298,15 @@ export default function EditRoomDialog({
                   </label>
                   <CustomSelect
                     value={watch("type")}
-                    onChange={(val) => setValue("type", val as RoomType)}
+                    onChange={(val: string) =>
+                      setValue("type", val as RoomType)
+                    }
                     options={typeOptions}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-gray-600">
-                    ราคา
+                    ราคา <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <DollarSign className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
@@ -422,6 +322,50 @@ export default function EditRoomDialog({
                   </div>
                 </div>
               </div>
+
+              {/* SECTION: การตั้งค่ามิเตอร์ */}
+              <div className="grid grid-cols-2 gap-4 rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+                <div className="col-span-2">
+                  <h4 className="text-sm font-semibold text-gray-700">
+                    การตั้งค่ามิเตอร์
+                  </h4>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-600">
+                    จำนวนหลักมิเตอร์ไฟ <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Zap className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
+                    <input
+                      type="number"
+                      {...register("electricMeterDigits", {
+                        required: true,
+                        min: 1,
+                      })}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full rounded-lg border border-gray-200 bg-white py-2 pr-3 pl-10 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      placeholder="เช่น 5"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-red-600">
+                    หลักมิเตอร์น้ำที่ใช้คำนวน
+                  </label>
+                  <div className="relative">
+                    <Droplets className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
+                    <input
+                      type="number"
+                      {...register("waterMeterDigits")}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full rounded-lg border border-gray-200 bg-white py-2 pr-3 pl-10 text-sm transition outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      placeholder="ไม่ระบุ"
+                    />
+                  </div>
+                </div>
+              </div>
+              {/* END SECTION: การตั้งค่ามิเตอร์ */}
+
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
                   สถานะห้อง
@@ -434,7 +378,9 @@ export default function EditRoomDialog({
                 </div>
                 <CustomSelect
                   value={watch("status")}
-                  onChange={(val) => setValue("status", val as RoomStatus)}
+                  onChange={(val: string) =>
+                    setValue("status", val as RoomStatus)
+                  }
                   options={statusOptions}
                   disabled={isOccupied}
                   icon={<Activity className="h-4 w-4" />}
@@ -473,7 +419,7 @@ export default function EditRoomDialog({
                 </div>
               </div>
             </div>
-            <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
+            <div className="mt-auto flex items-center justify-between border-t border-gray-100 bg-white p-6 pt-4">
               <button
                 type="button"
                 onClick={(e) => {

@@ -125,6 +125,8 @@ model Room {
   dormitory           Dormitory            @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
   tenants             TenantProfile[]
 
+  meterSetting RoomMeterSetting?
+
   @@unique([dormitoryId, roomNumber])
 }
 
@@ -423,4 +425,15 @@ enum AnnouncementType {
   NORMAL
   IMPORTANT
   URGENT
+}
+
+model RoomMeterSetting {
+  id                  String   @id @default(uuid())
+  roomId              String   @unique
+  electricMeterDigits Int      @default(5)
+  waterMeterDigits    Int?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }

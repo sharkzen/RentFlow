@@ -33,3 +33,37 @@ export interface Rooms {
   deletedAt: string | null;
   createdAt: string;
 }
+
+export interface EditRoomProps {
+  room: any;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+}
+
+export interface EditFormData {
+  roomNumber: string;
+  floor: string | number;
+  type: RoomType;
+  basePrice: number;
+  status: RoomStatus;
+  description?: string;
+  electricMeterDigits: number;
+  waterMeterDigits?: number | string | null;
+}
+
+export interface Option {
+  value: string;
+  label: string;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+}
+
+export interface CustomSelectProps {
+  value: string;
+  onChange: (value: string) => void;
+  options: Option[];
+  disabled?: boolean;
+  placeholder?: string;
+  icon?: React.ReactNode;
+}

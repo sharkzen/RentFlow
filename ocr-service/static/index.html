@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MeterFlow OCR</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>MeterFlow <span>OCR</span></h1>
+        <p>Production-Ready Meter Reading Service</p>
+      </header>
+
+      <main>
+        <div class="upload-section" id="dropzone">
+          <input type="file" id="fileInput" accept="image/*" hidden />
+          <div class="drop-content">
+            <i>📸</i>
+            <p>Drag & Drop or <span class="highlight">Click</span> to Upload</p>
+            <small>Paste screenshot supported (Ctrl+V)</small>
+          </div>
+          <img id="preview" alt="Preview" />
+        </div>
+
+        <div class="controls">
+          <button id="scanBtn" class="btn primary" disabled>Scan Meter</button>
+          <button id="debugBtn" class="btn secondary" disabled>
+            Debug Mode
+          </button>
+        </div>
+
+        <div id="loading" class="hidden">Processing...</div>
+
+        <div id="result" class="result-card hidden">
+          <div class="metric">
+            <span>Meter Number</span>
+            <h2 id="resNumber">-</h2>
+          </div>
+          <div class="stats">
+            <div class="stat">
+              <span>Confidence:</span> <strong id="resConf">-</strong>
+            </div>
+            <div class="stat">
+              <span>Blur Score:</span> <strong id="resBlur">-</strong>
+            </div>
+            <div class="stat">
+              <span>Time:</span> <strong id="resTime">-</strong>
+            </div>
+          </div>
+        </div>
+
+        <div id="error" class="error-card hidden"></div>
+
+        <div id="debugSection" class="debug-section hidden">
+          <h3>Debug Pipeline</h3>
+          <div class="debug-grid" id="debugGrid"></div>
+        </div>
+      </main>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>

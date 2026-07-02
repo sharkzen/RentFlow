@@ -1489,47 +1489,57 @@ export const billService = {
     };
   },
 
-  scanMeter: async (imageBase64: string, scanType: string = "ELECTRIC") => {
+  scanMeter: async (
+    imageBase64: string,
+    scanType: string = "ELECTRIC",
+    roomId: string,
+    user: UserDecodedDto,
+  ) => {
     const ocrServiceUrl = process.env.OCR_SERVICE_URL!;
 
     if (!ocrServiceUrl) {
-      logger.error(
-        "[Service] OCR_SERVICE_URL is not set in environment variables.",
-      );
+      logger.error("[Service] OCR_SERVICE_URL is not set.");
       throw new Error("OCR_SERVICE_URL_NOT_CONFIGURED");
     }
 
-    const EXPECTED_DIGIT_LENGTH = scanType === "WATER" ? 4 : 4;
+    // ✅ 1. ค้นหาข้อมูล Owner ของคนที่เรียก API
+    const owner = await prisma.ownerProfile.findUnique({
+      where: { userId: user.sub },
+    });
+
+    if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
+
+    // ✅ 2. ดึงข้อมูลห้องพักและเช็คว่าเป็นห้องของเจ้าของคนนี้จริงหรือไม่
+    const room = await prisma.room.findFirst({
+      where: {
+        id: roomId,
+        dormitory: { ownerId: owner.id }, // เช็คสิทธิ์เจ้าของ
+      },
+      include: {
+        meterSetting: true, // ดึงการตั้งค่ามิเตอร์มาด้วย
+      },
+    });
+
+    if (!room) {
+      throw new Error("ROOM_NOT_FOUND_OR_UNAUTHORIZED");
+    }
+
+    // ✅ 3. กำหนดจำนวนหลักจาก Database โดยตรง
+    let EXPECTED_DIGIT_LENGTH = scanType === "WATER" ? 4 : 5; // ค่าเริ่มต้นเผื่อไว้
+    if (room.meterSetting) {
+      EXPECTED_DIGIT_LENGTH =
+        scanType === "WATER"
+          ? room.meterSetting.waterMeterDigits || 4
+          : room.meterSetting.electricMeterDigits || 5;
+    }
 
     try {
-      // 1. ตัด Prefix ของ Base64 ออก
       const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-
-      // 2. แปลง Base64 เป็น Buffer
       const buffer = Buffer.from(base64Data, "base64");
-
-      // ========================================================
-      // 🐛 [DEBUG MODE] เซฟรูปภาพลงเครื่องเพื่อดูว่าหน้าบ้านส่งอะไรมา
-      // ========================================================
-      try {
-        // จะเซฟไฟล์ชื่อ debug_from_frontend.jpg ไว้ที่โฟลเดอร์รันโปรเจกต์
-        const debugPath = path.join(process.cwd(), "debug_from_frontend.jpg");
-        fs.writeFileSync(debugPath, buffer);
-        logger.info(
-          `📸 [DEBUG] เซฟรูปจากหน้าบ้านสำเร็จ เปิดดูรูปได้ที่: ${debugPath}`,
-        );
-      } catch (fsError) {
-        logger.error(`[DEBUG] เซฟรูปไม่สำเร็จ: ${fsError}`);
-      }
-      // ========================================================
-
       const blob = new Blob([buffer], { type: "image/jpeg" });
-
-      // 3. นำไฟล์ใส่ FormData
       const formData = new FormData();
       formData.append("file", blob, "meter.jpg");
 
-      // 4. ยิง API ไปยัง Python EasyOCR
       const response = await fetch(ocrServiceUrl, {
         method: "POST",
         body: formData,
@@ -1550,6 +1560,7 @@ export const billService = {
 
       let finalNumber = data.meter_number;
 
+      // ✅ 4. ตัดตัวเลขตามค่าที่ดึงมาจาก Database
       if (finalNumber && finalNumber.length > EXPECTED_DIGIT_LENGTH) {
         finalNumber = finalNumber.substring(0, EXPECTED_DIGIT_LENGTH);
       }
@@ -1557,7 +1568,7 @@ export const billService = {
       return {
         success: true,
         number: finalNumber,
-        rawText: finalNumber,
+        rawText: data.meter_number,
         correctedText: finalNumber,
       };
     } catch (error: any) {
