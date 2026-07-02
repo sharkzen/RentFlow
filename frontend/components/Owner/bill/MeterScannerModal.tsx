@@ -11,19 +11,25 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import log from "@/lib/logger";
-import { RoomService } from "@/features/room/services/room.service"; // อย่าลืม import service ของคุณมาใช้
+import { RoomService } from "@/features/room/services/room.service";
+import { BillService } from "@/features/bill/services/bill.service";
+
+interface UploadResult {
+  url: string;
+  objectKey: string;
+}
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   scanType: "WATER" | "ELECTRIC";
-  roomId: string; // [เพิ่ม] ต้องส่ง roomId เพื่อใช้ยิง API
+  roomId: string;
   roomNumber: string;
   tenantName: string;
-  waterMeterDigits?: number | null; // [เพิ่ม] ส่งค่าตั้งต้นมาเช็คว่าตั้งหรือยัง
-  onConfirm: (ocrValue: string, file: File) => Promise<void>;
+  waterMeterDigits?: number | null;
+  onConfirm: (ocrValue: string, uploadResult: UploadResult) => Promise<void>;
   onSkip: () => void;
-  onSetupSuccess?: () => void; // [เพิ่ม] เอาไว้ trigger ให้หน้าหลัก fetch ข้อมูลใหม่ถ้าต้องการ
+  onSetupSuccess?: () => void;
 }
 
 export default function MeterScannerModal({
@@ -38,47 +44,61 @@ export default function MeterScannerModal({
   onSkip,
   onSetupSuccess,
 }: Props) {
-  // เพิ่มสเตป "setup" เข้ามาเป็นสเตปแรก
   const [step, setStep] = useState<
     "setup" | "camera" | "processing" | "result"
   >("camera");
-  const [file, setFile] = useState<File | null>(null);
+
   const [preview, setPreview] = useState<string | null>(null);
   const [ocrValue, setOcrValue] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
-
-  // State สำหรับหน้าตั้งค่า
   const [setupDigits, setSetupDigits] = useState<string>("");
   const [isSavingSetup, setIsSavingSetup] = useState(false);
-
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const uploadPromiseRef = useRef<Promise<UploadResult> | null>(null);
+  const uploadedKeyRef = useRef<string | null>(null);
 
   const stopCamera = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
+
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
+
     setIsCameraReady(false);
   }, []);
 
   const startCamera = useCallback(async () => {
     stopCamera();
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
+          facingMode: {
+            ideal: "environment",
+          },
 
-          advanced: [{ focusMode: "continuous" } as any],
+          width: {
+            ideal: 1920,
+          },
+
+          height: {
+            ideal: 1080,
+          },
+
+          advanced: [
+            {
+              focusMode: "continuous",
+            } as any,
+          ],
         },
+
         audio: false,
       });
 
@@ -89,9 +109,11 @@ export default function MeterScannerModal({
 
       streamRef.current = stream;
       videoRef.current.srcObject = stream;
+
       await videoRef.current.play().catch((e) => {
         if (e.name !== "AbortError") throw e;
       });
+
       setIsCameraReady(true);
     } catch (error: any) {
       if (error.name !== "AbortError") {
@@ -101,14 +123,23 @@ export default function MeterScannerModal({
     }
   }, [stopCamera]);
 
-  // เช็คเงื่อนไขตอนเปิด Modal
+  const resetUploadState = (deletePrevious: boolean) => {
+    if (deletePrevious && uploadedKeyRef.current) {
+      BillService.deleteTempImage(uploadedKeyRef.current).catch((err) =>
+        log.error("Failed to clean up discarded upload", err),
+      );
+    }
+
+    uploadPromiseRef.current = null;
+    uploadedKeyRef.current = null;
+  };
+
   useEffect(() => {
     if (isOpen) {
-      setFile(null);
       setPreview(null);
       setOcrValue("");
+      resetUploadState(false);
 
-      // ถ้าเป็นมิเตอร์น้ำ และยังไม่ได้ตั้งค่าจำนวนหลัก ให้ไปหน้า setup ก่อน
       if (scanType === "WATER" && !waterMeterDigits) {
         setStep("setup");
         stopCamera();
@@ -119,6 +150,7 @@ export default function MeterScannerModal({
     } else {
       stopCamera();
     }
+
     return () => stopCamera();
   }, [isOpen, scanType, waterMeterDigits, startCamera, stopCamera]);
 
@@ -128,7 +160,6 @@ export default function MeterScannerModal({
     }
   }, [step]);
 
-  // ฟังก์ชันบันทึกการตั้งค่า
   const handleSaveSetup = async () => {
     if (!setupDigits || Number(setupDigits) <= 0) {
       toast.warning("กรุณาระบุจำนวนหลักให้ถูกต้อง");
@@ -136,16 +167,14 @@ export default function MeterScannerModal({
     }
 
     setIsSavingSetup(true);
+
     try {
-      // ยิง API ไปอัปเดตห้อง (สมมติว่าคุณมี endpoint หรือนำ Payload ไปปรับใช้ให้ตรงกับ Service ของคุณ)
       await RoomService.updateRoom(roomId, {
         waterMeterDigits: Number(setupDigits),
       });
 
       toast.success("ตั้งค่ามิเตอร์สำเร็จ");
-      onSetupSuccess?.(); // เรียก callback ถ้ามีการส่งมา
-
-      // ข้ามไปหน้ากล้อง
+      onSetupSuccess?.();
       setStep("camera");
       startCamera();
     } catch (error) {
@@ -159,10 +188,12 @@ export default function MeterScannerModal({
   const takePictureAndScan = async () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
+
     if (!video || !canvas || !isCameraReady) return;
 
     try {
       const ctx = canvas.getContext("2d");
+
       if (!ctx) throw new Error("Canvas context not available");
 
       const videoW = video.videoWidth;
@@ -172,23 +203,38 @@ export default function MeterScannerModal({
       ctx.drawImage(video, 0, 0, videoW, videoH);
       stopCamera();
       setStep("processing");
-
       const blob = await new Promise<Blob>((resolve) =>
-        canvas.toBlob((b) => resolve(b!), "image/jpeg", 1.0),
+        canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.75),
       );
       const filename = `${scanType}_Room${roomNumber}_Full.jpg`;
-      const fullFile = new File([blob], filename, { type: "image/jpeg" });
-      setFile(fullFile);
+
+      const fullFile = new File([blob], filename, {
+        type: "image/jpeg",
+      });
+
       setPreview(URL.createObjectURL(fullFile));
 
+      const uploadPromise = (async () => {
+        const formData = new FormData();
+        formData.append("file", fullFile);
+        const res = await BillService.uploadTempImage(formData);
+        uploadedKeyRef.current = res.objectKey;
+        return res as UploadResult;
+      })();
+
+      uploadPromise.catch((err) => {
+        log.error("Background upload failed:", err);
+      });
+
+      uploadPromiseRef.current = uploadPromise;
       const visibleSquareSize = Math.min(videoW, videoH);
       const cropW = visibleSquareSize * (5 / 11);
       const cropH = visibleSquareSize * (1.5 / 11);
       const startX = (videoW - cropW) / 2;
       const startY = (videoH - cropH) / 2;
-
       const cropCanvas = document.createElement("canvas");
       const cropCtx = cropCanvas.getContext("2d");
+
       if (!cropCtx) throw new Error("Crop Canvas error");
 
       cropCanvas.width = cropW;
@@ -204,14 +250,17 @@ export default function MeterScannerModal({
         cropW,
         cropH,
       );
-
       const croppedBase64 = cropCanvas
         .toDataURL("image/jpeg", 1.0)
         .split(",")[1];
 
       const res = await fetch(`/api/bills/ocr`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
         body: JSON.stringify({
           imageBase64: croppedBase64,
           scanType: scanType,
@@ -227,6 +276,7 @@ export default function MeterScannerModal({
       }
 
       const data = await res.json();
+
       if (data.success && data.number) {
         setOcrValue(data.number);
         toast.success("สแกนสำเร็จ!");
@@ -234,30 +284,51 @@ export default function MeterScannerModal({
         toast.warning("หาตัวเลขไม่พบ กรุณาพิมพ์เอง");
         setOcrValue("");
       }
+
       setStep("result");
     } catch (error) {
       log.error("Scanning Error:", error);
       toast.error("ระบบขัดข้อง กรุณาลองใหม่");
+      resetUploadState(true);
+      setPreview(null);
       setStep("camera");
       startCamera();
     }
   };
 
   const handleSubmit = async () => {
-    if (!file || !ocrValue) {
+    if (!ocrValue) {
       toast.error("กรุณาระบุตัวเลขมิเตอร์");
       inputRef.current?.focus();
       return;
     }
+
+    if (!uploadPromiseRef.current) {
+      toast.error("ไม่พบรูปภาพที่อัปโหลด กรุณาถ่ายใหม่");
+      return;
+    }
+
     setIsSubmitting(true);
-    await onConfirm(ocrValue, file);
-    setIsSubmitting(false);
+
+    try {
+      const uploadResult = await uploadPromiseRef.current;
+      await onConfirm(ocrValue, uploadResult);
+    } catch (error) {
+      log.error("Submit Error:", error);
+      toast.error("อัปโหลดรูปไม่สำเร็จ กรุณาลองถ่ายใหม่อีกครั้ง");
+      resetUploadState(true);
+      setPreview(null);
+      setStep("camera");
+      startCamera();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRetake = () => {
+    resetUploadState(true);
     setStep("camera");
     setPreview(null);
-    setFile(null);
     startCamera();
   };
 
@@ -277,7 +348,6 @@ export default function MeterScannerModal({
             <X size={20} />
           </button>
         </div>
-
         <div className="flex-1 overflow-y-auto p-6 text-center">
           <div className="mb-4">
             <h2 className="text-2xl font-black text-indigo-700">
@@ -285,8 +355,6 @@ export default function MeterScannerModal({
             </h2>
             <p className="font-medium text-slate-600">{tenantName}</p>
           </div>
-
-          {/* เงื่อนไขแสดง UI สเตป Setup */}
           {step === "setup" ? (
             <div className="mx-auto max-w-md rounded-2xl border-2 border-indigo-100 bg-indigo-50/50 p-6 text-left">
               <div className="mb-4 flex items-center gap-3 text-indigo-700">
@@ -298,7 +366,6 @@ export default function MeterScannerModal({
                 <strong className="text-slate-800">จำนวนหลัก</strong>{" "}
                 ที่ใช้คิดเงิน (นับเฉพาะตัวเลขสีดำ ไม่รวมตัวเลขสีแดงหรือทศนิยม)
               </p>
-
               <div className="mb-6 rounded-xl bg-white p-4 shadow-sm">
                 <p className="mb-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">
                   ตัวอย่าง
@@ -324,7 +391,6 @@ export default function MeterScannerModal({
                   👆 แบบนี้คือ 4 หลัก
                 </p>
               </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">
                   จำนวนหลักตัวเลขสีดำ
@@ -345,7 +411,6 @@ export default function MeterScannerModal({
               </div>
             </div>
           ) : (
-            /* UI กล้องและผลลัพธ์ (ของเดิม) */
             <div className="relative mx-auto aspect-square w-full max-w-[320px] overflow-hidden rounded-2xl bg-black shadow-inner">
               {step === "camera" ? (
                 <video
@@ -363,7 +428,6 @@ export default function MeterScannerModal({
                   />
                 )
               )}
-
               {step === "camera" && (
                 <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
                   <div className="box-content h-[13.6%] w-[45.5%] rounded border-2 border-red-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"></div>
@@ -375,7 +439,6 @@ export default function MeterScannerModal({
                   )}
                 </div>
               )}
-
               {step === "processing" && (
                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
                   <RefreshCw
@@ -387,7 +450,6 @@ export default function MeterScannerModal({
                   </p>
                 </div>
               )}
-
               {step === "result" && (
                 <div className="animate-in fade-in absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 px-6 backdrop-blur-md">
                   <p className="mb-3 text-sm font-bold text-emerald-400">
@@ -416,7 +478,6 @@ export default function MeterScannerModal({
             </div>
           )}
         </div>
-
         <div className="border-t border-slate-100 bg-white p-6 pt-0">
           {step === "setup" ? (
             <div className="mt-6 flex gap-4">

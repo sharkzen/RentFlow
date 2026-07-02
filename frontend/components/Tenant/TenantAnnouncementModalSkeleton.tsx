@@ -10,12 +10,9 @@ export function TenantAnnouncementModalSkeleton() {
           </div>
           <div className="h-5 w-5 animate-pulse rounded-full bg-slate-200" />
         </div>
-
         <div className="flex-1 p-6">
           <div className="mb-5 h-7 w-3/4 animate-pulse rounded-md bg-slate-200" />
-
           <div className="mb-5 h-48 w-full animate-pulse rounded-xl bg-slate-100" />
-
           <div className="space-y-3">
             <div className="h-4 w-full animate-pulse rounded bg-slate-100" />
             <div className="h-4 w-full animate-pulse rounded bg-slate-100" />
@@ -23,13 +20,11 @@ export function TenantAnnouncementModalSkeleton() {
             <div className="h-4 w-4/6 animate-pulse rounded bg-slate-100" />
           </div>
         </div>
-
         <div className="flex flex-col gap-4 border-t border-slate-100 bg-slate-50/50 p-4">
           <div className="flex items-center justify-between">
             <div className="h-4 w-40 animate-pulse rounded bg-slate-200" />
             <div className="h-6 w-12 animate-pulse rounded bg-slate-200" />
           </div>
-
           <div className="flex items-center gap-3">
             <div className="flex gap-1.5">
               <div className="h-[42px] w-[42px] animate-pulse rounded-xl bg-slate-200" />

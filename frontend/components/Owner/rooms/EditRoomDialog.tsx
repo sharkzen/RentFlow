@@ -19,8 +19,8 @@ import {
   ChevronDown,
   Check,
   Trash2,
-  Zap, // เพิ่ม Icon มิเตอร์ไฟ
-  Droplets, // เพิ่ม Icon มิเตอร์น้ำ
+  Zap,
+  Droplets,
 } from "lucide-react";
 
 import { RoomService } from "@/features/room/services/room.service";
@@ -51,6 +51,7 @@ export default function EditRoomDialog({
     watch,
     setValue,
     setError,
+
     formState: { errors, isSubmitting },
   } = useForm<EditFormData>();
 
@@ -97,7 +98,6 @@ export default function EditRoomDialog({
         basePrice: room.basePrice,
         status: room.status,
         description: room.description || "",
-        // เซ็ตค่าเริ่มต้นให้มิเตอร์ (ถ้า meterSetting เป็น null ให้ไฟเป็น 5 น้ำเป็นค่าว่าง)
         electricMeterDigits: room.meterSetting?.electricMeterDigits ?? 5,
         waterMeterDigits: room.meterSetting?.waterMeterDigits ?? "",
       });
@@ -113,7 +113,6 @@ export default function EditRoomDialog({
         floor: Number(data.floor),
         basePrice: Number(data.basePrice),
         status: isOccupied ? RoomStatus.OCCUPIED : data.status,
-        // จัดการค่ามิเตอร์ก่อนส่งไป Backend
         electricMeterDigits: Number(data.electricMeterDigits),
         waterMeterDigits: data.waterMeterDigits
           ? Number(data.waterMeterDigits)
@@ -157,6 +156,7 @@ export default function EditRoomDialog({
   };
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
   const { modalRef } = useClickOutsideModal({
     isOpen: isOpen && !isConfirmOpen,
     onClose: onClose,
@@ -184,6 +184,7 @@ export default function EditRoomDialog({
       await toast.promise(RoomService.deleteRoom(room.id), {
         pending: "กำลังลบข้อมูลห้องพัก...",
         success: "ลบห้องพักเรียบร้อยแล้ว",
+
         error: {
           render({ data }: any) {
             return `${getErrorMessage(data)}`;
@@ -245,7 +246,6 @@ export default function EditRoomDialog({
             </div>
           </div>
 
-          {/* เพิ่ม overflow-y-auto เพื่อให้ฟอร์มเลื่อนได้หากเนื้อหาเยอะเกินจอ */}
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-1 flex-col overflow-hidden"
@@ -323,7 +323,6 @@ export default function EditRoomDialog({
                 </div>
               </div>
 
-              {/* SECTION: การตั้งค่ามิเตอร์ */}
               <div className="grid grid-cols-2 gap-4 rounded-xl border border-gray-100 bg-gray-50/50 p-4">
                 <div className="col-span-2">
                   <h4 className="text-sm font-semibold text-gray-700">
@@ -364,7 +363,6 @@ export default function EditRoomDialog({
                   </div>
                 </div>
               </div>
-              {/* END SECTION: การตั้งค่ามิเตอร์ */}
 
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">

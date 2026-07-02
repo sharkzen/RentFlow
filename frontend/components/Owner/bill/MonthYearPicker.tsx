@@ -54,7 +54,6 @@ export default function MonthYearPicker({
 
   return (
     <div
-      // 1. เพิ่ม z-50 ตรงนี้ เพื่อให้ Container มีลำดับชั้นสูงกว่า element อื่นในหน้าเดียวกัน
       className="relative z-50 w-full sm:flex sm:w-auto sm:justify-start"
       ref={ref}
     >
@@ -79,11 +78,7 @@ export default function MonthYearPicker({
         />
       </button>
       {isOpen && (
-        <div
-          // 2. ปรับ z-index เป็น z-[100] ให้ชัวร์ว่าลอยทับสุดๆ
-          // 3. เอา sm:right-0 sm:left-auto ออก และใช้แค่ left-0 เพื่อให้ Dropdown กางไปทางขวาเสมอ จะได้ไม่ทะลุขอบซ้ายตอนจอใหญ่
-          className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-[100] mt-2 w-full rounded-xl border border-gray-100 bg-white p-4 shadow-xl ring-1 ring-black/5 sm:w-72"
-        >
+        <div className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-[100] mt-2 w-full rounded-xl border border-gray-100 bg-white p-4 shadow-xl ring-1 ring-black/5 sm:w-72">
           <div className="mb-4 border-b border-gray-100 pb-3">
             <label className="mb-2 block text-xs font-semibold text-gray-500">
               เลือกปี (พ.ศ.)

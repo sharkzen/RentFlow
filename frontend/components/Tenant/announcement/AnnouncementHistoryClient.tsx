@@ -142,7 +142,6 @@ export default function AnnouncementHistoryClient() {
           </div>
         </div>
       )}
-
       <div className="space-y-5">
         {isLoading ? (
           [...Array(3)].map((_, i) => (
@@ -212,7 +211,6 @@ export default function AnnouncementHistoryClient() {
                       )}
                     </div>
                   </div>
-
                   <div>
                     <h3
                       className={`text-lg leading-snug font-bold sm:text-xl ${announcement.isRead ? "text-slate-700" : "text-slate-900"}`}
@@ -225,7 +223,6 @@ export default function AnnouncementHistoryClient() {
                       {announcement.content}
                     </div>
                   </div>
-
                   {announcement.images &&
                     announcement.images.length > 0 &&
                     announcement.images[0].url && (
@@ -251,7 +248,6 @@ export default function AnnouncementHistoryClient() {
           })
         )}
       </div>
-
       {!isLoading && meta && meta.totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-slate-200 pt-6">
           <button

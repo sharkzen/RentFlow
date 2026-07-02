@@ -1502,21 +1502,25 @@ export const billService = {
       throw new Error("OCR_SERVICE_URL_NOT_CONFIGURED");
     }
 
-    // ✅ 1. ค้นหาข้อมูล Owner ของคนที่เรียก API
     const owner = await prisma.ownerProfile.findUnique({
-      where: { userId: user.sub },
+      where: {
+        userId: user.sub,
+      },
     });
 
     if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
 
-    // ✅ 2. ดึงข้อมูลห้องพักและเช็คว่าเป็นห้องของเจ้าของคนนี้จริงหรือไม่
     const room = await prisma.room.findFirst({
       where: {
         id: roomId,
-        dormitory: { ownerId: owner.id }, // เช็คสิทธิ์เจ้าของ
+
+        dormitory: {
+          ownerId: owner.id,
+        },
       },
+
       include: {
-        meterSetting: true, // ดึงการตั้งค่ามิเตอร์มาด้วย
+        meterSetting: true,
       },
     });
 
@@ -1524,8 +1528,8 @@ export const billService = {
       throw new Error("ROOM_NOT_FOUND_OR_UNAUTHORIZED");
     }
 
-    // ✅ 3. กำหนดจำนวนหลักจาก Database โดยตรง
-    let EXPECTED_DIGIT_LENGTH = scanType === "WATER" ? 4 : 5; // ค่าเริ่มต้นเผื่อไว้
+    let EXPECTED_DIGIT_LENGTH = scanType === "WATER" ? 4 : 5;
+
     if (room.meterSetting) {
       EXPECTED_DIGIT_LENGTH =
         scanType === "WATER"
@@ -1536,9 +1540,13 @@ export const billService = {
     try {
       const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
-      const blob = new Blob([buffer], { type: "image/jpeg" });
+
+      const blob = new Blob([buffer], {
+        type: "image/jpeg",
+      });
+
       const formData = new FormData();
-      formData.append("file", blob, "meter.jpg");
+      formData.append("image", blob, "meter.jpg");
 
       const response = await fetch(ocrServiceUrl, {
         method: "POST",
@@ -1551,16 +1559,16 @@ export const billService = {
         logger.warn(
           `[Service] OCR Service Rejected Image: ${JSON.stringify(data)}`,
         );
+
         return {
           success: false,
-          message: data.detail?.message || "UNREADABLE_IMAGE",
-          errorCode: data.detail?.error_code || "OCR_ERROR",
+          message: data.message || "UNREADABLE_IMAGE",
+          errorCode: data.error_code || "OCR_ERROR",
         };
       }
 
       let finalNumber = data.meter_number;
 
-      // ✅ 4. ตัดตัวเลขตามค่าที่ดึงมาจาก Database
       if (finalNumber && finalNumber.length > EXPECTED_DIGIT_LENGTH) {
         finalNumber = finalNumber.substring(0, EXPECTED_DIGIT_LENGTH);
       }

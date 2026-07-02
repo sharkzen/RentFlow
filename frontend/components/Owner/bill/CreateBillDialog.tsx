@@ -125,34 +125,32 @@ export default function CreateBillDialog({
     });
   };
 
-  const handleScanConfirm = async (ocrValue: string, file: File) => {
+  const handleScanConfirm = async (
+    ocrValue: string,
+    uploadResult: {
+      url: string;
+      objectKey: string;
+    },
+  ) => {
     const { index, type } = scanConfig;
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await BillService.uploadTempImage(formData);
+    setItems((prev) => {
+      const newItems = [...prev];
 
-      setItems((prev) => {
-        const newItems = [...prev];
+      if (type === "WATER") {
+        newItems[index].currentWater = ocrValue;
+        newItems[index].waterImage = uploadResult.url;
+        newItems[index].waterImageKey = uploadResult.objectKey;
+      } else {
+        newItems[index].currentElectric = ocrValue;
+        newItems[index].electricImage = uploadResult.url;
+        newItems[index].electricImageKey = uploadResult.objectKey;
+      }
 
-        if (type === "WATER") {
-          newItems[index].currentWater = ocrValue;
-          newItems[index].waterImage = res.url;
-          newItems[index].waterImageKey = res.objectKey;
-        } else {
-          newItems[index].currentElectric = ocrValue;
-          newItems[index].electricImage = res.url;
-          newItems[index].electricImageKey = res.objectKey;
-        }
+      return newItems;
+    });
 
-        return newItems;
-      });
-
-      handleScanNext();
-    } catch (error) {
-      toast.error("อัปโหลดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
-    }
+    handleScanNext();
   };
 
   const handleScanNext = () => {

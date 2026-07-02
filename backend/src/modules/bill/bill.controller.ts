@@ -545,11 +545,12 @@ export const BillController = {
   },
 
   scanMeter: async (request: FastifyRequest, reply: FastifyReply) => {
-    // ดึง user จาก token มาเพื่อใช้เช็คสิทธิ์
     const user = request.user as UserDecodedDto;
 
     if (!user) {
-      return reply.status(401).send({ message: "UNAUTHORIZED" });
+      return reply.status(401).send({
+        message: "UNAUTHORIZED",
+      });
     }
 
     try {

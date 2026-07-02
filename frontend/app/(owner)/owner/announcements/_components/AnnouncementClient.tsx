@@ -117,7 +117,6 @@ export default function AnnouncementClient() {
           <option value="URGENT">ด่วน (Urgent)</option>
         </select>
       </div>
-
       {!isLoading && !isDormsLoading && filteredAnnouncements.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-gray-50 px-4 py-16 text-center">
           <div className="mb-4 rounded-full bg-white p-4 shadow-sm">

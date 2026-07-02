@@ -229,7 +229,6 @@ export default function CreateAnnouncementModal({
             <label className="mb-1 block text-sm font-medium text-gray-700">
               รูปภาพแนบ (ถ้ามี)
             </label>
-
             {previewImage ? (
               <div className="flex items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
                 <div
