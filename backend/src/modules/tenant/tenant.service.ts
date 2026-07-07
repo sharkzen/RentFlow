@@ -1237,7 +1237,7 @@ export const tenantService = {
       result: qrCodeDataUrl,
       total: amount,
       refNo: bill.id,
-      promptPayName: paymentSetting.bankHolder || "Dormitory Account",
+      promptPayName: paymentSetting.bankHolder || "ไม่ระบุ",
     };
   },
 

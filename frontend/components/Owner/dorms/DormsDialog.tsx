@@ -231,9 +231,8 @@ export default function DormsDialog({
                     </Label>
                     <div className="relative">
                       <Input
-                        min={0}
                         type="number"
-                        value={formData.roomPrice}
+                        value={formData.roomPrice || 0}
                         onChange={(e) =>
                           updateField("roomPrice", e.target.value)
                         }
@@ -295,9 +294,7 @@ export default function DormsDialog({
                       ค่าไฟ (บาท/หน่วย)
                     </Label>
                     <Input
-                      type="number"
-                      min={0}
-                      value={formData.electricRate}
+                      value={formData.electricRate || 0}
                       onChange={(e) =>
                         updateField(
                           "electricRate",
@@ -311,9 +308,7 @@ export default function DormsDialog({
                       ค่าน้ำ (บาท/หน่วย)
                     </Label>
                     <Input
-                      min={0}
-                      type="number"
-                      value={formData.waterRate}
+                      value={formData.waterRate || 0}
                       onChange={(e) =>
                         updateField(
                           "waterRate",
@@ -326,7 +321,7 @@ export default function DormsDialog({
                     <Label icon={Info}>ส่วนกลาง (บาท/เดือน)</Label>
                     <Input
                       type="number"
-                      value={formData.commonFee}
+                      value={formData.commonFee || 0}
                       onChange={(e) =>
                         updateField(
                           "commonFee",
@@ -358,9 +353,8 @@ export default function DormsDialog({
                   <div>
                     <Label icon={AlertCircle}>ค่าปรับล่าช้า (บาท/วัน)</Label>
                     <Input
-                      min={0}
                       type="number"
-                      value={formData.lateFee}
+                      value={formData.lateFee || 0}
                       onChange={(e) =>
                         updateField("lateFee", parseFloat(e.target.value))
                       }
