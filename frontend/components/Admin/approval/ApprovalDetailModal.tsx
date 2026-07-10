@@ -49,7 +49,7 @@ export default function ApprovalDetailModal({
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
+            className="cursor-pointer rounded-full p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-700"
           >
             <X size={24} />
           </button>

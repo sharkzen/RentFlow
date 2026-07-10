@@ -316,39 +316,38 @@ export const AdminService = {
   },
 
   rejectOwner: async (id: string) => {
-    const rejectedOwner = await prisma.$transaction(async (tx) => {
-      const owner = await tx.ownerProfile.update({
-        where: {
-          id,
-        },
+    const ownerToDelete = await prisma.ownerProfile.findUnique({
+      where: { id },
+      include: {
+        user: true,
+      },
+    });
 
-        data: {
-          status: OwnerStatus.SUSPENDED,
-        },
+    if (!ownerToDelete) {
+      throw new Error("ไม่พบข้อมูลผู้สมัครหอพักนี้");
+    }
 
-        include: {
-          user: true,
-        },
-      });
+    const userEmail = ownerToDelete.user.email;
+    const ownerName = ownerToDelete.fullName
+      ? ownerToDelete.fullName
+      : "ผู้สมัครหอพัก";
+    const userId = ownerToDelete.userId;
 
-      return owner;
+    await prisma.user.delete({
+      where: { id: userId },
     });
 
     await emailQueue.add(
       {
         type: EmailType.OWNER_REJECTED,
-        to: rejectedOwner.user.email,
-
+        to: userEmail,
         data: {
-          ownerName: rejectedOwner.fullName
-            ? rejectedOwner.fullName
-            : "ผู้สมัครหอพัก",
-          email: rejectedOwner.user.email,
+          ownerName: ownerName,
+          email: userEmail,
         },
       },
       {
         attempts: 3,
-
         backoff: {
           type: "exponential",
           delay: 1000,
@@ -356,7 +355,7 @@ export const AdminService = {
       },
     );
 
-    return rejectedOwner;
+    return { success: true };
   },
 
   getDormitories: async (

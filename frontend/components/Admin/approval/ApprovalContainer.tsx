@@ -99,7 +99,7 @@ export default function ApprovalContainer() {
       isOpen: true,
       type: "error",
       title: "ยืนยันการไม่อนุมัติ",
-      description: `คุณต้องการปฏิเสธคำขอของ "${item.fullName}" ใช่หรือไม่? บัญชีนี้จะถูกระงับการใช้งาน`,
+      description: `คุณต้องการปฏิเสธคำขอของ "${item.fullName}" ใช่หรือไม่? บัญชีนี้จะถูกระงับการใช้งานและต้องสมัครเข้ามาใหม่`,
 
       action: async () => {
         await AdminService.rejectOwner(item.id);
@@ -199,7 +199,10 @@ export default function ApprovalContainer() {
                       key={item.id}
                       className="group transition-colors hover:bg-gray-50/80"
                     >
-                      <td className="px-6 py-4">
+                      <td
+                        onClick={() => setSelectedItem(item)}
+                        className="cursor-pointer px-6 py-4"
+                      >
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600">
                             {item.fullName.charAt(0)}
@@ -214,7 +217,10 @@ export default function ApprovalContainer() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td
+                        onClick={() => setSelectedItem(item)}
+                        className="cursor-pointer px-6 py-4"
+                      >
                         <div className="space-y-1">
                           {item.phone ? (
                             <p className="flex items-center gap-1.5 text-gray-600">
@@ -231,12 +237,18 @@ export default function ApprovalContainer() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                      <td
+                        onClick={() => setSelectedItem(item)}
+                        className="cursor-pointer px-6 py-4 whitespace-nowrap text-gray-500"
+                      >
                         {format(new Date(item.createdAt), "d MMM yy HH:mm", {
                           locale: th,
                         })}
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td
+                        onClick={() => setSelectedItem(item)}
+                        className="cursor-pointer px-6 py-4 text-center"
+                      >
                         {item.dormitories.length > 0 ? (
                           <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-indigo-700/10 ring-inset">
                             {item.dormitories.length}หอพัก

@@ -322,8 +322,17 @@ export default function OwnerRegisterForm() {
                     <div className="space-y-1">
                       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
                         <MapPin className="h-4 w-4 text-gray-500" />
-                        ลิงก์ Google Map
+                        ลิงก์ Google Map{" "}
+                        <Link
+                          className="text-blue-500 underline"
+                          href={"https://maps.google.com"}
+                          target="_blank"
+                        >
+                          {" "}
+                          เปิด Map
+                        </Link>
                       </label>
+
                       <input
                         id="mapUrl"
                         type="text"

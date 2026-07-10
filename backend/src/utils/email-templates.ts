@@ -632,10 +632,6 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
       };
     }
     case EmailType.OWNER_REJECTED: {
-      const contactLink = process.env.FRONTEND_URL
-        ? `${process.env.FRONTEND_URL}/contact`
-        : "mailto:support@rentflow.com";
-
       const rejectDate = new Date().toLocaleDateString("th-TH", {
         year: "numeric",
         month: "long",
@@ -673,44 +669,22 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
               </p>
               
               <p style="color: ${THEME.secondary}; font-size: 16px; line-height: 1.8; margin-bottom: 24px;">
-                จากการตรวจสอบข้อมูลและเอกสารประกอบการสมัครบัญชีผู้จัดการหอพักของคุณ ทีมงาน RentFlow ขออภัยที่ต้องแจ้งให้ทราบว่า <strong>เราไม่สามารถอนุมัติบัญชีของคุณได้ในขณะนี้</strong>
+                จากการตรวจสอบข้อมูลและเอกสารประกอบการสมัครบัญชีผู้จัดการหอพักของคุณ ทีมงาน RentFlow ขออภัยที่ต้องแจ้งให้ทราบว่า <strong>เราไม่สามารถอนุมัติบัญชีของคุณได้ในขณะนี้</strong> เนื่องจากพบข้อมูลบางส่วนไม่ถูกต้องหรือไม่สมบูรณ์
               </p>
 
               <div style="background-color: #fff1f2; border: 1px solid #fecdd3; padding: 20px; border-radius: 8px; margin-bottom: 32px;">
                 <div style="font-size: 14px; font-weight: 700; color: #be123c; margin-bottom: 10px; display: flex; align-items: center;">
-                  สาเหตุเบื้องต้นอาจเกิดจาก:
+                  สิ่งที่ควรตรวจสอบก่อนทำการสมัครใหม่:
                 </div>
                 <ul style="margin: 0; padding-left: 20px; color: #9f1239; font-size: 14px; line-height: 1.7;">
-                  <li>เอกสารยืนยันตัวตนหรือเอกสารสิทธิ์ไม่ชัดเจน / ไม่สมบูรณ์</li>
-                  <li>ข้อมูลหอพักที่ระบุไม่สอดคล้องกับเอกสารแนบ</li>
-                  <li>ข้อมูลไม่ตรงตามเงื่อนไขการให้บริการของเรา</li>
+                  <li><strong>การปักหมุดที่ตั้งหอพัก:</strong> กรุณาตรวจสอบและปักหมุดตำแหน่งที่ตั้งหอพักในแผนที่ให้ตรงกับความจริง</li>
+                  <li><strong>ข้อมูลและเอกสาร:</strong> ตรวจสอบเอกสารยืนยันตัวตนหรือเอกสารสิทธิ์ให้ชัดเจน และระบุข้อมูลหอพักให้ตรงกับเอกสารที่แนบมา</li>
                 </ul>
               </div>
 
               <p style="color: ${THEME.text}; font-size: 15px; line-height: 1.6; margin-bottom: 30px;">
-                เพื่อความปลอดภัยของระบบและผู้ใช้งาน เราจำเป็นต้องตรวจสอบข้อมูลอย่างรัดกุม 
-                หากคุณเชื่อว่านี่เป็นข้อผิดพลาด หรือต้องการส่งเอกสารเพิ่มเติมเพื่อพิจารณาใหม่อีกครั้ง กรุณาติดต่อทีมงานของเรา
+                เพื่อความถูกต้องของระบบและแผนที่ ระบบได้ทำการยกเลิกข้อมูลการสมัครเดิมของคุณแล้ว <strong>คุณสามารถทำการสมัครและกรอกข้อมูลเข้ามาใหม่ได้ทันที</strong> ทางเราหวังเป็นอย่างยิ่งว่าจะได้ร่วมงานกับคุณ
               </p>
-
-              <table width="100%" style="margin-bottom: 36px;">
-                <tr>
-                  <td align="center">
-                    <a href="${contactLink}" 
-                       style="background-color: #ffffff; 
-                              color: ${THEME.text}; 
-                              padding: 14px 40px; 
-                              text-decoration: none; 
-                              border-radius: 6px; 
-                              font-weight: 700; 
-                              font-size: 15px; 
-                              display: inline-block; 
-                              border: 1px solid #cbd5e1;
-                              box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                      ติดต่อฝ่ายบริการลูกค้า
-                    </a>
-                  </td>
-                </tr>
-              </table>
 
               <div style="text-align: center; color: ${THEME.muted}; font-size: 13px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
                 รหัสอ้างอิง: REJ-${new Date().getTime().toString().slice(-6)} <br>

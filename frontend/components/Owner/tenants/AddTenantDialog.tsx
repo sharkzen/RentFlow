@@ -28,6 +28,7 @@ import { toast } from "react-toastify";
 import { useScrollLock, useOnClickOutside } from "usehooks-ts";
 import { getTenantErrorMessage } from "@/features/tenant/constants/error-messages";
 import DatePickerTh from "@/components/ui/DatePickerTh";
+import Link from "next/link";
 
 interface AddTenantDialogProps {
   isOpen: boolean;
@@ -356,7 +357,14 @@ export default function AddTenantDialog({
                               ))
                             ) : (
                               <li className="px-4 py-6 text-center text-xs text-gray-400">
-                                ไม่พบห้องพัก
+                                ไม่พบห้องพักกรุณา
+                                <Link
+                                  className="text-blue-500 underline"
+                                  href="/owner/rooms"
+                                >
+                                  สร้าง
+                                </Link>
+                                ห้องพักก่อน
                               </li>
                             )}
                           </ul>
@@ -633,7 +641,7 @@ export default function AddTenantDialog({
                     </div>
                     <div>
                       <label className="mb-1.5 block text-xs font-semibold text-gray-700">
-                        ที่อยู่ตามทะเบียนบ้าน/บัตร ปชช.
+                        ที่อยู่ตามทะเบียนบ้านตามบัตร ปชช
                       </label>
                       <div className="relative">
                         <MapPin className="pointer-events-none absolute top-3 left-3 h-4 w-4 text-gray-400" />

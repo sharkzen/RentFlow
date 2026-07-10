@@ -55,7 +55,7 @@ model OwnerProfile {
   deletedAt   DateTime?
   createdAt   DateTime    @default(now())
   dormitories Dormitory[]
-  user        User        @relation(fields: [userId], references: [id])
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Dormitory {
@@ -75,7 +75,7 @@ model Dormitory {
   updatedAt           DateTime             @updatedAt
   announcements       Announcement[]
   billDrafts          BillDraft[]
-  owner               OwnerProfile         @relation(fields: [ownerId], references: [id])
+  owner               OwnerProfile         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   settings            DormitorySetting?
   images              File[]               @relation("DormitoryImages")
   maintenanceRequests MaintenanceRequest[]

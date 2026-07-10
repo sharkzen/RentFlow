@@ -35,27 +35,37 @@ export default function DormPaymentSettings({
           <h4 className="mb-2 text-xs font-bold text-slate-400">บัญชีธนาคาร</h4>
         </div>
         <div>
-          <Label icon={Building2}>ชื่อธนาคาร</Label>
+          <Label icon={Building2}>
+            ชื่อธนาคาร <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.bankName}
             onChange={(e: any) => updateField("bankName", e.target.value)}
             placeholder="เช่น กสิกรไทย, ไทยพาณิชย์"
+            required
           />
         </div>
         <div>
-          <Label>เลขที่บัญชี</Label>
+          <Label>
+            เลขที่บัญชี <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.bankAccount}
             onChange={(e: any) => updateField("bankAccount", e.target.value)}
             placeholder="xxx-x-xxxxx-x"
+            required
           />
         </div>
         <div className="md:col-span-2">
-          <Label>ชื่อบัญชี</Label>
+          <Label>
+            ชื่อบัญชี ต้องตรงกลับบัญชีพร้อมเพย์(ถ้ามี){" "}
+            <span className="text-red-500">*</span>
+          </Label>
           <Input
             value={formData.bankHolder}
             onChange={(e: any) => updateField("bankHolder", e.target.value)}
             placeholder="ชื่อเจ้าของบัญชี"
+            required
           />
         </div>
       </div>

@@ -734,7 +734,7 @@ export default function EditTenantDialog({
                       </div>
                       <div>
                         <label className="mb-1.5 block text-xs font-semibold text-gray-700">
-                          ที่อยู่ตามทะเบียนบ้าน/บัตร ปชช.
+                          ที่อยู่ตามทะเบียนบ้านตามบัตร ปชช
                         </label>
                         <div className="relative">
                           <MapPin className="pointer-events-none absolute top-3 left-3 h-4 w-4 text-gray-400" />

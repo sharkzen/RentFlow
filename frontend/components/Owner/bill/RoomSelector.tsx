@@ -122,7 +122,7 @@ export default function RoomSelector({
               ))
             ) : (
               <div className="py-4 text-center text-xs text-gray-400">
-                ไม่พบห้องพัก
+                ไม่พบห้องพักกรุณาสร้างห้องพักก่อน
               </div>
             )}
           </div>

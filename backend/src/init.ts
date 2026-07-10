@@ -4,6 +4,10 @@ import logger from "./utils/logger";
 
 async function main() {
   console.log("🌱 Starting initial data generation...");
+
+  // ==========================================
+  // 1. Seed Admin User
+  // ==========================================
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
@@ -35,6 +39,86 @@ async function main() {
 
     logger.info(`Admin user created successfully!`);
     logger.info(`Email: ${newAdmin.email}`);
+  }
+
+  // ==========================================
+  // 2. Seed Initial Features
+  // ==========================================
+  const featureKey = "OCR_BILL";
+
+  const existingFeature = await prisma.feature.findUnique({
+    where: {
+      key: featureKey,
+    },
+  });
+
+  if (existingFeature) {
+    logger.info(`Feature '${featureKey}' already exists.`);
+  } else {
+    await prisma.feature.create({
+      data: {
+        key: featureKey,
+        name: "OCR สแกนน้ำไฟ",
+        enabled: true,
+      },
+    });
+
+    logger.info(`Feature '${featureKey}' created successfully!`);
+  }
+
+  // ==========================================
+  // 3. Seed Initial Landmarks
+  // ==========================================
+  const initialLandmarks = [
+    {
+      name: "มหาวิทยาลัยมหาสารคาม",
+      slug: "mahasarakham-university",
+      type: "UNIVERSITY", // ต้องตรงกับ enum LandmarkType
+      latitude: 16.24403,
+      longitude: 103.24903,
+      mapUrl: "https://maps.google.com/?q=16.24403,103.24903",
+    },
+    {
+      name: "มอเก่าสารคาม",
+      slug: "msu-old-campus",
+      type: "UNIVERSITY",
+      latitude: 16.2002,
+      longitude: 103.28207,
+      mapUrl: "https://maps.google.com/?q=16.20020,103.28207",
+    },
+    {
+      name: "เสริมไทยคอมเพล็กซ์",
+      slug: "sermthai-complex",
+      type: "SHOPPING_MALL", // ปรับให้ตรงกับ enum LandmarkType ของคุณ (ห้ามเว้นวรรค)
+      latitude: 16.20179,
+      longitude: 103.27648,
+      mapUrl: "https://maps.google.com/?q=16.20179,103.27648",
+    },
+    {
+      name: "มหาวิทยาลัยราชภัฏมหาสารคาม",
+      slug: "rmu",
+      type: "UNIVERSITY",
+      latitude: 16.20076,
+      longitude: 103.27101,
+      mapUrl: "https://maps.google.com/?q=16.20076,103.27101",
+    },
+  ];
+
+  for (const landmark of initialLandmarks) {
+    // เช็คจาก slug เพราะตั้งเป็น @unique ไว้
+    const existingLandmark = await prisma.landmark.findUnique({
+      where: { slug: landmark.slug },
+    });
+
+    if (existingLandmark) {
+      logger.info(`Landmark '${landmark.name}' already exists.`);
+    } else {
+      // ignore TS error สำหรับ type ชั่วคราว (ถ้าคุณใช้ enum ที่ดึงจาก Prisma สามารถ import มาครอบได้)
+      await prisma.landmark.create({
+        data: landmark as any,
+      });
+      logger.info(`Landmark '${landmark.name}' created successfully!`);
+    }
   }
 }
 
