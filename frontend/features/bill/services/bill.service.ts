@@ -87,6 +87,10 @@ export const BillService = {
     const res = await axios.post(`/api/bills/${billId}/apply-advance-payment`);
     return res.data;
   },
+  rejectBill: async (billId: string) => {
+    const res = await axios.post(`/api/bills/${billId}/reject`);
+    return res.data;
+  },
 
   deleteBill: async (billId: string) => {
     const res = await axios.delete(`/api/bills/${billId}`);

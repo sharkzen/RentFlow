@@ -1109,6 +1109,133 @@ export const billService = {
       return updatedBill;
     });
   },
+  rejectBill: async (
+    userSub: string,
+    billId: string,
+    reason: string = "สลิปไม่ถูกต้อง โปรดตรวจสอบแล้วแนบสลิปเข้ามาใหม่",
+  ) => {
+    // 1. ดึงข้อมูลบิล พร้อมด้วย Payment และ File สลิป
+    const bill = await prisma.bill.findUnique({
+      where: {
+        id: billId,
+      },
+      include: {
+        room: {
+          include: {
+            dormitory: true,
+          },
+        },
+        tenant: true,
+        payment: {
+          include: {
+            slips: true, // ดึง File ที่เป็นสลิปมาด้วย
+          },
+        },
+      },
+    });
+
+    if (!bill) throw new Error("BILL_NOT_FOUND");
+
+    // 2. ตรวจสอบสิทธิ์ว่า Owner คนนี้เป็นเจ้าของหอพักของบิลนี้จริงๆ
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId: userSub,
+      },
+    });
+
+    if (!owner || owner.id !== bill.room.dormitory.ownerId) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    if (!bill.payment) {
+      throw new Error("NO_PAYMENT_FOUND"); // บิลนี้ยังไม่มีการแจ้งชำระเงิน
+    }
+
+    // เก็บ objectKey ของสลิปทั้งหมดเอาไว้ก่อน เพื่อนำไปลบใน R2
+    const slipObjectKeys = bill.payment.slips.map((slip) => slip.objectKey);
+
+    // 3. เริ่ม Transaction อัปเดต Database
+    const updatedBill = await prisma.$transaction(async (tx) => {
+      // 3.1 ลบไฟล์สลิปออกจาก Database (ตาราง File)
+      await tx.file.deleteMany({
+        where: {
+          paymentId: bill.payment!.id,
+        },
+      });
+
+      // 3.2 ลบ Payment เดิมทิ้งไปเลย เพื่อเปิดทางให้ลูกบ้านสร้าง Payment แจ้งชำระใหม่
+      await tx.payment.delete({
+        where: {
+          id: bill.payment!.id,
+        },
+      });
+
+      // 3.3 อัปเดตสถานะบิลกลับเป็น PENDING
+      const updated = await tx.bill.update({
+        where: {
+          id: billId,
+        },
+        data: {
+          status: "PENDING",
+        },
+      });
+
+      // 3.4 (ถ้ามี) บันทึก Log การทำงาน
+      // await createActivityLog({
+      //   userId: userSub,
+      //   action: "REJECT_BILL_PAYMENT",
+      //   entityType: "Bill",
+      //   entityId: billId,
+      //   metadata: { reason },
+      // });
+
+      return updated;
+    });
+
+    // 4. ลบไฟล์ภาพจริงออกจาก R2 Bucket (อยู่นอก Transaction เผื่อ API ของ R2 มีปัญหา DB จะได้ไม่ rollback)
+    for (const objectKey of slipObjectKeys) {
+      try {
+        await deleteFile(objectKey); // เรียกฟังก์ชันลบ R2
+      } catch (r2Error: any) {
+        // Log error ไว้ แต่ไม่ต้อง throw เพื่อให้ Process การ Reject เดินต่อได้
+        logger.error(
+          `[R2_DELETE_ERROR] ลบไฟล์สลิปไม่สำเร็จ Key: ${objectKey}`,
+          r2Error,
+        );
+      }
+    }
+
+    // 5. โยนเข้า Queue เพื่อส่ง Email แจ้งลูกบ้าน
+    if (bill.tenant?.email) {
+      const emailData = {
+        type: EmailType.REJECT_SLIP, // << ตรงนี้เช็ค ENUM ในระบบของคุณด้วยว่าใช้ชื่ออะไร
+        to: bill.tenant.email,
+        senderName: bill.room.dormitory.name,
+        data: {
+          dormName: bill.room.dormitory.name,
+          billId: bill.id.substring(0, 8).toUpperCase(),
+          roomNumber: bill.roomNumberSnapshot,
+          tenantName: bill.tenantNameSnapshot,
+          month: formatDateTH(bill.billingMonth),
+          amount: bill.total.toLocaleString("th-TH", {
+            minimumFractionDigits: 2,
+          }),
+          reason: reason,
+          link: `${process.env.FRONTEND_URL}/tenant/bills/${bill.id}`,
+        },
+      };
+
+      try {
+        await emailQueue.add(emailData);
+      } catch (queueErr) {
+        logger.error(
+          `[Service] เกิดข้อผิดพลาดตอนโยนเข้า Queue (ส่งอีเมล Reject บิล ${bill.id}): ${queueErr}`,
+        );
+      }
+    }
+
+    return updatedBill;
+  },
 
   getDrafts: async ({ dormId, sub }: { dormId: string; sub: string }) => {
     const owner = await prisma.ownerProfile.findUnique({

@@ -373,6 +373,42 @@ export const BillController = {
       });
     }
   },
+  rejectBill: async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const user = request.user as UserDecodedDto;
+      const { billId } = request.params as { billId: string };
+
+      // ถ้าระบบคุณหน้าบ้านไม่ได้ส่งเหตุผลมา ให้เป็น {} เปล่าๆ ไว้ โค้ด Service จะใช้ Default ข้อความให้
+      const body = (request.body as { reason?: string }) || {};
+
+      const result = await billService.rejectBill(
+        user.sub,
+        billId,
+        body.reason,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      logger.error("REJECT BILL ERROR:", error);
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        return reply.status(403).send({ message: "FORBIDDEN_ACCESS" });
+      }
+
+      if (error.message === "BILL_NOT_FOUND") {
+        return reply.status(404).send({ message: "ไม่พบบิลที่ต้องการ" });
+      }
+
+      if (error.message === "NO_PAYMENT_FOUND") {
+        return reply
+          .status(400)
+          .send({ message: "บิลนี้ยังไม่มีการแจ้งชำระเงิน" });
+      }
+
+      return reply.status(500).send({
+        message: error.message || "REJECT_BILL_FAILED",
+      });
+    }
+  },
 
   getDrafts: async (request: FastifyRequest, reply: FastifyReply) => {
     try {

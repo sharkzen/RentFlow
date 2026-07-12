@@ -19,6 +19,7 @@ import {
   PlusCircle,
   MinusCircle,
   Edit2,
+  FileX,
 } from "lucide-react";
 
 import { Bill } from "@/features/bill/types";
@@ -66,6 +67,7 @@ export default function BillDetailDialog({
       | "USE_ADVANCE_PAYMENT"
       | "DELETE_ITEM"
       | "DELETE_BILL"
+      | "REJECT_BILL"
       | "USE_ADVANCE_PAYMENT";
     targetStatus?: string;
     targetItemId?: string;
@@ -111,7 +113,7 @@ export default function BillDetailDialog({
     (item: any) => item.name === "หักเงินค่าเช่าล่วงหน้า",
   );
 
-  const handleActionClick = (status: "PAID" | "DELETE") => {
+  const handleActionClick = (status: "PAID" | "DELETE" | "REJECT") => {
     if (status === "PAID") {
       const hasSlip = !!slipUrl;
 
@@ -135,6 +137,16 @@ export default function BillDetailDialog({
           "ข้อมูลรายการชำระและสลิปของบิลนี้จะถูกลบทั้งหมด (หากมีการหักเงินล่วงหน้า ระบบจะคืนยอดให้ผู้เช่าอัตโนมัติ) การกระทำนี้ไม่สามารถย้อนกลับได้ ยืนยันหรือไม่?",
         type: "error",
         confirmText: "ลบบิลถาวร",
+      });
+    } else if (status === "REJECT") {
+      setConfirmConfig({
+        isOpen: true,
+        action: "REJECT_BILL",
+        title: "ยืนยันการปฏิเสธบิล?",
+        description:
+          "คุณต้องการปฏิเสธบิลนี้หรือไม่? ระบบจะส่งข้อความแจ้งผู้เช่าและให้ผู้เช่าแจ้งสลิปเข้ามาใหม่ ยืนยันหรือไม่?",
+        type: "error",
+        confirmText: "ปฏิเสธบิล",
       });
     }
   };
@@ -265,6 +277,40 @@ export default function BillDetailDialog({
         onRefresh();
       } catch (error) {
         console.error("USE ADVANCE PAYMENT ERROR:", error);
+      } finally {
+        setIsProcessing(false);
+        setConfirmConfig(null);
+      }
+
+      return;
+    }
+    if (confirmConfig.action === "REJECT_BILL") {
+      setIsProcessing(true);
+
+      try {
+        await toast.promise(BillService.rejectBill(bill.id), {
+          pending: "กำลังดำเนินการปฏิเสธบิล...",
+          success: "ปฏิเสธบิลสำเร็จเรียบร้อย",
+          error: {
+            render({ data }: any) {
+              const errorData = data?.response?.data;
+
+              if (errorData?.message === "BILL_ALREADY_REJECTED") {
+                return "บิลนี้ถูกปฏิเสธไปแล้ว";
+              }
+
+              if (errorData?.message === "CANNOT_REJECT_PAID_BILL") {
+                return "ไม่สามารถปฏิเสธบิลที่ชำระเงินแล้วได้";
+              }
+
+              return errorData?.message || "เกิดข้อผิดพลาดในการปฏิเสธบิล";
+            },
+          },
+        });
+        onRefresh();
+        onClose();
+      } catch (error) {
+        console.error("REJECT BILL ERROR:", error);
       } finally {
         setIsProcessing(false);
         setConfirmConfig(null);
@@ -948,17 +994,29 @@ export default function BillDetailDialog({
           </div>
           {isActionable && (
             <div className="pb-safe-area z-20 flex-none border-t border-gray-100 bg-white p-4 sm:px-6">
-              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  onClick={() => handleActionClick("DELETE")}
-                  className="flex w-full cursor-pointer items-center justify-center rounded-xl border border-red-100 px-6 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 sm:w-auto"
-                >
-                  <Trash2 size={18} />
-                  ลบบิล
-                </button>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+                  <button
+                    onClick={() => handleActionClick("DELETE")}
+                    className="flex w-full cursor-pointer items-center justify-center rounded-xl border border-red-100 px-6 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 sm:w-auto"
+                  >
+                    <Trash2 size={18} />
+                    ลบบิล
+                  </button>
+
+                  {currentStatus === "WAITING_FOR_VERIFICATION" && (
+                    <button
+                      onClick={() => handleActionClick("REJECT")}
+                      className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-red-100 px-6 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 sm:w-auto"
+                    >
+                      <FileX size={18} />
+                      <span>สลิปไม่ถูกต้อง</span>
+                    </button>
+                  )}
+                </div>
                 <button
                   onClick={() => handleActionClick("PAID")}
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-green-700 disabled:opacity-70 sm:w-auto"
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-3 text-sm font-medium text-nowrap text-white shadow-sm hover:bg-green-700 disabled:opacity-70 sm:w-auto"
                 >
                   <CheckCircle size={20} className="text-white/90" />
                   {slipUrl ? "ตรวจสอบสลิปและยืนยัน" : "ยืนยันรับชำระด้วยเงินสด"}

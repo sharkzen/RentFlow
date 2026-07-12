@@ -512,6 +512,152 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
         ),
       };
     }
+    case EmailType.REJECT_SLIP: {
+      const statusColor = "#ef4444"; // Red for danger/reject
+      const statusBg = "#fef2f2";
+      const statusBorder = "#fca5a5";
+      const statusText = "สลิปไม่ถูกต้อง";
+      const statusIcon = "❌";
+      const actionText = "แนบสลิปใหม่";
+
+      return {
+        subject: getSubject(
+          `⚠️ แจ้งเตือน: สลิปไม่ถูกต้อง กรุณาแนบใหม่ (ห้อง ${data.roomNumber})`,
+        ),
+
+        html: minifyHtml(
+          wrapEmail(
+            "แจ้งเตือนสลิปไม่ถูกต้อง",
+            `
+        <!-- Status Banner -->
+        <div style="background-color: ${statusBg}; border: 2px solid ${statusBorder}; border-radius: 12px; padding: 16px 24px; margin-bottom: 24px; text-align: center;">
+          <table width="100%" style="border-spacing: 0;">
+            <tr>
+              <td align="center">
+                <span style="font-size: 28px; vertical-align: middle; margin-right: 8px;">${statusIcon}</span>
+                <span style="color: ${statusColor}; font-size: 18px; font-weight: 700; vertical-align: middle;">
+                  ${statusText}
+                </span>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0;">
+          <div style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">
+            แจ้งปฏิเสธการรับชำระเงิน
+          </div>
+          <div style="font-size: 14px; color: #ef4444; font-weight: 600;">
+            PAYMENT REJECTED
+          </div>
+        </div>
+
+        <!-- Receipt Body -->
+        <div style="background-color: #ffffff; border: 2px solid #e2e8f0; border-radius: 8px; padding: 0; margin-bottom: 24px;">
+          
+          <!-- Dorm Name -->
+          <div style="background-color: #f8fafc; padding: 16px 24px; border-bottom: 1px solid #e2e8f0; border-radius: 8px 8px 0 0;">
+            <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 4px;">
+              หอพัก / DORMITORY
+            </div>
+            <div style="color: #0f172a; font-size: 16px; font-weight: 700;">
+              ${data.dormName}
+            </div>
+          </div>
+
+          <!-- Details -->
+          <div style="padding: 24px;">
+            
+            <!-- Row 1: Room & Tenant -->
+            <table width="100%" style="border-spacing: 0; margin-bottom: 20px;">
+              <tr>
+                <td width="50%" style="padding-right: 12px; vertical-align: top;">
+                  <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 6px;">
+                    เลขที่ห้อง
+                  </div>
+                  <div style="color: #0f172a; font-size: 20px; font-weight: 800;">
+                    ${data.roomNumber}
+                  </div>
+                </td>
+                <td width="50%" style="padding-left: 12px; vertical-align: top;">
+                  <div style="color: #64748b; font-size: 12px; font-weight: 600; margin-bottom: 6px;">
+                    ผู้เช่า
+                  </div>
+                  <div style="color: #0f172a; font-size: 16px; font-weight: 700;">
+                    ${data.tenantName}
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Divider -->
+            <div style="height: 1px; background-color: #e2e8f0; margin: 20px 0;"></div>
+
+            <!-- Amount Section -->
+            <table width="100%" style="border-spacing: 0;">
+              <tr>
+                <td>
+                  <div style="color: #64748b; font-size: 13px; font-weight: 600; margin-bottom: 8px;">
+                    📄 ยอดเงินบิลรอบ ${data.month}
+                  </div>
+                  <div style="color: #0f172a; font-size: 32px; font-weight: 800; line-height: 1; letter-spacing: -1px;">
+                    ฿${data.amount}
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Reason Box (เน้นเหตุผลที่ Reject) -->
+            <div style="margin-top: 24px; background-color: #fef2f2; border: 1px solid #fecaca; padding: 16px; border-radius: 8px;">
+              <div style="color: #b91c1c; font-size: 13px; font-weight: 700; margin-bottom: 8px;">
+                ⚠️ เหตุผลที่ปฏิเสธ:
+              </div>
+              <div style="color: #991b1b; font-size: 15px; line-height: 1.5;">
+                ${data.reason || "สลิปยอดเงินไม่ตรง หรือรูปสลิปไม่ชัดเจน โปรดตรวจสอบและแนบสลิปเข้ามาใหม่"}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Notice Box -->
+        <div style="background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 16px 20px; border-radius: 4px; margin-bottom: 24px;">
+          <div style="color: #0f172a; font-size: 14px; line-height: 1.6;">
+            <strong>💡 สิ่งที่ต้องทำต่อไป:</strong> 
+            สถานะบิลของคุณถูกเปลี่ยนกลับเป็น "รอชำระ" แล้ว กรุณากดปุ่มด้านล่างเพื่อตรวจสอบบิลและทำการแนบสลิปโอนเงินเข้ามาใหม่อีกครั้ง
+          </div>
+        </div>
+
+        <!-- CTA Button -->
+        <table width="100%" style="margin-top: 24px;">
+          <tr>
+            <td align="center">
+              <a href="${data.link}" 
+                 style="background-color: #ef4444; 
+                        color: #ffffff; 
+                        padding: 14px 32px; 
+                        text-decoration: none; 
+                        border-radius: 6px; 
+                        font-weight: 700; 
+                        font-size: 15px; 
+                        display: inline-block; 
+                        box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);">
+                📤 ${actionText}
+              </a>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Footer Note -->
+        <div style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 32px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+          หากคุณมั่นใจว่าสลิปเดิมถูกต้อง หรือมีข้อสงสัยเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่หอพัก
+        </div>
+        `,
+          ),
+        ),
+      };
+    }
     case EmailType.RESET_PASSWORD:
       return {
         subject: getSubject("รีเซ็ตรหัสผ่าน"),
