@@ -317,7 +317,10 @@ export const AdminService = {
 
   rejectOwner: async (id: string) => {
     const ownerToDelete = await prisma.ownerProfile.findUnique({
-      where: { id },
+      where: {
+        id,
+      },
+
       include: {
         user: true,
       },
@@ -334,13 +337,16 @@ export const AdminService = {
     const userId = ownerToDelete.userId;
 
     await prisma.user.delete({
-      where: { id: userId },
+      where: {
+        id: userId,
+      },
     });
 
     await emailQueue.add(
       {
         type: EmailType.OWNER_REJECTED,
         to: userEmail,
+
         data: {
           ownerName: ownerName,
           email: userEmail,
@@ -348,6 +354,7 @@ export const AdminService = {
       },
       {
         attempts: 3,
+
         backoff: {
           type: "exponential",
           delay: 1000,
@@ -355,7 +362,9 @@ export const AdminService = {
       },
     );
 
-    return { success: true };
+    return {
+      success: true,
+    };
   },
 
   getDormitories: async (

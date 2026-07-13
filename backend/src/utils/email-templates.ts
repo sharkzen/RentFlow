@@ -513,7 +513,7 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
       };
     }
     case EmailType.REJECT_SLIP: {
-      const statusColor = "#ef4444"; // Red for danger/reject
+      const statusColor = "#ef4444";
       const statusBg = "#fef2f2";
       const statusBorder = "#fca5a5";
       const statusText = "สลิปไม่ถูกต้อง";

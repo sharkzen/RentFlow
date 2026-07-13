@@ -373,13 +373,19 @@ export const BillController = {
       });
     }
   },
+
   rejectBill: async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const user = request.user as UserDecodedDto;
-      const { billId } = request.params as { billId: string };
 
-      // ถ้าระบบคุณหน้าบ้านไม่ได้ส่งเหตุผลมา ให้เป็น {} เปล่าๆ ไว้ โค้ด Service จะใช้ Default ข้อความให้
-      const body = (request.body as { reason?: string }) || {};
+      const { billId } = request.params as {
+        billId: string;
+      };
+
+      const body =
+        (request.body as {
+          reason?: string;
+        }) || {};
 
       const result = await billService.rejectBill(
         user.sub,
@@ -391,17 +397,21 @@ export const BillController = {
       logger.error("REJECT BILL ERROR:", error);
 
       if (error.message === "FORBIDDEN_ACCESS") {
-        return reply.status(403).send({ message: "FORBIDDEN_ACCESS" });
+        return reply.status(403).send({
+          message: "FORBIDDEN_ACCESS",
+        });
       }
 
       if (error.message === "BILL_NOT_FOUND") {
-        return reply.status(404).send({ message: "ไม่พบบิลที่ต้องการ" });
+        return reply.status(404).send({
+          message: "ไม่พบบิลที่ต้องการ",
+        });
       }
 
       if (error.message === "NO_PAYMENT_FOUND") {
-        return reply
-          .status(400)
-          .send({ message: "บิลนี้ยังไม่มีการแจ้งชำระเงิน" });
+        return reply.status(400).send({
+          message: "บิลนี้ยังไม่มีการแจ้งชำระเงิน",
+        });
       }
 
       return reply.status(500).send({
@@ -621,6 +631,43 @@ export const BillController = {
       return reply.status(500).send({
         success: false,
         message: error.message || "INTERNAL_SERVER_ERROR",
+      });
+    }
+  },
+
+  generatePdf: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { billIds } = request.body as {
+      billIds: string[];
+    };
+
+    if (!billIds || !Array.isArray(billIds) || billIds.length === 0) {
+      return reply.status(400).send({
+        message: "กรุณาระบุบิลที่ต้องการพิมพ์อย่างน้อย 1 รายการ",
+      });
+    }
+
+    try {
+      const { pdfBuffer, filename } = await billService.generateBulkBillPdf(
+        user.sub,
+        billIds,
+      );
+
+      const encodedFilename = encodeURIComponent(filename);
+
+      return reply
+        .type("application/pdf")
+        .header(
+          "Content-Disposition",
+          `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`,
+        )
+        .send(pdfBuffer);
+    } catch (error: any) {
+      request.log.error(error);
+
+      return reply.status(500).send({
+        message: error.message || "ไม่สามารถสร้างไฟล์ PDF ได้",
       });
     }
   },

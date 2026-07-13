@@ -25,6 +25,8 @@ import { moveTempFileToPermanent } from "@/services/r2Client";
 import { formatDateTH } from "@/utils/date";
 import * as fs from "fs";
 import * as path from "path";
+import { buildBulkBillHtmlTemplate } from "../owner/lib/owner.lib";
+import { createPdfFromHtml, getCachedStamps } from "../tenant/lib/tenant.lib";
 
 export const billService = {
   getBills: async ({
@@ -1109,26 +1111,29 @@ export const billService = {
       return updatedBill;
     });
   },
+
   rejectBill: async (
     userSub: string,
     billId: string,
     reason: string = "สลิปไม่ถูกต้อง โปรดตรวจสอบแล้วแนบสลิปเข้ามาใหม่",
   ) => {
-    // 1. ดึงข้อมูลบิล พร้อมด้วย Payment และ File สลิป
     const bill = await prisma.bill.findUnique({
       where: {
         id: billId,
       },
+
       include: {
         room: {
           include: {
             dormitory: true,
           },
         },
+
         tenant: true,
+
         payment: {
           include: {
-            slips: true, // ดึง File ที่เป็นสลิปมาด้วย
+            slips: true,
           },
         },
       },
@@ -1136,7 +1141,6 @@ export const billService = {
 
     if (!bill) throw new Error("BILL_NOT_FOUND");
 
-    // 2. ตรวจสอบสิทธิ์ว่า Owner คนนี้เป็นเจ้าของหอพักของบิลนี้จริงๆ
     const owner = await prisma.ownerProfile.findUnique({
       where: {
         userId: userSub,
@@ -1148,56 +1152,41 @@ export const billService = {
     }
 
     if (!bill.payment) {
-      throw new Error("NO_PAYMENT_FOUND"); // บิลนี้ยังไม่มีการแจ้งชำระเงิน
+      throw new Error("NO_PAYMENT_FOUND");
     }
 
-    // เก็บ objectKey ของสลิปทั้งหมดเอาไว้ก่อน เพื่อนำไปลบใน R2
     const slipObjectKeys = bill.payment.slips.map((slip) => slip.objectKey);
 
-    // 3. เริ่ม Transaction อัปเดต Database
     const updatedBill = await prisma.$transaction(async (tx) => {
-      // 3.1 ลบไฟล์สลิปออกจาก Database (ตาราง File)
       await tx.file.deleteMany({
         where: {
           paymentId: bill.payment!.id,
         },
       });
 
-      // 3.2 ลบ Payment เดิมทิ้งไปเลย เพื่อเปิดทางให้ลูกบ้านสร้าง Payment แจ้งชำระใหม่
       await tx.payment.delete({
         where: {
           id: bill.payment!.id,
         },
       });
 
-      // 3.3 อัปเดตสถานะบิลกลับเป็น PENDING
       const updated = await tx.bill.update({
         where: {
           id: billId,
         },
+
         data: {
           status: "PENDING",
         },
       });
 
-      // 3.4 (ถ้ามี) บันทึก Log การทำงาน
-      // await createActivityLog({
-      //   userId: userSub,
-      //   action: "REJECT_BILL_PAYMENT",
-      //   entityType: "Bill",
-      //   entityId: billId,
-      //   metadata: { reason },
-      // });
-
       return updated;
     });
 
-    // 4. ลบไฟล์ภาพจริงออกจาก R2 Bucket (อยู่นอก Transaction เผื่อ API ของ R2 มีปัญหา DB จะได้ไม่ rollback)
     for (const objectKey of slipObjectKeys) {
       try {
-        await deleteFile(objectKey); // เรียกฟังก์ชันลบ R2
+        await deleteFile(objectKey);
       } catch (r2Error: any) {
-        // Log error ไว้ แต่ไม่ต้อง throw เพื่อให้ Process การ Reject เดินต่อได้
         logger.error(
           `[R2_DELETE_ERROR] ลบไฟล์สลิปไม่สำเร็จ Key: ${objectKey}`,
           r2Error,
@@ -1205,21 +1194,23 @@ export const billService = {
       }
     }
 
-    // 5. โยนเข้า Queue เพื่อส่ง Email แจ้งลูกบ้าน
     if (bill.tenant?.email) {
       const emailData = {
-        type: EmailType.REJECT_SLIP, // << ตรงนี้เช็ค ENUM ในระบบของคุณด้วยว่าใช้ชื่ออะไร
+        type: EmailType.REJECT_SLIP,
         to: bill.tenant.email,
         senderName: bill.room.dormitory.name,
+
         data: {
           dormName: bill.room.dormitory.name,
           billId: bill.id.substring(0, 8).toUpperCase(),
           roomNumber: bill.roomNumberSnapshot,
           tenantName: bill.tenantNameSnapshot,
           month: formatDateTH(bill.billingMonth),
+
           amount: bill.total.toLocaleString("th-TH", {
             minimumFractionDigits: 2,
           }),
+
           reason: reason,
           link: `${process.env.FRONTEND_URL}/tenant/bills/${bill.id}`,
         },
@@ -1710,5 +1701,119 @@ export const billService = {
       logger.error(`[Service] scanMeter HTTP Error: ${error.message}`);
       throw new Error("FAILED_TO_PROCESS_OCR");
     }
+  },
+
+  generateBulkBillPdf: async (userId: string, billIds: string[]) => {
+    const bills = await prisma.bill.findMany({
+      where: {
+        id: {
+          in: billIds,
+        },
+
+        room: {
+          dormitory: {
+            owner: {
+              userId: userId,
+            },
+          },
+        },
+      },
+
+      include: {
+        items: true,
+
+        room: {
+          include: {
+            dormitory: {
+              include: {
+                owner: true,
+              },
+            },
+          },
+        },
+      },
+
+      orderBy: {
+        roomNumberSnapshot: "asc",
+      },
+    });
+
+    if (bills.length === 0) {
+      throw new Error("ไม่พบข้อมูลบิล หรือคุณไม่มีสิทธิ์เข้าถึง");
+    }
+
+    const today = new Date();
+
+    const formatThaiDate = (date: any, options: any) =>
+      new Intl.DateTimeFormat("th-TH", {
+        ...options,
+        year: "numeric",
+      }).format(new Date(date));
+
+    const formatMoney = (amount: number) =>
+      amount.toLocaleString("th-TH", {
+        minimumFractionDigits: 2,
+      });
+
+    const stamps = await getCachedStamps();
+
+    const billsData = bills.map((bill) => {
+      let finalDaysLate = 0;
+      const dueDate = new Date(bill.dueDate);
+
+      if (bill.status === "OVERDUE") {
+        const startDatePdf = new Date(
+          dueDate.getFullYear(),
+          dueDate.getMonth(),
+          dueDate.getDate(),
+        );
+        const endDatePdf = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate(),
+        );
+        const daysLate = Math.floor(
+          (endDatePdf.getTime() - startDatePdf.getTime()) / 86400000,
+        );
+        finalDaysLate = daysLate > 0 ? daysLate : 0;
+      }
+
+      return {
+        bill,
+        finalDaysLate,
+      };
+    });
+
+    const publicPath = process.env.PUBLIC_PATH || process.cwd() + "/public";
+    const htmlContent = buildBulkBillHtmlTemplate(
+      billsData,
+      formatMoney,
+      formatThaiDate,
+      stamps,
+      publicPath,
+    );
+    const pdfBuffer = await createPdfFromHtml(htmlContent);
+    const firstRoom = bills[0].roomNumberSnapshot;
+    const lastRoom = bills[bills.length - 1].roomNumberSnapshot;
+
+    const monthStr = new Date(bills[0].billingMonth)
+      .toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric",
+      })
+      .replace(" ", "");
+
+    let filename = "";
+
+    if (bills.length === 1) {
+      filename = `Invoice_${firstRoom}_${monthStr}.pdf`;
+    } else {
+      filename = `Invoices_${firstRoom}_to_${lastRoom}_${monthStr}.pdf`;
+    }
+
+    return {
+      pdfBuffer,
+      filename,
+    };
   },
 };

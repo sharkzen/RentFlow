@@ -332,7 +332,6 @@ export default function OwnerRegisterForm() {
                           เปิด Map
                         </Link>
                       </label>
-
                       <input
                         id="mapUrl"
                         type="text"

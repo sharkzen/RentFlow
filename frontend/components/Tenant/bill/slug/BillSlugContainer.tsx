@@ -134,47 +134,31 @@ export default function BillSlugContainer() {
 
     try {
       const data = await TenantService.printBillTenant(id);
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      const blobType = isMobile
-        ? "application/octet-stream"
-        : "application/pdf";
 
       const blob = new Blob([data], {
-        type: blobType,
+        type: "application/pdf",
       });
 
       const url = window.URL.createObjectURL(blob);
-      const fileName = `bill-${id}.pdf`;
+      const fileName = `Invoice-${bill?.room?.roomNumber.slice(0, 8).toUpperCase()}.pdf`;
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-      if (isMobile) {
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        const printWindow = window.open(url);
+      toast.update(toastId, {
+        render: "ดาวน์โหลดบิล PDF สำเร็จ",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
 
-        if (printWindow) {
-          printWindow.onload = () => {
-            printWindow.print();
-          };
-        } else {
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = fileName;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
-      }
-
-      toast.dismiss(toastId);
-      setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
     } catch (error) {
       toast.update(toastId, {
-        render: "เกิดข้อผิดพลาดในการสร้างไฟล์ PDF",
+        render: "เกิดข้อผิดพลาดในการดาวน์โหลดไฟล์ PDF",
         type: "error",
         isLoading: false,
         autoClose: 3000,

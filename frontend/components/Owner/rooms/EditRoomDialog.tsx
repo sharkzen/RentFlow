@@ -245,7 +245,6 @@ export default function EditRoomDialog({
               )}
             </div>
           </div>
-
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-1 flex-col overflow-hidden"
@@ -322,7 +321,6 @@ export default function EditRoomDialog({
                   </div>
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4 rounded-xl border border-gray-100 bg-gray-50/50 p-4">
                 <div className="col-span-2">
                   <h4 className="text-sm font-semibold text-gray-700">
@@ -363,7 +361,6 @@ export default function EditRoomDialog({
                   </div>
                 </div>
               </div>
-
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-gray-600">
                   สถานะห้อง

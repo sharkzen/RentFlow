@@ -284,6 +284,7 @@ export default function BillDetailDialog({
 
       return;
     }
+
     if (confirmConfig.action === "REJECT_BILL") {
       setIsProcessing(true);
 
@@ -291,6 +292,7 @@ export default function BillDetailDialog({
         await toast.promise(BillService.rejectBill(bill.id), {
           pending: "กำลังดำเนินการปฏิเสธบิล...",
           success: "ปฏิเสธบิลสำเร็จเรียบร้อย",
+
           error: {
             render({ data }: any) {
               const errorData = data?.response?.data;
@@ -307,6 +309,7 @@ export default function BillDetailDialog({
             },
           },
         });
+
         onRefresh();
         onClose();
       } catch (error) {
@@ -1003,7 +1006,6 @@ export default function BillDetailDialog({
                     <Trash2 size={18} />
                     ลบบิล
                   </button>
-
                   {currentStatus === "WAITING_FOR_VERIFICATION" && (
                     <button
                       onClick={() => handleActionClick("REJECT")}

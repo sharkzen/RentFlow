@@ -115,32 +115,31 @@ export default function DormsDialog({
   }, []);
 
   const handleSave = async () => {
-    // 1. ตรวจสอบฟิลด์ที่บังคับกรอก
     const missingFields: string[] = [];
 
-    // สำหรับตัวเลข (สมมติว่าถ้าเป็น 0 คือยังไม่ได้ตั้งค่า)
     if (!formData.roomPrice || formData.roomPrice <= 0)
       missingFields.push("ราคาห้องพัก");
+
     if (!formData.waterRate || formData.waterRate <= 0)
       missingFields.push("ค่าน้ำ");
+
     if (!formData.electricRate || formData.electricRate <= 0)
       missingFields.push("ค่าไฟ");
 
-    // สำหรับข้อความ (เช็คว่าว่างเปล่าหรือไม่)
     if (!formData.bankName || formData.bankName.trim() === "")
       missingFields.push("ชื่อธนาคาร");
+
     if (!formData.bankAccount || formData.bankAccount.trim() === "")
       missingFields.push("เลขที่บัญชี");
+
     if (!formData.bankHolder || formData.bankHolder.trim() === "")
       missingFields.push("ชื่อบัญชี");
 
-    // ถ้ามีฟิลด์ที่ยังไม่ได้ตั้งค่า ให้แจ้งเตือนและหยุดการทำงานทันที
     if (missingFields.length > 0) {
       toast.error(`กรุณาตั้งค่าข้อมูลให้ครบ: ${missingFields.join(", ")}`);
       return;
     }
 
-    // 2. โค้ดเดิมของคุณ
     if (initialData && isEqual(initialData, formData)) {
       onClose();
       onRefresh?.();

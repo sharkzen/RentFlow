@@ -87,6 +87,7 @@ export const BillService = {
     const res = await axios.post(`/api/bills/${billId}/apply-advance-payment`);
     return res.data;
   },
+
   rejectBill: async (billId: string) => {
     const res = await axios.post(`/api/bills/${billId}/reject`);
     return res.data;
@@ -141,6 +142,20 @@ export const BillService = {
     const res = await axios.post(`/api/bills/send-emails`, {
       billIds,
     });
+
+    return res.data;
+  },
+
+  printBills: async (billIds: string[]) => {
+    const res = await axios.post(
+      `/api/bills/generate-pdf`,
+      {
+        billIds,
+      },
+      {
+        responseType: "blob",
+      },
+    );
 
     return res.data;
   },

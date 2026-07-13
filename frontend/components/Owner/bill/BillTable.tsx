@@ -7,6 +7,7 @@ import {
   Clock,
   AlertCircle,
   FileSearch,
+  Printer,
 } from "lucide-react";
 import { Bill } from "@/features/bill/types";
 import ConfirmDialog, {
@@ -18,6 +19,7 @@ interface Props {
   isLoading: boolean;
   onUpdateStatus: (id: string, status: string) => void;
   onViewDetail: (bill: Bill) => void;
+  onPrint: (billIds: string[]) => void;
 }
 
 export default function BillTable({
@@ -25,7 +27,10 @@ export default function BillTable({
   isLoading,
   onViewDetail,
   onUpdateStatus,
+  onPrint,
 }: Props) {
+  const [selectedBillIds, setSelectedBillIds] = useState<string[]>([]);
+
   const [confirmConfig, setConfirmConfig] = useState<{
     isOpen: boolean;
     billId: string;
@@ -35,6 +40,22 @@ export default function BillTable({
     type: ConfirmDialogType;
     confirmText: string;
   } | null>(null);
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedBillIds(bills.map((b) => b.id));
+    } else {
+      setSelectedBillIds([]);
+    }
+  };
+
+  const handleSelectOne = (billId: string) => {
+    setSelectedBillIds((prev) =>
+      prev.includes(billId)
+        ? prev.filter((id) => id !== billId)
+        : [...prev, billId],
+    );
+  };
 
   const handleActionClick = (billId: string, action: "PAID" | "CANCELLED") => {
     const targetBill = bills.find((b) => b.id === billId);
@@ -145,28 +166,67 @@ export default function BillTable({
     }
   };
 
-  const gridTemplate = "grid-cols-[2fr_1.5fr_1fr_1fr_100px]";
+  const gridTemplate = "grid-cols-[40px_2fr_1.5fr_1fr_1fr_100px]";
 
   return (
     <>
+      {selectedBillIds.length > 0 && (
+        <div className="animate-in fade-in slide-in-from-top-2 mb-4 flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 px-6 py-3 shadow-sm transition-all">
+          <div className="text-sm font-medium text-indigo-700">
+            เลือกแล้ว {selectedBillIds.length}รายการ
+          </div>
+          <button
+            onClick={() => {
+              onPrint(selectedBillIds);
+              setSelectedBillIds([]);
+            }}
+            className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all hover:bg-indigo-700 active:scale-95"
+          >
+            <Printer size={16} />
+            พิมพ์บิล PDF
+          </button>
+        </div>
+      )}
       <div className="flex h-full max-h-[calc(100vh-200px)] w-full flex-col overflow-hidden rounded-t-xl border border-gray-200 bg-white shadow-sm">
         <div
           className={`grid ${gridTemplate} gap-4 border-b border-gray-200 bg-gray-50 px-6 py-4 text-xs font-medium text-gray-500 uppercase`}
         >
+          <div className="flex items-center justify-center">
+            <input
+              type="checkbox"
+              className="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+              checked={
+                bills.length > 0 && selectedBillIds.length === bills.length
+              }
+              onChange={handleSelectAll}
+            />
+          </div>
           <div className="font-semibold tracking-wider">ห้อง / ผู้เช่า</div>
           <div className="font-semibold tracking-wider">ประจำเดือน</div>
           <div className="text-right font-semibold tracking-wider">ยอดรวม</div>
           <div className="text-center font-semibold tracking-wider">สถานะ</div>
           <div className="text-right font-semibold tracking-wider">จัดการ</div>
         </div>
+
         <div className="custom-scrollbar flex-1 overflow-auto bg-white">
           <div className="min-w-335 text-nowrap">
             {bills.map((bill) => (
               <div
                 key={bill.id}
                 onClick={() => onViewDetail(bill)}
-                className={`group grid ${gridTemplate} cursor-pointer items-center gap-4 border-b border-gray-100 px-6 py-4 transition-colors last:border-0 hover:bg-gray-50`}
+                className={`group grid ${gridTemplate} cursor-pointer items-center gap-4 border-b border-gray-100 px-6 py-4 transition-colors last:border-0 hover:bg-gray-50 ${selectedBillIds.includes(bill.id) ? "bg-indigo-50/30" : ""}`}
               >
+                <div
+                  className="flex items-center justify-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                    checked={selectedBillIds.includes(bill.id)}
+                    onChange={() => handleSelectOne(bill.id)}
+                  />
+                </div>
                 <div className="flex flex-col truncate">
                   <span className="truncate font-bold text-gray-900 transition-colors group-hover:text-indigo-600">
                     {bill.roomNumberSnapshot}

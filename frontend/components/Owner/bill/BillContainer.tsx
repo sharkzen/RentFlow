@@ -293,6 +293,65 @@ export default function BillContainer() {
     });
   };
 
+  const handlePrint = async (billIds: string[]) => {
+    if (!billIds || billIds.length === 0) return;
+
+    const selectedBills = bills
+      .filter((b) => billIds.includes(b.id))
+      .sort((a, b) => a.roomNumberSnapshot.localeCompare(b.roomNumberSnapshot));
+    let filename = `bills-${new Date().getTime()}.pdf`;
+
+    if (selectedBills.length > 0) {
+      const firstRoom = selectedBills[0].roomNumberSnapshot;
+      const lastRoom =
+        selectedBills[selectedBills.length - 1].roomNumberSnapshot;
+
+      const monthStr = new Date(selectedBills[0].billingMonth)
+        .toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        })
+        .replace(" ", "");
+
+      if (selectedBills.length === 1) {
+        filename = `Invoice_${firstRoom}_${monthStr}.pdf`;
+      } else {
+        filename = `Invoices_${firstRoom}_to_${lastRoom}_${monthStr}.pdf`;
+      }
+    }
+
+    const printPromise = BillService.printBills(billIds).then((blob) => {
+      const pdfUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = pdfUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(pdfUrl);
+      return blob;
+    });
+
+    toast.promise(printPromise, {
+      pending: "กำลังสร้างไฟล์ PDF...",
+      success: `สร้างบิล PDF จำนวน ${billIds.length} รายการสำเร็จ`,
+
+      error: {
+        render({ data }: { data: any }) {
+          const errorCode =
+            data?.response?.data?.message || data?.message || "UNKNOWN_ERROR";
+          const thaiMessage =
+            ERROR_MESSAGES[errorCode] ||
+            (errorCode !== "UNKNOWN_ERROR"
+              ? errorCode
+              : "เกิดข้อผิดพลาดในการสร้างไฟล์ PDF");
+          console.error("Print Error Details:", data);
+          return `พิมพ์ล้มเหลว: ${thaiMessage}`;
+        },
+      },
+    });
+  };
+
   return (
     <div className="relative flex h-[calc(100dvh-2rem)] w-full flex-col gap-4">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
@@ -355,6 +414,7 @@ export default function BillContainer() {
               setSelectedBill(bill);
               setIsDetailOpen(true);
             }}
+            onPrint={handlePrint}
           />
         </div>
         <div className="flex items-center justify-between border-t border-gray-100 bg-white p-2">

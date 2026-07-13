@@ -6,14 +6,6 @@ interface LatLng {
   lng: number;
 }
 
-// ---------------------------------------------------------------------------
-// User-Agents หลายแบบ เรียงตามลำดับที่ "โอกาสได้พิกัดสูงสุด" ก่อน
-// - Bot/crawler UA: Google/Apple มักเสิร์ฟหน้า preview แบบมี og:image/og:url
-//   ตรง ๆ โดยไม่ต้องผ่านหน้า consent (cookie) ที่มักเจอเวลาใช้ UA เบราว์เซอร์ปกติ
-// - Mobile UA: บาง short link (โดยเฉพาะ maps.app.goo.gl) behavior การ redirect
-//   ต่างจาก desktop เล็กน้อย ลองไว้เป็น fallback
-// - Desktop UA: fallback สุดท้าย
-// ---------------------------------------------------------------------------
 const USER_AGENTS: string[] = [
   "WhatsApp/2.23.20.0 A",
   "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
@@ -23,19 +15,16 @@ const USER_AGENTS: string[] = [
 
 const FETCH_TIMEOUT_MS = 8000;
 
-// ---------------------------------------------------------------------------
-// Regex สำหรับดึงพิกัดตรงจาก URL (ครอบคลุมทั้ง Google Maps และ Apple Maps)
-// ---------------------------------------------------------------------------
 const URL_COORD_PATTERNS: RegExp[] = [
-  /@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/, // Google: .../@13.75,100.50,15z
-  /!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/, // Google: place data blob !3dLAT!4dLNG
-  /[?&]q=(-?\d{1,3}\.\d+)[,\s](-?\d{1,3}\.\d+)/, // ?q=13.75,100.50
-  /[?&]ll=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/, // Google/Apple: ?ll=13.75,100.50
-  /[?&]daddr=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/, // เก่า: ?daddr=
+  /@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
+  /!3d(-?\d{1,3}\.\d+)!4d(-?\d{1,3}\.\d+)/,
+  /[?&]q=(-?\d{1,3}\.\d+)[,\s](-?\d{1,3}\.\d+)/,
+  /[?&]ll=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
+  /[?&]daddr=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
   /[?&]saddr=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
-  /[?&]coordinate=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/, // Apple Maps: ?coordinate=
-  /[?&]sll=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/, // Apple Maps: ?sll=
-  /[?&]center=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/, // static map preview
+  /[?&]coordinate=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
+  /[?&]sll=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
+  /[?&]center=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
 ];
 
 function isValidLatLng(lat: number, lng: number): boolean {
@@ -44,7 +33,7 @@ function isValidLatLng(lat: number, lng: number): boolean {
     Number.isFinite(lng) &&
     Math.abs(lat) <= 90 &&
     Math.abs(lng) <= 180 &&
-    !(lat === 0 && lng === 0) // (0,0) มักเป็นค่า placeholder ผิดพลาด ไม่ใช่พิกัดจริง
+    !(lat === 0 && lng === 0)
   );
 }
 
@@ -55,10 +44,16 @@ function extractCoords(url: string): LatLng | null {
 
   for (const pattern of URL_COORD_PATTERNS) {
     const match = decoded.match(pattern) || url.match(pattern);
+
     if (match) {
       const lat = parseFloat(match[1]);
       const lng = parseFloat(match[2]);
-      if (isValidLatLng(lat, lng)) return { lat, lng };
+
+      if (isValidLatLng(lat, lng))
+        return {
+          lat,
+          lng,
+        };
     }
   }
 
@@ -73,30 +68,29 @@ function safeDecodeURIComponent(value: string): string {
   }
 }
 
-// ---------------------------------------------------------------------------
-// สแกนเนื้อหา HTML หาพิกัด กรณีดึงจาก URL ตรง ๆ ไม่ได้
-// ---------------------------------------------------------------------------
 function deepScanHtmlForCoords(html: string): LatLng | null {
   if (!html) return null;
 
   const patterns: RegExp[] = [
-    // JSON-LD schema.org GeoCoordinates: "latitude":13.75,"longitude":100.50
     /"latitude"\s*:\s*"?(-?\d{1,3}\.\d+)"?\s*,\s*"longitude"\s*:\s*"?(-?\d{1,3}\.\d+)"?/i,
-    // Google Maps internal state array: [null,null,13.75,100.50]
     /\[null,null,(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)\]/,
-    // static-map image URL ที่ฝังอยู่ใน og:image เช่น center=13.75,100.50 หรือ markers=13.75,100.50
     /(?:center|markers)=(-?\d{1,3}\.\d+)%2[cC](-?\d{1,3}\.\d+)/,
     /(?:center|markers)=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
-    // fallback: "@lat,lng" ที่หลงเหลืออยู่ในเนื้อหา (เช่น canonical link)
     /@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
   ];
 
   for (const pattern of patterns) {
     const match = html.match(pattern);
+
     if (match) {
       const lat = parseFloat(match[1]);
       const lng = parseFloat(match[2]);
-      if (isValidLatLng(lat, lng)) return { lat, lng };
+
+      if (isValidLatLng(lat, lng))
+        return {
+          lat,
+          lng,
+        };
     }
   }
 
@@ -117,6 +111,7 @@ function extractMetaContent(html: string, property: string): string | null {
 
   for (const pattern of patterns) {
     const match = html.match(pattern);
+
     if (match?.[1]) return match[1];
   }
 
@@ -135,10 +130,10 @@ async function fetchWithTimeout(
       method: "GET",
       redirect: "follow",
       signal: controller.signal,
+
       headers: {
         "User-Agent": userAgent,
         Accept: "text/html,application/xhtml+xml",
-        // บอก server ว่ายอมรับ consent แล้ว บาง edge case ช่วยข้ามหน้า cookie wall ของ Google ได้
         Cookie: "CONSENT=YES+; SOCS=CAI",
       },
     });
@@ -146,16 +141,13 @@ async function fetchWithTimeout(
     if (error?.name === "AbortError") {
       logger.warn(`[Map Helper] Fetch timeout (${userAgent})`);
     }
+
     return null;
   } finally {
     clearTimeout(timer);
   }
 }
 
-/**
- * ดึง URL ปลายทางจริงของ short link (redirect ต่อเนื่อง) พร้อมพยายามหลาย User-Agent
- * คืนค่า finalUrl + html ของหน้าที่ fetch ได้ (ใช้แบบแรกที่ได้พิกัด)
- */
 async function resolveWithFallbackUserAgents(
   url: string,
 ): Promise<LatLng | null> {
@@ -173,62 +165,53 @@ async function resolveWithFallbackUserAgents(
 
     const finalUrl = response.url || url;
 
-    // ถ้าเจอหน้า consent ของ Google แปลว่า UA นี้โดนบล็อก ลองตัวถัดไป
     if (/consent\.google\./i.test(finalUrl)) {
       continue;
     }
 
-    // 1) ลองดึงพิกัดจาก final URL ก่อน (เร็วสุด ไม่ต้อง parse HTML)
     const urlCoords = extractCoords(finalUrl);
+
     if (urlCoords) return urlCoords;
 
     const html = await response.text();
-
-    // 2) og:image (static map พร้อม center/markers)
     const ogImage = extractMetaContent(html, "og:image");
+
     if (ogImage) {
       const coords = extractCoords(ogImage) ?? deepScanHtmlForCoords(ogImage);
+
       if (coords) return coords;
     }
 
-    // 3) og:url (บางหน้าใส่พิกัดใน canonical url แทน)
     const ogUrl = extractMetaContent(html, "og:url");
+
     if (ogUrl) {
       const coords = extractCoords(ogUrl);
+
       if (coords) return coords;
     }
 
-    // 4) สแกนลึกทั้งหน้า (JSON-LD, internal state, ฯลฯ)
     const deepCoords = deepScanHtmlForCoords(html);
-    if (deepCoords) return deepCoords;
 
-    // ได้ HTML มาแล้วแต่หาพิกัดไม่เจอ ลอง UA ตัวถัดไปเผื่อได้เนื้อหาต่างออกไป
+    if (deepCoords) return deepCoords;
   }
 
   return null;
 }
 
-/**
- * ดึงพิกัด (lat, lng) จากลิงก์แผนที่ รองรับ:
- * - Google Maps: ลิงก์เต็ม (.../maps/@lat,lng), short link (maps.app.goo.gl, goo.gl/maps)
- * - Apple Maps: maps.apple, maps.apple.com (ทั้ง short link และลิงก์เต็ม)
- * - หลาย User-Agent (bot/mobile/desktop) เพื่อเลี่ยงหน้า consent/cookie wall
- *   ที่ทำให้ดึงพิกัดไม่ได้บนบาง region หรือบาง environment (server ที่รันจาก EU เป็นต้น)
- */
 export async function getLatLngFromUrl(url: string): Promise<LatLng | null> {
   if (!url) return null;
 
   const trimmedUrl = url.trim();
+
   if (!trimmedUrl) return null;
 
   try {
-    // 1) ลองดึงพิกัดจาก URL ตรง ๆ ก่อน (เร็วสุด ไม่ต้อง fetch)
     const directCoords = extractCoords(trimmedUrl);
+
     if (directCoords) return directCoords;
 
-    // 2) ถ้าดึงตรง ๆ ไม่ได้ (short link หรือ URL ที่ไม่มีพิกัดฝังมา) ค่อย fetch
-    //    พร้อมลองหลาย User-Agent จนกว่าจะเจอพิกัด
     const resolvedCoords = await resolveWithFallbackUserAgents(trimmedUrl);
+
     if (resolvedCoords) return resolvedCoords;
 
     logger.warn(
