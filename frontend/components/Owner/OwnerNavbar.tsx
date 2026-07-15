@@ -13,6 +13,7 @@ import {
   User2,
   Menu,
   Megaphone,
+  QrCode,
 } from "lucide-react";
 
 import { usePathname } from "next/navigation";
@@ -42,6 +43,11 @@ export default function OwnerNavbar() {
       name: "จัดการห้องพัก",
       icon: <BedDoubleIcon size={20} />,
       href: "/owner/rooms",
+    },
+    {
+      name: "เข้าระบบด้วย QR Code",
+      icon: <QrCode size={20} />,
+      href: "/owner/qr-scan-auth",
     },
     {
       name: "จัดการผู้เช่า",

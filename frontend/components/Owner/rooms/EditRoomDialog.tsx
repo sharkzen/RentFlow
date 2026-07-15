@@ -210,7 +210,7 @@ export default function EditRoomDialog({
         <div
           ref={modalRef}
           onClick={(e) => e.stopPropagation()}
-          className="animate-in zoom-in-95 relative flex w-full flex-col border border-gray-200 bg-white shadow-lg duration-200 max-sm:min-h-screen sm:max-w-lg sm:rounded-xl"
+          className="animate-in zoom-in-95 relative flex max-h-screen w-full flex-col overflow-y-auto border border-gray-200 bg-white shadow-lg duration-200 max-sm:min-h-screen sm:max-h-[90vh] sm:max-w-lg sm:rounded-xl"
         >
           <button
             onClick={onClose}

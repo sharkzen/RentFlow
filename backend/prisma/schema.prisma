@@ -126,6 +126,7 @@ model Room {
   tenants             TenantProfile[]
 
   meterSetting RoomMeterSetting?
+  qrAuth       RoomQrAuth?
 
   @@unique([dormitoryId, roomNumber])
 }
@@ -434,6 +435,17 @@ model RoomMeterSetting {
   waterMeterDigits    Int?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model RoomQrAuth {
+  id        String   @id @default(uuid())
+  roomId    String   @unique
+  token     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }

@@ -3,7 +3,11 @@ import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import { Prisma } from "@prisma/client";
 import { CreateBulkRoomsDto, RoomStatus } from "./dtos/room.dto";
 import { createActivityLog } from "@/services/activity-log.service";
-
+import crypto from "node:crypto";
+import argon2 from "argon2";
+import { createPdfFromHtml } from "../tenant/lib/tenant.lib";
+import { buildBulkQrHtmlTemplate } from "./lib/room.lib";
+import QRCode from "qrcode";
 interface GetRoomParams {
   search?: string;
   status?: string;
@@ -417,6 +421,7 @@ export const roomService = {
         },
 
         meterSetting: true,
+        qrAuth: true,
       },
 
       orderBy: [
@@ -450,6 +455,7 @@ export const roomService = {
         commonFee: dormSettings?.commonFee ?? 0,
         waterMeterDigits: room.meterSetting?.waterMeterDigits || null,
         electricMeterDigits: room.meterSetting?.electricMeterDigits || null,
+        roomQrAuth: room.qrAuth,
       };
     });
   },
@@ -502,5 +508,269 @@ export const roomService = {
       success: true,
       message: "Room deleted successfully",
     };
+  },
+  async generateBulkQrPdf(userId: string, roomIds: string[]) {
+    // 1. ดึงข้อมูลห้องพักและหอพัก
+    const rooms = await prisma.room.findMany({
+      where: {
+        id: { in: roomIds },
+        dormitory: { owner: { userId: userId } },
+      },
+      include: {
+        dormitory: { include: { owner: true } },
+        tenants: { where: { isActive: true }, take: 1 }, // ดึงผู้เช่าปัจจุบัน
+      },
+      orderBy: { roomNumber: "asc" },
+    });
+
+    if (rooms.length === 0) {
+      throw new Error("ไม่พบข้อมูลห้องพัก หรือคุณไม่มีสิทธิ์เข้าถึง");
+    }
+
+    const pepper = process.env.QR_PEPPER_SECRET || "fallback_pepper";
+    const qrDataList = [];
+
+    // 2. ลูปสร้าง Token และ QR Image สำหรับแต่ละห้อง
+    for (const room of rooms) {
+      if (room.status === "AVAILABLE" || room.tenants.length === 0) {
+        continue; // ข้ามห้องว่าง (ทำใน Service ป้องกันไว้อีกชั้น)
+      }
+
+      // สร้างและ Hash Token
+      const rawToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = await argon2.hash(rawToken + pepper, {
+        type: argon2.argon2id,
+        memoryCost: 2 ** 16,
+        timeCost: 3,
+        parallelism: 1,
+      });
+
+      // อัปเดตลง Database (รีเซ็ต Token เก่าทิ้งทันที)
+      await prisma.roomQrAuth.upsert({
+        where: { roomId: room.id },
+        update: { token: hashedToken, isActive: true },
+        create: { roomId: room.id, token: hashedToken, isActive: true },
+      });
+
+      // เตรียม URL (แก้เป็น URL ฝั่งหน้าบ้านของคุณ)
+      const frontendUrl = process.env.NEXT_PUBLIC_APP_URL!;
+
+      if (!frontendUrl) {
+        throw new Error("NEXT_PUBLIC_APP_URL is not defined");
+      }
+      const scanUrl = `${frontendUrl}/qr-login?roomId=${room.id}&token=${rawToken}`;
+
+      // แปลง URL เป็นรูป QR Code (Data URL / Base64)
+      const qrCodeDataUrl = await QRCode.toDataURL(scanUrl, {
+        errorCorrectionLevel: "H",
+        margin: 2,
+        width: 400,
+        color: { dark: "#0f172a", light: "#ffffff" },
+      });
+
+      const currentTenant = room.tenants[0];
+
+      qrDataList.push({
+        roomNumber: room.roomNumber,
+        tenantName: `${currentTenant.firstName} ${currentTenant.lastName}`,
+        dormName: room.dormitory.name,
+        dormAddress: room.dormitory.address,
+        dormPhone: room.dormitory.owner?.phone || "",
+        qrCodeDataUrl,
+      });
+    }
+
+    if (qrDataList.length === 0) {
+      throw new Error(
+        "ไม่มีห้องพักที่สามารถสร้าง QR Code ได้ (ต้องเป็นห้องที่มีผู้เช่า)",
+      );
+    }
+
+    // 3. นำข้อมูลไปสร้าง HTML และแปลงเป็น PDF
+    const publicPath = process.env.PUBLIC_PATH || process.cwd() + "/public";
+    const htmlContent = buildBulkQrHtmlTemplate(qrDataList, publicPath);
+
+    // เรียกใช้ฟังก์ชันแปลง PDF ของคุณ
+    const pdfBuffer = await createPdfFromHtml(htmlContent);
+
+    // 4. ตั้งชื่อไฟล์ PDF
+    const firstRoom = qrDataList[0].roomNumber;
+    let filename = "";
+    if (qrDataList.length === 1) {
+      filename = `QRCode_Room_${firstRoom}.pdf`;
+    } else {
+      const lastRoom = qrDataList[qrDataList.length - 1].roomNumber;
+      filename = `QRCodes_${firstRoom}_to_${lastRoom}.pdf`;
+    }
+
+    return { pdfBuffer, filename };
+  },
+
+  // 2. เปิด/ปิด การอนุญาตให้เข้าระบบด้วย QR
+  async toggleQrStatus(
+    user: UserDecodedDto,
+    roomId: string,
+    isActive: boolean,
+  ) {
+    const room = await prisma.room.findUnique({
+      where: { id: roomId },
+      include: { dormitory: true },
+    });
+
+    if (!room) throw new Error("ROOM_NOT_FOUND");
+
+    const owner = await prisma.ownerProfile.findUnique({
+      where: { userId: user.sub },
+    });
+
+    if (!owner || room.dormitory.ownerId !== owner.id) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    // ตรวจสอบว่าเคยสร้าง QR หรือยัง
+    const existingQr = await prisma.roomQrAuth.findUnique({
+      where: { roomId: roomId },
+    });
+
+    if (!existingQr) throw new Error("QR_AUTH_NOT_FOUND");
+
+    const updatedQrAuth = await prisma.roomQrAuth.update({
+      where: { roomId: roomId },
+      data: { isActive: isActive },
+    });
+
+    await createActivityLog({
+      userId: user.sub,
+      action: "TOGGLE_QR_STATUS",
+      entityType: "Room",
+      entityId: roomId,
+      metadata: { roomNumber: room.roomNumber, isActive },
+    });
+
+    return updatedQrAuth;
+  },
+  async createOrRenewQr(user: UserDecodedDto, roomId: string) {
+    // 1. ดึงข้อมูลห้องพัก หอพัก และผู้เช่าปัจจุบัน
+    const room = await prisma.room.findUnique({
+      where: { id: roomId },
+      include: {
+        dormitory: { include: { owner: true } },
+        tenants: { where: { isActive: true }, take: 1 },
+      },
+    });
+
+    if (!room) throw new Error("ROOM_NOT_FOUND");
+
+    const owner = await prisma.ownerProfile.findUnique({
+      where: { userId: user.sub },
+    });
+
+    if (!owner || room.dormitory.ownerId !== owner.id) {
+      throw new Error("FORBIDDEN_ACCESS");
+    }
+
+    // 2. ตรวจสอบว่ามีผู้เช่าหรือไม่
+    if (room.status === "AVAILABLE" || room.tenants.length === 0) {
+      throw new Error("CANNOT_CREATE_QR_FOR_AVAILABLE_ROOM");
+    }
+
+    // 3. สร้าง Token และเข้ารหัสด้วย Argon2id
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const pepper = process.env.QR_PEPPER_SECRET || "fallback_pepper";
+
+    const hashedToken = await argon2.hash(rawToken + pepper, {
+      type: argon2.argon2id,
+      memoryCost: 2 ** 16,
+      timeCost: 3,
+      parallelism: 1,
+    });
+
+    // 4. บันทึกลง Database
+    await prisma.roomQrAuth.upsert({
+      where: { roomId: roomId },
+      update: { token: hashedToken, isActive: true },
+      create: { roomId: roomId, token: hashedToken, isActive: true },
+    });
+
+    // บันทึก Log
+    await createActivityLog({
+      userId: user.sub,
+      action: "CREATE_OR_RENEW_QR_CODE",
+      entityType: "Room",
+      entityId: roomId,
+      metadata: { roomNumber: room.roomNumber },
+    });
+
+    // 5. สร้าง QR Code เป็น Base64 Image
+    const frontendUrl =
+      process.env.NEXT_PUBLIC_APP_URL || "https://localhost:3000";
+    const scanUrl = `${frontendUrl}/qr-login?roomId=${room.id}&token=${rawToken}`;
+
+    const qrCodeDataUrl = await QRCode.toDataURL(scanUrl, {
+      errorCorrectionLevel: "H",
+      margin: 2,
+      width: 400,
+      color: { dark: "#0f172a", light: "#ffffff" },
+    });
+
+    // 6. เตรียมข้อมูลสำหรับส่งไปสร้าง PDF
+    const currentTenant = room.tenants[0];
+    const qrDataList = [
+      {
+        roomNumber: room.roomNumber,
+        tenantName: `${currentTenant.firstName} ${currentTenant.lastName}`,
+        dormName: room.dormitory.name,
+        dormAddress: room.dormitory.address,
+        dormPhone: room.dormitory.owner?.phone || "",
+        qrCodeDataUrl,
+      },
+    ];
+
+    // 7. สร้าง HTML และแปลงเป็น PDF Buffer (ใช้ฟังก์ชัน HTML-to-PDF เดิมของคุณ)
+    const publicPath = process.env.PUBLIC_PATH || process.cwd() + "/public";
+    const htmlContent = buildBulkQrHtmlTemplate(qrDataList, publicPath);
+    const pdfBuffer = await createPdfFromHtml(htmlContent);
+
+    return pdfBuffer;
+  },
+
+  // 3. ดึงข้อมูล Token สำหรับทำ PDF หลายห้อง
+  async getBulkQrData(
+    user: UserDecodedDto,
+    payload: { dormId: string; roomIds: string[] },
+  ) {
+    const owner = await prisma.ownerProfile.findUnique({
+      where: { userId: user.sub },
+    });
+
+    if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
+
+    const dormitory = await prisma.dormitory.findUnique({
+      where: { id: payload.dormId, ownerId: owner.id },
+    });
+
+    if (!dormitory) throw new Error("DORMITORY_NOT_FOUND_OR_FORBIDDEN");
+
+    // ดึงข้อมูลห้องพร้อม Token เฉพาะห้องที่เลือกและมี Token แล้ว
+    const roomsWithQr = await prisma.room.findMany({
+      where: {
+        id: { in: payload.roomIds },
+        dormitoryId: payload.dormId,
+        roomQrAuth: { isNot: null }, // ต้องมีข้อมูล QR แล้วเท่านั้น
+      },
+      select: {
+        id: true,
+        roomNumber: true,
+        roomQrAuth: {
+          select: {
+            token: true,
+            isActive: true,
+          },
+        },
+      },
+      orderBy: { roomNumber: "asc" },
+    });
+
+    return roomsWithQr;
   },
 };
