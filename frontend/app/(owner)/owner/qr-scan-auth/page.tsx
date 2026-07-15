@@ -9,7 +9,6 @@ export default function QrCodePage() {
   return (
     <div className="w-full flex-1">
       <div className="mx-auto max-w-[1600px]">
-        {/* Header Section */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             เข้าระบบด้วย QR Code
@@ -19,7 +18,6 @@ export default function QrCodePage() {
           </p>
         </div>
 
-        {/* Main Client Component */}
         <QrCodeManager />
       </div>
     </div>

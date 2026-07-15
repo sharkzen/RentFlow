@@ -18,6 +18,7 @@ import { generateSlug } from "@/lib/text";
 import logger from "@/utils/logger";
 import { sendEmailImmediate } from "@/utils/mail-sender";
 import { EmailType } from "@/queues/email.types";
+import * as argon2 from "argon2";
 
 export const authService = {
   async me(user: UserDecodedDto) {
@@ -196,6 +197,74 @@ export const authService = {
       action: "LOGIN",
       entityType: "User",
       entityId: user.id,
+    });
+
+    return user;
+  },
+
+  async loginWithQr(data: { roomId: string; token: string }) {
+    if (!data?.roomId || !data?.token) throw new Error("DATA_ARE_NOT_VALID");
+
+    const roomQrAuth = await prisma.roomQrAuth.findUnique({
+      where: {
+        roomId: data.roomId,
+      },
+
+      include: {
+        room: {
+          include: {
+            tenants: {
+              where: {
+                isActive: true,
+                deletedAt: null,
+              },
+
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!roomQrAuth) throw new Error("INVALID_QR_TOKEN");
+
+    if (!roomQrAuth.isActive) throw new Error("QR_NOT_ACTIVE");
+
+    const pepper = process.env.QR_PEPPER_SECRET!;
+
+    if (!pepper) {
+      throw new Error("QR_PEPPER_SECRET is not defined");
+    }
+
+    const tokenWithPepper = data.token + pepper;
+    const isValidToken = await argon2.verify(roomQrAuth.token, tokenWithPepper);
+
+    if (!isValidToken) {
+      throw new Error("INVALID_QR_TOKEN");
+    }
+
+    const activeTenant = roomQrAuth.room.tenants[0];
+
+    if (!activeTenant || !activeTenant.user) {
+      throw new Error("USER_NOT_FOUND_FOR_ROOM");
+    }
+
+    const user = activeTenant.user;
+
+    if (user.status !== "ACTIVE" && user.status !== "PENDING") {
+      throw new Error("USER_ACCOUNT_SUSPENDED");
+    }
+
+    await prisma.activityLog.create({
+      data: {
+        userId: user.id,
+        tenantId: activeTenant.id,
+        action: "LOGIN_QR",
+        entityType: "User",
+        entityId: user.id,
+      },
     });
 
     return user;

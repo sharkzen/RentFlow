@@ -20,6 +20,11 @@ export const authService = {
     return res.data;
   },
 
+  loginWithQr: async (data: { roomId: string; token: string }) => {
+    const res = await axios.post("/api/auth/login/qr", data);
+    return res.data;
+  },
+
   logout: async () => {
     const res = await axios.post("/api/auth/logout");
     return res.data;

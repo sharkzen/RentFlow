@@ -207,7 +207,6 @@ export default function BillTable({
           <div className="text-center font-semibold tracking-wider">สถานะ</div>
           <div className="text-right font-semibold tracking-wider">จัดการ</div>
         </div>
-
         <div className="custom-scrollbar flex-1 overflow-auto bg-white">
           <div className="min-w-335 text-nowrap">
             {bills.map((bill) => (

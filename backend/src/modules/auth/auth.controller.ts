@@ -178,6 +178,67 @@ export const AuthController = {
     }
   },
 
+  async loginWithQr(request: FastifyRequest, reply: FastifyReply) {
+    const dto = request.body as {
+      roomId: string;
+      token: string;
+    };
+
+    try {
+      const user = await authService.loginWithQr(dto);
+
+      const accessToken = signAccessToken({
+        sub: user.id,
+        role: user.role,
+      });
+
+      const refreshToken = signRefreshToken({
+        sub: user.id,
+      });
+
+      reply
+        .setCookie("access_token", accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 15,
+        })
+        .setCookie("refresh_token", refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 60 * 24,
+        });
+
+      return reply.status(200).send({
+        role: user.role,
+      });
+    } catch (error: any) {
+      logger.error(error.message);
+
+      if (
+        error.message === "INVALID_QR_TOKEN" ||
+        error.message === "QR_NOT_ACTIVE"
+      ) {
+        return reply.status(400).send({
+          message: "INVALID_OR_EXPIRED_QR_CODE",
+        });
+      }
+
+      if (error.message === "USER_NOT_FOUND_FOR_ROOM") {
+        return reply.status(404).send({
+          message: "USER_NOT_FOUND_FOR_THIS_ROOM",
+        });
+      }
+
+      return reply.status(500).send({
+        message: "INTERNAL_SERVER_ERROR",
+      });
+    }
+  },
+
   async logout(request: FastifyRequest, reply: FastifyReply) {
     reply.clearCookie("access_token").clearCookie("refresh_token").send({
       ok: true,
