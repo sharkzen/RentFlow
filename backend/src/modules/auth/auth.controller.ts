@@ -30,33 +30,31 @@ export const AuthController = {
   },
 
   async refresh(request: FastifyRequest, reply: FastifyReply) {
-    try {
-      const token = request.cookies.refresh_token;
+    const token = request.cookies.refresh_token;
 
-      if (!token) {
-        return reply.status(401).send({
-          message: "UNAUTHORIZED",
-        });
-      }
-
-      const accessToken = await authService.refreshAccessToken(token);
-
-      reply.setCookie("access_token", accessToken, {
-        httpOnly: true,
-        secure: env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 15,
-      });
-
-      reply.send({
-        ok: true,
-      });
-    } catch {
-      reply.status(401).send({
-        message: "UNAUTHORIZED",
-      });
+    if (!token) {
+      throw AppError.unauthorized("UNAUTHORIZED");
     }
+
+    let accessToken: string;
+
+    try {
+      accessToken = await authService.refreshAccessToken(token);
+    } catch {
+      throw AppError.unauthorized("UNAUTHORIZED");
+    }
+
+    reply.setCookie("access_token", accessToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 15,
+    });
+
+    reply.send({
+      ok: true,
+    });
   },
 
   async register(request: FastifyRequest, reply: FastifyReply) {
