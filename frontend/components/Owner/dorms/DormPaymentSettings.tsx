@@ -1,10 +1,38 @@
-import { CreditCard, Wallet, Building2 } from "lucide-react";
+"use client"; // ถ้าใช้ Next.js App Router อย่าลืมใส่บรรทัดนี้
+
+import React, { useState, useRef, useEffect } from "react";
+import { CreditCard, Wallet, Building2, ChevronDown } from "lucide-react";
 import { DormFormData } from "@/features/dormitory";
 
 interface PaymentSettingsProps {
   formData: DormFormData;
   updateField: (field: keyof DormFormData, value: any) => void;
 }
+
+export const THAI_BANKS = [
+  { id: "kbank", name: "ธนาคารกสิกรไทย (KBANK)", logo: "/banks/kbank.png" },
+  { id: "scb", name: "ธนาคารไทยพาณิชย์ (SCB)", logo: "/banks/scb.png" },
+  { id: "bbl", name: "ธนาคารกรุงเทพ (BBL)", logo: "/banks/bbl.png" },
+  { id: "ktb", name: "ธนาคารกรุงไทย (KTB)", logo: "/banks/ktb.png" },
+  { id: "bay", name: "ธนาคารกรุงศรีอยุธยา (BAY)", logo: "/banks/bay.png" },
+  { id: "ttb", name: "ธนาคารทหารไทยธนชาต (TTB)", logo: "/banks/ttb.png" },
+  { id: "gsb", name: "ธนาคารออมสิน (GSB)", logo: "/banks/gsb.png" },
+  { id: "baac", name: "ธ.ก.ส. (BAAC)", logo: "/banks/baac.png" },
+  { id: "ghb", name: "ธนาคารอาคารสงเคราะห์ (GHB)", logo: "/banks/ghb.png" },
+  { id: "uob", name: "ธนาคารยูโอบี (UOB)", logo: "/banks/uob.png" },
+  { id: "cimb", name: "ธนาคารซีไอเอ็มบี ไทย (CIMB)", logo: "/banks/cimb.png" },
+  { id: "kkp", name: "ธนาคารเกียรตินาคินภัทร (KKP)", logo: "/banks/kkp.png" },
+  {
+    id: "lhb",
+    name: "ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)",
+    logo: "/banks/lhb.png",
+  },
+  {
+    id: "ibank",
+    name: "ธนาคารอิสลามแห่งประเทศไทย (IBank)",
+    logo: "/banks/ibank.png",
+  },
+];
 
 const Label = ({ icon: Icon, children }: any) => (
   <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
@@ -20,6 +48,99 @@ const Input = ({ className, ...props }: any) => (
   />
 );
 
+// Component สำหรับเลือกธนาคารแบบ Custom (มีรูป Logo)
+const BankSelect = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // ปิด Dropdown เมื่อคลิกพื้นที่อื่น
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedBank = THAI_BANKS.find((b) => b.id === value);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div
+        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-2.5 text-sm transition-all focus:outline-none ${
+          isOpen
+            ? "border-indigo-500 bg-white ring-2 ring-indigo-100"
+            : "border-slate-200 bg-slate-50 hover:bg-slate-100"
+        }`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {selectedBank ? (
+          <div className="flex items-center gap-3">
+            <img
+              src={selectedBank.logo}
+              alt={selectedBank.id}
+              className="h-6 w-6 rounded-full border border-slate-100 bg-white object-cover"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/banks/default.png";
+              }}
+            />
+            <span className="text-slate-900">{selectedBank.name}</span>
+          </div>
+        ) : (
+          <span className="text-slate-400">เลือกธนาคาร...</span>
+        )}
+        <ChevronDown
+          size={16}
+          className={`text-slate-400 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+          {THAI_BANKS.map((bank) => (
+            <div
+              key={bank.id}
+              className={`flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-indigo-50 ${
+                value === bank.id
+                  ? "bg-indigo-50 font-medium text-indigo-700"
+                  : "text-slate-700"
+              }`}
+              onClick={() => {
+                onChange(bank.id);
+                setIsOpen(false);
+              }}
+            >
+              <img
+                src={bank.logo}
+                alt={bank.id}
+                className="h-6 w-6 rounded-full border border-slate-100 bg-white object-cover"
+                onError={(e) =>
+                  ((e.target as HTMLImageElement).src = "/banks/default.png")
+                }
+              />
+              <span className="text-sm">{bank.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function DormPaymentSettings({
   formData,
   updateField,
@@ -34,17 +155,17 @@ export default function DormPaymentSettings({
         <div className="md:col-span-2">
           <h4 className="mb-2 text-xs font-bold text-slate-400">บัญชีธนาคาร</h4>
         </div>
-        <div>
+
+        <div className="relative z-20">
           <Label icon={Building2}>
             ชื่อธนาคาร <span className="text-red-500">*</span>
           </Label>
-          <Input
-            value={formData.bankName}
-            onChange={(e: any) => updateField("bankName", e.target.value)}
-            placeholder="เช่น กสิกรไทย, ไทยพาณิชย์"
-            required
+          <BankSelect
+            value={formData.bankName || ""}
+            onChange={(val) => updateField("bankName", val)}
           />
         </div>
+
         <div>
           <Label>
             เลขที่บัญชี <span className="text-red-500">*</span>
@@ -56,9 +177,10 @@ export default function DormPaymentSettings({
             required
           />
         </div>
+
         <div className="md:col-span-2">
           <Label>
-            ชื่อบัญชี ต้องตรงกลับบัญชีพร้อมเพย์(ถ้ามี){" "}
+            ชื่อบัญชี ต้องตรงกับบัญชีพร้อมเพย์ (ถ้ามี){" "}
             <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -69,7 +191,9 @@ export default function DormPaymentSettings({
           />
         </div>
       </div>
+
       <div className="border-t border-slate-100 pt-5"></div>
+
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div className="md:col-span-2">
           <h4 className="mb-2 text-xs font-bold text-slate-400">

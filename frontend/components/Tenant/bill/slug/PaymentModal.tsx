@@ -18,6 +18,9 @@ import {
   Edit2,
   Lock,
   RefreshCw,
+  Building2,
+  ArrowDown,
+  AlertCircle, // เพิ่ม icon นี้เข้ามา
 } from "lucide-react";
 
 import { TenantService } from "@/features/tenant/services/tenant.service";
@@ -29,6 +32,9 @@ import { PromptPayCard } from "./PromptPayCard";
 import Tesseract from "tesseract.js";
 import { extractSlipData, validateSlipContent } from "../lib/slip-verification";
 import log from "@/lib/logger";
+
+// นำเข้า THAI_BANKS แค่บรรทัดเดียวพอ (ลบที่ซ้ำออก)
+import { THAI_BANKS } from "@/components/Owner/dorms/DormPaymentSettings";
 
 interface Props {
   isOpen: boolean;
@@ -73,6 +79,11 @@ export default function PaymentModal({
   const [isReuploading, setIsReuploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ref = useRef<HTMLDivElement>(null);
+
+  // หาข้อมูลธนาคารจาก paymentSetting.bankName
+  const selectedBank = THAI_BANKS.find(
+    (b) => b.id === paymentSetting?.bankName,
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -358,28 +369,58 @@ export default function PaymentModal({
                 </button>
               </div>
             )}
+            <div className="mt-4 flex items-center justify-center">
+              <div className="flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600">
+                <AlertCircle size={16} className="text-red-500" />
+                <span>ชำระแล้วโปรดอัพโหลดสลิปด้านล่าง</span>
+              </div>
+            </div>
+
             <div className="p-6">
               {!isLocked && (
                 <div className="mb-8">
                   {method === "BANK" ? (
-                    <div className="rounded-2xl border border-slate-100 p-5">
+                    <div className="rounded-2xl border border-slate-100 p-5 shadow-sm">
                       <div className="mb-4 flex items-center justify-between">
                         <span className="text-xs font-bold tracking-wider text-slate-400 uppercase">
                           ข้อมูลบัญชี
                         </span>
                       </div>
                       <div className="space-y-4">
-                        <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                          <div className="mb-3 flex items-center gap-3">
-                            <div className="rounded-lg bg-indigo-100 px-3 py-1.5">
-                              <span className="text-xs font-bold text-indigo-700 uppercase italic">
-                                {paymentSetting?.bankName || "ธนาคาร"}
+                        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                          {/* ส่วนแสดง Logo และ ชื่อธนาคาร */}
+                          <div className="mb-4 flex items-center gap-3 border-b border-slate-100 pb-3">
+                            {selectedBank ? (
+                              <img
+                                src={selectedBank.logo}
+                                alt={selectedBank.id}
+                                className="h-10 w-10 rounded-full border border-slate-100 bg-white object-cover shadow-sm"
+                                onError={(e) => {
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = "/banks/default.png";
+                                }}
+                              />
+                            ) : (
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                <Building2 size={20} />
+                              </div>
+                            )}
+                            <div>
+                              <span className="block text-[11px] font-medium text-slate-400">
+                                ธนาคาร
+                              </span>
+                              <span className="block text-sm font-bold text-slate-700">
+                                {selectedBank?.name ||
+                                  paymentSetting?.bankName ||
+                                  "ไม่ระบุธนาคาร"}
                               </span>
                             </div>
                           </div>
+
+                          {/* ส่วนแสดงเลขบัญชี */}
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="mb-1 text-[11px] font-medium text-slate-500">
+                              <p className="mb-1 text-[11px] font-medium text-slate-400">
                                 เลขที่บัญชี
                               </p>
                               <p className="text-xl font-bold tracking-wider text-slate-800">
@@ -396,7 +437,7 @@ export default function PaymentModal({
                                 onClick={() =>
                                   copyToClipboard(paymentSetting?.bankAccount)
                                 }
-                                className={`cursor-pointer rounded-lg p-2 transition-colors ${copied ? "bg-emerald-100 text-emerald-600" : "bg-white text-slate-400 shadow-sm"}`}
+                                className={`cursor-pointer rounded-lg p-2.5 transition-colors ${copied ? "bg-emerald-100 text-emerald-600" : "bg-slate-50 text-slate-400 hover:bg-slate-100"}`}
                               >
                                 {copied ? (
                                   <Check size={18} />
@@ -407,11 +448,13 @@ export default function PaymentModal({
                             </div>
                           </div>
                         </div>
-                        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4">
+
+                        {/* ชื่อบัญชีผู้รับเงิน */}
+                        <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
                           <p className="mb-1 text-[11px] font-bold text-indigo-400 uppercase">
                             ชื่อบัญชีผู้รับเงิน (ตรวจสอบชื่อนี้)
                           </p>
-                          <p className="text-xl font-black text-indigo-900">
+                          <p className="text-lg font-black text-indigo-900">
                             {paymentSetting?.bankHolder}
                           </p>
                         </div>

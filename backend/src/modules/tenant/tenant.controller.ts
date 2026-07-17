@@ -651,7 +651,6 @@ export const TenantController = {
       };
 
       const body = (request.body as any) || {};
-      console.log("Raw Body:", body);
       const deletedIdsRaw = body.deletedImageIds || body["deletedImageIds[]"];
       let deletedImageIds: string[] | undefined;
 

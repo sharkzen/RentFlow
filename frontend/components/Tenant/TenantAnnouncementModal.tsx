@@ -34,7 +34,6 @@ export default function TenantAnnouncementModal() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [displayIndex, setDisplayIndex] = useState(0);
-  console.log(announcements);
 
   useEffect(() => {
     const fetchAnnouncements = async () => {
