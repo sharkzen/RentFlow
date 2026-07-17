@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { TenantService } from "@/features/tenant/services/tenant.service";
-import LoadingPage from "@/components/layout/LoadingPage";
+import LoadingPage from "@/lib/ui/layout/LoadingPage";
 import log from "@/lib/logger";
 
 import {

@@ -23,10 +23,10 @@ import ImageSection from "./ImageSection";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { RemoveScroll } from "react-remove-scroll";
 import log from "@/lib/logger";
-import { showBackendError } from "@/lib/backendErrorMsg";
+import { showBackendError } from "@/lib/backendError";
 import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import Link from "next/link";
 import DormPaymentSettings from "./DormPaymentSettings";
 

@@ -8,7 +8,7 @@ import useLogout from "@/features/auth/hooks/useLogout";
 import { toast } from "react-toastify";
 import { LayoutDashboard, LogOut, ChevronDown, Home } from "lucide-react";
 import { Role } from "@/features/auth";
-import Skeleton from "@/components/ui/Skeleton";
+import Skeleton from "@/lib/ui/Skeleton";
 import log from "@/lib/logger";
 
 export default function Header() {

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import EditTenantDialog from "./EditTenantDialog";
-import Skeleton from "@/components/ui/Skeleton";
+import Skeleton from "@/lib/ui/Skeleton";
 import AddTenantDialog from "./AddTenantDialog";
 
 interface Props {

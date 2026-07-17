@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { axios } from "@/lib/api-client";
+import { axios } from "@/lib/api/api-client";
 import { usePathname } from "next/navigation";
 const PUBLIC_ROUTES = ["/", "/dorms", "/auth"];
 

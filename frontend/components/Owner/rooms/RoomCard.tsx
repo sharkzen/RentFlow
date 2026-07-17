@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Wind, Snowflake, Loader2, FileSearch, Pencil } from "lucide-react";
 import EditRoomDialog from "./EditRoomDialog";
-import LoadingPage from "@/components/layout/LoadingPage";
+import LoadingPage from "@/lib/ui/layout/LoadingPage";
 
 interface RoomCardProps {
   rooms: any[];

@@ -1,5 +1,5 @@
 import { Search, Filter, ChevronDown, Check, X, Calendar } from "lucide-react";
-import MonthYearPicker from "@/components/ui/MonthYearPicker";
+import MonthYearPicker from "@/lib/ui/MonthYearPicker";
 import { useState, useRef, useEffect } from "react";
 
 interface Props {

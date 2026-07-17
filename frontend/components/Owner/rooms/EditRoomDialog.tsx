@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 
 import {
   X,
@@ -26,8 +26,8 @@ import {
 import { RoomService } from "@/features/room/services/room.service";
 import { toast } from "react-toastify";
 import { AxiosError } from "axios";
-import { showBackendError } from "@/lib/backendErrorMsg";
-import { useClickOutsideModal } from "@/lib/useClickOutsideModal";
+import { showBackendError } from "@/lib/backendError";
+import { useClickOutsideModal } from "@/lib/hooks/useClickOutsideModal";
 import { useScrollLock } from "usehooks-ts";
 import log from "@/lib/logger";
 import {

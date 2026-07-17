@@ -1,4 +1,4 @@
-import { axios } from "@/lib/api-client";
+import { axios } from "@/lib/api/api-client";
 
 export const QrScanAuthService = {
   createOrRenewQr: async (roomId: string) => {

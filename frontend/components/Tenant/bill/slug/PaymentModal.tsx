@@ -26,7 +26,7 @@ import {
 import { TenantService } from "@/features/tenant/services/tenant.service";
 import { toast } from "react-toastify";
 import { useOnClickOutside, useScrollLock } from "usehooks-ts";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { QrGenerateResponse } from "../types";
 import { PromptPayCard } from "./PromptPayCard";
 import Tesseract from "tesseract.js";

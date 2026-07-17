@@ -1,4 +1,4 @@
-import { axios } from "@/lib/api-client";
+import { axios } from "@/lib/api/api-client";
 import { OwnerProfile } from "@/features/owner/types";
 
 export const OwnerService = {

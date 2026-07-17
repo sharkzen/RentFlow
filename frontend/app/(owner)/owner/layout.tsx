@@ -1,5 +1,5 @@
 import OwnerNavbar from "@/components/Owner/OwnerNavbar";
-import { fetchWithRefresh } from "@/utils/fetchWithRefresh";
+import { fetchWithRefresh } from "@/lib/api/fetchWithRefresh";
 import { redirect } from "next/navigation";
 import { Role, Status, type User } from "@/features/auth";
 import FormPending from "@/components/status/FormPending";

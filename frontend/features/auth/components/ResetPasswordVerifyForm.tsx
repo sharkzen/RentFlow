@@ -334,7 +334,7 @@ function ResetPasswordForm() {
   );
 }
 
-export default function ResetPasswordContainer() {
+export default function ResetPasswordVerifyForm() {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-slate-50 px-4 py-12 font-sans sm:px-6 lg:px-8">
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/30"></div>

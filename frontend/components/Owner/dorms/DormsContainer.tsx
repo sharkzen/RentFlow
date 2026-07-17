@@ -5,7 +5,7 @@ import DormsDialog from "./DormsDialog";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Plus, Building2 } from "lucide-react";
 import DromCreate from "./DromCreate";
-import { Spinner } from "@/components/ui/Spinner";
+import { Spinner } from "@/lib/ui/Spinner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dormitory } from "@/features/dormitory";
 

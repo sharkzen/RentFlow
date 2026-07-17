@@ -1,5 +1,5 @@
-import ResetVerifyContainer from "@/components/Auth/reset-pass-verify/ResetVerifyContainer";
+import ResetPasswordVerifyForm from "@/features/auth/components/ResetPasswordVerifyForm";
 
 export default function page() {
-  return <ResetVerifyContainer />;
+  return <ResetPasswordVerifyForm />;
 }

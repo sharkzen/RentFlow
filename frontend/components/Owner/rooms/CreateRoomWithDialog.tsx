@@ -20,8 +20,8 @@ import { RoomService } from "@/features/room/services/room.service";
 import { toast } from "react-toastify";
 import log from "@/lib/logger";
 import { AxiosError } from "axios";
-import { showBackendError } from "@/lib/backendErrorMsg";
-import { useClickOutsideModal } from "@/lib/useClickOutsideModal";
+import { showBackendError } from "@/lib/backendError";
+import { useClickOutsideModal } from "@/lib/hooks/useClickOutsideModal";
 import { Dormitory } from "@/features/dormitory";
 
 enum RoomType {

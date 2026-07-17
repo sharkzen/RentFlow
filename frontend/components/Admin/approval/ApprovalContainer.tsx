@@ -3,8 +3,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { AdminService } from "@/features/admin/services/admin.service";
 import { OwnerApproval } from "@/features/admin/types";
 import ApprovalDetailModal from "./ApprovalDetailModal";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
-import { ConfirmDialogType } from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
+import { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
 
 import {
   Search,

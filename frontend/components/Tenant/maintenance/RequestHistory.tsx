@@ -16,7 +16,7 @@ import {
   Clock,
 } from "lucide-react";
 
-import LoadingPage from "@/components/layout/LoadingPage";
+import LoadingPage from "@/lib/ui/layout/LoadingPage";
 import MaintenanceDetailModal from "./MaintenanceDetailModal";
 import { toast } from "react-toastify";
 

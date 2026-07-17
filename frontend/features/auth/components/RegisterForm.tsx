@@ -23,7 +23,7 @@ import {
   isValidText,
 } from "@/features/auth/validators";
 import FormSuccess from "@/components/status/FormSuccess";
-import { showBackendError } from "@/lib/backendErrorMsg";
+import { showBackendError } from "@/lib/backendError";
 
 export default function OwnerRegisterForm() {
   const mutation = useRegister();

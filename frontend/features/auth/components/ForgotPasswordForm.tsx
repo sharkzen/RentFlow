@@ -11,7 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-export default function ForgotPasswordContainer() {
+export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
 
   const [status, setStatus] = useState<

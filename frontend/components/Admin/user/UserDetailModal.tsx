@@ -18,7 +18,7 @@ import {
 
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { useOnClickOutside } from "usehooks-ts";
 import Link from "next/link";
 import { useScrollLock } from "usehooks-ts";

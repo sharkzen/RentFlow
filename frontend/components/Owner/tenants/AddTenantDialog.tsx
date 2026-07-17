@@ -27,7 +27,7 @@ import log from "@/lib/logger";
 import { toast } from "react-toastify";
 import { useScrollLock, useOnClickOutside } from "usehooks-ts";
 import { getTenantErrorMessage } from "@/features/tenant/constants/error-messages";
-import DatePickerTh from "@/components/ui/DatePickerTh";
+import DatePickerTh from "@/lib/ui/DatePickerTh";
 import Link from "next/link";
 
 interface AddTenantDialogProps {

@@ -1,4 +1,4 @@
-import { axios } from "@/lib/api-client";
+import { axios } from "@/lib/api/api-client";
 import { CreateBulkRoomsDto } from "../types";
 export type RoomStatusQuery = "AVAILABLE" | "OCCUPIED" | "MAINTENANCE" | "ALL";
 

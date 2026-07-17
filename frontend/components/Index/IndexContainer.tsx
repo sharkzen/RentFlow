@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { scroller } from "react-scroll";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import Dormitory from "@/features/dormitory/components/Dormitory";
-import Pagination from "@/components/ui/Pagination";
+import Pagination from "@/lib/ui/Pagination";
 import DormFilter from "@/features/dormitory/components/DormFilter";
 import log from "@/lib/logger";
 

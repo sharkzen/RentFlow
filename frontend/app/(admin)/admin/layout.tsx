@@ -1,4 +1,4 @@
-import { fetchWithRefresh } from "@/utils/fetchWithRefresh";
+import { fetchWithRefresh } from "@/lib/api/fetchWithRefresh";
 import { AuthProvider } from "@/context/AuthProvider";
 import { redirect } from "next/navigation";
 import { Role } from "@/features/auth";

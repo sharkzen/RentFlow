@@ -23,7 +23,7 @@ import { toast } from "react-toastify";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { DormitoryImage } from "@/features/dormitory";
 import log from "@/lib/logger";
-import { showBackendError } from "@/lib/backendErrorMsg";
+import { showBackendError } from "@/lib/backendError";
 
 interface ImageSectionProps {
   dormId: string;

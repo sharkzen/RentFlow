@@ -7,7 +7,7 @@ import { ApiError } from "@/types";
 import { LandmarkHeader } from "./LandmarkHeader";
 import { LandmarkTable } from "./LandmarkTable";
 import { LandmarkModal } from "./LandmarkModal";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { Search } from "lucide-react";
 
 export default function LandmarkContainer() {

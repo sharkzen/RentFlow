@@ -1,4 +1,4 @@
-import { axios } from "@/lib/api-client";
+import { axios } from "@/lib/api/api-client";
 
 export const AnnouncementService = {
   ownerGetAnnouncements: async (params: {

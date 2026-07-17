@@ -6,7 +6,7 @@ import { FinancialCard } from "./FinancialCard";
 import { DormitoryCard } from "./DormitoryCard";
 import { ShieldCheck, FileText, MapPin } from "lucide-react";
 import { TenantContractDetail } from "@/features/tenant";
-import LoadingPage from "@/components/layout/LoadingPage";
+import LoadingPage from "@/lib/ui/layout/LoadingPage";
 
 export default function ContractContainer() {
   const [tenantData, setTenantData] = useState<TenantContractDetail | null>(

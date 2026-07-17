@@ -4,7 +4,7 @@ import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import AnnouncementItem from "./AnnouncementItem";
 import AnnouncementPreviewModal from "./AnnouncementPreviewModal";
 import AnnouncementEditModal from "./AnnouncementEditModal";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { AnnouncementService } from "@/features/announcement/services/announcement.service";
 import { toast } from "react-toastify";
 

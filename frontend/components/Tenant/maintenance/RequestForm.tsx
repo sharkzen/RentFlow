@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { TenantService } from "@/features/tenant/services/tenant.service";
 import { UploadCloud, Loader2, Trash2 } from "lucide-react";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { toast } from "react-toastify";
 
 interface RequestFormProps {

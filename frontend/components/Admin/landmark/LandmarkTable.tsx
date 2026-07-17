@@ -1,6 +1,6 @@
 import { ExternalLink, Trash2, MapPinOff, Pencil } from "lucide-react";
 import { Landmark } from "@/features/admin";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/lib/ui/Button";
 
 interface Props {
   data: Landmark[];

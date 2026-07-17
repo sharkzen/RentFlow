@@ -19,7 +19,7 @@ import { toast } from "react-toastify";
 import { RoomService } from "@/features/room/services/room.service";
 import BillItemRow from "./BillItemRow";
 import MonthYearPicker from "./MonthYearPicker";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import MeterScannerModal from "./MeterScannerModal";
 import { BillService } from "@/features/bill/services/bill.service";
 import { v4 as uuidv4 } from "uuid";

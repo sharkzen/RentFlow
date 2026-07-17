@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import TenantList from "./TenantList";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import log from "@/lib/logger";
-import { showBackendError } from "@/lib/backendErrorMsg";
+import { showBackendError } from "@/lib/backendError";
 import AddTenantDialog from "./AddTenantDialog";
 import { Tenant } from "@/features/tenant";
 import { TenantService } from "@/features/tenant/services/tenant.service";

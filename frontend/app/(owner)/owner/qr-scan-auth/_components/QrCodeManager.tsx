@@ -6,10 +6,10 @@ import { QrScanAuthService } from "@/features/qr-scan-auth/services/qr-scan-auth
 import { QrCodeFilters } from "./QrCodeFilters";
 import { Plus, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
-import Skeleton from "@/components/ui/Skeleton";
+import Skeleton from "@/lib/ui/Skeleton";
 import ConfirmDialog, {
   ConfirmDialogType,
-} from "@/components/ui/ConfirmDialog";
+} from "@/lib/ui/ConfirmDialog";
 import { Dormitory } from "@/features/dormitory";
 
 const formatDateTime = (dateString?: string) => {

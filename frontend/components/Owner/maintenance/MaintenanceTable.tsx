@@ -16,7 +16,7 @@ import { useState } from "react";
 import MaintenanceDetailDialog from "./MaintenanceDetailDialog";
 import ConfirmDialog, {
   ConfirmDialogType,
-} from "@/components/ui/ConfirmDialog";
+} from "@/lib/ui/ConfirmDialog";
 import { maintenanceService } from "@/features/maintenance/services/maintenance.service";
 import { toast } from "react-toastify";
 import { MaintenanceFilterStatus } from "./MaintenanceFilter";

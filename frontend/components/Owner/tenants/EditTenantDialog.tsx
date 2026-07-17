@@ -26,8 +26,8 @@ import { toast } from "react-toastify";
 import { useScrollLock } from "usehooks-ts";
 import { TenantService } from "@/features/tenant/services/tenant.service";
 import log from "@/lib/logger";
-import DatePickerTh from "@/components/ui/DatePickerTh";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import DatePickerTh from "@/lib/ui/DatePickerTh";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import MoveOutDialog from "./MoveOutDialog";
 
 interface EditTenantDialogProps {

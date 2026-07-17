@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { X, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { AnnouncementService } from "@/features/announcement/services/announcement.service";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 
 interface AnnouncementEditModalProps {
   item: any;

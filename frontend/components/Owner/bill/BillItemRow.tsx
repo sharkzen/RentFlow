@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Trash2, Droplets, Zap, Edit, Camera, AlertCircle } from "lucide-react";
 import RoomSelector from "./RoomSelector";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 
 interface RoomData {
   id: string;

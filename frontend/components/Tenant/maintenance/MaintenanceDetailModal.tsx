@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useScrollLock } from "usehooks-ts";
 import { statusConfig } from "./RequestHistory";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 
 interface MaintenanceDetailModalProps {
   isOpen: boolean;

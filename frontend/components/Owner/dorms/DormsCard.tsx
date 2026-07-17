@@ -5,7 +5,7 @@ import { Dormitory } from "@/features/dormitory";
 import { useState } from "react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import log from "@/lib/logger";
-import { showBackendError } from "@/lib/backendErrorMsg";
+import { showBackendError } from "@/lib/backendError";
 import Link from "next/link";
 
 interface DormsCardProps {

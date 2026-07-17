@@ -12,7 +12,7 @@ import {
 import { Bill } from "@/features/bill/types";
 import ConfirmDialog, {
   ConfirmDialogType,
-} from "@/components/ui/ConfirmDialog";
+} from "@/lib/ui/ConfirmDialog";
 
 interface Props {
   bills: Bill[];

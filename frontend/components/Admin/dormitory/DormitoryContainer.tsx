@@ -4,7 +4,7 @@ import { AdminService } from "@/features/admin/services/admin.service";
 import DormitoryDetailModal from "./DormitoryDetailModal";
 import ConfirmDialog, {
   ConfirmDialogType,
-} from "@/components/ui/ConfirmDialog";
+} from "@/lib/ui/ConfirmDialog";
 
 import {
   Search,

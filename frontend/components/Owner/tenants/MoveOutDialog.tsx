@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { X, AlertTriangle, Info } from "lucide-react";
-import DatePickerTh from "@/components/ui/DatePickerTh";
+import DatePickerTh from "@/lib/ui/DatePickerTh";
 
 interface MoveOutDialogProps {
   isOpen: boolean;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { LandmarkType, CreateLandmarkPayload } from "@/features/admin/types";
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/lib/ui/Button";
 import { Map, X, MapPin, Search, ChevronDown, Check } from "lucide-react";
 import { Landmark } from "@/features/admin/types";
 

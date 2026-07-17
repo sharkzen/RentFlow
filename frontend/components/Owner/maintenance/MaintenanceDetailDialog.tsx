@@ -19,7 +19,7 @@ import { useEffect, useState } from "react";
 import { useScrollLock } from "usehooks-ts";
 import ConfirmDialog, {
   ConfirmDialogType,
-} from "@/components/ui/ConfirmDialog";
+} from "@/lib/ui/ConfirmDialog";
 
 interface MaintenanceDetailDialogProps {
   isOpen: boolean;

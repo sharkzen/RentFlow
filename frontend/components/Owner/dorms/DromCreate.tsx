@@ -2,7 +2,7 @@
 import { RefObject, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import log from "@/lib/logger";
-import { showBackendError } from "@/lib/backendErrorMsg";
+import { showBackendError } from "@/lib/backendError";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Building2, X, Loader2, Home } from "lucide-react";
 import { useScrollLock, useOnClickOutside } from "usehooks-ts";

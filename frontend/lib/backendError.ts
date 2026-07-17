@@ -32,3 +32,7 @@ export const errorMessageMap: Record<string, string> = {
   CANNOT_SET_STATUS_TO_OCCUPIED_MANUALLY:
     "ไม่สามารถตั้งสถานะมีผู้เช่าโดยตรงได้ กรุณาไปที่เมนูจัดการผู้เช่า",
 };
+
+export function showBackendError(code?: string) {
+  return errorMessageMap[code ?? ""] ?? "เกิดข้อผิดพลาดลองใหม่ภายหลัง";
+}

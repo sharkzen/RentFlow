@@ -1,5 +1,5 @@
 import ProviderRoot from "./Provider";
-import Header from "@/components/layout/Header";
+import Header from "@/lib/ui/layout/Header";
 import { AuthProvider } from "@/context/AuthProvider";
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Thai } from "next/font/google";
