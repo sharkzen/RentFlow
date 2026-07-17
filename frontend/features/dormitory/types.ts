@@ -22,7 +22,12 @@ export interface Dormitory {
   owner: DormitoryOwner;
 }
 
-export type DormitoryStatus = "ACTIVE" | "INACTIVE" | "DRAFT";
+export type DormitoryStatus =
+  | "ACTIVE"
+  | "INACTIVE"
+  | "DRAFT"
+  | "BANNED"
+  | "SUSPENDED";
 
 export interface DormitorySettings {
   id: string;

@@ -3,7 +3,7 @@ import { useState } from "react";
 import DormsCard from "./DormsCard";
 import DormsDialog from "./DormsDialog";
 import { DormService } from "@/features/dormitory/services/dorm.service";
-import { Plus, Building2 } from "lucide-react";
+import { Plus, Building2, Ban } from "lucide-react"; // เพิ่ม icon Ban (ถ้าต้องการใช้)
 import DromCreate from "./DromCreate";
 import { Spinner } from "@/lib/ui/Spinner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -78,13 +78,38 @@ export default function DormsContainer() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {dorms.map((dorm) => (
-            <DormsCard
-              key={dorm.id}
-              dorm={dorm}
-              onEdit={() => setSelectedDorm(dorm)}
-            />
-          ))}
+          {dorms.map((dorm) => {
+            const isBanned = dorm.status === "BANNED";
+
+            return (
+              <div key={dorm.id} className="group relative">
+                {isBanned && (
+                  <div className="absolute inset-0 z-10 flex cursor-not-allowed flex-col items-center justify-center rounded-2xl bg-white/40 backdrop-blur-[0.5px]">
+                    <span className="flex items-center gap-1.5 rounded-full bg-red-600/90 px-4 py-1.5 text-sm font-bold text-white shadow-lg">
+                      <Ban size={16} strokeWidth={2.5} />
+                      ถูกระงับโดยแอดมิน
+                    </span>
+                  </div>
+                )}
+
+                {/* ตัวการ์ดปกติ จะถูกทำให้สีจางลง ปิดการคลิก และทำให้เป็นขาวดำนิดหน่อยเมื่อโดนแบน */}
+                <div
+                  className={
+                    isBanned
+                      ? "pointer-events-none opacity-50 grayscale-[40%] transition-all select-none"
+                      : "transition-all"
+                  }
+                >
+                  <DormsCard
+                    dorm={dorm}
+                    onEdit={() => {
+                      if (!isBanned) setSelectedDorm(dorm);
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
       {selectedDorm && (
