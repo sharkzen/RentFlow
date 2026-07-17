@@ -1,5 +1,5 @@
 import React from "react";
-import FeatureManager from "@/components/Admin/feature/FeatureManager";
+import FeatureManager from "@/features/feature/components/FeatureManager";
 
 export const metadata = {
   title: "จัดการฟีเจอร์ (Features) | Admin Panel",

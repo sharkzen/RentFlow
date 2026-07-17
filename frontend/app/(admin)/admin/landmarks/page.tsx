@@ -1,4 +1,4 @@
-import LandmarkContainer from "@/components/Admin/landmark/LandmarkContainer";
+import LandmarkContainer from "@/features/admin/components/landmark/LandmarkContainer";
 
 export default function page() {
   return <LandmarkContainer />;

@@ -1,4 +1,4 @@
-import DashboardContainer from "@/components/Admin/dashboard/DashboardContainer";
+import DashboardContainer from "@/features/admin/components/dashboard/DashboardContainer";
 
 export default function page() {
   return (

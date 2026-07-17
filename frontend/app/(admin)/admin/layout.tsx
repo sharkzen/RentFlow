@@ -2,7 +2,7 @@ import { fetchWithRefresh } from "@/lib/api/fetchWithRefresh";
 import { AuthProvider } from "@/context/AuthProvider";
 import { redirect } from "next/navigation";
 import { Role } from "@/features/auth";
-import AdminSidebar from "@/components/Admin/AdminSidebar";
+import AdminSidebar from "@/features/admin/components/AdminSidebar";
 
 export default async function AdminLayout({
   children,

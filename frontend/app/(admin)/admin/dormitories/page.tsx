@@ -1,4 +1,4 @@
-import DormitoryContainer from "@/components/Admin/dormitory/DormitoryContainer";
+import DormitoryContainer from "@/features/dormitory/components/DormitoryContainer";
 import React from "react";
 
 export default function page() {

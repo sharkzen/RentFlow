@@ -1,4 +1,4 @@
-import UserController from "@/components/Admin/user/UserController";
+import UserController from "@/features/admin/components/user/UserController";
 import React from "react";
 
 export default function page() {
