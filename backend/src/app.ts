@@ -11,10 +11,34 @@ import { emailQueue } from "@/queues/email.queue";
 import { getBrowserInstance } from "./modules/tenant/lib/tenant.lib";
 import fastifyStatic from "@fastify/static";
 import path from "path";
+import { AppError } from "@/lib/errors";
+import { ZodError } from "zod";
 
 export async function buildApp() {
   const app = Fastify({
     logger: true,
+  });
+
+  app.setErrorHandler((error, request, reply) => {
+    if (error instanceof AppError) {
+      return reply.status(error.statusCode).send({
+        message: error.code,
+        ...(env.NODE_ENV !== "production" && { detail: error.message }),
+      });
+    }
+
+    if (error instanceof ZodError || (error as any).issues) {
+      return reply.status(400).send({
+        message: "VALIDATION_ERROR",
+        issues: (error as any).issues,
+      });
+    }
+
+    request.log.error(error);
+
+    return reply.status(500).send({
+      message: "INTERNAL_SERVER_ERROR",
+    });
   });
 
   await getBrowserInstance();
