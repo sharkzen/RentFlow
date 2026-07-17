@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/context/AuthProvider";
+import { useAuth } from "@/lib/providers/AuthProvider";
 import useLogout from "@/features/auth/hooks/useLogout";
 import { toast } from "react-toastify";
 import { LayoutDashboard, LogOut, ChevronDown, Home } from "lucide-react";

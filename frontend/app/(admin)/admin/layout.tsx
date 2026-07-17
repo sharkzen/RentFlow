@@ -1,5 +1,5 @@
 import { fetchWithRefresh } from "@/lib/api/fetchWithRefresh";
-import { AuthProvider } from "@/context/AuthProvider";
+import { AuthProvider } from "@/lib/providers/AuthProvider";
 import { redirect } from "next/navigation";
 import { Role } from "@/features/auth";
 import AdminSidebar from "@/features/admin/components/AdminSidebar";

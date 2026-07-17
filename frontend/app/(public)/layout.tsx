@@ -1,4 +1,4 @@
-import { AuthProvider } from "@/context/AuthProvider";
+import { AuthProvider } from "@/lib/providers/AuthProvider";
 import { getCurrentUser } from "@/lib/auth";
 
 export default async function Layout({

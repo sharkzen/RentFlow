@@ -16,7 +16,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { isValidEmail } from "@/features/auth/validators";
 import useLogin from "@/features/auth/hooks/useLogin";
 import { authService } from "../services/auth.service";
-import { useAuth } from "@/context/AuthProvider";
+import { useAuth } from "@/lib/providers/AuthProvider";
 import log from "@/lib/logger";
 
 export default function LoginForm() {

@@ -1,10 +1,10 @@
 import ProviderRoot from "./Provider";
 import Header from "@/lib/ui/layout/Header";
-import { AuthProvider } from "@/context/AuthProvider";
+import { AuthProvider } from "@/lib/providers/AuthProvider";
 import type { Metadata } from "next";
 import { IBM_Plex_Sans_Thai } from "next/font/google";
 import "./globals.css";
-import SessionKeepAlive from "@/components/providers/SessionKeepAlive";
+import SessionKeepAlive from "@/lib/providers/SessionKeepAlive";
 
 const ibmPlexThai = IBM_Plex_Sans_Thai({
   variable: "--font-ibm-plex-thai",

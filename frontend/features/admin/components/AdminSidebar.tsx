@@ -3,6 +3,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { routes } from "@/config/routes";
+
 import {
   LayoutDashboard,
   UserCheck,
@@ -23,32 +25,32 @@ export default function AdminSidebar() {
   const menuItems = [
     {
       name: "แดชบอร์ด",
-      href: "/admin/dashboard",
+      href: routes.admin.dashboard,
       icon: <LayoutDashboard size={20} />,
     },
     {
       name: "อนุมัติผู้ประกอบการ",
-      href: "/admin/approvals",
+      href: routes.admin.approvals,
       icon: <UserCheck size={20} />,
     },
     {
       name: "จัดการหอพัก",
-      href: "/admin/dormitories",
+      href: routes.admin.dormitories,
       icon: <Building2 size={20} />,
     },
     {
       name: "จัดการผู้ใช้งาน",
-      href: "/admin/users",
+      href: routes.admin.users,
       icon: <Users size={20} />,
     },
     {
       name: "สถานที่สำคัญ (Landmarks)",
-      href: "/admin/landmarks",
+      href: routes.admin.landmarks,
       icon: <MapPin size={20} />,
     },
     {
       name: "ฟีเจอร์ (Features)",
-      href: "/admin/features",
+      href: routes.admin.features,
       icon: <Settings size={20} />,
     },
   ];
