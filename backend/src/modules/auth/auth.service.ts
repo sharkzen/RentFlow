@@ -19,6 +19,7 @@ import logger from "@/utils/logger";
 import { sendEmailImmediate } from "@/utils/mail-sender";
 import { EmailType } from "@/queues/email.types";
 import * as argon2 from "argon2";
+import { env } from "@/config/env";
 
 export const authService = {
   async me(user: UserDecodedDto) {
@@ -232,7 +233,7 @@ export const authService = {
 
     if (!roomQrAuth.isActive) throw new Error("QR_NOT_ACTIVE");
 
-    const pepper = process.env.QR_PEPPER_SECRET!;
+    const pepper = env.QR_PEPPER_SECRET;
 
     if (!pepper) {
       throw new Error("QR_PEPPER_SECRET is not defined");
@@ -304,7 +305,7 @@ export const authService = {
       sub: user.id,
     });
 
-    const frontendUrl = process.env.FRONTEND_URL!;
+    const frontendUrl = env.FRONTEND_URL;
     const resetLink = `${frontendUrl}/auth/reset-password?token=${token}`;
 
     logger.info({

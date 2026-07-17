@@ -2,7 +2,8 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import jwt from "jsonwebtoken";
 import logger from "@/utils/logger";
 import { Role } from "@/types/role.type";
-const JWT_SECRET = process.env.ACCESS_TOKEN_SECRET as string;
+import { env } from "@/config/env";
+const JWT_SECRET = env.ACCESS_TOKEN_SECRET;
 
 function getToken(request: FastifyRequest): string | undefined {
   const authHeader = request.headers.authorization;

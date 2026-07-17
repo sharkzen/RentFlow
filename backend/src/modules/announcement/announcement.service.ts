@@ -6,6 +6,7 @@ import { AnnouncementType, FileCategory } from "@prisma/client";
 import { emailQueue } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { env } from "@/config/env";
 
 export const AnnouncementService = {
   _verifyOwnership: async (announcementId: string, userId: string) => {
@@ -234,7 +235,7 @@ export const AnnouncementService = {
 
       imageRecord = {
         objectKey,
-        bucket: process.env.S3_BUCKET || "default-bucket",
+        bucket: env.BUCKET,
         category: FileCategory.ANNOUNCEMENT,
         mimeType: "image/webp",
         size: webpBuffer.length,
@@ -390,7 +391,7 @@ export const AnnouncementService = {
       imageConnectOrCreate = {
         create: {
           objectKey,
-          bucket: process.env.S3_BUCKET || "default-bucket",
+          bucket: env.BUCKET,
           category: FileCategory.ANNOUNCEMENT,
           mimeType: "image/webp",
           size: webpBuffer.length,

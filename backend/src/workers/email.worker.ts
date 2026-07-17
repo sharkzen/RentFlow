@@ -2,6 +2,7 @@ import { emailQueue } from "../queues/email.queue";
 import { transporter } from "../config/mail";
 import { getEmailTemplate } from "../utils/email-templates";
 import { startMoveOutWorker } from "./moveOutWorker";
+import { env } from "../config/env";
 console.log("========================================");
 console.log("👷 RentFlow Background Workers STARTING...");
 console.log("========================================");
@@ -28,11 +29,11 @@ emailQueue.process(async (job) => {
 
     const { subject, html } = getEmailTemplate(type, data);
 
-    if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+    if (!env.MAIL_USER || !env.MAIL_PASS) {
       throw new Error("Missing MAIL_USER or MAIL_PASS in .env");
     }
 
-    const fromAddress = `"${senderName || "RentFlow System"}" <${process.env.MAIL_USER}>`;
+    const fromAddress = `"${senderName || "RentFlow System"}" <${env.MAIL_USER}>`;
     console.log(` 📧 [Worker] Sending email to: ${to}...`);
 
     const info = await transporter.sendMail({

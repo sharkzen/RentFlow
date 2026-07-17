@@ -1,4 +1,5 @@
 import { EmailType } from "../queues/email.types";
+import { env } from "../config/env";
 
 const THEME = {
   primary: "#0f172a",
@@ -40,7 +41,7 @@ const minifyHtml = (html: string) => {
 };
 
 const getSubject = (text: string) => {
-  if (process.env.NODE_ENV === "development") {
+  if (env.NODE_ENV === "development") {
     const time = new Date().toLocaleTimeString("th-TH", {
       hour12: false,
     });
@@ -664,7 +665,7 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
         html: getResetPasswordHtml(data.link),
       };
     case EmailType.OWNER_APPROVED: {
-      const loginLink = process.env.FRONTEND_URL;
+      const loginLink = env.FRONTEND_URL;
 
       const approveDate = new Date().toLocaleDateString("th-TH", {
         year: "numeric",

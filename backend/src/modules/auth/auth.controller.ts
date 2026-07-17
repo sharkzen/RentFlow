@@ -7,6 +7,7 @@ import { authService } from "@/modules/auth/auth.service";
 import { signAccessToken, signRefreshToken } from "@/utils/jwt";
 import logger from "@/utils/logger";
 import { LoginDto } from "@/modules/auth/dto/login.dto";
+import { env } from "@/config/env";
 
 export const AuthController = {
   async me(request: FastifyRequest, reply: FastifyReply) {
@@ -47,7 +48,7 @@ export const AuthController = {
 
       reply.setCookie("access_token", accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
         maxAge: 60 * 15,
@@ -141,14 +142,14 @@ export const AuthController = {
       reply
         .setCookie("access_token", accessToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: env.NODE_ENV === "production",
           sameSite: "lax",
           path: "/",
           maxAge: 60 * 15,
         })
         .setCookie("refresh_token", refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: env.NODE_ENV === "production",
           sameSite: "lax",
           path: "/",
           maxAge: 60 * 60 * 24 * 7,
@@ -199,14 +200,14 @@ export const AuthController = {
       reply
         .setCookie("access_token", accessToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: env.NODE_ENV === "production",
           sameSite: "lax",
           path: "/",
           maxAge: 60 * 15,
         })
         .setCookie("refresh_token", refreshToken, {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: env.NODE_ENV === "production",
           sameSite: "lax",
           path: "/",
           maxAge: 60 * 60 * 24,

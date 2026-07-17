@@ -1,9 +1,10 @@
 import IORedis from "ioredis";
 import logger from "@/utils/logger";
+import { env } from "@/config/env";
 
 export const redisConnection = new IORedis({
-  host: process.env.REDIS_HOST || "localhost",
-  port: Number(process.env.REDIS_PORT) || 6379,
+  host: env.REDIS_HOST,
+  port: env.REDIS_PORT,
   maxRetriesPerRequest: null,
 });
 

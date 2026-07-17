@@ -1,9 +1,9 @@
 import Queue from "bull";
-import "dotenv/config";
+import { env } from "@/config/env";
 
 const redisConfig = {
-  host: process.env.REDIS_HOST || "localhost",
-  port: Number(process.env.REDIS_PORT) || 6379,
+  host: env.REDIS_HOST,
+  port: env.REDIS_PORT,
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
 };

@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import "dotenv/config";
+import { env } from "@/config/env";
 
 export const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -7,7 +7,7 @@ export const transporter = nodemailer.createTransport({
   secure: false,
 
   auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
+    user: env.MAIL_USER,
+    pass: env.MAIL_PASS,
   },
 });

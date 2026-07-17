@@ -17,6 +17,7 @@ import {
   getCachedStamps,
   matchAccount,
 } from "./lib/tenant.lib";
+import { env } from "@/config/env";
 
 import { slipOkService } from "@/services/slipok.service";
 import { uuidv4 } from "zod";
@@ -1438,7 +1439,7 @@ export const tenantService = {
 
       await tx.file.create({
         data: {
-          bucket: process.env.BUCKET_NAME || "default-bucket",
+          bucket: env.BUCKET_NAME || env.BUCKET,
           objectKey: objectKey,
           mimeType: mimeType,
           size: fileBuffer.length,
@@ -1509,7 +1510,7 @@ export const tenantService = {
             bankName: transactionResult.data.bank,
             refNo: transactionResult.data.refNo,
             isAutoVerified: isAutoVerified,
-            link: `${process.env.FRONTEND_URL}/owner/bills`,
+            link: `${env.FRONTEND_URL}/owner/bills`,
           },
         });
       }
@@ -1562,7 +1563,7 @@ export const tenantService = {
       await uploadFile(f.file, objectKey, f.mimetype);
 
       fileCreateData.push({
-        bucket: process.env.S3_BUCKET || "default-bucket",
+        bucket: env.BUCKET,
         category: FileCategory.MAINTENANCE,
         objectKey: objectKey,
         mimeType: f.mimetype,
@@ -1619,7 +1620,7 @@ export const tenantService = {
           tenantName: `${tenant.firstName} ${tenant.lastName}`,
           title: title,
           description: description || "-",
-          link: `${process.env.FRONTEND_URL}/owner/maintenance/${request.id}`,
+          link: `${env.FRONTEND_URL}/owner/maintenance/${request.id}`,
           hasImages: request.images.length > 0,
         },
       };
@@ -1824,7 +1825,7 @@ export const tenantService = {
 
         await prisma.file.create({
           data: {
-            bucket: process.env.S3_BUCKET || "rentflow",
+            bucket: env.BUCKET,
             objectKey: objectKey,
             mimeType: file.mimetype,
             size: file.file.bytesRead || 0,

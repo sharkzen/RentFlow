@@ -7,6 +7,7 @@ import { decrypt } from "@/utils/encryption";
 import { EmailType } from "@/queues/email.types";
 import { emailQueue } from "@/queues/email.queue";
 import logger from "@/utils/logger";
+import { env } from "@/config/env";
 
 export const maintenanceService = {
   getMaintenance: async (
@@ -249,7 +250,7 @@ export const maintenanceService = {
               tenantName: existingRequest.tenant.firstName,
               title: existingRequest.title,
               note: note || defaultNote,
-              link: `${process.env.FRONTEND_URL}/tenant/maintenance`,
+              link: `${env.FRONTEND_URL}/tenant/maintenance`,
             },
           });
         } catch (err) {

@@ -1,11 +1,12 @@
 import prisma from "./lib/prisma";
 import { hashPassword } from "./modules/auth/lib/password";
 import logger from "./utils/logger";
+import { env } from "./config/env";
 
 async function main() {
   console.log("🌱 Starting initial data generation...");
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminEmail = env.ADMIN_EMAIL;
+  const adminPassword = env.ADMIN_PASSWORD;
 
   if (!adminEmail || !adminPassword) {
     throw new Error(

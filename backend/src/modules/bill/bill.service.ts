@@ -1212,7 +1212,7 @@ export const billService = {
           }),
 
           reason: reason,
-          link: `${process.env.FRONTEND_URL}/tenant/bills/${bill.id}`,
+          link: `${env.FRONTEND_URL}/tenant/bills/${bill.id}`,
         },
       };
 
@@ -1538,7 +1538,7 @@ export const billService = {
             minimumFractionDigits: 2,
           }),
 
-          link: `${process.env.FRONTEND_URL}/tenant/bills/${bill.id}`,
+          link: `${env.FRONTEND_URL}/tenant/bills/${bill.id}`,
           status: bill.status,
           daysLate: daysLate,
 
@@ -1613,7 +1613,7 @@ export const billService = {
     roomId: string,
     user: UserDecodedDto,
   ) => {
-    const ocrServiceUrl = process.env.OCR_SERVICE_URL!;
+    const ocrServiceUrl = env.OCR_SERVICE_URL;
 
     if (!ocrServiceUrl) {
       logger.error("[Service] OCR_SERVICE_URL is not set.");
@@ -1784,7 +1784,7 @@ export const billService = {
       };
     });
 
-    const publicPath = process.env.PUBLIC_PATH || process.cwd() + "/public";
+    const publicPath = env.PUBLIC_PATH || process.cwd() + "/public";
     const htmlContent = buildBulkBillHtmlTemplate(
       billsData,
       formatMoney,

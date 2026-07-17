@@ -8,6 +8,7 @@ import argon2 from "argon2";
 import { createPdfFromHtml } from "../tenant/lib/tenant.lib";
 import { buildBulkQrHtmlTemplate } from "./lib/room.lib";
 import QRCode from "qrcode";
+import { env } from "@/config/env";
 
 interface GetRoomParams {
   search?: string;
@@ -550,7 +551,7 @@ export const roomService = {
       throw new Error("ไม่พบข้อมูลห้องพัก หรือคุณไม่มีสิทธิ์เข้าถึง");
     }
 
-    const pepper = process.env.QR_PEPPER_SECRET!;
+    const pepper = env.QR_PEPPER_SECRET;
 
     if (!pepper) {
       throw new Error("QR_PEPPER_SECRET is not defined");
@@ -589,7 +590,7 @@ export const roomService = {
         },
       });
 
-      const frontendUrl = process.env.FRONTEND_URL!;
+      const frontendUrl = env.FRONTEND_URL;
 
       if (!frontendUrl) {
         throw new Error("FRONTEND_URL is not defined");
@@ -626,7 +627,7 @@ export const roomService = {
       );
     }
 
-    const publicPath = process.env.PUBLIC_PATH || process.cwd() + "/public";
+    const publicPath = env.PUBLIC_PATH || process.cwd() + "/public";
     const htmlContent = buildBulkQrHtmlTemplate(qrDataList, publicPath);
     const pdfBuffer = await createPdfFromHtml(htmlContent);
     const firstRoom = qrDataList[0].roomNumber;
@@ -745,7 +746,7 @@ export const roomService = {
     }
 
     const rawToken = crypto.randomBytes(32).toString("hex");
-    const pepper = process.env.QR_PEPPER_SECRET!;
+    const pepper = env.QR_PEPPER_SECRET;
 
     if (!pepper) {
       throw new Error("QR_PEPPER_SECRET is not defined");
@@ -786,7 +787,7 @@ export const roomService = {
       },
     });
 
-    const frontendUrl = process.env.FRONTEND_URL!;
+    const frontendUrl = env.FRONTEND_URL;
 
     if (!frontendUrl) {
       throw new Error("FRONTEND_URL is not defined");
@@ -818,7 +819,7 @@ export const roomService = {
       },
     ];
 
-    const publicPath = process.env.PUBLIC_PATH || process.cwd() + "/public";
+    const publicPath = env.PUBLIC_PATH || process.cwd() + "/public";
     const htmlContent = buildBulkQrHtmlTemplate(qrDataList, publicPath);
     const pdfBuffer = await createPdfFromHtml(htmlContent);
     return pdfBuffer;

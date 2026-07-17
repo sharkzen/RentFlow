@@ -1,6 +1,7 @@
 import axios from "axios";
 import FormData from "form-data";
 import logger from "@/utils/logger";
+import { env } from "@/config/env";
 
 interface SlipOkData {
   transRef: string;
@@ -55,8 +56,8 @@ const mapSlipData = (data: SlipOkData) => {
 
 export const slipOkService = {
   verifySlip: async (fileBuffer: Buffer, amount?: number) => {
-    const branchId = process.env.SLIPOK_BRANCH_ID;
-    const apiKey = process.env.SLIPOK_API_KEY;
+    const branchId = env.SLIPOK_BRANCH_ID;
+    const apiKey = env.SLIPOK_API_KEY;
 
     if (!branchId || !apiKey) {
       logger.error("Missing SlipOK Configuration");

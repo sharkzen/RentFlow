@@ -1,6 +1,7 @@
 import { transporter } from "@/config/mail";
 import { getEmailTemplate } from "@/utils/email-templates";
 import { EmailType } from "@/queues/email.types";
+import { env } from "@/config/env";
 
 interface SendMailParams {
   type: EmailType;
@@ -21,11 +22,11 @@ export const sendEmailImmediate = async ({
 
   const { subject, html } = getEmailTemplate(type, data);
 
-  if (!process.env.MAIL_USER) {
+  if (!env.MAIL_USER) {
     throw new Error("Missing MAIL_USER in .env");
   }
 
-  const fromAddress = `"${senderName || "RentFlow System"}" <${process.env.MAIL_USER}>`;
+  const fromAddress = `"${senderName || "RentFlow System"}" <${env.MAIL_USER}>`;
 
   return await transporter.sendMail({
     from: fromAddress,

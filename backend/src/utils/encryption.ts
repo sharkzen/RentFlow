@@ -1,14 +1,9 @@
 import crypto from "crypto";
 import logger from "./logger";
+import { env } from "@/config/env";
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
-const SECRET_KEY = process.env.ENCRYPTION_KEY as string;
-
-if (!SECRET_KEY) {
-  throw new Error(
-    "FATAL ERROR: ENCRYPTION_KEY is not defined in environment variables.",
-  );
-}
+const SECRET_KEY = env.ENCRYPTION_KEY;
 
 if (Buffer.from(SECRET_KEY, "hex").length !== 32) {
   throw new Error(

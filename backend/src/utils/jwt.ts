@@ -1,8 +1,8 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
-import "dotenv/config";
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
-const RESET_SECRET = process.env.RESET_SECRET!;
+import { env } from "@/config/env";
+const ACCESS_TOKEN_SECRET = env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = env.REFRESH_TOKEN_SECRET;
+const RESET_SECRET = env.RESET_SECRET;
 
 type AccessTokenPayload = {
   sub: string;

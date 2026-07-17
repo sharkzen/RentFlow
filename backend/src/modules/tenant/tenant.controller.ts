@@ -2,6 +2,7 @@ import logger from "@/utils/logger";
 import { FastifyRequest, FastifyReply } from "fastify";
 import { tenantService } from "@/modules/tenant/tenant.service";
 import { UserDecodedDto } from "../auth/dto/user.dto";
+import { env } from "@/config/env";
 
 interface GetTenantDormQuery {
   page?: string;
@@ -764,7 +765,7 @@ export const TenantController = {
       return reply.status(500).send({
         message: "Internal Server Error",
         error:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
+          env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
