@@ -29,6 +29,12 @@ model File {
   maintenance    MaintenanceRequest? @relation("MaintenanceImages", fields: [maintenanceId], references: [id])
   payment        Payment?            @relation("PaymentSlips", fields: [paymentId], references: [id])
   room           Room?               @relation("RoomImages", fields: [roomId], references: [id])
+
+  @@index([dormitoryId])
+  @@index([roomId])
+  @@index([paymentId])
+  @@index([maintenanceId])
+  @@index([announcementId])
 }
 
 model User {
@@ -81,6 +87,8 @@ model Dormitory {
   maintenanceRequests MaintenanceRequest[]
   paymentSetting      PaymentSetting?
   rooms               Room[]
+
+  @@index([ownerId])
 }
 
 model DormitorySetting {
@@ -129,6 +137,7 @@ model Room {
   qrAuth       RoomQrAuth?
 
   @@unique([dormitoryId, roomNumber])
+  @@index([dormitoryId])
 }
 
 model TenantProfile {
@@ -161,6 +170,9 @@ model TenantProfile {
   maintenanceRequests   MaintenanceRequest[]
   room                  Room?                 @relation(fields: [roomId], references: [id], onDelete: Restrict)
   user                  User                  @relation(fields: [userId], references: [id])
+
+  @@index([roomId])
+  @@index([userId])
 }
 
 model Bill {
@@ -198,6 +210,7 @@ model Bill {
   payment                     Payment?
 
   @@unique([roomId, billingMonth])
+  @@index([tenantId])
 }
 
 model BillItem {
@@ -243,6 +256,10 @@ model MaintenanceRequest {
   dormitory   Dormitory         @relation(fields: [dormitoryId], references: [id])
   room        Room              @relation(fields: [roomId], references: [id])
   tenant      TenantProfile     @relation(fields: [tenantId], references: [id])
+
+  @@index([dormitoryId])
+  @@index([roomId])
+  @@index([tenantId])
 }
 
 model Landmark {
@@ -281,6 +298,8 @@ model BillDraft {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   dormitory    Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+
+  @@index([dormitoryId])
 }
 
 model Feature {
@@ -310,6 +329,7 @@ model Announcement {
   images      File[]                @relation("AnnouncementImages")
 
   @@index([isPinned, order, createdAt])
+  @@index([dormitoryId])
 }
 
 model AnnouncementReadLog {
