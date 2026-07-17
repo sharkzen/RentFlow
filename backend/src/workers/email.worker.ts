@@ -1,4 +1,5 @@
-import { emailQueue } from "../queues/email.queue";
+import { Worker } from "bullmq";
+import { redisConnection } from "../lib/redis";
 import { transporter } from "../config/mail";
 import { getEmailTemplate } from "../services/email-templates";
 import { startMoveOutWorker } from "./moveOutWorker";
@@ -9,20 +10,13 @@ console.log("========================================");
 startMoveOutWorker();
 console.log("✅ MoveOut Worker: Started successfully!");
 
-emailQueue.on("ready", () => {
-  console.log("✅ Email Worker: Connected to Redis successfully!");
-});
+const emailWorker = new Worker(
+  "email",
+  async (job) => {
+    console.log(
+      `⚡ [Worker] Picked up Job ID: ${job.id} (Type: ${job.data.type})`,
+    );
 
-emailQueue.on("error", (err) => {
-  console.error("❌ Email Worker: Redis connection failed!", err);
-});
-
-emailQueue.process(async (job) => {
-  console.log(
-    `⚡ [Worker] Picked up Job ID: ${job.id} (Type: ${job.data.type})`,
-  );
-
-  try {
     const { type, to, senderName, replyTo, data } = job.data;
 
     console.log(`   📨 Sending email [${type}] to: ${to}`);
@@ -45,9 +39,18 @@ emailQueue.process(async (job) => {
     });
 
     console.log(` ✅ [Worker] Job ${job.id} SENT SUCCESS: ${info.messageId}`);
-    return Promise.resolve();
-  } catch (error) {
-    console.error(`❌ [Worker] Job ${job.id} Failed:`, error);
-    return Promise.reject(error);
-  }
+  },
+  { connection: redisConnection as any },
+);
+
+emailWorker.on("ready", () => {
+  console.log("✅ Email Worker: Connected to Redis successfully!");
+});
+
+emailWorker.on("error", (err) => {
+  console.error("❌ Email Worker: Redis connection failed!", err);
+});
+
+emailWorker.on("failed", (job, error) => {
+  console.error(`❌ [Worker] Job ${job?.id} Failed:`, error);
 });

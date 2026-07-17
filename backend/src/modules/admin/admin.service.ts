@@ -13,7 +13,7 @@ import {
 import { generateSignedUrl } from "@/services/r2Client";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { generateSlug } from "@/lib/text";
-import { emailQueue } from "@/queues/email.queue";
+import { emailQueue, EMAIL_JOB_NAME } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import { getBucketSize } from "@/services/r2Client";
 import { formatBytes } from "@/utils/formatBytes";
@@ -291,6 +291,7 @@ export const AdminService = {
     });
 
     await emailQueue.add(
+      EMAIL_JOB_NAME,
       {
         type: EmailType.OWNER_APPROVED,
         to: approvedOwner.user.email,
@@ -343,6 +344,7 @@ export const AdminService = {
     });
 
     await emailQueue.add(
+      EMAIL_JOB_NAME,
       {
         type: EmailType.OWNER_REJECTED,
         to: userEmail,

@@ -32,7 +32,7 @@ import {
   UpdateMaintenanceData,
 } from "./dto/tenant.dto";
 
-import { emailQueue } from "@/queues/email.queue";
+import { emailQueue, EMAIL_JOB_NAME } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import { randomUUID } from "crypto";
 import { createActivityLog } from "@/services/activity-log.service";
@@ -1496,7 +1496,7 @@ export const tenantService = {
       const dormName = bill.room.dormitory.name;
 
       if (ownerEmail) {
-        await emailQueue.add({
+        await emailQueue.add(EMAIL_JOB_NAME, {
           type: EmailType.PAYMENT_RECEIVED,
           to: ownerEmail,
           senderName: "RentFlow Notification",
@@ -1626,7 +1626,7 @@ export const tenantService = {
       };
 
       try {
-        await emailQueue.add(emailData);
+        await emailQueue.add(EMAIL_JOB_NAME, emailData);
       } catch (err) {
         console.error("Failed to queue email:", err);
       }

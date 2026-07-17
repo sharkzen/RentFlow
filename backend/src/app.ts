@@ -103,7 +103,8 @@ export async function buildApp() {
     const redisStart = performance.now();
 
     try {
-      await emailQueue.client.ping();
+      const client = await emailQueue.client;
+      await client.ping();
       const redisLatency = (performance.now() - redisStart).toFixed(2);
 
       services.push({

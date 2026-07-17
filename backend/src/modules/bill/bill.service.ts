@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { CreateBillDto, GetBillsQueryDto } from "./dto/bill.dto";
-import { emailQueue } from "@/queues/email.queue";
+import { emailQueue, EMAIL_JOB_NAME } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import {
   BillStatus,
@@ -1217,7 +1217,7 @@ export const billService = {
       };
 
       try {
-        await emailQueue.add(emailData);
+        await emailQueue.add(EMAIL_JOB_NAME, emailData);
       } catch (queueErr) {
         logger.error(
           `[Service] เกิดข้อผิดพลาดตอนโยนเข้า Queue (ส่งอีเมล Reject บิล ${bill.id}): ${queueErr}`,
@@ -1581,7 +1581,7 @@ export const billService = {
       };
 
       try {
-        await emailQueue.add(emailData);
+        await emailQueue.add(EMAIL_JOB_NAME, emailData);
         queuedCount++;
 
         await prisma.bill.update({

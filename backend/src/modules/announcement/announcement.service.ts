@@ -3,7 +3,7 @@ import { generateSignedUrl, uploadFile, deleteFile } from "@/services/r2Client";
 import sharp from "sharp";
 import { v4 as uuidv4 } from "uuid";
 import { AnnouncementType, FileCategory } from "@prisma/client";
-import { emailQueue } from "@/queues/email.queue";
+import { emailQueue, EMAIL_JOB_NAME } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@/config/env";
@@ -295,7 +295,7 @@ export const AnnouncementService = {
         const email = tenant.user.email;
         console.log("📨 adding to queue:", email);
 
-        const job = await emailQueue.add({
+        const job = await emailQueue.add(EMAIL_JOB_NAME, {
           type: EmailType.ANNOUNCEMENT,
           to: email,
 

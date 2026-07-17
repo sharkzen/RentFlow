@@ -5,7 +5,7 @@ import { MaintenanceStatus } from "@prisma/client";
 import { createActivityLog } from "@/services/activity-log.service";
 import { decrypt } from "@/utils/encryption";
 import { EmailType } from "@/queues/email.types";
-import { emailQueue } from "@/queues/email.queue";
+import { emailQueue, EMAIL_JOB_NAME } from "@/queues/email.queue";
 import logger from "@/utils/logger";
 import { env } from "@/config/env";
 
@@ -239,7 +239,7 @@ export const maintenanceService = {
 
       if (emailType) {
         try {
-          await emailQueue.add({
+          await emailQueue.add(EMAIL_JOB_NAME, {
             type: emailType,
             to: tenantEmail,
             senderName: existingRequest.dormitory.name,
