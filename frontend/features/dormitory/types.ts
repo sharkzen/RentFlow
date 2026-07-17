@@ -110,15 +110,7 @@ export interface DormOverview {
   };
 }
 
-export interface PaginationResponse<T> {
-  data: T[];
-  meta: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
+export type { PaginatedResponse as PaginationResponse } from "@/types";
 
 export type DormSlugResponse = {
   id: string;

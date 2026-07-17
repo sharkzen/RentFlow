@@ -1,3 +1,5 @@
+export type { PaginatedResponse } from "@/types";
+
 export interface RecentUser {
   id: string;
   email: string;
@@ -56,16 +58,6 @@ export interface OwnerApproval {
       objectKey: string;
     }[];
   }[];
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
 }
 
 export interface Dormitory {
@@ -152,14 +144,4 @@ export interface CreateLandmarkPayload {
   name: string;
   type: LandmarkType;
   mapUrl: string;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
 }

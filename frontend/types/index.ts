@@ -17,3 +17,18 @@ export interface ApiError {
   };
   message: string;
 }
+
+/**
+ * Generic paginated API response envelope.
+ * Shared across admin and dormitory features (identical shape,
+ * previously duplicated as `PaginatedResponse`/`PaginationResponse`).
+ */
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
