@@ -857,7 +857,7 @@ export const roomService = {
 
         dormitoryId: payload.dormId,
 
-        roomQrAuth: {
+        qrAuth: {
           isNot: null,
         },
       },
@@ -866,7 +866,7 @@ export const roomService = {
         id: true,
         roomNumber: true,
 
-        roomQrAuth: {
+        qrAuth: {
           select: {
             token: true,
             isActive: true,
