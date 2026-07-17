@@ -2,22 +2,16 @@ import logger from "@/utils/logger";
 import { FastifyRequest, FastifyReply } from "fastify";
 import { tenantService } from "@/modules/tenant/tenant.service";
 import { UserDecodedDto } from "../auth/dto/user.dto";
-import { env } from "@/config/env";
-
-interface GetTenantDormQuery {
-  page?: string;
-  limit?: string;
-  search?: string;
-  status?: string;
-}
-
-interface GetMyBillsQuery {
-  page?: string;
-  limit?: string;
-  month?: string;
-  year?: string;
-  status?: string;
-}
+import { AppError } from "@/lib/errors";
+import {
+  getTenantDormQuerySchema,
+  getMyBillsQuerySchema,
+  createTenantSchema,
+  updateTenantSchema,
+  moveOutSchema,
+  generateQrPaymentSchema,
+  reEntryTenantSchema,
+} from "./dto/tenant.schema";
 
 interface GetMaintenanceQuery {
   page?: string;
@@ -45,92 +39,62 @@ const getMultipartValue = (field: any): string => {
 
 export const TenantController = {
   getTenantDorm: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const { dormId } = request.params as {
-        dormId?: string;
-      };
+    const { dormId } = request.params as {
+      dormId?: string;
+    };
 
-      if (!dormId) {
-        return reply.status(400).send({
-          message: "DORM_ID_REQUIRED",
-        });
-      }
-
-      const { sub } = request.user as {
-        sub?: string;
-      };
-
-      if (!sub) {
-        return reply.status(401).send({
-          message: "UNAUTHORIZED",
-        });
-      }
-
-      const { page, limit, search, status } =
-        request.query as GetTenantDormQuery;
-
-      const result = await tenantService.getTenantDorm({
-        dormId,
-        sub,
-        page: page ? Number(page) : 1,
-        limit: limit ? Number(limit) : 10,
-        search: search?.trim() || undefined,
-        status: status || "active",
-      });
-
-      return reply.status(200).send(result);
-    } catch (error: any) {
-      logger.error(error);
-
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+    if (!dormId) {
+      throw AppError.badRequest("DORM_ID_REQUIRED");
     }
+
+    const { sub } = request.user as {
+      sub?: string;
+    };
+
+    if (!sub) {
+      throw AppError.unauthorized("UNAUTHORIZED");
+    }
+
+    const { page, limit, search, status } = getTenantDormQuerySchema.parse(
+      request.query,
+    );
+
+    const result = await tenantService.getTenantDorm({
+      dormId,
+      sub,
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 10,
+      search: search?.trim() || undefined,
+      status: status || "active",
+    });
+
+    return reply.status(200).send(result);
   },
 
   createTenant: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
+    const body = createTenantSchema.parse(request.body);
 
     try {
-      const body = request.body as any;
-
-      if (!body.email || !body.roomId || !body.firstName) {
-        return reply.status(400).send({
-          message: "MISSING_REQUIRED_FIELDS",
-        });
-      }
-
       const result = await tenantService.createTenant(user.sub, body);
       return reply.status(201).send(result);
     } catch (error: any) {
-      logger.error(error);
-
       switch (error.message) {
         case "EMAIL_ALREADY_EXISTS":
-          return reply.status(409).send({
-            code: "EMAIL_ALREADY_EXISTS",
-            message: "Email is already in use",
-          });
+          throw AppError.conflict("EMAIL_ALREADY_EXISTS", "Email is already in use");
         case "ROOM_NOT_AVAILABLE":
-          return reply.status(409).send({
-            code: "ROOM_NOT_AVAILABLE",
-            message: "Room is not available",
-          });
+          throw AppError.conflict("ROOM_NOT_AVAILABLE", "Room is not available");
+        case "ROOM_NOT_FOUND":
+          throw AppError.notFound("ROOM_NOT_FOUND");
         case "OWNER_PROFILE_NOT_FOUND":
-          return reply.status(403).send({
-            code: "OWNER_PROFILE_NOT_FOUND",
-            message: "Forbidden",
-          });
+          throw AppError.forbidden("OWNER_PROFILE_NOT_FOUND", "Forbidden");
         case "DORM_NOT_OWNED":
-          return reply.status(403).send({
-            code: "DORM_NOT_OWNED",
-            message: "You are not the owner of this dorm",
-          });
+          throw AppError.forbidden(
+            "DORM_NOT_OWNED",
+            "You are not the owner of this dorm",
+          );
         default:
-          return reply.status(500).send({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Internal Server Error",
-          });
+          throw error;
       }
     }
   },
@@ -138,36 +102,26 @@ export const TenantController = {
   getTenantById: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
+    const { tenantId } = request.params as {
+      tenantId: string;
+    };
+
+    if (!tenantId) {
+      throw AppError.badRequest("TENANT_ID_REQUIRED");
+    }
+
     try {
-      const { tenantId } = request.params as {
-        tenantId: string;
-      };
-
-      if (!tenantId) {
-        return reply.status(400).send({
-          message: "TENANT_ID_REQUIRED",
-        });
-      }
-
       const result = await tenantService.getTenantById(user.sub, tenantId);
       return reply.status(200).send(result);
     } catch (error: any) {
-      logger.error(error);
-
       switch (error.message) {
         case "OWNER_PROFILE_NOT_FOUND":
         case "FORBIDDEN_ACCESS":
-          return reply.status(403).send({
-            message: "FORBIDDEN",
-          });
+          throw AppError.forbidden("FORBIDDEN");
         case "TENANT_NOT_FOUND":
-          return reply.status(404).send({
-            message: "TENANT_NOT_FOUND",
-          });
+          throw AppError.notFound("TENANT_NOT_FOUND");
         default:
-          return reply.status(500).send({
-            message: "INTERNAL_SERVER_ERROR",
-          });
+          throw error;
       }
     }
   },
@@ -175,50 +129,35 @@ export const TenantController = {
   updateTenant: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
+    const { tenantId } = request.params as {
+      tenantId: string;
+    };
+
+    if (!tenantId) {
+      throw AppError.badRequest("TENANT_ID_REQUIRED");
+    }
+
+    const body = updateTenantSchema.parse(request.body);
+
     try {
-      const { tenantId } = request.params as {
-        tenantId: string;
-      };
-
-      const body = request.body as any;
-
-      if (!tenantId)
-        return reply.status(400).send({
-          message: "TENANT_ID_REQUIRED",
-        });
-
       const result = await tenantService.updateTenant(user.sub, tenantId, body);
       return reply.status(200).send(result);
     } catch (error: any) {
-      logger.error(error);
-
       switch (error.message) {
         case "OWNER_PROFILE_NOT_FOUND":
         case "FORBIDDEN_ACCESS":
-          return reply.status(403).send({
-            code: "FORBIDDEN",
-            message: "Permission denied.",
-          });
+          throw AppError.forbidden("FORBIDDEN", "Permission denied.");
         case "TENANT_NOT_FOUND":
-          return reply.status(404).send({
-            code: "TENANT_NOT_FOUND",
-            message: "Tenant not found.",
-          });
+          throw AppError.notFound("TENANT_NOT_FOUND", "Tenant not found.");
         case "TENANT_ALREADY_MOVED_OUT":
-          return reply.status(400).send({
-            code: "TENANT_ALREADY_MOVED_OUT",
-            message: "Cannot update tenant who has already moved out.",
-          });
+          throw AppError.badRequest(
+            "TENANT_ALREADY_MOVED_OUT",
+            "Cannot update tenant who has already moved out.",
+          );
         case "EMAIL_ALREADY_EXISTS":
-          return reply.status(409).send({
-            code: "EMAIL_ALREADY_EXISTS",
-            message: "Email taken.",
-          });
+          throw AppError.conflict("EMAIL_ALREADY_EXISTS", "Email taken.");
         default:
-          return reply.status(500).send({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Something went wrong.",
-          });
+          throw error;
       }
     }
   },
@@ -226,59 +165,41 @@ export const TenantController = {
   moveOut: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
+    const { tenantId } = request.params as {
+      tenantId: string;
+    };
+
+    const { moveOutDate } = moveOutSchema.parse(request.body ?? {});
+
+    if (!tenantId) {
+      throw AppError.badRequest("TENANT_ID_REQUIRED");
+    }
+
     try {
-      const { tenantId } = request.params as {
-        tenantId: string;
-      };
-
-      const { moveOutDate } =
-        (request.body as {
-          moveOutDate?: string;
-        }) || {};
-
-      if (!tenantId) {
-        return reply.status(400).send({
-          message: "TENANT_ID_REQUIRED",
-        });
-      }
-
-      const result = await tenantService.moveOut(
-        user.sub,
-        tenantId,
-        moveOutDate,
-      );
+      const result = await tenantService.moveOut(user.sub, tenantId, moveOutDate);
       return reply.status(200).send(result);
     } catch (error: any) {
-      logger.error(error);
-
       switch (error.message) {
         case "OWNER_PROFILE_NOT_FOUND":
         case "FORBIDDEN_ACCESS":
-          return reply.status(403).send({
-            code: "FORBIDDEN",
-            message: "You don't have permission to perform this action.",
-          });
+          throw AppError.forbidden(
+            "FORBIDDEN",
+            "You don't have permission to perform this action.",
+          );
         case "TENANT_NOT_FOUND":
-          return reply.status(404).send({
-            code: "TENANT_NOT_FOUND",
-            message: "Tenant not found.",
-          });
+          throw AppError.notFound("TENANT_NOT_FOUND", "Tenant not found.");
         case "ALREADY_MOVED_OUT":
-          return reply.status(400).send({
-            code: "ALREADY_MOVED_OUT",
-            message: "This tenant has already moved out.",
-          });
+          throw AppError.badRequest(
+            "ALREADY_MOVED_OUT",
+            "This tenant has already moved out.",
+          );
         case "OUTSTANDING_BILLS_EXIST":
-          return reply.status(400).send({
-            code: "OUTSTANDING_BILLS_EXIST",
-            message:
-              "Tenant has unpaid bills or bills waiting for verification. Please clear them before moving out.",
-          });
+          throw AppError.badRequest(
+            "OUTSTANDING_BILLS_EXIST",
+            "Tenant has unpaid bills or bills waiting for verification. Please clear them before moving out.",
+          );
         default:
-          return reply.status(500).send({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Something went wrong.",
-          });
+          throw error;
       }
     }
   },
@@ -286,92 +207,66 @@ export const TenantController = {
   cancelMoveOut: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
+    const { tenantId } = request.params as {
+      tenantId: string;
+    };
+
+    if (!tenantId) {
+      throw AppError.badRequest("TENANT_ID_REQUIRED");
+    }
+
     try {
-      const { tenantId } = request.params as {
-        tenantId: string;
-      };
-
-      if (!tenantId) {
-        return reply.status(400).send({
-          message: "TENANT_ID_REQUIRED",
-        });
-      }
-
       const result = await tenantService.cancelMoveOut(user.sub, tenantId);
       return reply.status(200).send(result);
     } catch (error: any) {
-      logger.error(error);
-
       switch (error.message) {
         case "OWNER_PROFILE_NOT_FOUND":
         case "FORBIDDEN_ACCESS":
-          return reply.status(403).send({
-            code: "FORBIDDEN",
-            message: "You don't have permission to perform this action.",
-          });
+          throw AppError.forbidden(
+            "FORBIDDEN",
+            "You don't have permission to perform this action.",
+          );
         case "TENANT_NOT_FOUND":
-          return reply.status(404).send({
-            code: "TENANT_NOT_FOUND",
-            message: "Tenant not found.",
-          });
+          throw AppError.notFound("TENANT_NOT_FOUND", "Tenant not found.");
         case "NOT_SCHEDULED_FOR_MOVE_OUT":
-          return reply.status(400).send({
-            code: "NOT_SCHEDULED",
-            message: "This tenant does not have a scheduled move-out date.",
-          });
+          throw AppError.badRequest(
+            "NOT_SCHEDULED",
+            "This tenant does not have a scheduled move-out date.",
+          );
         case "ALREADY_MOVED_OUT":
-          return reply.status(400).send({
-            code: "ALREADY_MOVED_OUT",
-            message: "Cannot cancel. This tenant has already moved out.",
-          });
+          throw AppError.badRequest(
+            "ALREADY_MOVED_OUT",
+            "Cannot cancel. This tenant has already moved out.",
+          );
         default:
-          return reply.status(500).send({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Something went wrong.",
-          });
+          throw error;
       }
     }
   },
 
   getDashboard: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
-
-    try {
-      const data = await tenantService.getDashboardStats(user.sub);
-      return reply.send(data);
-    } catch (error: any) {
-      request.log.error(error);
-
-      return reply.status(500).send({
-        message: "Failed to fetch tenant dashboard",
-      });
-    }
+    const data = await tenantService.getDashboardStats(user.sub);
+    return reply.send(data);
   },
 
   getMyBills: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
-    const { page, limit, year, status, month } =
-      request.query as GetMyBillsQuery;
+    const { page, limit, year, status, month } = getMyBillsQuerySchema.parse(
+      request.query,
+    );
 
-    try {
-      const result = await tenantService.getBills({
-        userId: user.sub,
-        page: page ? Number(page) : 1,
-        limit: limit ? Number(limit) : 10,
-        year: year,
-        status: status,
-        month: month,
-      });
+    const result = await tenantService.getBills({
+      userId: user.sub,
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 10,
+      year: year,
+      status: status,
+      month: month,
+    });
 
-      return reply.send(result);
-    } catch (error) {
-      request.log.error(error);
-
-      return reply.status(500).send({
-        message: "Failed to fetch bills",
-      });
-    }
+    return reply.send(result);
   },
 
   getBillById: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -385,26 +280,21 @@ export const TenantController = {
       const bill = await tenantService.getBillById(user.sub, billId);
       return reply.send(bill);
     } catch (error: any) {
-      request.log.error(error);
-
       if (error.message === "BILL_NOT_FOUND") {
-        return reply.status(404).send({
-          message: "BILL_NOT_FOUND",
-          error: "ไม่พบข้อมูลบิล หรือบิลนี้อาจถูกลบออกไปแล้ว",
-        });
+        throw AppError.notFound(
+          "BILL_NOT_FOUND",
+          "ไม่พบข้อมูลบิล หรือบิลนี้อาจถูกลบออกไปแล้ว",
+        );
       }
 
       if (error.message === "FORBIDDEN_ACCESS") {
-        return reply.status(403).send({
-          message: "FORBIDDEN_ACCESS",
-          error: "คุณไม่มีสิทธิ์เข้าถึงข้อมูลบิลใบนี้",
-        });
+        throw AppError.forbidden(
+          "FORBIDDEN_ACCESS",
+          "คุณไม่มีสิทธิ์เข้าถึงข้อมูลบิลใบนี้",
+        );
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-        error: "เกิดข้อผิดพลาดภายในระบบ กรุณาลองใหม่อีกครั้ง",
-      });
+      throw error;
     }
   },
 
@@ -425,81 +315,70 @@ export const TenantController = {
         )
         .send(pdfBuffer);
     } catch (error: any) {
-      request.log.error(error);
+      if (error.message === "BILL_NOT_FOUND") {
+        throw AppError.notFound("BILL_NOT_FOUND", "ไม่สามารถสร้างไฟล์ PDF ได้");
+      }
 
-      return reply.status(500).send({
-        message: "ไม่สามารถสร้างไฟล์ PDF ได้",
-      });
+      if (error.message === "FORBIDDEN_ACCESS") {
+        throw AppError.forbidden("FORBIDDEN_ACCESS", "ไม่สามารถสร้างไฟล์ PDF ได้");
+      }
+
+      throw error;
     }
   },
 
   generateQrPayment: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
-    const body = request.body as {
-      billId: string;
-    };
+    const body = generateQrPaymentSchema.parse(request.body);
 
     try {
-      if (!body.billId) {
-        return reply.status(400).send({
-          message: "BILL_ID_REQUIRED",
-        });
-      }
-
       const result = await tenantService.generatePromptPayQR(
         user.sub,
         body.billId,
       );
       return reply.status(200).send(result);
     } catch (error: any) {
-      logger.error(error);
-
       switch (error.message) {
         case "BILL_NOT_FOUND":
-          return reply.status(404).send({
-            message: "ไม่พบข้อมูลบิล",
-          });
+          throw AppError.notFound("BILL_NOT_FOUND", "ไม่พบข้อมูลบิล");
         case "FORBIDDEN_ACCESS":
-          return reply.status(403).send({
-            message: "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้",
-          });
+          throw AppError.forbidden(
+            "FORBIDDEN_ACCESS",
+            "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้",
+          );
         case "PROMPTPAY_NOT_CONFIGURED":
-          return reply.status(400).send({
-            message: "หอพักนี้ยังไม่ได้ตั้งค่าการชำระเงินผ่าน PromptPay",
-          });
+          throw AppError.badRequest(
+            "PROMPTPAY_NOT_CONFIGURED",
+            "หอพักนี้ยังไม่ได้ตั้งค่าการชำระเงินผ่าน PromptPay",
+          );
         default:
-          return reply.status(500).send({
-            message: "INTERNAL_SERVER_ERROR",
-          });
+          throw error;
       }
     }
   },
 
+  // NOTE: multipart file upload endpoint — no zod body schema.
   uploadSlip: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
+    const parts = await request.file();
+
+    if (!parts) {
+      throw AppError.badRequest("FILE_REQUIRED", "กรุณาอัพโหลดรูปภาพสลิป");
+    }
+
+    const fields: any = parts.fields;
+    const billId = fields.billId?.value;
+    const refNo = fields.refNo?.value;
+
+    if (!billId) {
+      throw AppError.badRequest("BILL_ID_REQUIRED");
+    }
+
+    const fileBuffer = await parts.toBuffer();
+
     try {
-      const parts = await request.file();
-
-      if (!parts) {
-        return reply.status(400).send({
-          message: "กรุณาอัพโหลดรูปภาพสลิป",
-        });
-      }
-
-      const fields: any = parts.fields;
-      const billId = fields.billId?.value;
-      const refNo = fields.refNo?.value;
-
-      if (!billId) {
-        return reply.status(400).send({
-          message: "BILL_ID_REQUIRED",
-        });
-      }
-
-      const fileBuffer = await parts.toBuffer();
-
       const result = await tenantService.processPaymentSlip({
         userId: user.sub,
         billId,
@@ -518,80 +397,62 @@ export const TenantController = {
         case "SLIP_DUPLICATE":
         case "SLIP_DUPLICATE_REF":
         case "SLIP_DUPLICATE_DETECTED_FROM_IMAGE":
-          return reply.status(400).send({
-            message: error.message,
-          });
+          throw AppError.badRequest(error.message);
         case "BILL_NOT_FOUND":
-          return reply.status(404).send({
-            message: "BILL_NOT_FOUND",
-          });
+          throw AppError.notFound("BILL_NOT_FOUND");
         case "FORBIDDEN_ACCESS":
-          return reply.status(403).send({
-            message: "FORBIDDEN_ACCESS",
-          });
+          throw AppError.forbidden("FORBIDDEN_ACCESS");
         case "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED":
-          return reply.status(400).send({
-            message: "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED",
-          });
+          throw AppError.badRequest("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
         case "INVALID_SLIP_API":
         case "SLIP_AMOUNT_MISMATCH":
         case "INVALID_SLIP":
-          return reply.status(400).send({
-            code: "INVALID_SLIP",
-            message: "INVALID_SLIP",
-          });
+          throw AppError.badRequest("INVALID_SLIP");
         default:
-          return reply.status(500).send({
-            message: "INTERNAL_SERVER_ERROR",
-          });
+          throw error;
       }
     }
   },
 
+  // NOTE: multipart form endpoint — no zod body schema (raw parts() stream).
   createMaintenance: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    if (!user || !user.sub) {
+      throw AppError.unauthorized("UNAUTHORIZED");
+    }
+
+    const parts = request.parts();
+    let title = "";
+    let description = "";
+    const files: any[] = [];
+
+    for await (const part of parts) {
+      if (part.type === "file") {
+        const buffer = await part.toBuffer();
+
+        files.push({
+          filename: part.filename,
+          mimetype: part.mimetype,
+          file: buffer,
+        });
+      } else {
+        if (part.fieldname === "title") title = (part.value as string).trim();
+
+        if (part.fieldname === "description")
+          description = (part.value as string).trim();
+      }
+    }
+
+    if (!title) {
+      throw AppError.badRequest("TITLE_REQUIRED", "Title is required");
+    }
+
+    if (files.length > 2) {
+      throw AppError.badRequest("MAX_IMAGES_EXCEEDED", "Max 2 images allowed");
+    }
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      if (!user || !user.sub) {
-        return reply.status(401).send({
-          message: "Unauthorized",
-        });
-      }
-
-      const parts = request.parts();
-      let title = "";
-      let description = "";
-      const files: any[] = [];
-
-      for await (const part of parts) {
-        if (part.type === "file") {
-          const buffer = await part.toBuffer();
-
-          files.push({
-            filename: part.filename,
-            mimetype: part.mimetype,
-            file: buffer,
-          });
-        } else {
-          if (part.fieldname === "title") title = (part.value as string).trim();
-
-          if (part.fieldname === "description")
-            description = (part.value as string).trim();
-        }
-      }
-
-      if (!title) {
-        return reply.status(400).send({
-          message: "Title is required",
-        });
-      }
-
-      if (files.length > 2) {
-        return reply.status(400).send({
-          message: "Max 2 images allowed",
-        });
-      }
-
       const result = await tenantService.createMaintenance({
         userId: user.sub,
         title,
@@ -601,11 +462,11 @@ export const TenantController = {
 
       return reply.status(201).send(result);
     } catch (error: any) {
-      logger.error(error);
+      if (error.message === "TENANT_OR_ROOM_NOT_FOUND") {
+        throw AppError.notFound("TENANT_OR_ROOM_NOT_FOUND");
+      }
 
-      return reply.status(500).send({
-        message: error.message || "Internal Server Error",
-      });
+      throw error;
     }
   },
 
@@ -615,74 +476,66 @@ export const TenantController = {
     }>,
     reply: FastifyReply,
   ) => {
-    try {
-      const user = request.user as UserDecodedDto;
+    const user = request.user as UserDecodedDto;
 
-      if (!user || !user.sub) {
-        return reply.status(401).send({
-          message: "Unauthorized",
-        });
-      }
-
-      const { page, limit, status, search } = request.query;
-
-      const result = await tenantService.getMyMaintenances(user.sub, {
-        page: page ? parseInt(page) : 1,
-        limit: limit ? parseInt(limit) : 10,
-        status,
-        search,
-      });
-
-      return reply.status(200).send(result);
-    } catch (error) {
-      logger.error(error);
-
-      return reply.status(500).send({
-        message: "Internal Server Error",
-      });
+    if (!user || !user.sub) {
+      throw AppError.unauthorized("UNAUTHORIZED");
     }
+
+    const { page, limit, status, search } = request.query;
+
+    const result = await tenantService.getMyMaintenances(user.sub, {
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 10,
+      status,
+      search,
+    });
+
+    return reply.status(200).send(result);
   },
 
+  // NOTE: multipart-shaped body (uses getMultipartValue helper on raw fields) — skipping
+  // zod validation here since the shape is ambiguous between JSON and multipart callers.
   updateMaintenance: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { requestId } = request.params as {
+      requestId: string;
+    };
+
+    const body = (request.body as any) || {};
+    const deletedIdsRaw = body.deletedImageIds || body["deletedImageIds[]"];
+    let deletedImageIds: string[] | undefined;
+
+    if (deletedIdsRaw) {
+      if (Array.isArray(deletedIdsRaw)) {
+        deletedImageIds = deletedIdsRaw.map((item: any) =>
+          item.value !== undefined ? String(item.value) : String(item),
+        );
+      } else {
+        const val =
+          deletedIdsRaw.value !== undefined
+            ? String(deletedIdsRaw.value)
+            : String(deletedIdsRaw);
+        deletedImageIds = [val];
+      }
+    }
+
+    const imagesRaw = body.images || body["images[]"];
+    let images: any[] | undefined;
+
+    if (imagesRaw) {
+      images = Array.isArray(imagesRaw) ? imagesRaw : [imagesRaw];
+    }
+
+    const updateData = {
+      title: getMultipartValue(body.title),
+      description: getMultipartValue(body.description),
+      images: images,
+      deletedImageIds: deletedImageIds,
+    };
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      const { requestId } = request.params as {
-        requestId: string;
-      };
-
-      const body = (request.body as any) || {};
-      const deletedIdsRaw = body.deletedImageIds || body["deletedImageIds[]"];
-      let deletedImageIds: string[] | undefined;
-
-      if (deletedIdsRaw) {
-        if (Array.isArray(deletedIdsRaw)) {
-          deletedImageIds = deletedIdsRaw.map((item: any) =>
-            item.value !== undefined ? String(item.value) : String(item),
-          );
-        } else {
-          const val =
-            deletedIdsRaw.value !== undefined
-              ? String(deletedIdsRaw.value)
-              : String(deletedIdsRaw);
-          deletedImageIds = [val];
-        }
-      }
-
-      const imagesRaw = body.images || body["images[]"];
-      let images: any[] | undefined;
-
-      if (imagesRaw) {
-        images = Array.isArray(imagesRaw) ? imagesRaw : [imagesRaw];
-      }
-
-      const updateData = {
-        title: getMultipartValue(body.title),
-        description: getMultipartValue(body.description),
-        images: images,
-        deletedImageIds: deletedImageIds,
-      };
-
       const result = await tenantService.updateMaintenance(
         user.sub,
         requestId,
@@ -690,89 +543,69 @@ export const TenantController = {
       );
       return reply.status(200).send(result);
     } catch (error: any) {
-      console.error("Update Error:", error);
-
       if (error.message === "Maintenance request not found or not authorized") {
-        return reply.status(404).send({
-          message: error.message,
-        });
+        throw AppError.notFound("MAINTENANCE_NOT_FOUND", error.message);
       }
 
       if (error.message === "Cannot edit request that is not OPEN") {
-        return reply.status(400).send({
-          message: error.message,
-        });
+        throw AppError.badRequest("MAINTENANCE_NOT_OPEN", error.message);
       }
 
-      return reply.status(500).send({
-        message: "Internal Server Error",
-      });
+      throw error;
     }
   },
 
   cancelMaintenance: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { requestId } = request.params as {
+      requestId: string;
+    };
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      const { requestId } = request.params as {
-        requestId: string;
-      };
-
       const result = await tenantService.cancelMaintenance(user.sub, requestId);
       return reply.status(200).send(result);
     } catch (error: any) {
-      request.log.error(error);
-
       if (error.message === "Maintenance request not found or not authorized") {
-        return reply.status(404).send({
-          message: "ไม่พบรายการแจ้งซ่อม หรือคุณไม่มีสิทธิ์ลบรายการนี้",
-        });
+        throw AppError.notFound(
+          "MAINTENANCE_NOT_FOUND",
+          "ไม่พบรายการแจ้งซ่อม หรือคุณไม่มีสิทธิ์ลบรายการนี้",
+        );
       }
 
       if (error.message === "Cannot cancel request that is not OPEN") {
-        return reply.status(400).send({
-          message: "ไม่สามารถยกเลิกได้ เนื่องจากเจ้าหน้าที่รับเรื่องไปแล้ว",
-        });
+        throw AppError.badRequest(
+          "MAINTENANCE_NOT_OPEN",
+          "ไม่สามารถยกเลิกได้ เนื่องจากเจ้าหน้าที่รับเรื่องไปแล้ว",
+        );
       }
 
-      return reply.status(500).send({
-        message: "เกิดข้อผิดพลาดภายในระบบ ไม่สามารถลบรายการได้",
-      });
+      throw error;
     }
   },
 
   getContractDetail: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    if (!user || !user.sub) {
+      throw AppError.unauthorized("UNAUTHORIZED");
+    }
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      if (!user || !user.sub) {
-        return reply.status(401).send({
-          message: "Unauthorized",
-        });
-      }
-
       const result = await tenantService.getTenantContractDetail(user.sub);
       return reply.status(200).send(result);
     } catch (error: any) {
-      request.log.error(error);
-
       if (error.message === "TENANT_NOT_FOUND") {
-        return reply.status(404).send({
-          message: "tenant not found",
-        });
+        throw AppError.notFound("TENANT_NOT_FOUND", "tenant not found");
       }
 
-      return reply.status(500).send({
-        message: "Internal Server Error",
-        error:
-          env.NODE_ENV === "development" ? error.message : undefined,
-      });
+      throw error;
     }
   },
 
   reEntryTenant: async (request: FastifyRequest, reply: FastifyReply) => {
-    const user = request.user as any;
-    const body = request.body as any;
+    const user = request.user as UserDecodedDto;
+    const body = reEntryTenantSchema.parse(request.body);
 
     try {
       const result = await tenantService.createNewContractForExistingUser(
@@ -783,10 +616,7 @@ export const TenantController = {
     } catch (error: any) {
       logger.error(error);
 
-      return reply.status(400).send({
-        code: "RE_ENTRY_FAILED",
-        message: error.message,
-      });
+      throw AppError.badRequest("RE_ENTRY_FAILED", error.message);
     }
   },
 };

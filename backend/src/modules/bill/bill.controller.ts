@@ -5,221 +5,174 @@ import { UserDecodedDto } from "../auth/dto/user.dto";
 import sharp from "sharp";
 import { extname } from "node:path";
 import { randomUUID } from "node:crypto";
+import { AppError } from "@/lib/errors";
+import {
+  getBillsQuerySchema,
+  createBillsSchema,
+  updateStatusSchema,
+  addBillItemSchema,
+  updateBillItemSchema,
+  rejectBillSchema,
+  sendBillEmailsSchema,
+  generatePdfSchema,
+  scanMeterSchema,
+  saveDraftSchema,
+} from "./dto/bill.schema";
 
 export const BillController = {
   getBills: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const user = request.user as UserDecodedDto;
-      const query = request.query as any;
+    const user = request.user as UserDecodedDto;
+    const query = getBillsQuerySchema.parse(request.query);
 
-      const { dormId } = request.params as {
-        dormId: string;
-      };
+    const { dormId } = request.params as {
+      dormId: string;
+    };
 
-      if (!dormId) {
-        return reply.status(400).send({
-          message: "DORM_ID_REQUIRED",
-        });
-      }
-
-      const result = await billService.getBills({
-        dormId,
-        sub: user.sub,
-        ...query,
-      });
-
-      return reply.send(result);
-    } catch (error: any) {
-      logger.error(error);
-
-      return reply.status(500).send({
-        message: error.message,
-      });
+    if (!dormId) {
+      throw AppError.badRequest("DORM_ID_REQUIRED");
     }
+
+    const result = await billService.getBills({
+      dormId,
+      sub: user.sub,
+      ...query,
+    });
+
+    return reply.send(result);
   },
 
   createBills: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+    const body = createBillsSchema.parse(request.body);
+
+    if (!body.dormId) {
+      throw AppError.badRequest("DORM_ID_REQUIRED", "Dormitory ID is required");
+    }
+
     try {
-      const user = request.user as UserDecodedDto;
-      const body = request.body as any;
-
-      if (!body.dormId) {
-        return reply.status(400).send({
-          message: "Dormitory ID is required",
-        });
-      }
-
       const result = await billService.createBills(body.dormId, body, user);
       return reply.status(201).send(result);
     } catch (error: any) {
       logger.error(error);
 
       if (error.message === "DORM_SETTINGS_NOT_FOUND") {
-        return reply.status(400).send({
-          message: "DORM_SETTINGS_NOT_FOUND",
-        });
+        throw AppError.badRequest("DORM_SETTINGS_NOT_FOUND");
       }
 
       if (error.message === "PAYMENT_METHOD_REQUIRED") {
-        return reply.status(400).send({
-          message: "PAYMENT_METHOD_REQUIRED",
-        });
+        throw AppError.badRequest("PAYMENT_METHOD_REQUIRED");
       }
 
-      if (error.message.startsWith("DUPLICATE_BILL_FOUND")) {
+      if (error.message?.startsWith("DUPLICATE_BILL_FOUND")) {
         const roomNum = error.message.split(":")[1];
 
-        return reply.status(409).send({
-          message: "DUPLICATE_BILL_FOUND",
-          roomNumber: roomNum,
-        });
+        throw new AppError(409, "DUPLICATE_BILL_FOUND", roomNum);
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      throw error;
     }
   },
 
   deleteBill: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { billId } = request.params as {
+      billId: string;
+    };
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      const { billId } = request.params as {
-        billId: string;
-      };
-
       const result = await billService.deleteBill(user.sub, billId);
       return reply.status(200).send(result);
     } catch (error: any) {
-      logger.error("DELETE BILL ERROR:", error);
-
       if (error.message === "FORBIDDEN_ACCESS") {
-        return reply.status(403).send({
-          code: "FORBIDDEN",
-          message: "คุณไม่มีสิทธิ์ลบบิลนี้",
-        });
+        throw AppError.forbidden("FORBIDDEN", "คุณไม่มีสิทธิ์ลบบิลนี้");
       }
 
       if (error.message === "BILL_NOT_FOUND") {
-        return reply.status(404).send({
-          code: "NOT_FOUND",
-          message: "ไม่พบข้อมูลบิลที่ต้องการลบ",
-        });
+        throw AppError.notFound("NOT_FOUND", "ไม่พบข้อมูลบิลที่ต้องการลบ");
       }
 
-      return reply.status(500).send({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "เกิดข้อผิดพลาดในการลบบิล โปรดลองใหม่อีกครั้ง",
-      });
+      throw error;
     }
   },
 
   updateStatus: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const user = request.user as UserDecodedDto;
+    const user = request.user as UserDecodedDto;
 
-      const { billId } = request.params as {
-        billId: string;
-      };
+    const { billId } = request.params as {
+      billId: string;
+    };
 
-      const { status } = request.body as {
-        status: string;
-      };
+    const { status } = updateStatusSchema.parse(request.body);
 
-      const result = await billService.updateStatus(
-        user.sub,
-        billId,
-        status as any,
-      );
-      return reply.send(result);
-    } catch (error: any) {
-      logger.error("UPDATE STATUS ERROR:", error);
-
-      return reply.status(500).send({
-        message: error.message || "UPDATE_STATUS_FAILED",
-      });
-    }
+    const result = await billService.updateStatus(user.sub, billId, status);
+    return reply.send(result);
   },
 
   addBillItem: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { billId } = request.params as {
+      billId: string;
+    };
+
+    const body = addBillItemSchema.parse(request.body);
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      const { billId } = request.params as {
-        billId: string;
-      };
-
-      const body = request.body as {
-        name: string;
-        amount: number;
-        type: "CHARGE" | "DISCOUNT";
-      };
-
-      if (!body.name || !body.amount || !body.type) {
-        return reply.status(400).send({
-          message: "INVALID_DATA",
-        });
-      }
-
       const result = await billService.addBillItem(user.sub, billId, body);
       return reply.status(201).send(result);
     } catch (error: any) {
-      logger.error("ADD BILL ITEM ERROR:", error);
-
       if (error.message === "FORBIDDEN_ACCESS") {
-        return reply.status(403).send({
-          message: "FORBIDDEN_ACCESS",
-        });
+        throw AppError.forbidden("FORBIDDEN_ACCESS");
       }
 
-      return reply.status(500).send({
-        message: error.message || "ADD_ITEM_FAILED",
-      });
+      if (error.message === "BILL_NOT_FOUND") {
+        throw AppError.notFound("BILL_NOT_FOUND");
+      }
+
+      throw error;
     }
   },
 
   deleteBillItem: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { billId, itemId } = request.params as {
+      billId: string;
+      itemId: string;
+    };
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      const { billId, itemId } = request.params as {
-        billId: string;
-        itemId: string;
-      };
-
       const result = await billService.deleteBillItem(user.sub, billId, itemId);
       return reply.send(result);
     } catch (error: any) {
-      logger.error("DELETE BILL ITEM ERROR:", error);
-
       if (error.message === "FORBIDDEN_ACCESS") {
-        return reply.status(403).send({
-          message: "FORBIDDEN_ACCESS",
-        });
+        throw AppError.forbidden("FORBIDDEN_ACCESS");
       }
 
-      return reply.status(500).send({
-        message: error.message || "DELETE_ITEM_FAILED",
-      });
+      if (error.message === "BILL_NOT_FOUND") {
+        throw AppError.notFound("BILL_NOT_FOUND");
+      }
+
+      if (error.message === "ITEM_NOT_FOUND") {
+        throw AppError.notFound("ITEM_NOT_FOUND");
+      }
+
+      throw error;
     }
   },
 
   updateBillItem: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { billId, itemId } = request.params as {
+      billId: string;
+      itemId: string;
+    };
+
+    const body = updateBillItemSchema.parse(request.body);
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      const { billId, itemId } = request.params as {
-        billId: string;
-        itemId: string;
-      };
-
-      const body = request.body as {
-        name?: string;
-        amount?: number;
-        type?: "CHARGE" | "DISCOUNT";
-      };
-
       const result = await billService.updateBillItem(
         user.sub,
         billId,
@@ -228,90 +181,89 @@ export const BillController = {
       );
       return reply.send(result);
     } catch (error: any) {
-      logger.error("UPDATE BILL ITEM ERROR:", error);
-
       if (error.message === "FORBIDDEN_ACCESS") {
-        return reply.status(403).send({
-          message: "FORBIDDEN_ACCESS",
-        });
+        throw AppError.forbidden("FORBIDDEN_ACCESS");
       }
 
-      return reply.status(500).send({
-        message: error.message || "UPDATE_ITEM_FAILED",
-      });
+      if (error.message === "BILL_NOT_FOUND") {
+        throw AppError.notFound("BILL_NOT_FOUND");
+      }
+
+      if (error.message === "ITEM_NOT_FOUND") {
+        throw AppError.notFound("ITEM_NOT_FOUND");
+      }
+
+      throw error;
     }
   },
 
+  // NOTE: multipart file upload endpoint — no zod body schema (files() stream, not JSON body).
   uploadSlip: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const user = request.user as UserDecodedDto;
+    const user = request.user as UserDecodedDto;
 
-      const { billId } = request.params as {
-        billId: string;
-      };
+    const { billId } = request.params as {
+      billId: string;
+    };
 
-      const parts = request.files({
-        limits: {
-          fileSize: 5 * 1024 * 1024,
-        },
-      });
+    const parts = request.files({
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
+    });
 
-      const filesToProcess: {
-        buffer: Buffer;
-        filename: string;
-        mimetype: string;
-      }[] = [];
+    const filesToProcess: {
+      buffer: Buffer;
+      filename: string;
+      mimetype: string;
+    }[] = [];
 
-      for await (const part of parts) {
-        if (!part.file) continue;
-
-        try {
-          const buffer = await part.toBuffer();
-
-          filesToProcess.push({
-            buffer,
-            filename: part.filename,
-            mimetype: part.mimetype,
-          });
-        } catch (error: any) {
-          if (error.code === "FST_REQ_FILE_TOO_LARGE") {
-            return reply.status(413).send({
-              message: "FILE_TOO_LARGE",
-            });
-          }
-        }
-      }
-
-      if (filesToProcess.length === 0) {
-        return reply.status(400).send({
-          message: "NO_FILE_UPLOADED",
-        });
-      }
-
-      const fileData = filesToProcess[0];
-      let optimizedBuffer = fileData.buffer;
+    for await (const part of parts) {
+      if (!part.file) continue;
 
       try {
-        if (["image/jpeg", "image/jpg"].includes(fileData.mimetype)) {
-          optimizedBuffer = await sharp(fileData.buffer)
-            .jpeg({
-              quality: 80,
-            })
-            .toBuffer();
-        } else if (fileData.mimetype === "image/png") {
-          optimizedBuffer = await sharp(fileData.buffer)
-            .png({
-              compressionLevel: 9,
-            })
-            .toBuffer();
+        const buffer = await part.toBuffer();
+
+        filesToProcess.push({
+          buffer,
+          filename: part.filename,
+          mimetype: part.mimetype,
+        });
+      } catch (error: any) {
+        if (error.code === "FST_REQ_FILE_TOO_LARGE") {
+          throw AppError.badRequest("FILE_TOO_LARGE");
         }
-      } catch (e) {
-        logger.error("Optimization failed");
       }
+    }
 
-      const extension = extname(fileData.filename);
-      const objectKey = `slips/${billId}/${randomUUID()}${extension}`;
+    if (filesToProcess.length === 0) {
+      throw AppError.badRequest("NO_FILE_UPLOADED");
+    }
 
+    const fileData = filesToProcess[0];
+    let optimizedBuffer = fileData.buffer;
+
+    try {
+      if (["image/jpeg", "image/jpg"].includes(fileData.mimetype)) {
+        optimizedBuffer = await sharp(fileData.buffer)
+          .jpeg({
+            quality: 80,
+          })
+          .toBuffer();
+      } else if (fileData.mimetype === "image/png") {
+        optimizedBuffer = await sharp(fileData.buffer)
+          .png({
+            compressionLevel: 9,
+          })
+          .toBuffer();
+      }
+    } catch (e) {
+      logger.error("Optimization failed");
+    }
+
+    const extension = extname(fileData.filename);
+    const objectKey = `slips/${billId}/${randomUUID()}${extension}`;
+
+    try {
       const result = await billService.uploadSlip({
         billId,
         userSub: user.sub,
@@ -323,70 +275,65 @@ export const BillController = {
 
       return reply.send(result);
     } catch (error: any) {
-      logger.error("UPLOAD SLIP ERROR:", error);
+      if (error.message === "BILL_NOT_FOUND") {
+        throw AppError.notFound("BILL_NOT_FOUND");
+      }
 
-      return reply.status(500).send({
-        message: error.message || "UPLOAD_FAILED",
-      });
+      throw error;
     }
   },
 
   applyAdvancePayment: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { billId } = request.params as {
+      billId: string;
+    };
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      const { billId } = request.params as {
-        billId: string;
-      };
-
       const result = await billService.applyAdvancePayment(user.sub, billId);
       return reply.send(result);
     } catch (error: any) {
-      logger.error("APPLY ADVANCE PAYMENT ERROR:", error);
-
       if (error.message === "FORBIDDEN_ACCESS") {
-        return reply.status(403).send({
-          message: "FORBIDDEN_ACCESS",
-        });
+        throw AppError.forbidden("FORBIDDEN_ACCESS");
+      }
+
+      if (error.message === "BILL_NOT_FOUND") {
+        throw AppError.notFound("BILL_NOT_FOUND");
       }
 
       if (error.message === "NO_ADVANCE_PAYMENT") {
-        return reply.status(400).send({
-          message: "ผู้เช่าไม่มีเงินล่วงหน้าคงเหลือ",
-        });
+        throw AppError.badRequest(
+          "NO_ADVANCE_PAYMENT",
+          "ผู้เช่าไม่มีเงินล่วงหน้าคงเหลือ",
+        );
       }
 
       if (error.message === "ALREADY_APPLIED") {
-        return reply.status(400).send({
-          message: "มีการหักเงินล่วงหน้าไปแล้ว",
-        });
+        throw AppError.badRequest("ALREADY_APPLIED", "มีการหักเงินล่วงหน้าไปแล้ว");
       }
 
       if (error.message === "BILL_NOT_PENDING") {
-        return reply.status(400).send({
-          message: "ไม่สามารถหักเงินได้ เนื่องจากบิลนี้ไม่ได้อยู่ในสถานะรอชำระ",
-        });
+        throw AppError.badRequest(
+          "BILL_NOT_PENDING",
+          "ไม่สามารถหักเงินได้ เนื่องจากบิลนี้ไม่ได้อยู่ในสถานะรอชำระ",
+        );
       }
 
-      return reply.status(500).send({
-        message: error.message || "APPLY_ADVANCE_PAYMENT_FAILED",
-      });
+      throw error;
     }
   },
 
   rejectBill: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { billId } = request.params as {
+      billId: string;
+    };
+
+    const body = rejectBillSchema.parse(request.body ?? {});
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      const { billId } = request.params as {
-        billId: string;
-      };
-
-      const body =
-        (request.body as {
-          reason?: string;
-        }) || {};
-
       const result = await billService.rejectBill(
         user.sub,
         billId,
@@ -394,97 +341,72 @@ export const BillController = {
       );
       return reply.send(result);
     } catch (error: any) {
-      logger.error("REJECT BILL ERROR:", error);
-
       if (error.message === "FORBIDDEN_ACCESS") {
-        return reply.status(403).send({
-          message: "FORBIDDEN_ACCESS",
-        });
+        throw AppError.forbidden("FORBIDDEN_ACCESS");
       }
 
       if (error.message === "BILL_NOT_FOUND") {
-        return reply.status(404).send({
-          message: "ไม่พบบิลที่ต้องการ",
-        });
+        throw AppError.notFound("BILL_NOT_FOUND", "ไม่พบบิลที่ต้องการ");
       }
 
       if (error.message === "NO_PAYMENT_FOUND") {
-        return reply.status(400).send({
-          message: "บิลนี้ยังไม่มีการแจ้งชำระเงิน",
-        });
+        throw AppError.badRequest(
+          "NO_PAYMENT_FOUND",
+          "บิลนี้ยังไม่มีการแจ้งชำระเงิน",
+        );
       }
 
-      return reply.status(500).send({
-        message: error.message || "REJECT_BILL_FAILED",
-      });
+      throw error;
     }
   },
 
   getDrafts: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const user = request.user as UserDecodedDto;
+    const user = request.user as UserDecodedDto;
 
-      const { dormId } = request.params as {
-        dormId: string;
-      };
+    const { dormId } = request.params as {
+      dormId: string;
+    };
 
-      if (!dormId)
-        return reply.status(400).send({
-          message: "DORM_ID_REQUIRED",
-        });
-
-      const result = await billService.getDrafts({
-        dormId,
-        sub: user.sub,
-      });
-
-      return reply.send(result);
-    } catch (error: any) {
-      logger.error(error);
-
-      return reply.status(500).send({
-        message: error.message,
-      });
+    if (!dormId) {
+      throw AppError.badRequest("DORM_ID_REQUIRED");
     }
+
+    const result = await billService.getDrafts({
+      dormId,
+      sub: user.sub,
+    });
+
+    return reply.send(result);
   },
 
   saveDraft: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const user = request.user as UserDecodedDto;
-      const body = request.body as any;
-      const ipAddress = request.ip;
+    const user = request.user as UserDecodedDto;
+    const body = saveDraftSchema.parse(request.body);
+    const ipAddress = request.ip;
 
-      const result = await billService.saveDraft({
-        ...body,
-        sub: user.sub,
-        ipAddress,
-      });
+    const result = await billService.saveDraft({
+      ...body,
+      sub: user.sub,
+      ipAddress,
+    });
 
-      return reply.status(201).send(result);
-    } catch (error: any) {
-      logger.error(error);
-
-      return reply.status(500).send({
-        message: error.message,
-      });
-    }
+    return reply.status(201).send(result);
   },
 
   deleteDraft: async (request: FastifyRequest, reply: FastifyReply) => {
+    const user = request.user as UserDecodedDto;
+
+    const { draftId } = request.params as {
+      draftId: string;
+    };
+
+    const ipAddress = request.ip;
+
+    if (!draftId) {
+      throw AppError.badRequest("DRAFT_ID_REQUIRED");
+    }
+
     try {
-      const user = request.user as UserDecodedDto;
-
-      const { draftId } = request.params as {
-        draftId: string;
-      };
-
-      const ipAddress = request.ip;
-
-      if (!draftId)
-        return reply.status(400).send({
-          message: "DRAFT_ID_REQUIRED",
-        });
-
       await billService.deleteDraft({
         draftId,
         sub: user.sub,
@@ -495,124 +417,78 @@ export const BillController = {
         success: true,
       });
     } catch (error: any) {
-      logger.error(error);
+      if (error.message === "DRAFT_NOT_FOUND") {
+        throw AppError.notFound("DRAFT_NOT_FOUND");
+      }
 
-      return reply.status(500).send({
-        message: error.message,
-      });
+      throw error;
     }
   },
 
+  // NOTE: multipart file upload endpoint — no zod body schema.
   uploadTempImage: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const user = request.user as UserDecodedDto;
-      const data = await request.file();
+    const user = request.user as UserDecodedDto;
+    const data = await request.file();
 
-      if (!data) {
-        return reply.status(400).send({
-          message: "FILE_REQUIRED",
-        });
-      }
-
-      const buffer = await data.toBuffer();
-      const mimetype = data.mimetype;
-      const filename = data.filename;
-
-      const result = await billService.uploadTempImage({
-        sub: user.sub,
-        buffer,
-        mimetype,
-        filename,
-      });
-
-      return reply.send(result);
-    } catch (error: any) {
-      logger.error(error);
-
-      return reply.status(500).send({
-        message: error.message,
-      });
+    if (!data) {
+      throw AppError.badRequest("FILE_REQUIRED");
     }
+
+    const buffer = await data.toBuffer();
+    const mimetype = data.mimetype;
+    const filename = data.filename;
+
+    const result = await billService.uploadTempImage({
+      sub: user.sub,
+      buffer,
+      mimetype,
+      filename,
+    });
+
+    return reply.send(result);
   },
 
   deleteTempImage: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const { objectKey } = request.query as {
-        objectKey: string;
-      };
+    const { objectKey } = request.query as {
+      objectKey: string;
+    };
 
-      if (!objectKey) {
-        return reply.status(400).send({
-          message: "OBJECT_KEY_REQUIRED",
-        });
-      }
-
-      await billService.deleteTempImage(objectKey);
-
-      return reply.send({
-        success: true,
-      });
-    } catch (error: any) {
-      logger.error(error);
-
-      return reply.status(500).send({
-        message: error.message,
-      });
+    if (!objectKey) {
+      throw AppError.badRequest("OBJECT_KEY_REQUIRED");
     }
+
+    await billService.deleteTempImage(objectKey);
+
+    return reply.send({
+      success: true,
+    });
   },
 
   sendBillEmails: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const user = request.user as UserDecodedDto;
+    const user = request.user as UserDecodedDto;
 
-      const { billIds } = request.body as {
-        billIds: string[];
-      };
+    const { billIds } = sendBillEmailsSchema.parse(request.body);
 
-      if (!billIds || !Array.isArray(billIds) || billIds.length === 0) {
-        return reply.status(400).send({
-          message: "BILL_IDS_REQUIRED",
-        });
-      }
+    const result = await billService.sendBillEmails({
+      sub: user.sub,
+      billIds,
+    });
 
-      const result = await billService.sendBillEmails({
-        sub: user.sub,
-        billIds,
-      });
-
-      return reply.send(result);
-    } catch (error: any) {
-      logger.error(error);
-
-      return reply.status(500).send({
-        message: error.message,
-      });
-    }
+    return reply.send(result);
   },
 
   scanMeter: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
     if (!user) {
-      return reply.status(401).send({
-        message: "UNAUTHORIZED",
-      });
+      throw AppError.unauthorized("UNAUTHORIZED");
     }
 
+    const { imageBase64, scanType, roomId } = scanMeterSchema.parse(
+      request.body,
+    );
+
     try {
-      const { imageBase64, scanType, roomId } = request.body as {
-        imageBase64: string;
-        scanType: "WATER" | "ELECTRIC";
-        roomId: string;
-      };
-
-      if (!imageBase64 || !roomId) {
-        return reply.status(400).send({
-          success: false,
-          message: "IMAGE_AND_ROOM_ID_REQUIRED",
-        });
-      }
-
       const result = await billService.scanMeter(
         imageBase64,
         scanType,
@@ -628,25 +504,22 @@ export const BillController = {
     } catch (error: any) {
       logger.error(`[Controller - scanMeter] ${error.message}`);
 
-      return reply.status(500).send({
-        success: false,
-        message: error.message || "INTERNAL_SERVER_ERROR",
-      });
+      if (error.message === "OWNER_PROFILE_NOT_FOUND") {
+        throw AppError.forbidden("OWNER_PROFILE_NOT_FOUND");
+      }
+
+      if (error.message === "ROOM_NOT_FOUND_OR_UNAUTHORIZED") {
+        throw AppError.notFound("ROOM_NOT_FOUND_OR_UNAUTHORIZED");
+      }
+
+      throw error;
     }
   },
 
   generatePdf: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
-    const { billIds } = request.body as {
-      billIds: string[];
-    };
-
-    if (!billIds || !Array.isArray(billIds) || billIds.length === 0) {
-      return reply.status(400).send({
-        message: "กรุณาระบุบิลที่ต้องการพิมพ์อย่างน้อย 1 รายการ",
-      });
-    }
+    const { billIds } = generatePdfSchema.parse(request.body);
 
     try {
       const { pdfBuffer, filename } = await billService.generateBulkBillPdf(
@@ -664,11 +537,14 @@ export const BillController = {
         )
         .send(pdfBuffer);
     } catch (error: any) {
-      request.log.error(error);
+      if (error.message === "ไม่พบข้อมูลบิล หรือคุณไม่มีสิทธิ์เข้าถึง") {
+        throw AppError.notFound(
+          "BILLS_NOT_FOUND",
+          "ไม่พบข้อมูลบิล หรือคุณไม่มีสิทธิ์เข้าถึง",
+        );
+      }
 
-      return reply.status(500).send({
-        message: error.message || "ไม่สามารถสร้างไฟล์ PDF ได้",
-      });
+      throw error;
     }
   },
 };
