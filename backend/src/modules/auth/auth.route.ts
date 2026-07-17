@@ -6,15 +6,40 @@ import { Role } from "@/types/role.type";
 import { FastifyInstance } from "fastify";
 import { AuthController } from "@/modules/auth/auth.controller";
 
+const bruteForceRateLimit = {
+  config: {
+    rateLimit: {
+      max: 10,
+      timeWindow: "1 minute",
+    },
+  },
+};
+
 export async function authRoute(app: FastifyInstance) {
-  app.post("/register-admin", AuthController.register);
-  app.post("/register-owner", AuthController.ownerRegister);
+  app.post(
+    "/register-admin",
+    bruteForceRateLimit,
+    AuthController.register,
+  );
+  app.post(
+    "/register-owner",
+    bruteForceRateLimit,
+    AuthController.ownerRegister,
+  );
   app.post("/refresh", AuthController.refresh);
-  app.post("/login", AuthController.login);
+  app.post("/login", bruteForceRateLimit, AuthController.login);
   app.post("/logout", AuthController.logout);
-  app.post("/login/qr", AuthController.loginWithQr);
-  app.post("/forgot-password", AuthController.forgotPassword);
-  app.post("/reset-password", AuthController.resetPassword);
+  app.post("/login/qr", bruteForceRateLimit, AuthController.loginWithQr);
+  app.post(
+    "/forgot-password",
+    bruteForceRateLimit,
+    AuthController.forgotPassword,
+  );
+  app.post(
+    "/reset-password",
+    bruteForceRateLimit,
+    AuthController.resetPassword,
+  );
   app.post("/verify-reset-token", AuthController.verifyResetToken);
 
   app.register(async (routeRoles) => {

@@ -4,6 +4,8 @@ import "dotenv/config";
 import cookie from "@fastify/cookie";
 import { indexRoute } from "@/routes";
 import fastifyMultipart from "@fastify/multipart";
+import fastifyHelmet from "@fastify/helmet";
+import fastifyRateLimit from "@fastify/rate-limit";
 import os from "os";
 import figlet from "figlet";
 import prisma from "@/lib/prisma";
@@ -42,6 +44,17 @@ export async function buildApp() {
   });
 
   await getBrowserInstance();
+
+  await app.register(fastifyHelmet, {
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  });
+
+  await app.register(fastifyRateLimit, {
+    global: true,
+    max: 300,
+    timeWindow: "1 minute",
+  });
 
   app.register(fastifyStatic, {
     root: path.join(__dirname, "../public"),
