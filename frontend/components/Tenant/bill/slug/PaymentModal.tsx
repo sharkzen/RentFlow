@@ -34,7 +34,7 @@ import { extractSlipData, validateSlipContent } from "../lib/slip-verification";
 import log from "@/lib/logger";
 
 // นำเข้า THAI_BANKS แค่บรรทัดเดียวพอ (ลบที่ซ้ำออก)
-import { THAI_BANKS } from "@/components/Owner/dorms/DormPaymentSettings";
+import { THAI_BANKS } from "@/features/dormitory/components/DormPaymentSettings";
 
 interface Props {
   isOpen: boolean;

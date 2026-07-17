@@ -1,4 +1,4 @@
-import OwnerNavbar from "@/components/Owner/OwnerNavbar";
+import OwnerNavbar from "@/features/owner/components/OwnerNavbar";
 import { fetchWithRefresh } from "@/lib/api/fetchWithRefresh";
 import { redirect } from "next/navigation";
 import { Role, Status, type User } from "@/features/auth";

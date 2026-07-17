@@ -1,4 +1,4 @@
-import BillContainer from "@/components/Owner/bill/BillContainer";
+import BillContainer from "@/features/bill/components/OwnerBillContainer";
 
 export default function page() {
   return <BillContainer />;

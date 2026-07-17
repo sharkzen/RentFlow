@@ -1,4 +1,4 @@
-import RoomContainer from "@/components/Owner/rooms/RoomContainer";
+import RoomContainer from "@/features/room/components/RoomContainer";
 
 export default function page() {
   return <RoomContainer />;

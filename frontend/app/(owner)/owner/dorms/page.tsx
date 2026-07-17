@@ -1,4 +1,4 @@
-import DormsContainer from "@/components/Owner/dorms/DormsContainer";
+import DormsContainer from "@/features/dormitory/components/DormsContainer";
 
 export default function page() {
   return <DormsContainer />;

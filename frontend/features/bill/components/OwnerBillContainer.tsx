@@ -6,7 +6,7 @@ import BillTable from "./BillTable";
 import CreateBillDialog from "./CreateBillDialog";
 import BillDetailDialog from "./BillDetailDialog";
 import DormSelector from "./DormSelector";
-import BillFilters from "./BillFilters";
+import BillFilters from "./OwnerBillFilters";
 import { BillService } from "@/features/bill/services/bill.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Bill } from "@/features/bill/types";

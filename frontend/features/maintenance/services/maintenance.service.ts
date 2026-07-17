@@ -1,5 +1,5 @@
 import { axios } from "@/lib/api/api-client";
-import { MaintenanceFilterStatus } from "@/components/Owner/maintenance/MaintenanceFilter";
+import { MaintenanceFilterStatus } from "@/features/maintenance/components/MaintenanceFilter";
 import { MaintenanceStatus } from "../types";
 
 interface GetMaintenanceParams {

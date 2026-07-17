@@ -1,4 +1,4 @@
-import TenantContainer from "@/components/Owner/tenants/TenantContainer";
+import TenantContainer from "@/features/tenant/components/TenantContainer";
 
 export default function page() {
   return <TenantContainer />;
