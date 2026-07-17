@@ -1,8 +1,9 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { maintenanceService } from "./maintenance.service";
-import logger from "@/utils/logger";
 import { UserDecodedDto } from "../auth/dto/user.dto";
 import { MaintenanceStatus } from "@prisma/client";
+import { AppError } from "@/lib/errors";
+import { z } from "zod";
 
 interface GetMaintenanceQuery {
   dormId: string;
@@ -13,6 +14,11 @@ interface GetMaintenanceQuery {
   page?: string;
   limit?: string;
 }
+
+const updateStatusSchema = z.object({
+  status: z.nativeEnum(MaintenanceStatus),
+  note: z.string().optional(),
+});
 
 export const MaintenanceController = {
   getMaintenance: async (
@@ -34,9 +40,10 @@ export const MaintenanceController = {
     } = request.query;
 
     if (!dormId) {
-      return reply.status(400).send({
-        message: "Dormitory ID is required",
-      });
+      throw AppError.badRequest(
+        "DORM_ID_REQUIRED",
+        "Dormitory ID is required",
+      );
     }
 
     try {
@@ -53,17 +60,14 @@ export const MaintenanceController = {
 
       return reply.send(result);
     } catch (error: any) {
-      logger.error(error.message);
-
       if (error.message === "FORBIDDEN_ACCESS") {
-        return reply.status(403).send({
-          message: "You are not the owner of this dormitory",
-        });
+        throw AppError.forbidden(
+          "FORBIDDEN_ACCESS",
+          "You are not the owner of this dormitory",
+        );
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      throw error;
     }
   },
 
@@ -81,7 +85,7 @@ export const MaintenanceController = {
 
     const { id } = request.params;
 
-    const { status, note } = request.body;
+    const { status, note } = updateStatusSchema.parse(request.body);
 
     try {
       const result = await maintenanceService.updateStatus(
@@ -92,23 +96,21 @@ export const MaintenanceController = {
       );
       return reply.send(result);
     } catch (error: any) {
-      logger.error(error.message);
-
       if (error.message === "NOT_FOUND") {
-        return reply.status(404).send({
-          message: "Maintenance request not found",
-        });
+        throw AppError.notFound(
+          "NOT_FOUND",
+          "Maintenance request not found",
+        );
       }
 
       if (error.message === "FORBIDDEN_ACCESS") {
-        return reply.status(403).send({
-          message: "You don't have permission",
-        });
+        throw AppError.forbidden(
+          "FORBIDDEN_ACCESS",
+          "You don't have permission",
+        );
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      throw error;
     }
   },
 };
