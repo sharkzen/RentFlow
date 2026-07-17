@@ -18,7 +18,7 @@ import log from "@/lib/logger";
 import { toast } from "react-toastify";
 import { RoomService } from "@/features/room/services/room.service";
 import BillItemRow from "./BillItemRow";
-import MonthYearPicker from "./MonthYearPicker";
+import MonthYearPicker from "@/lib/ui/MonthYearPicker";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import MeterScannerModal from "./MeterScannerModal";
 import { BillService } from "@/features/bill/services/bill.service";
@@ -540,7 +540,7 @@ export default function CreateBillDialog({
         <div className="relative z-40 flex flex-col items-start justify-between gap-4 border-b border-slate-100 bg-gray-50/50 p-4 lg:flex-row lg:items-center">
           <div className="w-full sm:w-auto">
             <MonthYearPicker
-              selectedDate={selectedDate}
+              value={selectedDate}
               onChange={setSelectedDate}
               disabled={isSubmitting}
             />

@@ -22,7 +22,7 @@ import {
   isValidMapLink,
   isValidText,
 } from "@/features/auth/validators";
-import FormSuccess from "@/components/status/FormSuccess";
+import FormSuccess from "@/lib/ui/status/FormSuccess";
 import { showBackendError } from "@/lib/backendError";
 
 export default function OwnerRegisterForm() {

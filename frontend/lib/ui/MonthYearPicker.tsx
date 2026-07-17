@@ -5,6 +5,7 @@ import { ChevronDown, Check, Calendar } from "lucide-react";
 interface MonthYearPickerProps {
   value: Date | null;
   onChange: (date: Date) => void;
+  disabled?: boolean;
 }
 
 const THAI_MONTHS = [
@@ -25,6 +26,7 @@ const THAI_MONTHS = [
 export default function MonthYearPicker({
   value,
   onChange,
+  disabled,
 }: MonthYearPickerProps) {
   const currentDate = value || new Date();
   const currentMonth = currentDate.getMonth();
@@ -84,8 +86,9 @@ export default function MonthYearPicker({
       <div className="relative h-10 w-full sm:w-36" ref={monthRef}>
         <button
           type="button"
+          disabled={disabled}
           onClick={() => setIsMonthOpen(!isMonthOpen)}
-          className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border px-3 text-sm font-medium transition-all focus:outline-none ${isMonthOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+          className={`flex h-full w-full items-center justify-between rounded-lg border px-3 text-sm font-medium transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${isMonthOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"} ${disabled ? "" : "cursor-pointer"}`}
         >
           <div className="flex items-center gap-2 overflow-hidden">
             <Calendar
@@ -119,8 +122,9 @@ export default function MonthYearPicker({
       <div className="relative h-10 w-full sm:w-28" ref={yearRef}>
         <button
           type="button"
+          disabled={disabled}
           onClick={() => setIsYearOpen(!isYearOpen)}
-          className={`flex h-full w-full cursor-pointer items-center justify-between rounded-lg border px-3 text-sm font-medium transition-all focus:outline-none ${isYearOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"}`}
+          className={`flex h-full w-full items-center justify-between rounded-lg border px-3 text-sm font-medium transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${isYearOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"} ${disabled ? "" : "cursor-pointer"}`}
         >
           <span>{currentYear + 543}</span>
           <ChevronDown

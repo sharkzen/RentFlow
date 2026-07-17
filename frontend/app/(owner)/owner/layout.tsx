@@ -2,8 +2,8 @@ import OwnerNavbar from "@/features/owner/components/OwnerNavbar";
 import { fetchWithRefresh } from "@/lib/api/fetchWithRefresh";
 import { redirect } from "next/navigation";
 import { Role, Status, type User } from "@/features/auth";
-import FormPending from "@/components/status/FormPending";
-import FormBanned from "@/components/status/FormBanned";
+import FormPending from "@/lib/ui/status/FormPending";
+import FormBanned from "@/lib/ui/status/FormBanned";
 
 export default async function OwnerLayout({
   children,

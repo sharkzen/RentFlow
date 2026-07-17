@@ -70,7 +70,7 @@ export default function Header() {
     }
   };
 
-  const dashbaordRole = (role: Role) => {
+  const dashboardRole = (role: Role) => {
     switch (role) {
       case Role.OWNER:
         return "/owner/dashboard";
@@ -174,7 +174,7 @@ export default function Header() {
                             หน้าหลัก
                           </Link>
                           <Link
-                            href={dashbaordRole(user.role)}
+                            href={dashboardRole(user.role)}
                             onClick={() => setDropdownOpen(false)}
                             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600"
                           >
