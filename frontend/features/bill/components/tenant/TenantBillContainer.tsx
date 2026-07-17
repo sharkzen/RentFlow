@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { BillData, BillFilterState } from "./types";
-import BillFilters from "./BillFilters";
+import BillFilters from "./TenantBillFilters";
 import BillList from "./BillList";
 import { Wallet, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { TenantService } from "@/features/tenant/services/tenant.service";

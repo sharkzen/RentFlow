@@ -1,6 +1,6 @@
-import TenantNavbar from "@/components/Tenant/TenantNavbar";
+import TenantNavbar from "@/features/tenant/components/TenantNavbar";
 import TenantProvider from "./TenantProvider";
-import TenantAnnouncementModal from "@/components/Tenant/TenantAnnouncementModal";
+import TenantAnnouncementModal from "@/features/announcement/components/TenantAnnouncementModal";
 
 export default function TenantLayout({
   children,

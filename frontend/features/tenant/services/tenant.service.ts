@@ -12,7 +12,7 @@ import {
   BillData,
   BillStatus,
   IBillDetail,
-} from "@/components/Tenant/bill/types";
+} from "@/features/bill/components/tenant/types";
 
 export interface GetMaintenanceParams {
   page?: number;

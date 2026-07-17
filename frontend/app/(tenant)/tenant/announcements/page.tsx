@@ -1,5 +1,5 @@
 import React from "react";
-import AnnouncementHistoryClient from "@/components/Tenant/announcement/AnnouncementHistoryClient";
+import AnnouncementHistoryClient from "@/features/announcement/components/AnnouncementHistoryClient";
 
 export default function AnnouncementHistoryPage() {
   return (

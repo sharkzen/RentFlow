@@ -1,4 +1,4 @@
-import TenantDashboardPage from "@/components/Tenant/dashboard/TenantDashboardPage";
+import TenantDashboardPage from "@/features/tenant/components/dashboard/TenantDashboardPage";
 
 export default function page() {
   return <TenantDashboardPage />;

@@ -30,7 +30,7 @@ import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { QrGenerateResponse } from "../types";
 import { PromptPayCard } from "./PromptPayCard";
 import Tesseract from "tesseract.js";
-import { extractSlipData, validateSlipContent } from "../lib/slip-verification";
+import { extractSlipData, validateSlipContent } from "@/components/Tenant/bill/lib/slip-verification";
 import log from "@/lib/logger";
 
 // นำเข้า THAI_BANKS แค่บรรทัดเดียวพอ (ลบที่ซ้ำออก)

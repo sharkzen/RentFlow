@@ -1,4 +1,4 @@
-import BillSlugContainer from "@/components/Tenant/bill/slug/BillSlugContainer";
+import BillSlugContainer from "@/features/bill/components/tenant/slug/BillSlugContainer";
 
 export default function page() {
   return <BillSlugContainer />;

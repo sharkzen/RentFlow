@@ -1,4 +1,4 @@
-import { BillData, BillStatus } from "@/components/Tenant/bill/types";
+import { BillData, BillStatus } from "@/features/bill/components/tenant/types";
 
 export type Tenant = {
   id: string;

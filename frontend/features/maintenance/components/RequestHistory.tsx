@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 import LoadingPage from "@/lib/ui/layout/LoadingPage";
-import MaintenanceDetailModal from "./MaintenanceDetailModal";
+import MaintenanceDetailModal from "./TenantMaintenanceDetailModal";
 import { toast } from "react-toastify";
 
 export const statusConfig = {
