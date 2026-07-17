@@ -1,5 +1,5 @@
 import { transporter } from "@/config/mail";
-import { getEmailTemplate } from "@/utils/email-templates";
+import { getEmailTemplate } from "@/services/email-templates";
 import { EmailType } from "@/queues/email.types";
 import { env } from "@/config/env";
 

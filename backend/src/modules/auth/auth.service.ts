@@ -16,7 +16,7 @@ import {
 } from "@/utils/jwt";
 import { generateSlug } from "@/lib/text";
 import logger from "@/utils/logger";
-import { sendEmailImmediate } from "@/utils/mail-sender";
+import { sendEmailImmediate } from "@/services/mail-sender";
 import { EmailType } from "@/queues/email.types";
 import * as argon2 from "argon2";
 import { env } from "@/config/env";

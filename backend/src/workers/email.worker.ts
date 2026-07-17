@@ -1,6 +1,6 @@
 import { emailQueue } from "../queues/email.queue";
 import { transporter } from "../config/mail";
-import { getEmailTemplate } from "../utils/email-templates";
+import { getEmailTemplate } from "../services/email-templates";
 import { startMoveOutWorker } from "./moveOutWorker";
 import { env } from "../config/env";
 console.log("========================================");
