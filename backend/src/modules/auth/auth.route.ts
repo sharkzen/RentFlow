@@ -16,11 +16,7 @@ const bruteForceRateLimit = {
 };
 
 export async function authRoute(app: FastifyInstance) {
-  app.post(
-    "/register-admin",
-    bruteForceRateLimit,
-    AuthController.register,
-  );
+  app.post("/register-admin", bruteForceRateLimit, AuthController.register);
   app.post(
     "/register-owner",
     bruteForceRateLimit,

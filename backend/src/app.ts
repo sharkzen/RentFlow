@@ -25,7 +25,10 @@ export async function buildApp() {
     if (error instanceof AppError) {
       return reply.status(error.statusCode).send({
         message: error.code,
-        ...(env.NODE_ENV !== "production" && { detail: error.message }),
+
+        ...(env.NODE_ENV !== "production" && {
+          detail: error.message,
+        }),
       });
     }
 
@@ -47,7 +50,10 @@ export async function buildApp() {
 
   await app.register(fastifyHelmet, {
     contentSecurityPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+
+    crossOriginResourcePolicy: {
+      policy: "cross-origin",
+    },
   });
 
   await app.register(fastifyRateLimit, {

@@ -40,7 +40,9 @@ const emailWorker = new Worker(
 
     console.log(` ✅ [Worker] Job ${job.id} SENT SUCCESS: ${info.messageId}`);
   },
-  { connection: redisConnection as any },
+  {
+    connection: redisConnection as any,
+  },
 );
 
 emailWorker.on("ready", () => {

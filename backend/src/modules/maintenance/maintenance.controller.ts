@@ -40,10 +40,7 @@ export const MaintenanceController = {
     } = request.query;
 
     if (!dormId) {
-      throw AppError.badRequest(
-        "DORM_ID_REQUIRED",
-        "Dormitory ID is required",
-      );
+      throw AppError.badRequest("DORM_ID_REQUIRED", "Dormitory ID is required");
     }
 
     try {
@@ -97,10 +94,7 @@ export const MaintenanceController = {
       return reply.send(result);
     } catch (error: any) {
       if (error.message === "NOT_FOUND") {
-        throw AppError.notFound(
-          "NOT_FOUND",
-          "Maintenance request not found",
-        );
+        throw AppError.notFound("NOT_FOUND", "Maintenance request not found");
       }
 
       if (error.message === "FORBIDDEN_ACCESS") {

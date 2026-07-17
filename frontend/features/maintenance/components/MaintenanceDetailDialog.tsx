@@ -17,9 +17,7 @@ import {
 import { MaintenanceRequest, MaintenanceStatus } from "@/features/maintenance";
 import { useEffect, useState } from "react";
 import { useScrollLock } from "usehooks-ts";
-import ConfirmDialog, {
-  ConfirmDialogType,
-} from "@/lib/ui/ConfirmDialog";
+import ConfirmDialog, { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
 
 interface MaintenanceDetailDialogProps {
   isOpen: boolean;

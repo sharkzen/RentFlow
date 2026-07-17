@@ -25,9 +25,7 @@ import {
 import { Bill } from "@/features/bill/types";
 import BillSlipSidebar from "./BillSlipSidebar";
 import { useScrollLock, useOnClickOutside } from "usehooks-ts";
-import ConfirmDialog, {
-  ConfirmDialogType,
-} from "@/lib/ui/ConfirmDialog";
+import ConfirmDialog, { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
 import { BillService } from "@/features/bill/services/bill.service";
 import { toast } from "react-toastify";
 

@@ -6,6 +6,7 @@ import sharp from "sharp";
 import { extname } from "node:path";
 import { randomUUID } from "node:crypto";
 import { AppError } from "@/lib/errors";
+
 import {
   getBillsQuerySchema,
   createBillsSchema,
@@ -65,7 +66,6 @@ export const BillController = {
 
       if (error.message?.startsWith("DUPLICATE_BILL_FOUND")) {
         const roomNum = error.message.split(":")[1];
-
         throw new AppError(409, "DUPLICATE_BILL_FOUND", roomNum);
       }
 
@@ -197,7 +197,6 @@ export const BillController = {
     }
   },
 
-  // NOTE: multipart file upload endpoint — no zod body schema (files() stream, not JSON body).
   uploadSlip: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
@@ -310,7 +309,10 @@ export const BillController = {
       }
 
       if (error.message === "ALREADY_APPLIED") {
-        throw AppError.badRequest("ALREADY_APPLIED", "มีการหักเงินล่วงหน้าไปแล้ว");
+        throw AppError.badRequest(
+          "ALREADY_APPLIED",
+          "มีการหักเงินล่วงหน้าไปแล้ว",
+        );
       }
 
       if (error.message === "BILL_NOT_PENDING") {
@@ -425,7 +427,6 @@ export const BillController = {
     }
   },
 
-  // NOTE: multipart file upload endpoint — no zod body schema.
   uploadTempImage: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
     const data = await request.file();

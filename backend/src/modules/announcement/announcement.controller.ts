@@ -33,7 +33,10 @@ export const AnnouncementController = {
     const { page, limit, dormitoryId } = request.query;
 
     if (!dormitoryId) {
-      throw AppError.badRequest("DORMITORY_ID_REQUIRED", "กรุณาระบุ dormitoryId");
+      throw AppError.badRequest(
+        "DORMITORY_ID_REQUIRED",
+        "กรุณาระบุ dormitoryId",
+      );
     }
 
     const pageNumber = parseInt(page || "1", 10);

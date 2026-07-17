@@ -1,5 +1,4 @@
-"use client"; // ถ้าใช้ Next.js App Router อย่าลืมใส่บรรทัดนี้
-
+"use client";
 import React, { useState, useRef, useEffect } from "react";
 import { CreditCard, Wallet, Building2, ChevronDown } from "lucide-react";
 import { DormFormData } from "@/features/dormitory";
@@ -10,18 +9,66 @@ interface PaymentSettingsProps {
 }
 
 export const THAI_BANKS = [
-  { id: "kbank", name: "ธนาคารกสิกรไทย (KBANK)", logo: "/banks/kbank.png" },
-  { id: "scb", name: "ธนาคารไทยพาณิชย์ (SCB)", logo: "/banks/scb.png" },
-  { id: "bbl", name: "ธนาคารกรุงเทพ (BBL)", logo: "/banks/bbl.png" },
-  { id: "ktb", name: "ธนาคารกรุงไทย (KTB)", logo: "/banks/ktb.png" },
-  { id: "bay", name: "ธนาคารกรุงศรีอยุธยา (BAY)", logo: "/banks/bay.png" },
-  { id: "ttb", name: "ธนาคารทหารไทยธนชาต (TTB)", logo: "/banks/ttb.png" },
-  { id: "gsb", name: "ธนาคารออมสิน (GSB)", logo: "/banks/gsb.png" },
-  { id: "baac", name: "ธ.ก.ส. (BAAC)", logo: "/banks/baac.png" },
-  { id: "ghb", name: "ธนาคารอาคารสงเคราะห์ (GHB)", logo: "/banks/ghb.png" },
-  { id: "uob", name: "ธนาคารยูโอบี (UOB)", logo: "/banks/uob.png" },
-  { id: "cimb", name: "ธนาคารซีไอเอ็มบี ไทย (CIMB)", logo: "/banks/cimb.png" },
-  { id: "kkp", name: "ธนาคารเกียรตินาคินภัทร (KKP)", logo: "/banks/kkp.png" },
+  {
+    id: "kbank",
+    name: "ธนาคารกสิกรไทย (KBANK)",
+    logo: "/banks/kbank.png",
+  },
+  {
+    id: "scb",
+    name: "ธนาคารไทยพาณิชย์ (SCB)",
+    logo: "/banks/scb.png",
+  },
+  {
+    id: "bbl",
+    name: "ธนาคารกรุงเทพ (BBL)",
+    logo: "/banks/bbl.png",
+  },
+  {
+    id: "ktb",
+    name: "ธนาคารกรุงไทย (KTB)",
+    logo: "/banks/ktb.png",
+  },
+  {
+    id: "bay",
+    name: "ธนาคารกรุงศรีอยุธยา (BAY)",
+    logo: "/banks/bay.png",
+  },
+  {
+    id: "ttb",
+    name: "ธนาคารทหารไทยธนชาต (TTB)",
+    logo: "/banks/ttb.png",
+  },
+  {
+    id: "gsb",
+    name: "ธนาคารออมสิน (GSB)",
+    logo: "/banks/gsb.png",
+  },
+  {
+    id: "baac",
+    name: "ธ.ก.ส. (BAAC)",
+    logo: "/banks/baac.png",
+  },
+  {
+    id: "ghb",
+    name: "ธนาคารอาคารสงเคราะห์ (GHB)",
+    logo: "/banks/ghb.png",
+  },
+  {
+    id: "uob",
+    name: "ธนาคารยูโอบี (UOB)",
+    logo: "/banks/uob.png",
+  },
+  {
+    id: "cimb",
+    name: "ธนาคารซีไอเอ็มบี ไทย (CIMB)",
+    logo: "/banks/cimb.png",
+  },
+  {
+    id: "kkp",
+    name: "ธนาคารเกียรตินาคินภัทร (KKP)",
+    logo: "/banks/kkp.png",
+  },
   {
     id: "lhb",
     name: "ธนาคารแลนด์ แอนด์ เฮ้าส์ (LH Bank)",
@@ -48,7 +95,6 @@ const Input = ({ className, ...props }: any) => (
   />
 );
 
-// Component สำหรับเลือกธนาคารแบบ Custom (มีรูป Logo)
 const BankSelect = ({
   value,
   onChange,
@@ -59,7 +105,6 @@ const BankSelect = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // ปิด Dropdown เมื่อคลิกพื้นที่อื่น
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -69,6 +114,7 @@ const BankSelect = ({
         setIsOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -78,11 +124,7 @@ const BankSelect = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <div
-        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-2.5 text-sm transition-all focus:outline-none ${
-          isOpen
-            ? "border-indigo-500 bg-white ring-2 ring-indigo-100"
-            : "border-slate-200 bg-slate-50 hover:bg-slate-100"
-        }`}
+        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "border-indigo-500 bg-white ring-2 ring-indigo-100" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
         onClick={() => setIsOpen(!isOpen)}
       >
         {selectedBank ? (
@@ -103,22 +145,15 @@ const BankSelect = ({
         )}
         <ChevronDown
           size={16}
-          className={`text-slate-400 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </div>
-
       {isOpen && (
         <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
           {THAI_BANKS.map((bank) => (
             <div
               key={bank.id}
-              className={`flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-indigo-50 ${
-                value === bank.id
-                  ? "bg-indigo-50 font-medium text-indigo-700"
-                  : "text-slate-700"
-              }`}
+              className={`flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-indigo-50 ${value === bank.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-slate-700"}`}
               onClick={() => {
                 onChange(bank.id);
                 setIsOpen(false);
@@ -155,7 +190,6 @@ export default function DormPaymentSettings({
         <div className="md:col-span-2">
           <h4 className="mb-2 text-xs font-bold text-slate-400">บัญชีธนาคาร</h4>
         </div>
-
         <div className="relative z-20">
           <Label icon={Building2}>
             ชื่อธนาคาร <span className="text-red-500">*</span>
@@ -165,7 +199,6 @@ export default function DormPaymentSettings({
             onChange={(val) => updateField("bankName", val)}
           />
         </div>
-
         <div>
           <Label>
             เลขที่บัญชี <span className="text-red-500">*</span>
@@ -177,7 +210,6 @@ export default function DormPaymentSettings({
             required
           />
         </div>
-
         <div className="md:col-span-2">
           <Label>
             ชื่อบัญชี ต้องตรงกับบัญชีพร้อมเพย์ (ถ้ามี){" "}
@@ -191,9 +223,7 @@ export default function DormPaymentSettings({
           />
         </div>
       </div>
-
       <div className="border-t border-slate-100 pt-5"></div>
-
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div className="md:col-span-2">
           <h4 className="mb-2 text-xs font-bold text-slate-400">

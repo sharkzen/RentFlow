@@ -74,7 +74,6 @@ function CustomSelect({
           className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-
       {isOpen && (
         <div className="animate-in fade-in zoom-in-95 absolute z-50 mt-2 max-h-60 w-full origin-top overflow-auto rounded-xl border border-gray-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5">
           {options.map((option) => {
@@ -163,7 +162,6 @@ export function QrCodeFilters({
             placeholder="เลือกหอพัก"
           />
         </div>
-
         <div className="w-full lg:w-56 xl:w-60">
           <CustomSelect
             icon={Filter}
@@ -173,7 +171,6 @@ export function QrCodeFilters({
             placeholder="สถานะ QR"
           />
         </div>
-
         <div className="relative w-full md:col-span-2 lg:col-span-1 lg:w-64 xl:w-72">
           <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
@@ -183,7 +180,6 @@ export function QrCodeFilters({
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-10 pl-10 text-sm text-gray-900 transition-all placeholder:text-gray-400 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
           />
-
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
@@ -194,7 +190,6 @@ export function QrCodeFilters({
           )}
         </div>
       </div>
-
       <button
         disabled={selectedCount === 0 || isBulkLoading}
         onClick={onBulkCreate}

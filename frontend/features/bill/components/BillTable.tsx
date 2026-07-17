@@ -10,9 +10,7 @@ import {
   Printer,
 } from "lucide-react";
 import { Bill } from "@/features/bill/types";
-import ConfirmDialog, {
-  ConfirmDialogType,
-} from "@/lib/ui/ConfirmDialog";
+import ConfirmDialog, { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
 
 interface Props {
   bills: Bill[];

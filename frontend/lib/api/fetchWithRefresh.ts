@@ -5,6 +5,7 @@ export async function fetchWithRefresh(url: string, options: RequestInit = {}) {
   const allCookies = cookieStore.getAll();
   const cookieHeader = allCookies.map((c) => `${c.name}=${c.value}`).join("; ");
   const baseUrl = process.env.API_URL || "http://localhost:3001";
+
   let res = await fetch(url, {
     ...options,
 

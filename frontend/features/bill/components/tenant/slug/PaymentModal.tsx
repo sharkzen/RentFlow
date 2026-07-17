@@ -20,7 +20,7 @@ import {
   RefreshCw,
   Building2,
   ArrowDown,
-  AlertCircle, // เพิ่ม icon นี้เข้ามา
+  AlertCircle,
 } from "lucide-react";
 
 import { TenantService } from "@/features/tenant/services/tenant.service";
@@ -30,10 +30,11 @@ import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { QrGenerateResponse } from "../types";
 import { PromptPayCard } from "./PromptPayCard";
 import Tesseract from "tesseract.js";
-import { extractSlipData, validateSlipContent } from "@/features/bill/lib/slip-verification";
+import {
+  extractSlipData,
+  validateSlipContent,
+} from "@/features/bill/lib/slip-verification";
 import log from "@/lib/logger";
-
-// นำเข้า THAI_BANKS แค่บรรทัดเดียวพอ (ลบที่ซ้ำออก)
 import { THAI_BANKS } from "@/features/dormitory/components/DormPaymentSettings";
 
 interface Props {
@@ -79,8 +80,6 @@ export default function PaymentModal({
   const [isReuploading, setIsReuploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ref = useRef<HTMLDivElement>(null);
-
-  // หาข้อมูลธนาคารจาก paymentSetting.bankName
   const selectedBank = THAI_BANKS.find(
     (b) => b.id === paymentSetting?.bankName,
   );
@@ -375,7 +374,6 @@ export default function PaymentModal({
                 <span>ชำระแล้วโปรดอัพโหลดสลิปด้านล่าง</span>
               </div>
             </div>
-
             <div className="p-6">
               {!isLocked && (
                 <div className="mb-8">
@@ -388,7 +386,6 @@ export default function PaymentModal({
                       </div>
                       <div className="space-y-4">
                         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                          {/* ส่วนแสดง Logo และ ชื่อธนาคาร */}
                           <div className="mb-4 flex items-center gap-3 border-b border-slate-100 pb-3">
                             {selectedBank ? (
                               <img
@@ -417,7 +414,6 @@ export default function PaymentModal({
                             </div>
                           </div>
 
-                          {/* ส่วนแสดงเลขบัญชี */}
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="mb-1 text-[11px] font-medium text-slate-400">
@@ -449,7 +445,6 @@ export default function PaymentModal({
                           </div>
                         </div>
 
-                        {/* ชื่อบัญชีผู้รับเงิน */}
                         <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
                           <p className="mb-1 text-[11px] font-bold text-indigo-400 uppercase">
                             ชื่อบัญชีผู้รับเงิน (ตรวจสอบชื่อนี้)

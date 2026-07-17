@@ -3,6 +3,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { tenantService } from "@/modules/tenant/tenant.service";
 import { UserDecodedDto } from "../auth/dto/user.dto";
 import { AppError } from "@/lib/errors";
+
 import {
   getTenantDormQuerySchema,
   getMyBillsQuerySchema,
@@ -81,9 +82,15 @@ export const TenantController = {
     } catch (error: any) {
       switch (error.message) {
         case "EMAIL_ALREADY_EXISTS":
-          throw AppError.conflict("EMAIL_ALREADY_EXISTS", "Email is already in use");
+          throw AppError.conflict(
+            "EMAIL_ALREADY_EXISTS",
+            "Email is already in use",
+          );
         case "ROOM_NOT_AVAILABLE":
-          throw AppError.conflict("ROOM_NOT_AVAILABLE", "Room is not available");
+          throw AppError.conflict(
+            "ROOM_NOT_AVAILABLE",
+            "Room is not available",
+          );
         case "ROOM_NOT_FOUND":
           throw AppError.notFound("ROOM_NOT_FOUND");
         case "OWNER_PROFILE_NOT_FOUND":
@@ -176,7 +183,11 @@ export const TenantController = {
     }
 
     try {
-      const result = await tenantService.moveOut(user.sub, tenantId, moveOutDate);
+      const result = await tenantService.moveOut(
+        user.sub,
+        tenantId,
+        moveOutDate,
+      );
       return reply.status(200).send(result);
     } catch (error: any) {
       switch (error.message) {
@@ -320,7 +331,10 @@ export const TenantController = {
       }
 
       if (error.message === "FORBIDDEN_ACCESS") {
-        throw AppError.forbidden("FORBIDDEN_ACCESS", "ไม่สามารถสร้างไฟล์ PDF ได้");
+        throw AppError.forbidden(
+          "FORBIDDEN_ACCESS",
+          "ไม่สามารถสร้างไฟล์ PDF ได้",
+        );
       }
 
       throw error;
@@ -329,7 +343,6 @@ export const TenantController = {
 
   generateQrPayment: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
-
     const body = generateQrPaymentSchema.parse(request.body);
 
     try {
@@ -358,10 +371,8 @@ export const TenantController = {
     }
   },
 
-  // NOTE: multipart file upload endpoint — no zod body schema.
   uploadSlip: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
-
     const parts = await request.file();
 
     if (!parts) {
@@ -414,7 +425,6 @@ export const TenantController = {
     }
   },
 
-  // NOTE: multipart form endpoint — no zod body schema (raw parts() stream).
   createMaintenance: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
@@ -494,8 +504,6 @@ export const TenantController = {
     return reply.status(200).send(result);
   },
 
-  // NOTE: multipart-shaped body (uses getMultipartValue helper on raw fields) — skipping
-  // zod validation here since the shape is ambiguous between JSON and multipart callers.
   updateMaintenance: async (request: FastifyRequest, reply: FastifyReply) => {
     const user = request.user as UserDecodedDto;
 
@@ -615,7 +623,6 @@ export const TenantController = {
       return reply.status(200).send(result);
     } catch (error: any) {
       logger.error(error);
-
       throw AppError.badRequest("RE_ENTRY_FAILED", error.message);
     }
   },

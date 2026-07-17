@@ -17,7 +17,6 @@ export default function QrCodePage() {
             จัดการสิทธิ์และสร้าง PDF QR Code สำหรับสแกนเข้าระบบของแต่ละห้องพัก
           </p>
         </div>
-
         <QrCodeManager />
       </div>
     </div>

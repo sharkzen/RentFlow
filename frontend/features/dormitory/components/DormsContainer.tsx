@@ -3,7 +3,7 @@ import { useState } from "react";
 import DormsCard from "./DormsCard";
 import DormsDialog from "./DormsDialog";
 import { DormService } from "@/features/dormitory/services/dorm.service";
-import { Plus, Building2, Ban } from "lucide-react"; // เพิ่ม icon Ban (ถ้าต้องการใช้)
+import { Plus, Building2, Ban } from "lucide-react";
 import DromCreate from "./DromCreate";
 import { Spinner } from "@/lib/ui/Spinner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -92,7 +92,6 @@ export default function DormsContainer() {
                   </div>
                 )}
 
-                {/* ตัวการ์ดปกติ จะถูกทำให้สีจางลง ปิดการคลิก และทำให้เป็นขาวดำนิดหน่อยเมื่อโดนแบน */}
                 <div
                   className={
                     isBanned

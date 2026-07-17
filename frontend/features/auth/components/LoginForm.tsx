@@ -170,7 +170,6 @@ export default function LoginForm() {
           <p className="mt-3 text-white/80">ห้องพัก • ผู้เช่า • รายได้</p>
         </div>
       </div>
-
       <div className="flex items-center justify-center px-6 py-12 md:px-12 lg:px-24">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
@@ -180,14 +179,12 @@ export default function LoginForm() {
                 Flow
               </span>
             </h1>
-
             {qrState === "idle" && (
               <h2 className="text-xl font-semibold text-gray-800">
                 เข้าสู่ระบบ
               </h2>
             )}
           </div>
-
           {qrState === "loading" && (
             <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center shadow-sm">
               <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-blue-600" />
@@ -199,7 +196,6 @@ export default function LoginForm() {
               </p>
             </div>
           )}
-
           {qrState === "error" && (
             <div className="rounded-2xl border border-red-100 bg-red-50 p-8 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
@@ -218,7 +214,6 @@ export default function LoginForm() {
               </button>
             </div>
           )}
-
           {qrState === "idle" && (
             <form
               onSubmit={handleSubmit}

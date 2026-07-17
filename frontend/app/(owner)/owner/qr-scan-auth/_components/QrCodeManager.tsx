@@ -7,9 +7,7 @@ import { QrCodeFilters } from "./QrCodeFilters";
 import { Plus, RefreshCw } from "lucide-react";
 import { toast } from "react-toastify";
 import Skeleton from "@/lib/ui/Skeleton";
-import ConfirmDialog, {
-  ConfirmDialogType,
-} from "@/lib/ui/ConfirmDialog";
+import ConfirmDialog, { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
 import { Dormitory } from "@/features/dormitory";
 
 const formatDateTime = (dateString?: string) => {
