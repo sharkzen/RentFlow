@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { LandmarkDto } from "./dto/landark.dto";
+import { LandmarkDto } from "./dto/landmark.dto";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { generateSlug } from "@/lib/text";
 

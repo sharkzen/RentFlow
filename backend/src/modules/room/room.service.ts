@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import { Prisma } from "@prisma/client";
-import { CreateBulkRoomsDto, RoomStatus } from "./dtos/room.dto";
+import { CreateBulkRoomsDto, RoomStatus } from "./dto/room.dto";
 import { createActivityLog } from "@/services/activity-log.service";
 import crypto from "node:crypto";
 import argon2 from "argon2";

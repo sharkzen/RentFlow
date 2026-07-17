@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
-import { OwnerProfileDto } from "@/modules/owner/dtos/owner.dto";
+import { OwnerProfileDto } from "@/modules/owner/dto/owner.dto";
 import { UpdateOwnerDto } from "./validators/owner.validator";
 import { createActivityLog } from "@/services/activity-log.service";
 

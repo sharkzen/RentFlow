@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { landmarkService } from "./landmark.service";
 import logger from "@/utils/logger";
-import { LandmarkTypeDto } from "@/modules/landmark/dto/landark.dto";
+import { LandmarkTypeDto } from "@/modules/landmark/dto/landmark.dto";
 import { AppError } from "@/lib/errors";
 import { z } from "zod";
 

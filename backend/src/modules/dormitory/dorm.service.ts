@@ -11,7 +11,7 @@ import { env } from "@/config/env";
 import {
   DormFormDataDto,
   GetDormsQueryDto,
-} from "@/modules/dormitory/dtos/dorm.dto";
+} from "@/modules/dormitory/dto/dorm.dto";
 import { generateSlug } from "@/lib/text";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { formatDistance, getDistance } from "@/utils/geo";

@@ -7,7 +7,7 @@ import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import {
   DormFormDataDto,
   GetDormsQueryDto,
-} from "@/modules/dormitory/dtos/dorm.dto";
+} from "@/modules/dormitory/dto/dorm.dto";
 import logger from "@/utils/logger";
 import { AppError } from "@/lib/errors";
 

@@ -8,7 +8,7 @@ import {
   createBulkRoomsSchema,
   generateBulkPdfSchema,
   toggleQrStatusSchema,
-} from "./dtos/room.schema";
+} from "./dto/room.schema";
 
 interface GetRoomsQuery {
   status?: RoomStatus;
