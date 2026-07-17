@@ -1,38 +1,44 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { AdminService } from "./admin.service";
 import { LandmarkType } from "@prisma/client";
+import { AppError } from "@/lib/errors";
+import { z } from "zod";
+
+const createLandmarkSchema = z.object({
+  name: z.string(),
+  type: z.string(),
+  mapUrl: z.string(),
+});
+
+const updateLandmarkSchema = z.object({
+  name: z.string().optional(),
+  type: z.string().optional(),
+  mapUrl: z.string().optional(),
+});
+
+const togglePublishSchema = z.object({
+  isPublished: z.boolean(),
+});
+
+const updateStatusSchema = z.object({
+  status: z.string(),
+});
 
 export const AdminController = {
   getDashboard: async (req: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const stats = await AdminService.getDashboardStats();
-      return reply.code(200).send(stats);
-    } catch (error) {
-      req.log.error(error);
-
-      return reply.code(500).send({
-        message: "Internal Server Error",
-      });
-    }
+    const stats = await AdminService.getDashboardStats();
+    return reply.code(200).send(stats);
   },
 
   getPendingList: async (req: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const { page = 1, limit = 10, q = "" } = req.query as any;
+    const { page = 1, limit = 10, q = "" } = req.query as any;
 
-      const result = await AdminService.getPendingOwners(
-        Number(page),
-        Number(limit),
-        String(q),
-      );
-      return reply.code(200).send(result);
-    } catch (error) {
-      req.log.error(error);
-
-      return reply.code(500).send({
-        message: "Internal Server Error",
-      });
-    }
+    const result = await AdminService.getPendingOwners(
+      Number(page),
+      Number(limit),
+      String(q),
+    );
+    return reply.code(200).send(result);
   },
 
   approve: async (
@@ -111,10 +117,9 @@ export const AdminController = {
     }>,
     reply: FastifyReply,
   ) => {
-    const result = await AdminService.togglePublish(
-      req.params.id,
-      req.body.isPublished,
-    );
+    const { isPublished } = togglePublishSchema.parse(req.body);
+
+    const result = await AdminService.togglePublish(req.params.id, isPublished);
     return reply.send(result);
   },
 
@@ -129,31 +134,22 @@ export const AdminController = {
     }>,
     reply: FastifyReply,
   ) => {
-    const result = await AdminService.updateStatus(
-      req.params.id,
-      req.body.status,
-    );
+    const { status } = updateStatusSchema.parse(req.body);
+
+    const result = await AdminService.updateStatus(req.params.id, status);
     return reply.send(result);
   },
 
   getOwners: async (req: FastifyRequest, reply: FastifyReply) => {
     const { page = 1, limit = 10, q = "", status = "ALL" } = req.query as any;
 
-    try {
-      const result = await AdminService.getOwnersList(
-        Number(page),
-        Number(limit),
-        String(q),
-        String(status),
-      );
-      return reply.send(result);
-    } catch (error) {
-      req.log.error(error);
-
-      return reply.code(500).send({
-        message: "Internal Server Error",
-      });
-    }
+    const result = await AdminService.getOwnersList(
+      Number(page),
+      Number(limit),
+      String(q),
+      String(status),
+    );
+    return reply.send(result);
   },
 
   getOwnerById: async (
@@ -164,22 +160,11 @@ export const AdminController = {
     }>,
     reply: FastifyReply,
   ) => {
-    try {
-      const result = await AdminService.getOwnerDetailById(req.params.id);
+    const result = await AdminService.getOwnerDetailById(req.params.id);
 
-      if (!result)
-        return reply.code(404).send({
-          message: "User not found",
-        });
+    if (!result) throw AppError.notFound("USER_NOT_FOUND", "User not found");
 
-      return reply.send(result);
-    } catch (error) {
-      req.log.error(error);
-
-      return reply.code(500).send({
-        message: "Internal Server Error",
-      });
-    }
+    return reply.send(result);
   },
 
   updateUserStatus: async (
@@ -193,55 +178,31 @@ export const AdminController = {
     }>,
     reply: FastifyReply,
   ) => {
-    try {
-      const result = await AdminService.updateUserStatus(
-        req.params.id,
-        req.body.status as any,
-      );
-      return reply.send(result);
-    } catch (error) {
-      req.log.error(error);
+    const { status } = updateStatusSchema.parse(req.body);
 
-      return reply.code(500).send({
-        message: "Internal Server Error",
-      });
-    }
+    const result = await AdminService.updateUserStatus(
+      req.params.id,
+      status as any,
+    );
+    return reply.send(result);
   },
 
   getLandmarks: async (req: FastifyRequest, reply: FastifyReply) => {
     const { page = 1, limit = 10, q = "", type = "ALL" } = req.query as any;
 
-    try {
-      const result = await AdminService.getLandmarks(
-        Number(page),
-        Number(limit),
-        String(q),
-        String(type),
-      );
-      return reply.send(result);
-    } catch (error) {
-      req.log.error(error);
-
-      return reply.code(500).send({
-        message: "Internal Server Error",
-      });
-    }
+    const result = await AdminService.getLandmarks(
+      Number(page),
+      Number(limit),
+      String(q),
+      String(type),
+    );
+    return reply.send(result);
   },
 
   createLandmark: async (req: FastifyRequest, reply: FastifyReply) => {
+    const body = createLandmarkSchema.parse(req.body);
+
     try {
-      const body = req.body as {
-        name: string;
-        type: string;
-        mapUrl: string;
-      };
-
-      if (!body.name || !body.mapUrl || !body.type) {
-        return reply.code(400).send({
-          message: "กรุณากรอกข้อมูลให้ครบถ้วน",
-        });
-      }
-
       const result = await AdminService.createLandmark({
         name: body.name,
         type: body.type as LandmarkType,
@@ -250,18 +211,14 @@ export const AdminController = {
 
       return reply.code(201).send(result);
     } catch (error: any) {
-      req.log.error(error);
-
       if (error.message === "INVALID_MAP_URL") {
-        return reply.code(400).send({
-          message:
-            "ไม่สามารถดึงพิกัดจากลิงก์ Google Maps ที่ระบุได้ กรุณาตรวจสอบลิงก์",
-        });
+        throw AppError.badRequest(
+          "INVALID_MAP_URL",
+          "ไม่สามารถดึงพิกัดจากลิงก์ Google Maps ที่ระบุได้ กรุณาตรวจสอบลิงก์",
+        );
       }
 
-      return reply.code(500).send({
-        message: "Internal Server Error",
-      });
+      throw error;
     }
   },
 
@@ -278,11 +235,11 @@ export const AdminController = {
     }>,
     reply: FastifyReply,
   ) => {
+    const { id } = req.params;
+
+    const body = updateLandmarkSchema.parse(req.body);
+
     try {
-      const { id } = req.params;
-
-      const body = req.body;
-
       const result = await AdminService.updateLandmark(id, {
         ...body,
         type: body.type as LandmarkType,
@@ -290,17 +247,14 @@ export const AdminController = {
 
       return reply.send(result);
     } catch (error: any) {
-      req.log.error(error);
-
       if (error.message === "INVALID_MAP_URL") {
-        return reply.code(400).send({
-          message: "ไม่สามารถดึงพิกัดจากลิงก์ Google Maps ได้",
-        });
+        throw AppError.badRequest(
+          "INVALID_MAP_URL",
+          "ไม่สามารถดึงพิกัดจากลิงก์ Google Maps ได้",
+        );
       }
 
-      return reply.code(500).send({
-        message: "Internal Server Error",
-      });
+      throw error;
     }
   },
 
@@ -312,18 +266,10 @@ export const AdminController = {
     }>,
     reply: FastifyReply,
   ) => {
-    try {
-      await AdminService.deleteLandmark(req.params.id);
+    await AdminService.deleteLandmark(req.params.id);
 
-      return reply.send({
-        success: true,
-      });
-    } catch (error) {
-      req.log.error(error);
-
-      return reply.code(500).send({
-        message: "Failed to delete landmark",
-      });
-    }
+    return reply.send({
+      success: true,
+    });
   },
 };

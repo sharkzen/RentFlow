@@ -1,108 +1,79 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { FeatureService } from "./feature.service";
+import { AppError } from "@/lib/errors";
+import { z } from "zod";
+
+const createFeatureSchema = z.object({
+  key: z.string(),
+  name: z.string(),
+  description: z.string().optional(),
+  enabled: z.boolean().optional(),
+});
+
+const updateFeatureSchema = z
+  .object({
+    name: z.string().optional(),
+    description: z.string().optional(),
+    enabled: z.boolean().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "NO_DATA_PROVIDED_FOR_UPDATE",
+  });
 
 export const featureController = {
   getAllFeatures: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const result = await FeatureService.getAllFeatures();
-      return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({
-        success: false,
-        message: error.message || "INTERNAL_SERVER_ERROR",
-      });
-    }
+    const result = await FeatureService.getAllFeatures();
+    return reply.send(result);
   },
 
   getFeature: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const { key } = request.params as {
-        key: string;
-      };
+    const { key } = request.params as {
+      key: string;
+    };
 
-      const result = await FeatureService.getFeature(key);
+    const result = await FeatureService.getFeature(key);
 
-      if (!result.success) return reply.status(404).send(result);
+    if (!result.success) throw AppError.notFound("FEATURE_NOT_FOUND");
 
-      return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({
-        success: false,
-        message: error.message,
-      });
-    }
+    return reply.send(result);
   },
 
   createFeature: async (request: FastifyRequest, reply: FastifyReply) => {
+    const body = createFeatureSchema.parse(request.body);
+
     try {
-      const body = request.body as {
-        key: string;
-        name: string;
-        description?: string;
-        enabled?: boolean;
-      };
-
-      if (!body.key || !body.name) {
-        return reply.status(400).send({
-          success: false,
-          message: "KEY_AND_NAME_ARE_REQUIRED",
-        });
-      }
-
       const result = await FeatureService.createFeature(body);
       return reply.status(201).send(result);
     } catch (error: any) {
-      const statusCode = error.message === "FEATURE_ALREADY_EXISTS" ? 409 : 500;
+      if (error.message === "FEATURE_ALREADY_EXISTS") {
+        throw AppError.conflict("FEATURE_ALREADY_EXISTS");
+      }
 
-      return reply.status(statusCode).send({
-        success: false,
-        message: error.message,
-      });
+      throw error;
     }
   },
 
   updateFeature: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const { key } = request.params as {
-        key: string;
-      };
+    const { key } = request.params as {
+      key: string;
+    };
 
-      const body = request.body as {
-        name?: string;
-        description?: string;
-        enabled?: boolean;
-      };
+    const parsed = updateFeatureSchema.safeParse(request.body);
 
-      if (Object.keys(body).length === 0) {
-        return reply.status(400).send({
-          success: false,
-          message: "NO_DATA_PROVIDED_FOR_UPDATE",
-        });
-      }
-
-      const result = await FeatureService.updateFeature(key, body);
-      return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({
-        success: false,
-        message: error.message,
-      });
+    if (!parsed.success) {
+      throw AppError.badRequest("NO_DATA_PROVIDED_FOR_UPDATE");
     }
+
+    const result = await FeatureService.updateFeature(key, parsed.data);
+    return reply.send(result);
   },
 
   deleteFeature: async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      const { key } = request.params as {
-        key: string;
-      };
+    const { key } = request.params as {
+      key: string;
+    };
 
-      const result = await FeatureService.deleteFeature(key);
-      return reply.send(result);
-    } catch (error: any) {
-      return reply.status(500).send({
-        success: false,
-        message: error.message,
-      });
-    }
+    const result = await FeatureService.deleteFeature(key);
+    return reply.send(result);
   },
 };

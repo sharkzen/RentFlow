@@ -1,37 +1,32 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import {
-  AdminRegisterDto,
-  OwnerRegisterDto,
-} from "@/modules/auth/dto/register.dto";
 import { authService } from "@/modules/auth/auth.service";
 import { signAccessToken, signRefreshToken } from "@/utils/jwt";
 import logger from "@/utils/logger";
-import { LoginDto } from "@/modules/auth/dto/login.dto";
 import { env } from "@/config/env";
+import { AppError } from "@/lib/errors";
+import {
+  adminRegisterSchema,
+  forgotPasswordSchema,
+  loginSchema,
+  loginWithQrSchema,
+  ownerRegisterSchema,
+  resetPasswordSchema,
+  verifyResetTokenSchema,
+} from "@/modules/auth/dto/auth.schema";
 
 export const AuthController = {
   async me(request: FastifyRequest, reply: FastifyReply) {
     const user = request.user;
 
-    try {
-      if (!user) {
-        return reply.status(401).send({
-          message: "UNAUTHORIZED",
-        });
-      }
-
-      const me = await authService.me(user);
-
-      const { password, ...rest } = me;
-
-      reply.send(rest);
-    } catch (error: any) {
-      logger.error(error.message);
-
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+    if (!user) {
+      throw AppError.unauthorized("UNAUTHORIZED");
     }
+
+    const me = await authService.me(user);
+
+    const { password, ...rest } = me;
+
+    reply.send(rest);
   },
 
   async refresh(request: FastifyRequest, reply: FastifyReply) {
@@ -65,67 +60,49 @@ export const AuthController = {
   },
 
   async register(request: FastifyRequest, reply: FastifyReply) {
-    const dto = request.body as AdminRegisterDto;
+    const dto = adminRegisterSchema.parse(request.body);
 
     try {
       const user = await authService.registerAdmin(dto);
       reply.status(201).send(user);
     } catch (error: any) {
-      logger.error(error.message);
-
       if (error.message === "DATA_ARE_NOT_VALID") {
-        return reply.status(400).send({
-          message: "DATA_ARE_NOT_VALID",
-        });
+        throw AppError.badRequest("DATA_ARE_NOT_VALID");
       }
 
       if (error.message === "EMAIL_ALREADY_EXISTS") {
-        return reply.status(400).send({
-          message: "EMAIL_ALREADY_EXISTS",
-        });
+        throw AppError.badRequest("EMAIL_ALREADY_EXISTS");
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      throw error;
     }
   },
 
   async ownerRegister(request: FastifyRequest, reply: FastifyReply) {
-    const dto = request.body as OwnerRegisterDto;
+    const dto = ownerRegisterSchema.parse(request.body);
 
     try {
       const result = await authService.registerOwner(dto);
       return reply.status(201).send(result);
     } catch (error: any) {
-      logger.error(error.message);
-
       if (error.message === "DATA_ARE_NOT_VALID") {
-        return reply.status(400).send({
-          message: "DATA_ARE_NOT_VALID",
-        });
+        throw AppError.badRequest("DATA_ARE_NOT_VALID");
       }
 
       if (error.message === "EMAIL_ALREADY_EXISTS") {
-        return reply.status(400).send({
-          message: "EMAIL_ALREADY_EXISTS",
-        });
+        throw AppError.badRequest("EMAIL_ALREADY_EXISTS");
       }
 
       if (error.message === "INVALID_MAP_URL") {
-        return reply.status(400).send({
-          message: "INVALID_MAP_URL",
-        });
+        throw AppError.badRequest("INVALID_MAP_URL");
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      throw error;
     }
   },
 
   async login(request: FastifyRequest, reply: FastifyReply) {
-    const dto = request.body as LoginDto;
+    const dto = loginSchema.parse(request.body);
 
     try {
       const user = await authService.login(dto);
@@ -159,31 +136,20 @@ export const AuthController = {
         role: user.role,
       });
     } catch (error: any) {
-      logger.error(error.message);
-
       if (error.message === "INVALID_EMAIL_OR_PASSWORD") {
-        return reply.status(400).send({
-          message: "INVALID_EMAIL_OR_PASSWORD",
-        });
+        throw AppError.badRequest("INVALID_EMAIL_OR_PASSWORD");
       }
 
       if (error.message === "EMAIL_NOT_FOUND") {
-        return reply.status(404).send({
-          message: "EMAIL_NOT_FOUND",
-        });
+        throw AppError.notFound("EMAIL_NOT_FOUND");
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      throw error;
     }
   },
 
   async loginWithQr(request: FastifyRequest, reply: FastifyReply) {
-    const dto = request.body as {
-      roomId: string;
-      token: string;
-    };
+    const dto = loginWithQrSchema.parse(request.body);
 
     try {
       const user = await authService.loginWithQr(dto);
@@ -217,26 +183,18 @@ export const AuthController = {
         role: user.role,
       });
     } catch (error: any) {
-      logger.error(error.message);
-
       if (
         error.message === "INVALID_QR_TOKEN" ||
         error.message === "QR_NOT_ACTIVE"
       ) {
-        return reply.status(400).send({
-          message: "INVALID_OR_EXPIRED_QR_CODE",
-        });
+        throw AppError.badRequest("INVALID_OR_EXPIRED_QR_CODE");
       }
 
       if (error.message === "USER_NOT_FOUND_FOR_ROOM") {
-        return reply.status(404).send({
-          message: "USER_NOT_FOUND_FOR_THIS_ROOM",
-        });
+        throw AppError.notFound("USER_NOT_FOUND_FOR_THIS_ROOM");
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      throw error;
     }
   },
 
@@ -247,13 +205,9 @@ export const AuthController = {
   },
 
   async forgotPassword(request: FastifyRequest, reply: FastifyReply) {
-    const { email } = request.body as {
-      email: string;
-    };
+    const { email } = forgotPasswordSchema.parse(request.body);
 
     try {
-      if (!email) throw new Error("DATA_ARE_NOT_VALID");
-
       await authService.requestPasswordReset(email);
 
       return reply.send({
@@ -261,28 +215,18 @@ export const AuthController = {
         message: "กรุณาตรวจสอบอีเมลของคุณ",
       });
     } catch (error: any) {
-      logger.error(error.message);
-
       if (error.message === "USER_NOT_FOUND") {
-        return reply.status(404).send({
-          message: "USER_NOT_FOUND",
-        });
+        throw AppError.notFound("USER_NOT_FOUND");
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      throw error;
     }
   },
 
   async verifyResetToken(request: FastifyRequest, reply: FastifyReply) {
-    const { token } = request.body as {
-      token: string;
-    };
+    const { token } = verifyResetTokenSchema.parse(request.body);
 
     try {
-      if (!token) throw new Error("DATA_ARE_NOT_VALID");
-
       await authService.verifyTokenValidity(token);
 
       return reply.send({
@@ -290,40 +234,28 @@ export const AuthController = {
       });
     } catch (error: any) {
       if (error.message === "INVALID_OR_EXPIRED_TOKEN") {
-        return reply.status(400).send({
-          message: "INVALID_OR_EXPIRED_TOKEN",
-        });
+        throw AppError.badRequest("INVALID_OR_EXPIRED_TOKEN");
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      throw error;
     }
   },
 
   async resetPassword(request: FastifyRequest, reply: FastifyReply) {
-    const { token, newPassword } = request.body as any;
+    const { token, newPassword } = resetPasswordSchema.parse(request.body);
 
     try {
-      if (!token || !newPassword) throw new Error("DATA_ARE_NOT_VALID");
-
       await authService.resetPassword(token, newPassword);
 
       return reply.send({
         ok: true,
       });
     } catch (error: any) {
-      logger.error(error.message);
-
       if (error.message === "INVALID_OR_EXPIRED_TOKEN") {
-        return reply.status(400).send({
-          message: "INVALID_OR_EXPIRED_TOKEN",
-        });
+        throw AppError.badRequest("INVALID_OR_EXPIRED_TOKEN");
       }
 
-      return reply.status(500).send({
-        message: "INTERNAL_SERVER_ERROR",
-      });
+      throw error;
     }
   },
 };
