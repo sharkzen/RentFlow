@@ -278,6 +278,14 @@ export const BillController = {
         throw AppError.notFound("BILL_NOT_FOUND");
       }
 
+      if (error.message === "FORBIDDEN_ACCESS") {
+        throw AppError.forbidden("FORBIDDEN_ACCESS");
+      }
+
+      if (error.message === "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED") {
+        throw AppError.badRequest("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
+      }
+
       throw error;
     }
   },

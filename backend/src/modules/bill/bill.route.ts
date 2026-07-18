@@ -37,10 +37,7 @@ export async function billRoute(app: FastifyInstance) {
 
   app.register(async (routeRoles) => {
     routeRoles.addHook("preHandler", authMiddleware);
-    routeRoles.addHook(
-      "preHandler",
-      authRoleMiddleware([Role.TENANT, Role.OWNER]),
-    );
+    routeRoles.addHook("preHandler", authRoleMiddleware([Role.OWNER]));
     routeRoles.post("/:billId/upload-slip", BillController.uploadSlip);
   });
 }

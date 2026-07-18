@@ -778,6 +778,16 @@ export const billService = {
       }
     }
 
+    // Endpoint นี้ตั้งใจให้ owner บันทึกสลิปแทน (เช่นรับเงินสด) เท่านั้น
+    // กันไว้อีกชั้นในกรณี route guard ถูกแก้ให้หลวมขึ้นในอนาคต
+    if (!isOwner) throw new Error("FORBIDDEN_ACCESS");
+
+    const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
+    if (!allowedMimeTypes.includes(mimeType)) {
+      throw new Error("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
+    }
+
     await uploadFile(file, objectKey, mimeType);
 
     const transactionResult = await prisma.$transaction(async (tx) => {
@@ -1691,11 +1701,43 @@ export const billService = {
         finalNumber = finalNumber.substring(0, EXPECTED_DIGIT_LENGTH);
       }
 
+      const currentValue = Number(finalNumber);
+      let suspicious = false;
+      let warningMessage: string | undefined;
+
+      if (!Number.isNaN(currentValue)) {
+        const lastBill = await prisma.bill.findFirst({
+          where: { roomId },
+          orderBy: { billingMonth: "desc" },
+        });
+
+        if (lastBill) {
+          const prevValue =
+            scanType === "WATER"
+              ? lastBill.currentWaterUnitSnapshot
+              : lastBill.currentElectricUnitSnapshot;
+
+          // เกณฑ์การใช้สูงสุดที่ยังถือว่าปกติต่อเดือน (ปรับได้ตามลักษณะหอพัก)
+          const MAX_NORMAL_USAGE = scanType === "WATER" ? 100 : 2000;
+
+          if (currentValue < prevValue) {
+            suspicious = true;
+            warningMessage = `ค่าที่อ่านได้ (${currentValue}) น้อยกว่าเดือนก่อน (${prevValue}) กรุณาตรวจสอบ`;
+          } else if (currentValue - prevValue > MAX_NORMAL_USAGE) {
+            suspicious = true;
+            warningMessage = `การใช้งานเดือนนี้ (${currentValue - prevValue} หน่วย) สูงผิดปกติ กรุณาตรวจสอบ`;
+          }
+        }
+      }
+
       return {
         success: true,
         number: finalNumber,
         rawText: data.meter_number,
         correctedText: finalNumber,
+        needsReview: Boolean(data.needs_review) || suspicious,
+        suspicious,
+        warningMessage,
       };
     } catch (error: any) {
       logger.error(`[Service] scanMeter HTTP Error: ${error.message}`);
