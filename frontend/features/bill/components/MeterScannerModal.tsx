@@ -50,7 +50,10 @@ export default function MeterScannerModal({
 
   const [preview, setPreview] = useState<string | null>(null);
   const [ocrValue, setOcrValue] = useState<string>("");
+  const [ocrWarning, setOcrWarning] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const failedAttemptsRef = useRef(0);
+  const MAX_AUTO_RETRY = 3;
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [setupDigits, setSetupDigits] = useState<string>("");
   const [isSavingSetup, setIsSavingSetup] = useState(false);
@@ -124,10 +127,20 @@ export default function MeterScannerModal({
   }, [stopCamera]);
 
   const resetUploadState = (deletePrevious: boolean) => {
-    if (deletePrevious && uploadedKeyRef.current) {
-      BillService.deleteTempImage(uploadedKeyRef.current).catch((err) =>
-        log.error("Failed to clean up discarded upload", err),
-      );
+    if (deletePrevious) {
+      if (uploadedKeyRef.current) {
+        BillService.deleteTempImage(uploadedKeyRef.current).catch((err) =>
+          log.error("Failed to clean up discarded upload", err),
+        );
+      } else if (uploadPromiseRef.current) {
+        // Upload ยังไม่เสร็จตอนนี้ (เช่น auto-retry ยิงเร็วกว่า background upload)
+        // แนบ cleanup ต่อท้าย promise เดิม ลบทันทีที่ upload เสร็จแทนที่จะปล่อยค้าง
+        uploadPromiseRef.current
+          .then((result) => BillService.deleteTempImage(result.objectKey))
+          .catch((err) =>
+            log.error("Failed to clean up discarded upload (deferred)", err),
+          );
+      }
     }
 
     uploadPromiseRef.current = null;
@@ -138,6 +151,8 @@ export default function MeterScannerModal({
     if (isOpen) {
       setPreview(null);
       setOcrValue("");
+      setOcrWarning(null);
+      failedAttemptsRef.current = 0;
       resetUploadState(false);
 
       if (scanType === "WATER" && !waterMeterDigits) {
@@ -182,6 +197,35 @@ export default function MeterScannerModal({
       toast.error("เกิดข้อผิดพลาดในการตั้งค่า กรุณาลองใหม่");
     } finally {
       setIsSavingSetup(false);
+    }
+  };
+
+  // เรียกเมื่ออ่านเลขไม่ได้ (ภาพเบลอ / หาตัวเลขไม่เจอ) — ถ่ายใหม่อัตโนมัติสูงสุด MAX_AUTO_RETRY
+  // ครั้ง ก่อนจะเปิดให้พิมพ์เอง กันกรณีมุมกล้อง/แสงแย่จนวนถ่ายซ้ำไม่มีที่สิ้นสุด
+  const handleUnreadableImage = (rawMessage?: string) => {
+    failedAttemptsRef.current += 1;
+
+    const isBlurry = rawMessage?.toLowerCase().includes("blurry");
+    const reasonText = isBlurry
+      ? "ภาพเบลอเกินไป"
+      : "หาตัวเลขมิเตอร์ในภาพไม่เจอ";
+
+    if (failedAttemptsRef.current < MAX_AUTO_RETRY) {
+      toast.warning(
+        `${reasonText} กำลังเปิดกล้องให้ถ่ายใหม่ (ครั้งที่ ${failedAttemptsRef.current}/${MAX_AUTO_RETRY})`,
+      );
+      resetUploadState(true);
+      setPreview(null);
+      setOcrValue("");
+      setOcrWarning(null);
+      setStep("camera");
+      startCamera();
+    } else {
+      toast.error(`${reasonText} หลายครั้งแล้ว กรุณาพิมพ์ตัวเลขเอง`);
+      failedAttemptsRef.current = 0;
+      setOcrValue("");
+      setOcrWarning(null);
+      setStep("result");
     }
   };
 
@@ -268,24 +312,33 @@ export default function MeterScannerModal({
         }),
       });
 
+      const data = await res.json().catch(() => null);
+
       if (!res.ok) {
-        toast.error("เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ในการอ่านตัวเลข");
-        setOcrValue("");
+        handleUnreadableImage(data?.message);
+        return;
+      }
+
+      if (data?.success && data.number) {
+        failedAttemptsRef.current = 0;
+        setOcrValue(data.number);
+
+        if (data.suspicious || data.needsReview) {
+          setOcrWarning(
+            data.warningMessage ??
+              "ตัวเลขที่อ่านได้อาจไม่แม่นยำ กรุณาตรวจสอบก่อนยืนยัน",
+          );
+          toast.warning("กรุณาตรวจสอบตัวเลขก่อนยืนยัน");
+        } else {
+          setOcrWarning(null);
+          toast.success("สแกนสำเร็จ!");
+        }
+
         setStep("result");
         return;
       }
 
-      const data = await res.json();
-
-      if (data.success && data.number) {
-        setOcrValue(data.number);
-        toast.success("สแกนสำเร็จ!");
-      } else {
-        toast.warning("หาตัวเลขไม่พบ กรุณาพิมพ์เอง");
-        setOcrValue("");
-      }
-
-      setStep("result");
+      handleUnreadableImage(data?.message);
     } catch (error) {
       log.error("Scanning Error:", error);
       toast.error("ระบบขัดข้อง กรุณาลองใหม่");
@@ -329,6 +382,8 @@ export default function MeterScannerModal({
     resetUploadState(true);
     setStep("camera");
     setPreview(null);
+    setOcrWarning(null);
+    failedAttemptsRef.current = 0;
     startCamera();
   };
 
@@ -452,8 +507,10 @@ export default function MeterScannerModal({
               )}
               {step === "result" && (
                 <div className="animate-in fade-in absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 px-6 backdrop-blur-md">
-                  <p className="mb-3 text-sm font-bold text-emerald-400">
-                    ✅ ตรวจสอบความถูกต้อง
+                  <p
+                    className={`mb-3 text-sm font-bold ${ocrWarning ? "text-amber-400" : "text-emerald-400"}`}
+                  >
+                    {ocrWarning ? "⚠️ กรุณาตรวจสอบตัวเลข" : "✅ ตรวจสอบความถูกต้อง"}
                   </p>
                   <div className="relative w-full">
                     <input
@@ -465,7 +522,7 @@ export default function MeterScannerModal({
                       onChange={(e) =>
                         setOcrValue(e.target.value.replace(/[^0-9]/g, ""))
                       }
-                      className={`w-full rounded-2xl border-4 bg-white py-4 text-center text-5xl font-black tracking-[0.2em] text-slate-800 transition-all outline-none ${ocrValue ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-slate-300"}`}
+                      className={`w-full rounded-2xl border-4 bg-white py-4 text-center text-5xl font-black tracking-[0.2em] text-slate-800 transition-all outline-none ${ocrWarning ? "border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.4)]" : ocrValue ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-slate-300"}`}
                       placeholder="00000"
                     />
                     <Edit3
@@ -473,6 +530,11 @@ export default function MeterScannerModal({
                       size={24}
                     />
                   </div>
+                  {ocrWarning && (
+                    <p className="mt-3 max-w-xs text-sm font-medium text-amber-300">
+                      {ocrWarning}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
