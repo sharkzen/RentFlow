@@ -1,23 +1,18 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { BillData, BillFilterState } from "./types";
 import BillFilters from "./TenantBillFilters";
 import BillList from "./BillList";
 import { Wallet, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { TenantService } from "@/features/tenant/services/tenant.service";
 import LoadingPage from "@/lib/ui/layout/LoadingPage";
-import log from "@/lib/logger";
 
 export default function BillContainer() {
   const router = useRouter();
-  const [bills, setBills] = useState<BillData[]>([]);
-  const [totalPending, setTotalPending] = useState(0);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<BillFilterState>({
     year: "ALL",
@@ -25,33 +20,24 @@ export default function BillContainer() {
     month: "ALL",
   });
 
-  const fetchBills = async () => {
-    try {
-      setLoading(true);
-
-      const data = await TenantService.getMyBills({
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["tenant-bills", { page, limit, ...filters }],
+    queryFn: () =>
+      TenantService.getMyBills({
         page,
         limit,
         year: filters.year,
         status: filters.status,
         month: filters.month,
-      });
+      }),
+    placeholderData: keepPreviousData,
+  });
 
-      setBills(data.items);
-      setTotalPages(data.totalPages);
-      setTotalPending(data.summary.totalPending);
-      setError(null);
-    } catch (err: any) {
-      log.error("Failed to fetch bills:", err);
-      setError("ไม่สามารถดึงข้อมูลบิลได้ กรุณาลองใหม่อีกครั้ง");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBills();
-  }, [page, filters]);
+  const bills: BillData[] = data?.items ?? [];
+  const totalPages = data?.totalPages ?? 1;
+  const totalPending = data?.summary.totalPending ?? 0;
+  const loading = isLoading;
+  const error = isError ? "ไม่สามารถดึงข้อมูลบิลได้ กรุณาลองใหม่อีกครั้ง" : null;
 
   const handleFilterChange = (key: keyof BillFilterState, value: string) => {
     setFilters((prev) => ({

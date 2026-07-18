@@ -1,12 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { scroller } from "react-scroll";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import Dormitory from "@/features/dormitory/components/Dormitory";
 import Pagination from "@/lib/ui/Pagination";
 import DormFilter from "@/features/dormitory/components/DormFilter";
-import log from "@/lib/logger";
 
 const DormSkeleton = () => (
   <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
@@ -32,50 +31,24 @@ const DormSkeleton = () => (
 export default function IndexContainer() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [dorms, setDorms] = useState<any[]>([]);
-
-  const [meta, setMeta] = useState({
-    page: 1,
-    totalPages: 1,
-    total: 0,
-  });
-
-  const [loading, setLoading] = useState(true);
   const page = Number(searchParams.get("page")) || 1;
   const search = searchParams.get("search");
   const landmarkId = searchParams.get("landmarkId");
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
 
-  useEffect(() => {
-    const fetchDorms = async () => {
-      setLoading(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ["dorms", "public", { page, search, landmarkId, minPrice, maxPrice }],
+    queryFn: () =>
+      DormService.getAllDroms({ page, search, landmarkId, minPrice, maxPrice }),
+    // เก็บผลลัพธ์เดิมค้างไว้ระหว่างเปลี่ยนหน้า/ตัวกรอง กันหน้าจอกระพริบเป็น
+    // skeleton ทุกครั้ง — เปลี่ยนแค่หน้าถัดไปเลขหน้ายังโชว์ของเดิมจนกว่าจะโหลดเสร็จ
+    placeholderData: keepPreviousData,
+  });
 
-      try {
-        const res = await DormService.getAllDroms({
-          page,
-          search,
-          landmarkId,
-          minPrice,
-          maxPrice,
-        });
-
-        setDorms(res.data);
-
-        setMeta({
-          page: res.meta.page,
-          totalPages: res.meta.totalPages,
-          total: res.meta.total,
-        });
-      } catch (error) {
-        log.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDorms();
-  }, [page, search, landmarkId, minPrice, maxPrice]);
+  const dorms = data?.data ?? [];
+  const meta = data?.meta ?? { page: 1, totalPages: 1, total: 0 };
+  const loading = isLoading;
 
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());

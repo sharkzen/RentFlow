@@ -1,5 +1,5 @@
-import Hero from "@/components/Index/Hero";
-import IndexContainer from "@/components/Index/IndexContainer";
+import Hero from "@/features/dormitory/components/public/Hero";
+import IndexContainer from "@/features/dormitory/components/public/IndexContainer";
 
 export default function page() {
   return (
