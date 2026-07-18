@@ -1,5 +1,8 @@
 import { cookies } from "next/headers";
 
+// Server Component ไม่มี browser cookie jar เหมือน client-side axios instance
+// (lib/api/api-client.ts) จึงต้อง forward/parse cookie เองแบบนี้ — ทั้งสองไฟล์
+// แก้ปัญหาเดียวกัน (retry หลัง refresh token) คนละ runtime กัน ไม่ใช่โค้ดซ้ำที่รวมได้ตรงๆ
 export async function fetchWithRefresh(url: string, options: RequestInit = {}) {
   const cookieStore = await cookies();
   const allCookies = cookieStore.getAll();
@@ -30,6 +33,8 @@ export async function fetchWithRefresh(url: string, options: RequestInit = {}) {
 
     if (refreshRes.ok) {
       const setCookieHeader = refreshRes.headers.get("set-cookie");
+      // เก็บ cookie เดิมทั้งหมดไว้ แล้วแทนที่แค่ access_token ตัวใหม่ กัน cookie
+      // อื่น (เช่น refresh_token เดิม) หายไปจาก retry request เหมือนที่เคยเป็น
       let retryHeader = cookieHeader;
 
       if (setCookieHeader) {
@@ -37,7 +42,11 @@ export async function fetchWithRefresh(url: string, options: RequestInit = {}) {
         const newToken = tokenMatch ? tokenMatch[1] : null;
 
         if (newToken) {
-          retryHeader = `access_token=${newToken}; refresh_token=${cookieStore.get("refresh_token")?.value}`;
+          retryHeader = allCookies
+            .map((c) =>
+              c.name === "access_token" ? `access_token=${newToken}` : `${c.name}=${c.value}`,
+            )
+            .join("; ");
         }
       }
 
@@ -54,6 +63,10 @@ export async function fetchWithRefresh(url: string, options: RequestInit = {}) {
     } else {
       throw new Error("REFRESH_FAILED");
     }
+  }
+
+  if (!res.ok) {
+    throw new Error(`FETCH_FAILED_${res.status}`);
   }
 
   return res.json();

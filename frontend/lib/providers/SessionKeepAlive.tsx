@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { axios } from "@/lib/api/api-client";
+import { authService } from "@/features/auth/services/auth.service";
 import { usePathname } from "next/navigation";
 const PUBLIC_ROUTES = ["/", "/dorms", "/auth"];
 
@@ -23,7 +23,7 @@ export default function SessionKeepAlive() {
       lastRefresh = now;
 
       try {
-        await axios.post("/api/auth/refresh");
+        await authService.refresh();
       } catch {}
     };
 

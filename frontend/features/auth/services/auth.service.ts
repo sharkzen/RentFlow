@@ -30,6 +30,11 @@ export const authService = {
     return res.data;
   },
 
+  refresh: async () => {
+    const res = await axios.post("/api/auth/refresh");
+    return res.data;
+  },
+
   forgotPassword: async (email: string) => {
     const res = await axios.post("/api/auth/forgot-password", {
       email,
