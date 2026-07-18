@@ -114,16 +114,42 @@ export default function DormsDialog({
     }));
   }, []);
 
+  // ฟังก์ชันตัวช่วยสำหรับจัดการ Number Input ให้รับค่าว่างได้ และไม่ติดลบ
+  const handleNumberChange = useCallback(
+    (field: keyof DormFormData, value: string) => {
+      if (value === "") {
+        updateField(field, ""); // ยอมให้ช่องว่างเปล่าได้
+        return;
+      }
+      const num = Number(value);
+      if (!isNaN(num) && num >= 0) {
+        updateField(field, num);
+      }
+    },
+    [updateField],
+  );
+
+  // ฟังก์ชันบล็อคไม่ให้พิมพ์เครื่องหมาย -, +, e, E เข้าไปได้เลย
+  const preventInvalidNumberKeys = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (["-", "+", "e", "E"].includes(e.key)) {
+        e.preventDefault();
+      }
+    },
+    [],
+  );
+
   const handleSave = async () => {
     const missingFields: string[] = [];
 
-    if (!formData.roomPrice || formData.roomPrice <= 0)
+    // เปลี่ยนมาเช็ค Number() เพื่อครอบคลุมกรณีที่ปล่อยเป็นช่องว่าง "" ไว้
+    if (!formData.roomPrice || Number(formData.roomPrice) <= 0)
       missingFields.push("ราคาห้องพัก");
 
-    if (!formData.waterRate || formData.waterRate <= 0)
+    if (!formData.waterRate || Number(formData.waterRate) <= 0)
       missingFields.push("ค่าน้ำ");
 
-    if (!formData.electricRate || formData.electricRate <= 0)
+    if (!formData.electricRate || Number(formData.electricRate) <= 0)
       missingFields.push("ค่าไฟ");
 
     if (!formData.bankName || formData.bankName.trim() === "")
@@ -146,8 +172,15 @@ export default function DormsDialog({
       return;
     }
 
+    // จัดระเบียบตัวเลขก่อนส่งเข้า Backend เพื่อป้องกันบัค (กรณีตั้งทิ้งไว้เป็น "")
     const payload: DormFormData = {
       ...formData,
+      roomPrice: Number(formData.roomPrice) || 0,
+      waterRate: Number(formData.waterRate) || 0,
+      electricRate: Number(formData.electricRate) || 0,
+      commonFee: Number(formData.commonFee) || 0,
+      lateFee: Number(formData.lateFee) || 0,
+      dueDay: Number(formData.dueDay) || 1,
       description: parseDescription(formData.description),
     };
 
@@ -257,11 +290,14 @@ export default function DormsDialog({
                     <div className="relative">
                       <Input
                         type="number"
-                        value={formData.roomPrice || 0}
+                        min="0"
+                        value={formData.roomPrice}
                         onChange={(e) =>
-                          updateField("roomPrice", e.target.value)
+                          handleNumberChange("roomPrice", e.target.value)
                         }
+                        onKeyDown={preventInvalidNumberKeys}
                         className="pl-9"
+                        placeholder="0"
                       />
                       <span className="absolute top-2.5 left-3 text-slate-400">
                         ฿
@@ -319,13 +355,14 @@ export default function DormsDialog({
                       ค่าไฟ (บาท/หน่วย)
                     </Label>
                     <Input
-                      value={formData.electricRate || 0}
+                      type="number"
+                      min="0"
+                      value={formData.electricRate}
                       onChange={(e) =>
-                        updateField(
-                          "electricRate",
-                          Math.max(0, Number(e.target.value) || 0),
-                        )
+                        handleNumberChange("electricRate", e.target.value)
                       }
+                      onKeyDown={preventInvalidNumberKeys}
+                      placeholder="0"
                     />
                   </div>
                   <div>
@@ -333,26 +370,27 @@ export default function DormsDialog({
                       ค่าน้ำ (บาท/หน่วย)
                     </Label>
                     <Input
-                      value={formData.waterRate || 0}
+                      type="number"
+                      min="0"
+                      value={formData.waterRate}
                       onChange={(e) =>
-                        updateField(
-                          "waterRate",
-                          Math.max(0, Number(e.target.value) || 0),
-                        )
+                        handleNumberChange("waterRate", e.target.value)
                       }
+                      onKeyDown={preventInvalidNumberKeys}
+                      placeholder="0"
                     />
                   </div>
                   <div>
                     <Label icon={Info}>ส่วนกลาง (บาท/เดือน)</Label>
                     <Input
                       type="number"
-                      value={formData.commonFee || 0}
+                      min="0"
+                      value={formData.commonFee}
                       onChange={(e) =>
-                        updateField(
-                          "commonFee",
-                          Math.max(0, Number(e.target.value) || 0),
-                        )
+                        handleNumberChange("commonFee", e.target.value)
                       }
+                      onKeyDown={preventInvalidNumberKeys}
+                      placeholder="0"
                     />
                   </div>
                 </div>
@@ -369,20 +407,27 @@ export default function DormsDialog({
                     </Label>
                     <Input
                       type="number"
+                      min="1"
+                      max="31"
                       value={formData.dueDay}
                       onChange={(e) =>
-                        updateField("dueDay", parseFloat(e.target.value))
+                        handleNumberChange("dueDay", e.target.value)
                       }
+                      onKeyDown={preventInvalidNumberKeys}
+                      placeholder="1"
                     />
                   </div>
                   <div>
                     <Label icon={AlertCircle}>ค่าปรับล่าช้า (บาท/วัน)</Label>
                     <Input
                       type="number"
-                      value={formData.lateFee || 0}
+                      min="0"
+                      value={formData.lateFee}
                       onChange={(e) =>
-                        updateField("lateFee", parseFloat(e.target.value))
+                        handleNumberChange("lateFee", e.target.value)
                       }
+                      onKeyDown={preventInvalidNumberKeys}
+                      placeholder="0"
                     />
                   </div>
                   <div>

@@ -17,44 +17,60 @@ export const buildBulkQrHtmlTemplate = (
       return `
       ${pageBreak}
       <div class="container">
-        
-        <!-- ส่วนหัว: ชื่อหอพัก (อยู่ด้านบนสุด) -->
+
+        <!-- Header: ชื่อหอพัก -->
         <div class="header">
           <div class="dorm-title">${data.dormName}</div>
-          <div class="dorm-contact">${data.dormAddress}</div>
-          <div class="dorm-contact">โทร: ${data.dormPhone || "-"}</div>
-        </div>
-
-        <!-- ส่วนกลาง: ข้อมูลห้องและ QR Code -->
-        <div class="content">
-          <div class="room-label">บัตรเข้าสู่ระบบห้องพัก</div>
-          <div class="room-number">${data.roomNumber}</div>
-          <div class="tenant-name">ผู้เช่า: ${data.tenantName}</div>
-
-          <div class="qr-wrapper">
-            <img src="${data.qrCodeDataUrl}" class="qr-image" alt="QR Code" />
+          <div class="dorm-meta">
+            <span>${data.dormAddress}</span>
+            ${data.dormPhone ? `<span class="dot">•</span><span>โทร ${data.dormPhone}</span>` : ""}
           </div>
-          <div class="scan-text">สแกนเพื่อเข้าสู่ระบบจัดการห้องพัก</div>
         </div>
 
-        <!-- ส่วนท้าย: คำเตือน (Modern Alert UI) -->
-        <div class="warning-box">
-          <div class="warning-icon-wrapper">
-            <!-- SVG Icon คำเตือน -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="warning-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        <!-- Card หลัก -->
+        <div class="card">
+
+          <div class="card-top">
+            <div class="room-label">ห้องพัก</div>
+            <div class="room-number">${data.roomNumber}</div>
+            <div class="tenant-pill">${data.tenantName}</div>
+          </div>
+
+          <div class="qr-section">
+            <div class="qr-wrapper">
+              <img src="${data.qrCodeDataUrl}" class="qr-image" alt="QR Code" />
+            </div>
+            <div class="scan-text">
+              <svg xmlns="http://www.w3.org/2000/svg" class="scan-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                <path d="M14 14h3v3h-3zM17 17h4v4h-4zM14 21h3"></path>
+              </svg>
+              สแกนเพื่อเข้าสู่ระบบ
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Notice: คำเตือนความปลอดภัย -->
+        <div class="notice">
+          <div class="notice-icon-wrapper">
+            <svg xmlns="http://www.w3.org/2000/svg" class="notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             </svg>
           </div>
-          <div class="warning-content">
-            <div class="warning-title">คำเตือนด้านความปลอดภัย</div>
-            <ul class="warning-list">
-              <li>QR Code นี้เปรียบเสมือน <strong>รหัสผ่านส่วนตัว</strong> ของห้องพักท่าน</li>
-              <li>ห้ามถ่ายภาพ ส่งต่อ หรือเผยแพร่ให้บุคคลอื่นเด็ดขาด</li>
-              <li>หากสงสัยว่า QR Code หลุดรอด กรุณาแจ้งเจ้าหน้าที่เพื่อออกใหม่ทันที</li>
-            </ul>
+          <div class="notice-content">
+            <div class="notice-title">โปรดเก็บ QR Code นี้เป็นความลับ</div>
+            <div class="notice-text">
+              QR Code นี้เทียบเท่ารหัสผ่านส่วนตัวของท่าน ห้ามถ่ายภาพหรือส่งต่อให้ผู้อื่น
+              หากสงสัยว่าหลุดรอด กรุณาแจ้งเจ้าหน้าที่เพื่อขอออกใหม่ทันที
+            </div>
           </div>
+        </div>
+
+        <div class="footer">
+          ออกเอกสารโดยระบบจัดการหอพัก · ${data.dormName}
         </div>
 
       </div>
@@ -86,7 +102,9 @@ export const buildBulkQrHtmlTemplate = (
           font-weight: 700;
           src: url('file:///${publicPath}/fonts/Sarabun-Bold.ttf') format('truetype');
         }
-        
+
+        * { box-sizing: border-box; }
+
         body {
           font-family: 'Sarabun', sans-serif;
           margin: 0;
@@ -98,9 +116,8 @@ export const buildBulkQrHtmlTemplate = (
 
         .container {
           width: 210mm;
-          height: 296mm; /* ขนาด A4 */
-          padding: 25mm;
-          box-sizing: border-box;
+          height: 296mm;
+          padding: 20mm 22mm;
           display: flex;
           flex-direction: column;
           position: relative;
@@ -109,118 +126,141 @@ export const buildBulkQrHtmlTemplate = (
         /* Header */
         .header {
           text-align: center;
-          padding-bottom: 24px;
-          border-bottom: 2px solid #f1f5f9;
+          padding-bottom: 18px;
         }
-        .dorm-title { 
-          font-size: 30px; 
-          font-weight: 700; 
-          color: #1e293b;
-          margin-bottom: 6px;
+        .dorm-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #0f172a;
+          letter-spacing: -0.2px;
         }
-        .dorm-contact { 
-          font-size: 15px; 
-          color: #64748b; 
-          line-height: 1.5;
+        .dorm-meta {
+          margin-top: 4px;
+          font-size: 13px;
+          color: #94a3b8;
+        }
+        .dorm-meta .dot {
+          margin: 0 8px;
         }
 
-        /* Content (ตรงกลาง) */
-        .content {
+        /* Main card */
+        .card {
           flex: 1;
+          margin-top: 8px;
+          border: 1px solid #e2e8f0;
+          border-radius: 28px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          margin-top: 10px;
+          padding: 40px 24px;
+          background: linear-gradient(180deg, #f8fafc 0%, #ffffff 45%);
         }
-        .room-label { 
-          font-size: 18px; 
-          color: #64748b; 
-          font-weight: 600; 
-          letter-spacing: 2px; 
+
+        .card-top {
+          text-align: center;
+          margin-bottom: 32px;
         }
-        .room-number { 
-          font-size: 96px; 
-          font-weight: 700; 
-          color: #2563eb; /* สีน้ำเงินให้ดูโดดเด่น */
-          line-height: 1;
-          margin: 10px 0; 
-        }
-        .tenant-name { 
-          font-size: 22px; 
-          color: #334155; 
+        .room-label {
+          font-size: 13px;
+          color: #64748b;
           font-weight: 600;
-          margin-bottom: 40px;
-          background-color: #f8fafc;
-          padding: 8px 24px;
+          letter-spacing: 3px;
+          text-transform: uppercase;
+        }
+        .room-number {
+          font-size: 104px;
+          font-weight: 700;
+          color: #1d4ed8;
+          line-height: 1;
+          margin: 8px 0 16px;
+          letter-spacing: -2px;
+        }
+        .tenant-pill {
+          display: inline-block;
+          font-size: 16px;
+          color: #334155;
+          font-weight: 600;
+          background-color: #eef2ff;
+          padding: 8px 22px;
           border-radius: 99px;
         }
 
-        /* QR Code */
+        /* QR section */
+        .qr-section {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
         .qr-wrapper {
           background: #ffffff;
-          padding: 20px;
-          border-radius: 24px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* เงาบางๆ */
+          padding: 18px;
+          border-radius: 20px;
+          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
           border: 1px solid #e2e8f0;
-          margin-bottom: 20px;
+          margin-bottom: 16px;
         }
-        .qr-image { 
-          width: 300px; 
-          height: 300px; 
-          display: block; 
+        .qr-image {
+          width: 260px;
+          height: 260px;
+          display: block;
+          border-radius: 4px;
         }
-        .scan-text { 
-          font-size: 18px; 
-          font-weight: 700; 
-          color: #475569; 
+        .scan-text {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 15px;
+          font-weight: 600;
+          color: #475569;
+        }
+        .scan-icon {
+          width: 16px;
+          height: 16px;
+          color: #64748b;
         }
 
-        /* Warning Box (แถบเตือนด้านล่าง) */
-        .warning-box {
-          margin-top: auto; /* ดันลงไปชิดขอบล่างของหน้า */
+        /* Notice */
+        .notice {
+          margin-top: 20px;
           display: flex;
           align-items: flex-start;
-          gap: 16px;
-          background-color: #fef2f2; /* พื้นหลังสีแดงอ่อน */
-          border: 1px solid #fecaca; /* กรอบสีแดงอ่อน */
-          border-left: 6px solid #ef4444; /* แถบสีแดงเข้มด้านซ้าย ให้ดูจริงจัง */
-          border-radius: 12px;
-          padding: 24px;
-          width: 90%;
-          margin-left: auto;
-          margin-right: auto;
+          gap: 14px;
+          background-color: #fffbeb;
+          border: 1px solid #fde68a;
+          border-radius: 16px;
+          padding: 18px 20px;
         }
-        .warning-icon-wrapper {
+        .notice-icon-wrapper {
           flex-shrink: 0;
           padding-top: 2px;
         }
-        .warning-icon {
-          width: 28px;
-          height: 28px;
-          color: #ef4444; /* ไอคอนสีแดง */
+        .notice-icon {
+          width: 22px;
+          height: 22px;
+          color: #b45309;
         }
-        .warning-content {
+        .notice-content {
           flex: 1;
         }
-        .warning-title {
-          color: #991b1b;
-          font-size: 18px;
+        .notice-title {
+          color: #92400e;
+          font-size: 14px;
           font-weight: 700;
-          margin-bottom: 8px;
+          margin-bottom: 3px;
         }
-        .warning-list {
-          color: #991b1b;
-          font-size: 15px;
+        .notice-text {
+          color: #92400e;
+          font-size: 13px;
           line-height: 1.6;
-          margin: 0;
-          padding-left: 20px;
         }
-        .warning-list li {
-          margin-bottom: 4px;
-        }
-        .warning-list strong {
-          font-weight: 700;
+
+        /* Footer */
+        .footer {
+          margin-top: 14px;
+          text-align: center;
+          font-size: 11px;
+          color: #cbd5e1;
         }
       </style>
     </head>
