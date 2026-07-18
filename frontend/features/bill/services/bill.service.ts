@@ -58,7 +58,9 @@ export const BillService = {
     return res.data;
   },
 
-  uploadSlip: async (billId: string, file: File) => {
+  // สำหรับ owner บันทึกสลิปแทนผู้เช่าเอง (เช่นรับเงินสด) — คนละ endpoint กับ
+  // TenantService.uploadPaymentSlip ที่ผู้เช่าใช้จ่ายบิลเอง (มี SlipOK verify)
+  uploadSlipAsOwner: async (billId: string, file: File) => {
     const formData = new FormData();
     formData.append("file", file);
 

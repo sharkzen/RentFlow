@@ -323,7 +323,7 @@ export default function BillDetailDialog({
 
   const handleUploadSlip = async (file: File) => {
     try {
-      await BillService.uploadSlip(bill.id, file);
+      await BillService.uploadSlipAsOwner(bill.id, file);
       onRefresh();
       toast.success("อัปโหลดสลิปเรียบร้อย");
     } catch (error) {

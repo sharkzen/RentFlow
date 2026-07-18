@@ -124,6 +124,9 @@ export const TenantService = {
     return res.data;
   },
 
+  // ผู้เช่าจ่ายบิลเอง — backend verify ผ่าน SlipOK จริง ไม่เชื่อ refNo ที่ส่งมา
+  // (refNo ใช้แค่ dedupe เบื้องต้นก่อนยิง SlipOK) คนละ endpoint กับ
+  // BillService.uploadSlipAsOwner ที่ owner ใช้บันทึกสลิปแทน
   uploadPaymentSlip: async (
     billId: string,
     file: File,
