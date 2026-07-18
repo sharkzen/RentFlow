@@ -92,6 +92,39 @@ export async function moveTempFileToPermanent(oldKey: string, newKey: string) {
   }
 }
 
+export async function cleanupOldTempDrafts(
+  maxAgeMs: number,
+): Promise<{ deletedCount: number }> {
+  let deletedCount = 0;
+  let isTruncated = true;
+  let continuationToken: string | undefined = undefined;
+  const cutoff = Date.now() - maxAgeMs;
+
+  while (isTruncated) {
+    const response: ListObjectsV2CommandOutput = await r2Client.send(
+      new ListObjectsV2Command({
+        Bucket: env.BUCKET,
+        Prefix: "temp-drafts/",
+        ContinuationToken: continuationToken,
+      }),
+    );
+
+    for (const object of response.Contents ?? []) {
+      if (!object.Key || !object.LastModified) continue;
+
+      if (object.LastModified.getTime() < cutoff) {
+        await deleteFile(object.Key);
+        deletedCount++;
+      }
+    }
+
+    isTruncated = response.IsTruncated || false;
+    continuationToken = response.NextContinuationToken;
+  }
+
+  return { deletedCount };
+}
+
 export async function getBucketSize(): Promise<{
   totalSizeBytes: number;
   totalFiles: number;

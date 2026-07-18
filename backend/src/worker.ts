@@ -1,9 +1,11 @@
 import { startMoveOutWorker } from "./workers/moveOutWorker";
+import { startTempCleanupWorker } from "./workers/tempCleanupWorker";
 import logger from "@/utils/logger";
 
 const bootstrapWorker = async () => {
   logger.info("🚀 Starting RentFlow Background Workers...");
   startMoveOutWorker();
+  startTempCleanupWorker();
 };
 
 process.on("SIGTERM", () => {
