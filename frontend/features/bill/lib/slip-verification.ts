@@ -144,24 +144,39 @@ export const extractSlipData = (text: string): ExtractedSlipData => {
     }
   }
 
+  // ลองหาตัวเลขที่อยู่ติดกับคำว่า "จำนวนเงิน/amount/บาท" ก่อน เพราะแม่นกว่าการเดา
+  // จาก magic number range (ของเดิม exclude 2500-2600, 2020-2030 แบบเดาสุ่ม ซึ่งจะกรอง
+  // ยอดที่บังเอิญตรงพอดี เช่น ค่าเช่าห้อง 2,550 บาท ทิ้งไปโดยไม่ตั้งใจ)
   const amountRegex = /(\d+)\s?[\.,]\s?(\d{2})\b/g;
-  const amountsFound: number[] = [];
-  let match;
+  let amount: number | null = null;
 
-  while ((match = amountRegex.exec(cleanText)) !== null) {
-    const valStr = `${match[1]}.${match[2]}`;
-    const val = parseFloat(valStr);
+  const anchoredAmountRegex =
+    /(?:จำนวนเงิน|จำนวน|ยอดโอน|ยอดเงิน|amount)\s*[:.\-]?\s*(\d+)\s?[\.,]\s?(\d{2})\b|(\d+)\s?[\.,]\s?(\d{2})\s?(?:บาท|baht|thb)/i;
+  const anchoredMatch = cleanText.match(anchoredAmountRegex);
 
-    if (!isNaN(val) && val > 0 && val < 1000000) {
-      if (val >= 2500 && val <= 2600 && Number.isInteger(val)) continue;
+  if (anchoredMatch) {
+    const whole = anchoredMatch[1] ?? anchoredMatch[3];
+    const cents = anchoredMatch[2] ?? anchoredMatch[4];
+    const val = parseFloat(`${whole}.${cents}`);
 
-      if (val >= 2020 && val <= 2030 && Number.isInteger(val)) continue;
-
-      amountsFound.push(val);
-    }
+    if (!isNaN(val) && val > 0 && val < 1000000) amount = val;
   }
 
-  const amount = amountsFound.length > 0 ? Math.max(...amountsFound) : null;
+  if (amount === null) {
+    const amountsFound: number[] = [];
+    let match;
+
+    while ((match = amountRegex.exec(cleanText)) !== null) {
+      const valStr = `${match[1]}.${match[2]}`;
+      const val = parseFloat(valStr);
+
+      if (!isNaN(val) && val > 0 && val < 1000000) {
+        amountsFound.push(val);
+      }
+    }
+
+    amount = amountsFound.length > 0 ? Math.max(...amountsFound) : null;
+  }
   const lowerText = text.toLowerCase();
   const foundBank = BANK_NAMES.find((b) =>
     b.keywords.some((k) => lowerText.includes(k)),
