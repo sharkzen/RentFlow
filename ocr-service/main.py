@@ -3,15 +3,24 @@ import numpy as np
 import time
 import base64
 import re
-import threading
+import os
+import queue
+import contextlib
 from collections import Counter
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from ultralytics import YOLO
 from paddleocr import PaddleOCR
 import logging
+
+# Confidence ต่ำกว่านี้ให้ flag ว่าควรรีวิวซ้ำ แทนที่จะเชื่อผลลัพธ์ทันที
+MIN_CONFIDENCE = 0.7
+# ถ้า pass แรกได้ confidence สูงพอแล้ว ข้าม pass ที่เหลือเพื่อความเร็ว
+EARLY_EXIT_CONFIDENCE = 0.9
+# จำนวน PaddleOCR instance ที่รันพร้อมกันได้ (มีหลายสาขา/พนักงานสแกนพร้อมกันบ่อย)
+# ปรับได้ผ่าน env var ตาม RAM ของเครื่อง แต่ละ instance กินราว 300-500MB
+OCR_POOL_SIZE = int(os.getenv("OCR_POOL_SIZE", "3"))
 
 # --- Setup & Config ---
 logging.basicConfig(level=logging.INFO)
@@ -21,37 +30,39 @@ app = FastAPI(title="Meter OCR Service")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 app.mount("/static", StaticFiles(directory="static", html=True), name="static")
 
-# --- Thread-Safe Singletons ---
-class OCRSystem:
-    _instance = None
-    _lock = threading.Lock()
 
-    def __new__(cls):
-        with cls._lock:
-            if cls._instance is None:
-                cls._instance = super(OCRSystem, cls).__new__(cls)
-                cls._instance._init_models()
-            return cls._instance
+def _new_ocr_model():
+    # lang='en' ใช้ default mobile-sized det/rec models อยู่แล้ว (เร็วบน CPU)
+    # หน้าบ้าน crop กรอบตัวเลขมาให้แล้ว จึงไม่ต้องพึ่ง detector แยกแบบ YOLO
+    return PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False)
 
-    def _init_models(self):
-        logger.info("Initializing YOLO11n...")
+
+class OCRPool:
+    """Pool ของ PaddleOCR instance หลายตัว เพื่อให้หลายคนสแกนพร้อมกันได้จริง
+    แทนที่จะรอคิว instance เดียว (แต่ละ instance ใช้งานได้ทีละ thread เท่านั้น)"""
+
+    def __init__(self, size):
+        logger.info(f"Initializing PaddleOCR pool (size={size}, CPU)...")
+        self._pool = queue.Queue()
+        for _ in range(size):
+            self._pool.put(_new_ocr_model())
+
+    @contextlib.contextmanager
+    def borrow(self):
+        model = self._pool.get()
         try:
-            self.detector = YOLO('yolo11n.pt') # Will download automatically if not found
-        except Exception as e:
-            logger.warning(f"YOLO load failed, will rely on OpenCV fallback: {e}")
-            self.detector = None
+            yield model
+        finally:
+            self._pool.put(model)
 
-        logger.info("Initializing PaddleOCR (CPU)...")
-        self.ocr_model = PaddleOCR(use_angle_cls=True, lang='en')
-        
-        self.char_map = {
-            'O': '0', 'o': '0', 'D': '0', 'Q': '0',
-            'I': '1', 'l': '1', '|': '1',
-            'S': '5', 'B': '8', 'G': '6', 'Z': '2'
-        }
 
-ocr_sys = OCRSystem()
-cv_lock = threading.Lock()
+ocr_pool = OCRPool(OCR_POOL_SIZE)
+
+char_map = {
+    'O': '0', 'o': '0', 'D': '0', 'Q': '0',
+    'I': '1', 'l': '1', '|': '1',
+    'S': '5', 'B': '8', 'G': '6', 'Z': '2'
+}
 
 # --- Image Processing Core ---
 class ImageProcessor:
@@ -162,45 +173,6 @@ class ImageProcessor:
         return base64.b64encode(buffer).decode('utf-8')
 
 # --- Processing Logic ---
-def extract_meter_region(img):
-    debug_imgs = {}
-    crop_img = img.copy()
-
-    # 1. YOLO Attempt
-    if ocr_sys.detector:
-        results = ocr_sys.detector(img, verbose=False)
-        if len(results[0].boxes) > 0:
-            box = results[0].boxes[0].xyxy[0].cpu().numpy()
-            x1, y1, x2, y2 = map(int, box)
-            crop_img = img[y1:y2, x1:x2]
-            debug_imgs['Crop_YOLO'] = crop_img
-            return crop_img, debug_imgs
-
-    # 2. OpenCV Fallback
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    edged = cv2.Canny(blurred, 50, 200, 255)
-    debug_imgs['Edges'] = edged
-    
-    cnts, _ = cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cnts = sorted(cnts, key=cv2.contourArea, reverse=True)[:5]
-    
-    for c in cnts:
-        peri = cv2.arcLength(c, True)
-        approx = cv2.approxPolyDP(c, 0.02 * peri, True)
-        if len(approx) == 4:
-            crop_img = ImageProcessor.perspective_transform(img, approx.reshape(4, 2))
-            debug_imgs['Crop_Perspective'] = crop_img
-            return crop_img, debug_imgs
-
-    # Bounding Box Fallback
-    if cnts:
-        x, y, w, h = cv2.boundingRect(cnts[0])
-        crop_img = img[y:y+h, x:x+w]
-        debug_imgs['Crop_BBox'] = crop_img
-        
-    return crop_img, debug_imgs
-
 def process_and_read(img_bytes, is_debug=False):
     start_time = time.time()
     nparr = np.frombuffer(img_bytes, np.uint8)
@@ -217,57 +189,60 @@ def process_and_read(img_bytes, is_debug=False):
     if blur_score < 30:
          raise ValueError(f"Image too blurry (Score: {blur_score:.1f})")
 
-    # 1. Bypass Auto Crop & Add Padding
-    # ข้ามขั้นตอน Auto Crop เพราะรูปหน้าบ้านตัดมาให้แล้ว
+    # 1. Add Padding (หน้าบ้าน crop กรอบตัวเลขมาให้แล้ว จึงไม่ทำ auto-crop ซ้ำ)
     # เติมขอบสีดำรอบรูป 15 พิกเซล ช่วยให้ OCR มองเห็นขอบตัวเลขได้ชัดเจนขึ้น
     cropped = cv2.copyMakeBorder(img, 15, 15, 15, 15, cv2.BORDER_CONSTANT, value=[50, 50, 50])
-    crop_debug = {} # สร้าง dict ว่างไว้เพื่อไม่ให้ตัวแปรด้านล่างพัง
-    
-    debug_res.update(crop_debug)
     debug_res['Final_OCR_Region'] = cropped
-    
+
     # 2. Preprocessing Multi-Pass Generation
-    passes = {}
-    
-    # 2.1 Original
-    passes['original'] = cropped
-    
-    # 2.2 Grayscale (แปลงขาวดำพื้นฐาน ช่วยลดสัญญาณรบกวนจากสี)
+    # เรียงจาก pass ที่มักให้ผลดีสุดไปหาน้อยสุด เพื่อให้ early-exit (ข้อ 3) ทำงานคุ้มค่าที่สุด
     gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
-    passes['gray'] = gray
-    debug_res['Gray'] = gray
-    
-    # 2.3 CLAHE (ดึงคอนทราสต์ให้ชัดขึ้น เหมาะกับมิเตอร์ที่แสงตกกระทบไม่เท่ากัน)
+    denoised = ImageProcessor.denoise(gray)
+
+    passes = {}
+    # 2.1 CLAHE (ดึงคอนทราสต์ให้ชัดขึ้น เหมาะกับมิเตอร์ที่แสงตกกระทบไม่เท่ากัน)
     passes['clahe'] = ImageProcessor.clahe(cropped)
-    debug_res['CLAHE'] = passes['clahe']
-    
-    # 2.4 Adaptive Threshold (แปลงเป็นขาวดำแบบแข็ง เหมาะกับมิเตอร์ที่มีเงาดำพาดผ่าน)
-    denoised = ImageProcessor.denoise(gray) # ลบนอยส์ออกนิดหน่อยก่อนทำ Threshold
+    # 2.2 Original
+    passes['original'] = cropped
+    # 2.3 Gamma / Auto-brightness (แก้ภาพมืดเกินไป/สว่างเกินไปจากแสงสะท้อนจอมิเตอร์)
+    v_mean = np.mean(cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)[:, :, 2])
+    passes['gamma'] = ImageProcessor.gamma(cropped, gamma=1.8 if v_mean < 100 else 0.6)
+    # 2.4 Grayscale พื้นฐาน
+    passes['gray'] = gray
+    # 2.5 Adaptive Threshold (แปลงเป็นขาวดำแบบแข็ง เหมาะกับมิเตอร์ที่มีเงาดำพาดผ่าน)
     passes['adaptive'] = ImageProcessor.adaptive_threshold(denoised)
-    debug_res['Adaptive'] = passes['adaptive']
-    
-    # 3. Multi-Pass OCR
+
+    for name, p_img in passes.items():
+        debug_res[name] = p_img
+
+    # 3. Multi-Pass OCR with early-exit
+    # หยุดทันทีที่เจอผลความมั่นใจสูงพอ เพื่อความเร็ว (ยกเว้นโหมด debug ที่ต้องการเห็นทุก pass)
     candidates = []
-    with cv_lock:
+    with ocr_pool.borrow() as ocr_model:
         for name, p_img in passes.items():
             if len(p_img.shape) == 2:
                 p_img = cv2.cvtColor(p_img, cv2.COLOR_GRAY2BGR)
-            
-            res = ocr_sys.ocr_model.ocr(p_img, cls=False)
+
+            res = ocr_model.ocr(p_img, cls=False)
             if not res or not res[0]: continue
-            
+
+            pass_best_conf = 0.0
             for line in res[0]:
                 text, conf = line[1]
                 # Apply digit correction
-                for char, num in ocr_sys.char_map.items():
+                for char, num in char_map.items():
                     text = text.replace(char, num)
-                
+
                 # Filter only digits
                 clean_text = re.sub(r'\D', '', text)
-                
+
                 # Validation: 3 to 8 digits
                 if 3 <= len(clean_text) <= 8:
                     candidates.append({"text": clean_text, "conf": conf, "pass": name})
+                    pass_best_conf = max(pass_best_conf, conf)
+
+            if not is_debug and pass_best_conf >= EARLY_EXIT_CONFIDENCE:
+                break
 
     # 4. Voting Logic
     if not candidates:
@@ -276,7 +251,7 @@ def process_and_read(img_bytes, is_debug=False):
     # Count occurrences
     texts = [c['text'] for c in candidates]
     counter = Counter(texts)
-    
+
     # Group by text to find max conf per text
     grouped = {}
     for c in candidates:
@@ -284,15 +259,18 @@ def process_and_read(img_bytes, is_debug=False):
         if t not in grouped or c['conf'] > grouped[t]['conf']:
             grouped[t] = c
 
-    # Sort by: 1. Frequency (desc), 2. Length (desc), 3. Confidence (desc)
-    best_candidate = max(grouped.values(), key=lambda x: (counter[x['text']], len(x['text']), x['conf']))
-    
+    # Sort by: 1. Frequency (desc), 2. Confidence (desc) — ความยาว digit ไม่ใช้เป็นตัวตัดสินหลักอีกต่อไป
+    # เพราะ noise บาง pass อาจสร้างเลขยาวผิดที่ conf/frequency ต่ำกว่าตัวจริง
+    best_candidate = max(grouped.values(), key=lambda x: (counter[x['text']], x['conf']))
+
     proc_time_ms = int((time.time() - start_time) * 1000)
+    confidence = round(float(best_candidate['conf']), 4)
 
     result = {
         "success": True,
+        "needs_review": confidence < MIN_CONFIDENCE,
         "meter_number": best_candidate['text'],
-        "confidence": round(float(best_candidate['conf']), 4),
+        "confidence": confidence,
         "blur_score": round(float(blur_score), 1),
         "processing_time_ms": proc_time_ms
     }
