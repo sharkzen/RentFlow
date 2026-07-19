@@ -1,6 +1,6 @@
 import { authRoute } from "@/modules/auth/auth.route";
 import { dormRoute } from "@/modules/dormitory/dorm.route";
-import { tenantRoute } from "@/modules/tenant/tenent.route";
+import { tenantRoute } from "@/modules/tenant/tenant.route";
 import { landmarkRoute } from "@/modules/landmark/landmark.route";
 import { roomRoute } from "@/modules/room/room.route";
 import { ownerRoute } from "@/modules/owner/owner.route";

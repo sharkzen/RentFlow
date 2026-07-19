@@ -304,8 +304,11 @@ export default function DormitoryContainer() {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
-                        onClick={() => handleTogglePublish(item)}
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${item.isPublished ? "bg-green-50 text-green-700 hover:bg-green-100" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTogglePublish(item);
+                        }}
+                        className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold underline transition-colors ${item.isPublished ? "bg-green-50 text-green-700 hover:bg-green-100" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
                       >
                         <Globe size={12} />{" "}
                         {item.isPublished ? "Published" : "Hidden"}
@@ -321,14 +324,20 @@ export default function DormitoryContainer() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => handleView(item.id)}
+                          onClick={(e) => {
+                            e.stopPropagation(); // <--- เพิ่มบรรทัดนี้
+                            handleView(item.id);
+                          }}
                           className="cursor-pointer rounded-lg p-2 text-gray-500 transition-all hover:bg-blue-50 hover:text-blue-600"
                           title="ดูรายละเอียด"
                         >
                           <Eye size={18} />
                         </button>
                         <button
-                          onClick={() => handleBan(item)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBan(item);
+                          }}
                           className={`cursor-pointer rounded-lg p-2 transition-all ${item.status === "BANNED" ? "text-green-600 hover:bg-green-50" : "text-red-500 hover:bg-red-50"}`}
                           title={
                             item.status === "BANNED"
