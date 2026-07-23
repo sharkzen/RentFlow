@@ -1,6 +1,7 @@
 import { useState, useRef, useMemo, RefObject } from "react";
 import { Check, ChevronDown, Search, Home, User } from "lucide-react";
 import { useOnClickOutside } from "usehooks-ts";
+import Link from "next/link";
 
 interface RoomData {
   id: string;
@@ -122,7 +123,11 @@ export default function RoomSelector({
               ))
             ) : (
               <div className="py-4 text-center text-xs text-gray-400">
-                ไม่พบห้องพักกรุณาสร้างห้องพักก่อน
+                ไม่พบห้องพักกรุณา
+                <Link className="text-blue-500 underline" href="/owner/rooms">
+                  สร้าง
+                </Link>
+                ห้องพักและมีคนพัก
               </div>
             )}
           </div>
