@@ -102,5 +102,7 @@ function isPublicRoute(pathname: string) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|images/).*)"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|images/|robots.txt|sitemap.xml|.*\\.(?:jpg|jpeg|png|gif|svg|webp|ico|css|js)$).*)",
+  ],
 };

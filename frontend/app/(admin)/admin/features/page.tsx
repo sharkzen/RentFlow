@@ -2,7 +2,7 @@ import React from "react";
 import FeatureManager from "@/features/feature/components/FeatureManager";
 
 export const metadata = {
-  title: "จัดการฟีเจอร์ (Features) | Admin Panel",
+  title: "จัดการฟีเจอร์ (Features)",
 };
 
 export default function FeaturesPage() {

@@ -5,6 +5,7 @@
  */
 export const routes = {
   admin: {
+    activityLogs: "/admin/activity-logs",
     approvals: "/admin/approvals",
     dashboard: "/admin/dashboard",
     dormitories: "/admin/dormitories",

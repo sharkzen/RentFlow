@@ -412,5 +412,52 @@ export async function adminRoute(app: FastifyInstance) {
         },
       },
     }, AdminController.deleteLandmark);
+
+    routeRoles.get("/activity-logs", {
+      schema: {
+        tags: ["Admin"],
+        summary: "ประวัติกิจกรรมของระบบ (Audit Log) — ค้นหา/กรองประเภท/ช่วงวันที่",
+        security: [{ bearerAuth: [] }],
+
+        querystring: {
+          type: "object",
+
+          properties: {
+            page: {
+              type: "string",
+            },
+
+            limit: {
+              type: "string",
+            },
+
+            q: {
+              type: "string",
+              description: "ค้นหาจาก action เช่น CREATE_TENANT",
+            },
+
+            entityType: {
+              type: "string",
+            },
+
+            dateFrom: {
+              type: "string",
+              format: "date",
+            },
+
+            dateTo: {
+              type: "string",
+              format: "date",
+            },
+          },
+        },
+
+        response: {
+          200: paginatedResponse("รายการ activity log"),
+          401: commonErrorResponses[401],
+          403: commonErrorResponses[403],
+        },
+      },
+    }, AdminController.getActivityLogs);
   });
 }

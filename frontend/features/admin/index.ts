@@ -4,4 +4,5 @@ export { default as ApprovalContainer } from "./components/approval/ApprovalCont
 export { default as AdminDashboardContainer } from "./components/dashboard/DashboardContainer";
 export { default as LandmarkContainer } from "./components/landmark/LandmarkContainer";
 export { default as FeaturedContainer } from "./components/featured/FeaturedContainer";
+export { default as AuditLogContainer } from "./components/audit-log/AuditLogContainer";
 export { default as UserController } from "./components/user/UserController";

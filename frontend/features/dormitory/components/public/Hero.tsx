@@ -1,30 +1,22 @@
-"use client";
-import Link from "next/link";
-import { scroller } from "react-scroll";
-import { Search, Building2, ArrowRight, ArrowDown } from "lucide-react";
+import Image from "next/image";
+import HeroSearchButton from "./HeroSearchButton";
 
 export default function Hero() {
-  const onSearch = () => {
-    setTimeout(() => {
-      scroller.scrollTo("dorm-filter", {
-        duration: 800,
-        delay: 100,
-        smooth: "easeInOutQuart",
-        offset: -70,
-      });
-    });
-  };
-
   return (
     <section
       suppressHydrationWarning
       className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-slate-950"
     >
       <div className="absolute inset-0 -z-10 select-none">
-        <img
-          src="https://media.architecturaldigest.com/photos/6536908417f79b79b74fb1ff/16:9/w_2560%2Cc_limit/anand-loft-bedroom.jpg"
+        <Image
+          src="/hero.jpg"
           alt="Modern Cozy Apartment"
-          className="h-full w-full object-cover opacity-50"
+          fill
+          priority
+          fetchPriority="high"
+          sizes="100vw"
+          quality={70}
+          className="object-cover opacity-50"
         />
         <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/60 to-slate-950/40" />
         <div className="absolute inset-0 bg-linear-to-t from-slate-950/90 via-transparent to-slate-950/90" />
@@ -57,14 +49,7 @@ export default function Hero() {
             เจ้าของหอจัดการประกาศและลูกบ้านชำระเงินได้สะดวกในที่เดียว
           </p>
           <div className="w-full max-w-md">
-            <button
-              onClick={onSearch}
-              className="group relative flex w-full cursor-pointer items-center justify-center gap-3 rounded-full bg-white px-8 py-4 text-base font-bold text-slate-800 shadow-[0_0_40px_-10px_rgba(59,130,246,0.4)] transition-all hover:-translate-y-1 hover:shadow-[0_0_60px_-15px_rgba(59,130,246,0.6)] active:scale-95"
-            >
-              <Search className="h-5 w-5 text-blue-600 transition-transform duration-300 group-hover:scale-110 group-hover:text-cyan-500" />
-              <span>เริ่มค้นหาห้องพักเลย</span>
-              <ArrowDown className="absolute right-6 h-5 w-5 text-slate-300 opacity-0 transition-all duration-300 group-hover:translate-y-1 group-hover:opacity-100" />
-            </button>
+            <HeroSearchButton />
           </div>
         </div>
       </div>

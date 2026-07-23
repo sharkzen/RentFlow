@@ -155,9 +155,15 @@ export interface TenantContractDetail {
   phone: string;
   email: string;
   idCard: string;
+  address: string | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  numberOfResidents: number;
+  notes: string | null;
   roomPriceSnapshot: number;
   securityDeposit: number;
   advancePayment: number;
+  entranceFee: number;
   contractStartDate: string;
   contractEndDate: string | null;
   moveInDate: string;
@@ -178,6 +184,7 @@ export interface TenantContractDetail {
         waterRate: number;
         electricRate: number;
         commonFee: number;
+        lateFee: number;
         dueDay: number;
         dueMonthOffset: number;
       };

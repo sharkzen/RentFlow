@@ -347,4 +347,26 @@ export const AdminController = {
       success: true,
     });
   },
+
+  getActivityLogs: async (req: FastifyRequest, reply: FastifyReply) => {
+    const {
+      page = 1,
+      limit = 20,
+      q = "",
+      entityType = "ALL",
+      dateFrom,
+      dateTo,
+    } = req.query as any;
+
+    const result = await AdminService.getActivityLogs(
+      Number(page),
+      Number(limit),
+      String(q),
+      String(entityType),
+      dateFrom,
+      dateTo,
+    );
+
+    return reply.send(result);
+  },
 };

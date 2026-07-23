@@ -1,6 +1,7 @@
 import { axios } from "@/lib/api/api-client";
 
 import {
+  ActivityLogResponse,
   CreateLandmarkPayload,
   DashboardData,
   Dormitory,
@@ -167,6 +168,28 @@ export const AdminService = {
 
   deleteLandmark: async (id: string) => {
     const res = await axios.delete(`/api/admin/landmarks/${id}`);
+    return res.data;
+  },
+
+  getActivityLogs: async (
+    page = 1,
+    limit = 20,
+    search = "",
+    entityType = "ALL",
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<ActivityLogResponse> => {
+    const res = await axios.get("/api/admin/activity-logs", {
+      params: {
+        page,
+        limit,
+        q: search,
+        entityType,
+        dateFrom,
+        dateTo,
+      },
+    });
+
     return res.data;
   },
 };

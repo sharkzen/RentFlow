@@ -4,7 +4,8 @@ import { TenantService } from "@/features/tenant/services/tenant.service";
 import { TenantInfoCard } from "./TenantInfoCard";
 import { FinancialCard } from "./FinancialCard";
 import { DormitoryCard } from "./DormitoryCard";
-import { ShieldCheck, FileText, MapPin } from "lucide-react";
+import { PaymentChannelCard } from "./PaymentChannelCard";
+import { ShieldCheck, FileText } from "lucide-react";
 import { TenantContractDetail } from "@/features/tenant";
 import LoadingPage from "@/lib/ui/layout/LoadingPage";
 
@@ -48,35 +49,27 @@ export default function ContractContainer() {
     );
 
   return (
-    <div className="min-h-screen">
+    <div className="">
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-blue-600">
-              <FileText size={20} />
-              <span className="text-sm font-bold tracking-wider uppercase">
-                Active Contract
-              </span>
-            </div>
-            <h1 className="text-3xl font-black text-slate-900 md:text-4xl">
-              สัญญาเช่าของฉัน
-            </h1>
-            <div className="mt-2 flex items-center gap-2 text-slate-500">
-              <MapPin size={16} />
-              <span>
-                {tenantData.room.dormitory.name}— ห้อง{" "}
-                {tenantData.room.roomNumber}
-              </span>
-            </div>
-          </div>
+        <div className="mb-6 flex items-center gap-2 text-blue-600">
+          <FileText size={18} />
+          <h1 className="text-xl font-bold text-slate-900">สัญญาเช่าของฉัน</h1>
+          <span className="ml-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 ring-1 ring-emerald-200">
+            ใช้งานอยู่
+          </span>
         </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <div className="space-y-6 lg:col-span-8">
-            <DormitoryCard tenant={tenantData} />
-            <FinancialCard tenant={tenantData} />
-          </div>
-          <div className="space-y-6 lg:col-span-4">
-            <TenantInfoCard tenant={tenantData} />
+
+        <div className="space-y-5">
+          <DormitoryCard tenant={tenantData} />
+
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            <div className="space-y-5 lg:col-span-2">
+              <FinancialCard tenant={tenantData} />
+            </div>
+            <div className="space-y-5">
+              <PaymentChannelCard tenant={tenantData} />
+              <TenantInfoCard tenant={tenantData} />
+            </div>
           </div>
         </div>
       </div>

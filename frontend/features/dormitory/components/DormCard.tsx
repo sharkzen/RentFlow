@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import {
   MapPin,
   Search,
@@ -32,6 +33,7 @@ export default function DormCard({
 }: DormProps) {
   const displayImage =
     image || "https://placehold.co/800x600/f3f4f6/9ca3af?text=No+Image";
+  const isPlaceholder = displayImage.includes("placehold.co");
   const isFull = availabilityStatus === "FULL";
   const isAvailable = availabilityStatus === "AVAILABLE";
   const isNotSpecified = !isFull && !isAvailable;
@@ -47,10 +49,14 @@ export default function DormCard({
               แนะนำ
             </span>
           )}
-          <img
+          <Image
             src={displayImage}
             alt={title}
-            className={`h-full w-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110 ${isFull ? "grayscale-[40%]" : ""}`}
+            fill
+            unoptimized={isPlaceholder}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            quality={65}
+            className={`object-cover transition-transform duration-700 ease-in-out group-hover:scale-110 ${isFull ? "grayscale-[40%]" : ""}`}
             loading="lazy"
           />
           <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />

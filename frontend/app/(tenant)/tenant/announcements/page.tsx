@@ -1,6 +1,10 @@
 import React from "react";
 import AnnouncementHistoryClient from "@/features/announcement/components/AnnouncementHistoryClient";
 
+export const metadata = {
+  title: "ประวัติการประกาศ",
+};
+
 export default function AnnouncementHistoryPage() {
   return (
     <div>
