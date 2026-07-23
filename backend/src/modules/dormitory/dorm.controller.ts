@@ -296,7 +296,7 @@ export const DormController = {
 
     if (!ownerDorm) throw AppError.forbidden("FORBIDDEN");
 
-    await dormService.reorderDormImages(dormId, images);
+    await dormService.reorderDormImages(dormId, images, user.sub);
 
     reply.send({
       success: true,
@@ -335,6 +335,50 @@ export const DormController = {
       }
 
       throw AppError.internal("FAILED_TO_FETCH_OVERVIEW");
+    }
+  },
+
+  async exportDashboard(request: FastifyRequest, reply: FastifyReply) {
+    const user = request.user as UserDecodedDto;
+
+    if (!user) throw AppError.unauthorized("UNAUTHORIZED");
+
+    const { dormId } = request.params as {
+      dormId: string;
+    };
+
+    const { month, year } = request.query as {
+      month?: string;
+      year?: string;
+    };
+
+    if (!dormId) {
+      throw AppError.badRequest("DORM_ID_REQUIRED");
+    }
+
+    try {
+      const { pdfBuffer, filename } = await dormService.exportDashboardPdf(
+        dormId,
+        user.sub,
+        month,
+        year,
+      );
+
+      const encodedFilename = encodeURIComponent(filename);
+
+      return reply
+        .type("application/pdf")
+        .header(
+          "Content-Disposition",
+          `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`,
+        )
+        .send(pdfBuffer);
+    } catch (error: any) {
+      if (error.message === "FORBIDDEN") {
+        throw AppError.forbidden("FORBIDDEN");
+      }
+
+      throw AppError.internal("FAILED_TO_EXPORT_REPORT");
     }
   },
 

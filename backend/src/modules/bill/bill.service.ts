@@ -1235,6 +1235,16 @@ export const billService = {
       }
     }
 
+    await createActivityLog({
+      userId: userSub,
+      action: "REJECT_BILL_SLIP",
+      entityType: "Bill",
+      entityId: billId,
+      metadata: {
+        reason,
+      },
+    });
+
     return updatedBill;
   },
 
@@ -1609,6 +1619,16 @@ export const billService = {
         );
       }
     }
+
+    await createActivityLog({
+      userId: sub,
+      action: "SEND_BILL_EMAILS",
+      entityType: "Bill",
+      metadata: {
+        requestedCount: billIds.length,
+        queuedCount,
+      },
+    });
 
     return {
       success: true,

@@ -20,6 +20,8 @@ import { shuffleArray } from "./lib/dorm.lib";
 import logger from "@/utils/logger";
 import { createActivityLog } from "@/services/activity-log.service";
 import sharp from "sharp";
+import { createPdfFromHtml } from "@/modules/tenant/lib/tenant.lib";
+import { formatDateTH } from "@/utils/date";
 
 export const dormService = {
   async getAllDorms(query: GetDormsQueryDto) {
@@ -68,6 +70,34 @@ export const dormService = {
 
     let resultDorms: any[] = [];
     let totalItems = 0;
+
+    const featuredIdsOrdered = (
+      await prisma.dormitory.findMany({
+        where: {
+          isFeatured: true,
+          status: "ACTIVE",
+          isPublished: true,
+        },
+
+        select: {
+          id: true,
+        },
+
+        orderBy: {
+          featuredOrder: "asc",
+        },
+      })
+    ).map((d) => d.id);
+
+    const promoteFeaturedIds = (ids: string[]) => {
+      const idSet = new Set(ids);
+      const featuredInResult = featuredIdsOrdered.filter((id) =>
+        idSet.has(id),
+      );
+      const featuredSet = new Set(featuredInResult);
+      const rest = ids.filter((id) => !featuredSet.has(id));
+      return [...featuredInResult, ...rest];
+    };
 
     const dormIncludeQuery = {
       images: true,
@@ -148,8 +178,16 @@ export const dormService = {
         return a._distance - b._distance;
       });
 
-      totalItems = dormsWithDistance.length;
-      resultDorms = dormsWithDistance.slice(skip, skip + limit);
+      const orderedIds = promoteFeaturedIds(
+        dormsWithDistance.map((d) => d.id),
+      );
+      const dormsById = new Map(dormsWithDistance.map((d) => [d.id, d]));
+      const promotedDorms = orderedIds
+        .map((id) => dormsById.get(id))
+        .filter(Boolean) as typeof dormsWithDistance;
+
+      totalItems = promotedDorms.length;
+      resultDorms = promotedDorms.slice(skip, skip + limit);
     } else if (!hasSearch && !hasPriceFilter) {
       const allDormIds = await prisma.dormitory.findMany({
         where: whereCondition,
@@ -174,8 +212,8 @@ export const dormService = {
       );
       shuffleArray(dormsWithImages);
       shuffleArray(dormsWithoutImages);
-      const sortedIds = [...dormsWithImages, ...dormsWithoutImages].map(
-        (d) => d.id,
+      const sortedIds = promoteFeaturedIds(
+        [...dormsWithImages, ...dormsWithoutImages].map((d) => d.id),
       );
       const pageIds = sortedIds.slice(skip, skip + limit);
 
@@ -239,7 +277,9 @@ export const dormService = {
         },
       });
 
-      const sortedIds = [...availableDorms, ...fullDorms].map((d) => d.id);
+      const sortedIds = promoteFeaturedIds(
+        [...availableDorms, ...fullDorms].map((d) => d.id),
+      );
       totalItems = sortedIds.length;
       const pageIds = sortedIds.slice(skip, skip + limit);
 
@@ -936,6 +976,7 @@ export const dormService = {
       order: number;
       isCover: boolean;
     }[],
+    userId?: string,
   ) {
     const existingImages = await prisma.file.findMany({
       where: {
@@ -982,6 +1023,17 @@ export const dormService = {
     );
 
     await Promise.all(updatePromises);
+
+    await createActivityLog({
+      userId,
+      action: "REORDER_DORM_IMAGES",
+      entityType: "Dormitory",
+      entityId: dormId,
+      metadata: {
+        count: images.length,
+      },
+    });
+
     return true;
   },
 
@@ -1355,6 +1407,148 @@ export const dormService = {
         inProgress: maintInProgress,
         completed: maintCompleted,
       },
+    };
+  },
+
+  async exportDashboardPdf(
+    dormId: string,
+    userId: string,
+    monthStr?: string,
+    yearStr?: string,
+  ) {
+    const overview = await this.getDashboard(dormId, userId, monthStr, yearStr);
+
+    const owner = await prisma.ownerProfile.findUnique({
+      where: {
+        userId,
+      },
+    });
+
+    let dormLabel = "ทุกหอพัก (ทุกสาขา)";
+
+    if (dormId !== "ALL") {
+      const dorm = await prisma.dormitory.findUnique({
+        where: {
+          id: dormId,
+        },
+
+        select: {
+          name: true,
+        },
+      });
+
+      dormLabel = dorm?.name || "-";
+    }
+
+    const isAllYears = !yearStr || yearStr === "ALL";
+    const periodLabel = isAllYears
+      ? "ภาพรวมทุกปี"
+      : !monthStr || monthStr === "ALL"
+        ? `ปี ${parseInt(yearStr!) + 543}`
+        : `เดือน ${overview.monthlyRevenue.find((m: any) => m.isCurrent)?.name || ""} ${parseInt(yearStr!) + 543}`;
+
+    const formatMoney = (n: number) =>
+      Number(n || 0).toLocaleString("th-TH", {
+        minimumFractionDigits: 2,
+      });
+
+    const revenueRowsHtml = overview.monthlyRevenue
+      .map(
+        (row: any) => `
+        <tr>
+          <td style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0;">${row.name}</td>
+          <td align="right" style="padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-weight: 700;">${formatMoney(row.total)}</td>
+        </tr>
+      `,
+      )
+      .join("");
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="th">
+      <head>
+        <meta charset="utf-8" />
+        <style>
+          * { font-family: "Sarabun", "Noto Sans Thai", sans-serif; box-sizing: border-box; }
+          body { margin: 0; padding: 32px; color: #334155; }
+          table { border-collapse: collapse; width: 100%; }
+        </style>
+      </head>
+      <body>
+        <table width="100%" style="border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 24px;">
+          <tr>
+            <td>
+              <h1 style="margin: 0; color: #0f172a; font-size: 22px;">รายงานสรุปรายรับ</h1>
+              <p style="margin: 6px 0 0 0; font-size: 13px; color: #64748b;">${dormLabel} • ${periodLabel}</p>
+            </td>
+            <td align="right" style="font-size: 12px; color: #64748b;">
+              ออกรายงานเมื่อ ${formatDateTH(new Date())}
+            </td>
+          </tr>
+        </table>
+
+        <table width="100%" style="margin-bottom: 24px;">
+          <tr>
+            <td width="25%" style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <div style="font-size: 11px; color: #64748b;">ชำระแล้ว (${overview.bills.paid.count} บิล)</div>
+              <div style="font-size: 18px; font-weight: 800; color: #10b981;">${formatMoney(overview.bills.paid.amount)}</div>
+            </td>
+            <td width="25%" style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <div style="font-size: 11px; color: #64748b;">รอชำระ (${overview.bills.pending.count} บิล)</div>
+              <div style="font-size: 18px; font-weight: 800; color: #f59e0b;">${formatMoney(overview.bills.pending.amount)}</div>
+            </td>
+            <td width="25%" style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <div style="font-size: 11px; color: #64748b;">ค้างชำระ (${overview.bills.overdue.count} บิล)</div>
+              <div style="font-size: 18px; font-weight: 800; color: #dc2626;">${formatMoney(overview.bills.overdue.amount)}</div>
+            </td>
+            <td width="25%" style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px;">
+              <div style="font-size: 11px; color: #64748b;">รอตรวจสอบ (${overview.bills.waiting.count} บิล)</div>
+              <div style="font-size: 18px; font-weight: 800; color: #0f172a;">${formatMoney(overview.bills.waiting.amount)}</div>
+            </td>
+          </tr>
+        </table>
+
+        <table width="100%" style="margin-bottom: 24px;">
+          <tr>
+            <td width="33%" style="padding: 10px 0; font-size: 13px;">ห้องพักทั้งหมด: <b>${overview.rooms.total}</b></td>
+            <td width="33%" style="padding: 10px 0; font-size: 13px;">ห้องไม่ว่าง: <b>${overview.rooms.occupied}</b></td>
+            <td width="33%" style="padding: 10px 0; font-size: 13px;">ห้องว่าง: <b>${overview.rooms.available}</b></td>
+          </tr>
+          <tr>
+            <td style="padding: 4px 0; font-size: 13px;">แจ้งซ่อมทั้งหมด: <b>${overview.maintenance.total}</b></td>
+            <td style="padding: 4px 0; font-size: 13px;">รอดำเนินการ: <b>${overview.maintenance.open}</b></td>
+            <td style="padding: 4px 0; font-size: 13px;">เสร็จสิ้น: <b>${overview.maintenance.completed}</b></td>
+          </tr>
+        </table>
+
+        <h2 style="font-size: 15px; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+          รายรับตามช่วงเวลา (เฉพาะบิลที่ชำระแล้ว)
+        </h2>
+        <table>
+          <thead>
+            <tr>
+              <th align="left" style="padding: 10px 12px; border-bottom: 2px solid #0f172a; font-size: 13px;">ช่วงเวลา</th>
+              <th align="right" style="padding: 10px 12px; border-bottom: 2px solid #0f172a; font-size: 13px;">ยอดรวม (บาท)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${revenueRowsHtml}
+          </tbody>
+        </table>
+
+        <p style="margin-top: 24px; font-size: 11px; color: #94a3b8;">
+          * รายงานนี้แสดงเฉพาะข้อมูลรายรับจากระบบบิล ยังไม่รวมรายจ่ายของหอพัก
+        </p>
+      </body>
+      </html>
+    `;
+
+    const pdfBuffer = await createPdfFromHtml(html);
+    const filename = `income-report-${dormId === "ALL" ? "all" : dormId}-${Date.now()}.pdf`;
+
+    return {
+      pdfBuffer,
+      filename,
     };
   },
 

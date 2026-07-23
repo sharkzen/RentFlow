@@ -12,7 +12,7 @@ interface GetAnnouncementsQuery {
   dormitoryId: string;
 }
 
-const reorderSchema = z.object({
+export const reorderSchema = z.object({
   items: z
     .array(
       z.object({

@@ -102,4 +102,21 @@ export const DormService = {
     const res = await axios.delete(`/api/dorms/${dormId}`);
     return res.data;
   },
+
+  exportDashboard: async (
+    dormId: string,
+    month?: string,
+    year?: string,
+  ): Promise<Blob> => {
+    const res = await axios.get(`/api/dorms/${dormId}/dashboard/export`, {
+      params: {
+        month,
+        year,
+      },
+
+      responseType: "blob",
+    });
+
+    return res.data;
+  },
 };

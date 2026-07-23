@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { createActivityLog } from "@/services/activity-log.service";
 
 export const FeatureService = {
   getAllFeatures: async () => {
@@ -41,12 +42,15 @@ export const FeatureService = {
     }
   },
 
-  createFeature: async (data: {
-    key: string;
-    name: string;
-    description?: string;
-    enabled?: boolean;
-  }) => {
+  createFeature: async (
+    data: {
+      key: string;
+      name: string;
+      description?: string;
+      enabled?: boolean;
+    },
+    adminUserId: string,
+  ) => {
     try {
       const existingFeature = await prisma.feature.findUnique({
         where: {
@@ -62,6 +66,16 @@ export const FeatureService = {
           name: data.name,
           description: data.description,
           enabled: data.enabled ?? false,
+        },
+      });
+
+      await createActivityLog({
+        userId: adminUserId,
+        action: "CREATE_FEATURE",
+        entityType: "Feature",
+        entityId: feature.id,
+        metadata: {
+          key: feature.key,
         },
       });
 
@@ -81,6 +95,7 @@ export const FeatureService = {
       description?: string;
       enabled?: boolean;
     },
+    adminUserId: string,
   ) => {
     try {
       const feature = await prisma.feature.update({
@@ -93,6 +108,14 @@ export const FeatureService = {
         },
       });
 
+      await createActivityLog({
+        userId: adminUserId,
+        action: "UPDATE_FEATURE",
+        entityType: "Feature",
+        entityId: feature.id,
+        metadata: data,
+      });
+
       return {
         success: true,
         data: feature,
@@ -102,10 +125,20 @@ export const FeatureService = {
     }
   },
 
-  deleteFeature: async (key: string) => {
+  deleteFeature: async (key: string, adminUserId: string) => {
     try {
-      await prisma.feature.delete({
+      const feature = await prisma.feature.delete({
         where: {
+          key,
+        },
+      });
+
+      await createActivityLog({
+        userId: adminUserId,
+        action: "DELETE_FEATURE",
+        entityType: "Feature",
+        entityId: feature.id,
+        metadata: {
           key,
         },
       });

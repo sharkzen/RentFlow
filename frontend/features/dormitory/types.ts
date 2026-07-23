@@ -14,6 +14,8 @@ export interface Dormitory {
   mapUrl: string;
   status: DormitoryStatus;
   isPublished: boolean;
+  isFeatured: boolean;
+  featuredOrder: number | null;
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -150,6 +152,8 @@ export type DormSlugResponse = {
   mapUrl: string;
   status: "ACTIVE" | "INACTIVE";
   isPublished: boolean;
+  isFeatured: boolean;
+  featuredOrder: number | null;
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;

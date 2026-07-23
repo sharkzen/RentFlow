@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  X,
 } from "lucide-react";
 
 interface AnnouncementImage {
@@ -46,11 +47,150 @@ interface AnnouncementResponse {
   meta: AnnouncementMeta;
 }
 
+const formatThaiDate = (dateString: string) => {
+  const date = new Date(dateString);
+
+  return date.toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const getTypeConfig = (type: string) => {
+  switch (type) {
+    case "URGENT":
+      return {
+        icon: AlertTriangle,
+        color: "text-red-600",
+        bg: "bg-red-50",
+        border: "border-red-200",
+        badgeBg: "bg-red-100",
+        label: "ด่วนที่สุด",
+      };
+    case "IMPORTANT":
+      return {
+        icon: Bell,
+        color: "text-amber-600",
+        bg: "bg-amber-50",
+        border: "border-amber-200",
+        badgeBg: "bg-amber-100",
+        label: "สำคัญ",
+      };
+    default:
+      return {
+        icon: Info,
+        color: "text-blue-600",
+        bg: "bg-blue-50",
+        border: "border-blue-200",
+        badgeBg: "bg-blue-100",
+        label: "ทั่วไป",
+      };
+  }
+};
+
+const CONTENT_PREVIEW_LENGTH = 220;
+
+function AnnouncementHistoryCard({
+  announcement,
+  onImageClick,
+}: {
+  announcement: Announcement;
+  onImageClick: (url: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const config = getTypeConfig(announcement.type);
+  const Icon = config.icon;
+  const image = announcement.images?.[0];
+  const isLong = announcement.content.length > CONTENT_PREVIEW_LENGTH;
+  const displayContent =
+    isLong && !expanded
+      ? announcement.content.slice(0, CONTENT_PREVIEW_LENGTH).trimEnd() + "…"
+      : announcement.content;
+
+  return (
+    <div
+      className={`group relative flex flex-col overflow-hidden rounded-2xl border transition-all duration-300 ${announcement.isRead ? "border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:shadow-sm" : "border-slate-200 bg-white shadow-sm hover:shadow-md"}`}
+    >
+      <div
+        className={`absolute top-0 bottom-0 left-0 w-1.5 ${config.bg} ${config.color.replace("text-", "bg-")}`}
+      ></div>
+      <div className="flex flex-col gap-3 p-4 pl-5 sm:p-5 sm:pl-7">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${config.badgeBg} ${config.color}`}
+            >
+              <Icon size={14} />
+              {config.label}
+            </span>
+            {announcement.isPinned && (
+              <span className="flex items-center gap-1 rounded-full bg-slate-800 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                <Pin size={12} className="fill-white" />
+                ปักหมุด
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+            <Calendar size={14} />
+            {formatThaiDate(announcement.createdAt)}
+            {announcement.isRead && (
+              <CheckCircle2 size={16} className="ml-1 text-green-500" />
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+          {image?.url && (
+            <button
+              type="button"
+              onClick={() => onImageClick(image.url!)}
+              className="group/img relative aspect-video w-full shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 sm:w-40 sm:aspect-square"
+            >
+              <img
+                src={image.url}
+                alt="รูปภาพประกอบประกาศ"
+                className="h-full w-full object-cover transition-transform duration-500 group-hover/img:scale-105"
+              />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all duration-300 group-hover/img:bg-black/30 group-hover/img:opacity-100">
+                <ExternalLink size={18} className="text-white" />
+              </div>
+            </button>
+          )}
+          <div className="min-w-0 flex-1">
+            <h3
+              className={`text-base leading-snug font-bold sm:text-lg ${announcement.isRead ? "text-slate-700" : "text-slate-900"}`}
+            >
+              {announcement.title}
+            </h3>
+            <div
+              className={`mt-2 text-sm leading-relaxed whitespace-pre-line ${announcement.isRead ? "text-slate-500" : "text-slate-600"}`}
+            >
+              {displayContent}
+            </div>
+            {isLong && (
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                className="mt-1.5 cursor-pointer text-xs font-semibold text-blue-600 hover:underline"
+              >
+                {expanded ? "ย่อข้อความ" : "อ่านเพิ่มเติม"}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AnnouncementHistoryClient() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [meta, setMeta] = useState<AnnouncementMeta | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const fetchAnnouncements = async (page: number) => {
     setIsLoading(true);
@@ -75,52 +215,8 @@ export default function AnnouncementHistoryClient() {
     fetchAnnouncements(currentPage);
   }, [currentPage]);
 
-  const formatThaiDate = (dateString: string) => {
-    const date = new Date(dateString);
-
-    return date.toLocaleDateString("th-TH", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const getTypeConfig = (type: string) => {
-    switch (type) {
-      case "URGENT":
-        return {
-          icon: AlertTriangle,
-          color: "text-red-600",
-          bg: "bg-red-50",
-          border: "border-red-200",
-          badgeBg: "bg-red-100",
-          label: "ด่วนที่สุด",
-        };
-      case "IMPORTANT":
-        return {
-          icon: Bell,
-          color: "text-amber-600",
-          bg: "bg-amber-50",
-          border: "border-amber-200",
-          badgeBg: "bg-amber-100",
-          label: "สำคัญ",
-        };
-      default:
-        return {
-          icon: Info,
-          color: "text-blue-600",
-          bg: "bg-blue-50",
-          border: "border-blue-200",
-          badgeBg: "bg-blue-100",
-          label: "ทั่วไป",
-        };
-    }
-  };
-
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto w-full max-w-4xl space-y-5">
       {!isLoading && meta && (
         <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm font-medium text-slate-600">
@@ -142,12 +238,12 @@ export default function AnnouncementHistoryClient() {
           </div>
         </div>
       )}
-      <div className="space-y-5">
+      <div className="space-y-3.5">
         {isLoading ? (
-          [...Array(3)].map((_, i) => (
+          [...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6"
+              className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5"
             >
               <div className="mb-4 flex items-center gap-3">
                 <div className="h-6 w-20 animate-pulse rounded-full bg-slate-200"></div>
@@ -158,7 +254,6 @@ export default function AnnouncementHistoryClient() {
                 <div className="h-4 w-full animate-pulse rounded bg-slate-100"></div>
                 <div className="h-4 w-2/3 animate-pulse rounded bg-slate-100"></div>
               </div>
-              <div className="mt-5 h-48 w-full animate-pulse rounded-xl bg-slate-100 sm:h-64"></div>
             </div>
           ))
         ) : announcements.length === 0 ? (
@@ -172,80 +267,13 @@ export default function AnnouncementHistoryClient() {
             </p>
           </div>
         ) : (
-          announcements.map((announcement) => {
-            const config = getTypeConfig(announcement.type);
-            const Icon = config.icon;
-
-            return (
-              <div
-                key={announcement.id}
-                className={`group relative flex flex-col overflow-hidden rounded-2xl border transition-all duration-300 ${announcement.isRead ? "border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:shadow-sm" : "border-slate-200 bg-white shadow-sm hover:shadow-md"}`}
-              >
-                <div
-                  className={`absolute top-0 bottom-0 left-0 w-1.5 ${config.bg} ${config.color.replace("text-", "bg-")}`}
-                ></div>
-                <div className="flex flex-col gap-4 p-5 pl-6 sm:p-6 sm:pl-8">
-                  <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${config.badgeBg} ${config.color}`}
-                      >
-                        <Icon size={14} />
-                        {config.label}
-                      </span>
-                      {announcement.isPinned && (
-                        <span className="flex items-center gap-1 rounded-full bg-slate-800 px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-                          <Pin size={12} className="fill-white" />
-                          ปักหมุด
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                      <Calendar size={14} />
-                      {formatThaiDate(announcement.createdAt)}
-                      {announcement.isRead && (
-                        <CheckCircle2
-                          size={16}
-                          className="ml-1 text-green-500"
-                        />
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <h3
-                      className={`text-lg leading-snug font-bold sm:text-xl ${announcement.isRead ? "text-slate-700" : "text-slate-900"}`}
-                    >
-                      {announcement.title}
-                    </h3>
-                    <div
-                      className={`mt-3 text-sm leading-relaxed whitespace-pre-line sm:text-base ${announcement.isRead ? "text-slate-500" : "text-slate-600"}`}
-                    >
-                      {announcement.content}
-                    </div>
-                  </div>
-                  {announcement.images &&
-                    announcement.images.length > 0 &&
-                    announcement.images[0].url && (
-                      <div className="mt-2 w-full">
-                        <div className="group/img relative block w-full cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-                          <img
-                            src={announcement.images[0].url}
-                            alt="รูปภาพประกอบประกาศ"
-                            className="h-auto max-h-[400px] w-full object-contain transition-transform duration-500 group-hover/img:scale-[1.02] sm:max-h-[500px]"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover/img:bg-black/20">
-                            <span className="flex items-center gap-2 rounded-lg bg-white/95 px-4 py-2.5 text-sm font-semibold text-slate-800 opacity-0 shadow-lg transition-opacity duration-300 group-hover/img:opacity-100">
-                              <ExternalLink size={18} />
-                              คลิกเพื่อดูรูปขนาดเต็ม
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                </div>
-              </div>
-            );
-          })
+          announcements.map((announcement) => (
+            <AnnouncementHistoryCard
+              key={announcement.id}
+              announcement={announcement}
+              onImageClick={setLightboxUrl}
+            />
+          ))
         )}
       </div>
       {!isLoading && meta && meta.totalPages > 1 && (
@@ -271,6 +299,25 @@ export default function AnnouncementHistoryClient() {
             ถัดไป
             <ChevronRight size={16} />
           </button>
+        </div>
+      )}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 cursor-pointer rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+          >
+            <X size={22} />
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="รูปภาพประกอบประกาศ"
+            className="max-h-[90vh] max-w-full rounded-lg object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
         </div>
       )}
     </div>

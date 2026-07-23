@@ -7,6 +7,7 @@ import { emailQueue, EMAIL_JOB_NAME } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@/config/env";
+import { createActivityLog } from "@/services/activity-log.service";
 
 export const AnnouncementService = {
   _verifyOwnership: async (announcementId: string, userId: string) => {
@@ -330,6 +331,17 @@ export const AnnouncementService = {
       });
     }
 
+    await createActivityLog({
+      userId: ownerId,
+      action: "CREATE_ANNOUNCEMENT",
+      entityType: "Announcement",
+      entityId: announcement.id,
+      metadata: {
+        dormitoryId,
+        title,
+      },
+    });
+
     return announcement;
   },
 
@@ -434,6 +446,13 @@ export const AnnouncementService = {
       },
     });
 
+    await createActivityLog({
+      userId: data.ownerId,
+      action: "UPDATE_ANNOUNCEMENT",
+      entityType: "Announcement",
+      entityId: id,
+    });
+
     return updatedAnnouncement;
   },
 
@@ -475,6 +494,13 @@ export const AnnouncementService = {
       }),
     ]);
 
+    await createActivityLog({
+      userId: ownerId,
+      action: "DELETE_ANNOUNCEMENT",
+      entityType: "Announcement",
+      entityId: id,
+    });
+
     return {
       success: true,
     };
@@ -500,6 +526,16 @@ export const AnnouncementService = {
 
       data: {
         isPinned: !announcement?.isPinned,
+      },
+    });
+
+    await createActivityLog({
+      userId: ownerId,
+      action: "TOGGLE_ANNOUNCEMENT_PIN",
+      entityType: "Announcement",
+      entityId: id,
+      metadata: {
+        isPinned: updated.isPinned,
       },
     });
 
@@ -530,6 +566,15 @@ export const AnnouncementService = {
         }),
       ),
     );
+
+    await createActivityLog({
+      userId: ownerId,
+      action: "REORDER_ANNOUNCEMENTS",
+      entityType: "Announcement",
+      metadata: {
+        count: items.length,
+      },
+    });
 
     return {
       success: true,
@@ -565,6 +610,13 @@ export const AnnouncementService = {
       where: {
         id: imageId,
       },
+    });
+
+    await createActivityLog({
+      userId: ownerId,
+      action: "DELETE_ANNOUNCEMENT_IMAGE",
+      entityType: "Announcement",
+      entityId: file.announcementId,
     });
 
     return {

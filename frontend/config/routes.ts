@@ -8,6 +8,7 @@ export const routes = {
     approvals: "/admin/approvals",
     dashboard: "/admin/dashboard",
     dormitories: "/admin/dormitories",
+    featured: "/admin/featured",
     features: "/admin/features",
     landmarks: "/admin/landmarks",
     owners: "/admin/owners",

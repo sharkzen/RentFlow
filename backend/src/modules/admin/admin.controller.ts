@@ -2,25 +2,39 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { AdminService } from "./admin.service";
 import { LandmarkType } from "@prisma/client";
 import { AppError } from "@/lib/errors";
+import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import { z } from "zod";
 
-const createLandmarkSchema = z.object({
+export const createLandmarkSchema = z.object({
   name: z.string(),
   type: z.string(),
   mapUrl: z.string(),
 });
 
-const updateLandmarkSchema = z.object({
+export const updateLandmarkSchema = z.object({
   name: z.string().optional(),
   type: z.string().optional(),
   mapUrl: z.string().optional(),
 });
 
-const togglePublishSchema = z.object({
+export const togglePublishSchema = z.object({
   isPublished: z.boolean(),
 });
 
-const updateStatusSchema = z.object({
+export const toggleFeaturedSchema = z.object({
+  isFeatured: z.boolean(),
+});
+
+export const reorderFeaturedSchema = z.object({
+  items: z.array(
+    z.object({
+      id: z.string(),
+      order: z.number(),
+    }),
+  ),
+});
+
+export const updateStatusSchema = z.object({
   status: z.string(),
 });
 
@@ -50,8 +64,9 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { id } = req.params;
+    const user = req.user as UserDecodedDto;
 
-    await AdminService.approveOwner(id);
+    await AdminService.approveOwner(id, user.sub);
 
     return reply.send({
       success: true,
@@ -67,8 +82,9 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { id } = req.params;
+    const user = req.user as UserDecodedDto;
 
-    await AdminService.rejectOwner(id);
+    await AdminService.rejectOwner(id, user.sub);
 
     return reply.send({
       success: true,
@@ -82,6 +98,7 @@ export const AdminController = {
       q = "",
       status = "ALL",
       published = "all",
+      featured = "all",
     } = req.query as any;
 
     const result = await AdminService.getDormitories(
@@ -90,7 +107,43 @@ export const AdminController = {
       String(q),
       String(status),
       String(published),
+      String(featured),
     );
+    return reply.send(result);
+  },
+
+  getFeaturedList: async (req: FastifyRequest, reply: FastifyReply) => {
+    const result = await AdminService.getFeaturedDormitories();
+    return reply.send(result);
+  },
+
+  toggleFeatured: async (
+    req: FastifyRequest<{
+      Params: {
+        id: string;
+      };
+      Body: {
+        isFeatured: boolean;
+      };
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const { isFeatured } = toggleFeaturedSchema.parse(req.body);
+    const user = req.user as UserDecodedDto;
+
+    const result = await AdminService.toggleFeatured(
+      req.params.id,
+      isFeatured,
+      user.sub,
+    );
+    return reply.send(result);
+  },
+
+  reorderFeatured: async (req: FastifyRequest, reply: FastifyReply) => {
+    const { items } = reorderFeaturedSchema.parse(req.body);
+    const user = req.user as UserDecodedDto;
+
+    const result = await AdminService.reorderFeatured(items, user.sub);
     return reply.send(result);
   },
 
@@ -118,8 +171,13 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { isPublished } = togglePublishSchema.parse(req.body);
+    const user = req.user as UserDecodedDto;
 
-    const result = await AdminService.togglePublish(req.params.id, isPublished);
+    const result = await AdminService.togglePublish(
+      req.params.id,
+      isPublished,
+      user.sub,
+    );
     return reply.send(result);
   },
 
@@ -135,8 +193,13 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { status } = updateStatusSchema.parse(req.body);
+    const user = req.user as UserDecodedDto;
 
-    const result = await AdminService.updateStatus(req.params.id, status);
+    const result = await AdminService.updateStatus(
+      req.params.id,
+      status,
+      user.sub,
+    );
     return reply.send(result);
   },
 
@@ -179,10 +242,12 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { status } = updateStatusSchema.parse(req.body);
+    const user = req.user as UserDecodedDto;
 
     const result = await AdminService.updateUserStatus(
       req.params.id,
       status as any,
+      user.sub,
     );
     return reply.send(result);
   },
@@ -201,13 +266,17 @@ export const AdminController = {
 
   createLandmark: async (req: FastifyRequest, reply: FastifyReply) => {
     const body = createLandmarkSchema.parse(req.body);
+    const user = req.user as UserDecodedDto;
 
     try {
-      const result = await AdminService.createLandmark({
-        name: body.name,
-        type: body.type as LandmarkType,
-        mapUrl: body.mapUrl,
-      });
+      const result = await AdminService.createLandmark(
+        {
+          name: body.name,
+          type: body.type as LandmarkType,
+          mapUrl: body.mapUrl,
+        },
+        user.sub,
+      );
 
       return reply.code(201).send(result);
     } catch (error: any) {
@@ -236,14 +305,19 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { id } = req.params;
+    const user = req.user as UserDecodedDto;
 
     const body = updateLandmarkSchema.parse(req.body);
 
     try {
-      const result = await AdminService.updateLandmark(id, {
-        ...body,
-        type: body.type as LandmarkType,
-      });
+      const result = await AdminService.updateLandmark(
+        id,
+        {
+          ...body,
+          type: body.type as LandmarkType,
+        },
+        user.sub,
+      );
 
       return reply.send(result);
     } catch (error: any) {
@@ -266,7 +340,8 @@ export const AdminController = {
     }>,
     reply: FastifyReply,
   ) => {
-    await AdminService.deleteLandmark(req.params.id);
+    const user = req.user as UserDecodedDto;
+    await AdminService.deleteLandmark(req.params.id, user.sub);
 
     return reply.send({
       success: true,

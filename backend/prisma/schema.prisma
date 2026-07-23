@@ -76,6 +76,8 @@ model Dormitory {
   mapUrl              String
   status              Status               @default(PENDING)
   isPublished         Boolean              @default(false)
+  isFeatured          Boolean              @default(false)
+  featuredOrder       Int?
   deletedAt           DateTime?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
@@ -89,6 +91,7 @@ model Dormitory {
   rooms               Room[]
 
   @@index([ownerId])
+  @@index([isFeatured, featuredOrder])
 }
 
 model DormitorySetting {
@@ -204,6 +207,7 @@ model Bill {
   archived                    Boolean       @default(false)
   createdAt                   DateTime      @default(now())
   lastNotifiedAt              DateTime?
+  reminderSentAt              DateTime?
   room                        Room          @relation(fields: [roomId], references: [id])
   tenant                      TenantProfile @relation(fields: [tenantId], references: [id])
   items                       BillItem[]

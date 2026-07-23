@@ -2068,6 +2068,17 @@ export const tenantService = {
       return newProfile;
     });
 
+    await createActivityLog({
+      userId: ownerSub,
+      action: "RE_ENTRY_TENANT",
+      entityType: "TenantProfile",
+      entityId: createdProfile.id,
+      metadata: {
+        roomId: data.roomId,
+        userId: data.userId,
+      },
+    });
+
     return {
       ...createdProfile,
       phone: decrypt(createdProfile.phone),

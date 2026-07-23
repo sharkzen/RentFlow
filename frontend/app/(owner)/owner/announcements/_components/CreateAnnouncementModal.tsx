@@ -231,11 +231,7 @@ export default function CreateAnnouncementModal({
             </label>
             {previewImage ? (
               <div className="flex items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <div
-                  className="group relative h-24 w-24 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
-                  onClick={() => window.open(previewImage, "_blank")}
-                  title="คลิกเพื่อดูรูปขนาดเต็ม"
-                >
+                <div className="group relative h-24 w-24 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
                   <img
                     src={previewImage}
                     alt="Preview Thumbnail"

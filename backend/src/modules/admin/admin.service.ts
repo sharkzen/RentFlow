@@ -17,6 +17,7 @@ import { emailQueue, EMAIL_JOB_NAME } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import { getBucketSize } from "@/services/r2Client";
 import { formatBytes } from "@/utils/formatBytes";
+import { createActivityLog } from "@/services/activity-log.service";
 
 export const AdminService = {
   getDashboardStats: async () => {
@@ -261,7 +262,7 @@ export const AdminService = {
     };
   },
 
-  approveOwner: async (id: string) => {
+  approveOwner: async (id: string, adminUserId: string) => {
     const approvedOwner = await prisma.$transaction(async (tx) => {
       const owner = await tx.ownerProfile.update({
         where: {
@@ -313,10 +314,17 @@ export const AdminService = {
       },
     );
 
+    await createActivityLog({
+      userId: adminUserId,
+      action: "APPROVE_OWNER",
+      entityType: "OwnerProfile",
+      entityId: id,
+    });
+
     return approvedOwner;
   },
 
-  rejectOwner: async (id: string) => {
+  rejectOwner: async (id: string, adminUserId: string) => {
     const ownerToDelete = await prisma.ownerProfile.findUnique({
       where: {
         id,
@@ -364,6 +372,16 @@ export const AdminService = {
       },
     );
 
+    await createActivityLog({
+      userId: adminUserId,
+      action: "REJECT_OWNER",
+      entityType: "OwnerProfile",
+      entityId: id,
+      metadata: {
+        ownerName,
+      },
+    });
+
     return {
       success: true,
     };
@@ -375,6 +393,7 @@ export const AdminService = {
     search: string,
     status?: string,
     isPublished?: string,
+    isFeatured?: string,
   ) => {
     const skip = (page - 1) * limit;
 
@@ -409,6 +428,12 @@ export const AdminService = {
         isPublished === "true"
           ? true
           : isPublished === "false"
+            ? false
+            : undefined,
+      isFeatured:
+        isFeatured === "true"
+          ? true
+          : isFeatured === "false"
             ? false
             : undefined,
     };
@@ -552,8 +577,8 @@ export const AdminService = {
     };
   },
 
-  togglePublish: async (id: string, isPublished: boolean) => {
-    return prisma.dormitory.update({
+  togglePublish: async (id: string, isPublished: boolean, adminUserId: string) => {
+    const result = await prisma.dormitory.update({
       where: {
         id,
       },
@@ -562,10 +587,22 @@ export const AdminService = {
         isPublished,
       },
     });
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "TOGGLE_DORM_PUBLISH",
+      entityType: "Dormitory",
+      entityId: id,
+      metadata: {
+        isPublished,
+      },
+    });
+
+    return result;
   },
 
-  updateStatus: async (id: string, status: any) => {
-    return prisma.dormitory.update({
+  updateStatus: async (id: string, status: any, adminUserId: string) => {
+    const result = await prisma.dormitory.update({
       where: {
         id,
       },
@@ -574,6 +611,149 @@ export const AdminService = {
         status,
       },
     });
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "UPDATE_DORM_STATUS_ADMIN",
+      entityType: "Dormitory",
+      entityId: id,
+      metadata: {
+        status,
+      },
+    });
+
+    return result;
+  },
+
+  toggleFeatured: async (
+    id: string,
+    isFeatured: boolean,
+    adminUserId: string,
+  ) => {
+    let result;
+
+    if (isFeatured) {
+      const maxOrder = await prisma.dormitory.aggregate({
+        where: {
+          isFeatured: true,
+        },
+
+        _max: {
+          featuredOrder: true,
+        },
+      });
+
+      result = await prisma.dormitory.update({
+        where: {
+          id,
+        },
+
+        data: {
+          isFeatured: true,
+          featuredOrder: (maxOrder._max.featuredOrder ?? -1) + 1,
+        },
+      });
+    } else {
+      result = await prisma.dormitory.update({
+        where: {
+          id,
+        },
+
+        data: {
+          isFeatured: false,
+          featuredOrder: null,
+        },
+      });
+    }
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "TOGGLE_DORM_FEATURED",
+      entityType: "Dormitory",
+      entityId: id,
+      metadata: {
+        isFeatured,
+      },
+    });
+
+    return result;
+  },
+
+  getFeaturedDormitories: async () => {
+    const items = await prisma.dormitory.findMany({
+      where: {
+        isFeatured: true,
+      },
+
+      orderBy: {
+        featuredOrder: "asc",
+      },
+
+      include: {
+        owner: {
+          select: {
+            fullName: true,
+          },
+        },
+
+        images: {
+          where: {
+            isCover: true,
+            category: FileCategory.DORMITORY,
+          },
+
+          take: 1,
+        },
+      },
+    });
+
+    return Promise.all(
+      items.map(async (dorm) => {
+        const images = await Promise.all(
+          dorm.images.map(async (img) => ({
+            ...img,
+            objectKey: await generateSignedUrl(img.objectKey),
+          })),
+        );
+
+        return {
+          ...dorm,
+          images,
+        };
+      }),
+    );
+  },
+
+  reorderFeatured: async (
+    items: { id: string; order: number }[],
+    adminUserId: string,
+  ) => {
+    await prisma.$transaction(
+      items.map((item) =>
+        prisma.dormitory.update({
+          where: {
+            id: item.id,
+          },
+
+          data: {
+            featuredOrder: item.order,
+          },
+        }),
+      ),
+    );
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "REORDER_FEATURED_DORMS",
+      entityType: "Dormitory",
+      metadata: {
+        count: items.length,
+      },
+    });
+
+    return {
+      success: true,
+    };
   },
 
   getOwnersList: async (
@@ -705,8 +885,12 @@ export const AdminService = {
     return user;
   },
 
-  updateUserStatus: async (userId: string, status: Status) => {
-    return prisma.$transaction(async (tx) => {
+  updateUserStatus: async (
+    userId: string,
+    status: Status,
+    adminUserId: string,
+  ) => {
+    const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.update({
         where: {
           id: userId,
@@ -753,6 +937,18 @@ export const AdminService = {
 
       return user;
     });
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "UPDATE_USER_STATUS",
+      entityType: "User",
+      entityId: userId,
+      metadata: {
+        status,
+      },
+    });
+
+    return result;
   },
 
   getLandmarks: async (
@@ -806,11 +1002,14 @@ export const AdminService = {
     };
   },
 
-  createLandmark: async (data: {
-    name: string;
-    type: LandmarkType;
-    mapUrl: string;
-  }) => {
+  createLandmark: async (
+    data: {
+      name: string;
+      type: LandmarkType;
+      mapUrl: string;
+    },
+    adminUserId: string,
+  ) => {
     const coords = await getLatLngFromUrl(data.mapUrl);
 
     if (!coords) {
@@ -819,7 +1018,7 @@ export const AdminService = {
 
     const slug = generateSlug(data.name);
 
-    return prisma.landmark.create({
+    const result = await prisma.landmark.create({
       data: {
         name: data.name,
         slug: slug,
@@ -830,6 +1029,18 @@ export const AdminService = {
         status: Status.ACTIVE,
       },
     });
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "CREATE_LANDMARK",
+      entityType: "Landmark",
+      entityId: result.id,
+      metadata: {
+        name: data.name,
+      },
+    });
+
+    return result;
   },
 
   updateLandmark: async (
@@ -839,6 +1050,7 @@ export const AdminService = {
       type?: LandmarkType;
       mapUrl?: string;
     },
+    adminUserId: string,
   ) => {
     const updateData: any = {
       ...data,
@@ -859,20 +1071,38 @@ export const AdminService = {
       updateData.slug = generateSlug(data.name);
     }
 
-    return prisma.landmark.update({
+    const result = await prisma.landmark.update({
       where: {
         id,
       },
 
       data: updateData,
     });
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "UPDATE_LANDMARK",
+      entityType: "Landmark",
+      entityId: id,
+    });
+
+    return result;
   },
 
-  deleteLandmark: async (id: string) => {
-    return prisma.landmark.delete({
+  deleteLandmark: async (id: string, adminUserId: string) => {
+    const result = await prisma.landmark.delete({
       where: {
         id,
       },
     });
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "DELETE_LANDMARK",
+      entityType: "Landmark",
+      entityId: id,
+    });
+
+    return result;
   },
 };

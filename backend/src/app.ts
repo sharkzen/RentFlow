@@ -15,6 +15,7 @@ import fastifyStatic from "@fastify/static";
 import path from "path";
 import { AppError } from "@/lib/errors";
 import { ZodError } from "zod";
+import { registerSwagger } from "@/config/swagger";
 
 export async function buildApp() {
   const app = Fastify({
@@ -306,6 +307,8 @@ export async function buildApp() {
   });
 
   await app.register(cookie, {});
+
+  await registerSwagger(app);
 
   await app.register(indexRoute, {
     prefix: "/api",

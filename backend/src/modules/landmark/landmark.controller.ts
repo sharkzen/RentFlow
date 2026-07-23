@@ -5,7 +5,7 @@ import { LandmarkTypeDto } from "@/modules/landmark/dto/landmark.dto";
 import { AppError } from "@/lib/errors";
 import { z } from "zod";
 
-const createLandmarkSchema = z.object({
+export const createLandmarkSchema = z.object({
   name: z.string(),
   type: z.nativeEnum(LandmarkTypeDto),
   mapUrl: z.string(),

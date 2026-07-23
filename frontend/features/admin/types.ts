@@ -66,6 +66,8 @@ export interface Dormitory {
   address: string;
   status: "PENDING" | "ACTIVE" | "BANNED" | "INACTIVE";
   isPublished: boolean;
+  isFeatured: boolean;
+  featuredOrder: number | null;
   latitude: number;
   longitude: number;
   mapUrl: string;

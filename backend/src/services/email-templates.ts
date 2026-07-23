@@ -1177,6 +1177,76 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
 </html>`,
       };
     }
+    case EmailType.BILL_DUE_REMINDER: {
+      return {
+        subject: getSubject(
+          `⏰ แจ้งเตือน: บิลห้อง ${data.roomNumber} ครบกำหนดชำระพรุ่งนี้`,
+        ),
+
+        html: minifyHtml(
+          wrapEmail(
+            "แจ้งเตือนบิลใกล้ครบกำหนด",
+            `
+          <div style="background-color: ${THEME.warningBg}; border: 2px solid ${THEME.warning}; border-radius: 12px; padding: 16px 24px; margin-bottom: 24px; text-align: center;">
+            <span style="font-size: 24px; vertical-align: middle; margin-right: 8px;">⏰</span>
+            <span style="color: ${THEME.warning}; font-size: 18px; font-weight: 700; vertical-align: middle;">
+              บิลของท่านใกล้ครบกำหนดชำระ
+            </span>
+          </div>
+
+          <table width="100%" style="border-bottom: 2px solid ${THEME.primary}; padding-bottom: 20px; margin-bottom: 24px;">
+            <tr>
+              <td valign="top" class="col-left" style="width: 60%;">
+                <h1 style="margin: 0; color: ${THEME.primary}; font-size: 24px; font-weight: 700;">
+                  ${data.dormName}
+                </h1>
+                <p style="margin: 8px 0 0 0; font-size: 14px; color: ${THEME.text};">
+                  โทร: ${data.ownerPhone || "-"}
+                </p>
+              </td>
+              <td valign="top" class="col-right" style="width: 40%; text-align: right;">
+                <div style="font-size: 14px; color: ${THEME.muted};">
+                  ห้อง: <span style="font-weight: 700; color: ${THEME.primary};">${data.roomNumber}</span><br>
+                  ผู้เช่า: <span style="font-weight: 700; color: ${THEME.primary};">${data.tenantName}</span>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <table width="100%" style="margin-bottom: 24px;">
+            <tr>
+              <td style="padding: 20px; background-color: ${THEME.bg}; border-radius: 8px;">
+                <div style="font-size: 13px; color: ${THEME.muted}; margin-bottom: 4px;">
+                  รอบบิลเดือน ${data.month}
+                </div>
+                <div style="font-size: 28px; font-weight: 800; color: ${THEME.primary};">
+                  ${data.amount} บาท
+                </div>
+                <div style="font-size: 14px; color: ${THEME.danger}; font-weight: 700; margin-top: 8px;">
+                  ครบกำหนดชำระ: ${data.dueDate}
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <table width="100%">
+            <tr>
+              <td align="center">
+                <a href="${data.link}" style="display: inline-block; background-color: ${THEME.primary}; color: #ffffff; text-decoration: none; font-weight: 700; font-size: 14px; padding: 14px 32px; border-radius: 8px;">
+                  ดูรายละเอียดบิล / ชำระเงิน
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin-top: 24px; font-size: 13px; color: ${THEME.muted}; text-align: center;">
+            หากท่านชำระเงินเรียบร้อยแล้ว กรุณาละเว้นอีเมลฉบับนี้
+          </p>
+          `,
+          ),
+        ),
+      };
+    }
     default:
       throw new Error("Unknown Type");
   }

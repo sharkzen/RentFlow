@@ -48,6 +48,7 @@ export const AdminService = {
     search = "",
     status = "ALL",
     published = "all",
+    featured = "all",
   ): Promise<PaginatedResponse<Dormitory>> => {
     const res = await axios.get("/api/admin/dormitories", {
       params: {
@@ -56,7 +57,29 @@ export const AdminService = {
         q: search,
         status,
         published,
+        featured,
       },
+    });
+
+    return res.data;
+  },
+
+  getFeaturedList: async (): Promise<Dormitory[]> => {
+    const res = await axios.get("/api/admin/dormitories/featured");
+    return res.data;
+  },
+
+  toggleFeatured: async (id: string, isFeatured: boolean) => {
+    const res = await axios.patch(`/api/admin/dormitories/${id}/featured`, {
+      isFeatured,
+    });
+
+    return res.data;
+  },
+
+  reorderFeatured: async (items: { id: string; order: number }[]) => {
+    const res = await axios.put("/api/admin/dormitories/featured/order", {
+      items,
     });
 
     return res.data;

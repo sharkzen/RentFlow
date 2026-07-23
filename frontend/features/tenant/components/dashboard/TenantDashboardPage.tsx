@@ -4,6 +4,7 @@ import BillStatusCard from "./BillStatusCard";
 import UtilityUsageCard from "./UtilityUsageCard";
 import QuickStatsCard from "./QuickStatsCard";
 import ContactCard from "./ContactCard";
+import RecentAnnouncements from "./RecentAnnouncements";
 import { toast } from "react-toastify";
 import { TenantService } from "@/features/tenant/services/tenant.service";
 import { TenantDashboardData } from "@/features/tenant";
@@ -72,6 +73,12 @@ export default function TenantDashboardPage() {
               แจ้งซ่อม / บริการ
             </h3>
             <QuickStatsCard maintenance={dashboard?.maintenance} />
+          </section>
+          <section className="flex flex-col gap-3">
+            <h3 className="ml-1 text-sm font-bold tracking-wider text-slate-400 uppercase">
+              ประกาศ
+            </h3>
+            <RecentAnnouncements />
           </section>
           <section className="flex flex-col gap-3">
             <h3 className="ml-1 text-sm font-bold tracking-wider text-slate-400 uppercase">

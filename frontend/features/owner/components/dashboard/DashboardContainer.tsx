@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { Home, Calendar } from "lucide-react";
+import { Home, Calendar, FileDown } from "lucide-react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Dormitory } from "@/features/dormitory";
 import { Spinner } from "@/lib/ui/Spinner";
@@ -10,6 +10,7 @@ import { MaintenanceSection } from "./MaintenanceSection";
 import { RevenueChart } from "./RevenueChart";
 import { MaintenancePieChart } from "./MaintenancePieChart";
 import log from "@/lib/logger";
+import { toast } from "react-toastify";
 
 export default function DashboardContainer() {
   const [dorms, setDorms] = useState<Dormitory[]>([]);
@@ -18,6 +19,7 @@ export default function DashboardContainer() {
   const [year, setYear] = useState<number | "ALL">("ALL");
   const [overview, setOverview] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const fetchDorms = useCallback(async () => {
     try {
@@ -53,6 +55,34 @@ export default function DashboardContainer() {
   useEffect(() => {
     fetchOverview();
   }, [fetchOverview]);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+
+    try {
+      const queryMonth = month === "ALL" ? "ALL" : month.toString();
+      const queryYear = year === "ALL" ? "ALL" : year.toString();
+      const blob = await DormService.exportDashboard(
+        selectedDormId,
+        queryMonth,
+        queryYear,
+      );
+
+      const pdfUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = pdfUrl;
+      link.download = `income-report-${Date.now()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(pdfUrl);
+    } catch (error) {
+      log.error("Failed to export dashboard report", error);
+      toast.error("ไม่สามารถสร้างรายงาน PDF ได้");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const monthOptions = [
     {
@@ -148,6 +178,14 @@ export default function DashboardContainer() {
             onChange={setYear}
             className="w-full sm:w-28"
           />
+          <button
+            onClick={handleExport}
+            disabled={isExporting || loading || !overview}
+            className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <FileDown size={16} className={isExporting ? "animate-pulse" : ""} />
+            {isExporting ? "กำลังสร้างไฟล์..." : "Export PDF"}
+          </button>
         </div>
       </div>
       {loading || !overview ? (

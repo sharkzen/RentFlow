@@ -1,16 +1,17 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { FeatureService } from "./feature.service";
 import { AppError } from "@/lib/errors";
+import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import { z } from "zod";
 
-const createFeatureSchema = z.object({
+export const createFeatureSchema = z.object({
   key: z.string(),
   name: z.string(),
   description: z.string().optional(),
   enabled: z.boolean().optional(),
 });
 
-const updateFeatureSchema = z
+export const updateFeatureSchema = z
   .object({
     name: z.string().optional(),
     description: z.string().optional(),
@@ -40,9 +41,10 @@ export const featureController = {
 
   createFeature: async (request: FastifyRequest, reply: FastifyReply) => {
     const body = createFeatureSchema.parse(request.body);
+    const user = request.user as UserDecodedDto;
 
     try {
-      const result = await FeatureService.createFeature(body);
+      const result = await FeatureService.createFeature(body, user.sub);
       return reply.status(201).send(result);
     } catch (error: any) {
       if (error.message === "FEATURE_ALREADY_EXISTS") {
@@ -64,7 +66,13 @@ export const featureController = {
       throw AppError.badRequest("NO_DATA_PROVIDED_FOR_UPDATE");
     }
 
-    const result = await FeatureService.updateFeature(key, parsed.data);
+    const user = request.user as UserDecodedDto;
+
+    const result = await FeatureService.updateFeature(
+      key,
+      parsed.data,
+      user.sub,
+    );
     return reply.send(result);
   },
 
@@ -73,7 +81,9 @@ export const featureController = {
       key: string;
     };
 
-    const result = await FeatureService.deleteFeature(key);
+    const user = request.user as UserDecodedDto;
+
+    const result = await FeatureService.deleteFeature(key, user.sub);
     return reply.send(result);
   },
 };

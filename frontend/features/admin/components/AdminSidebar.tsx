@@ -15,6 +15,8 @@ import {
   LogOut,
   Menu,
   X,
+  Star,
+  FileCode2,
 } from "lucide-react";
 
 export default function AdminSidebar() {
@@ -36,6 +38,11 @@ export default function AdminSidebar() {
       name: "จัดการหอพัก",
       href: routes.admin.dormitories,
       icon: <Building2 size={20} />,
+    },
+    {
+      name: "หอพักแนะนำ",
+      href: routes.admin.featured,
+      icon: <Star size={20} />,
     },
     {
       name: "จัดการผู้ใช้งาน",
@@ -116,6 +123,17 @@ export default function AdminSidebar() {
                 </Link>
               );
             })}
+            <a
+              href="/docs"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 active:scale-[0.98]"
+            >
+              <span className="stroke-current text-slate-400 group-hover:text-indigo-600">
+                <FileCode2 size={20} />
+              </span>
+              API Docs
+            </a>
           </nav>
         </div>
       </aside>

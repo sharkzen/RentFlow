@@ -11,6 +11,21 @@ import {
 } from "lucide-react";
 import { formatThaiDate } from "@/lib/dateFormatter";
 
+const SESSION_DISMISSED_KEY = "dismissedAnnouncementIds";
+
+const getSessionDismissedIds = (): string[] => {
+  try {
+    return JSON.parse(sessionStorage.getItem(SESSION_DISMISSED_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
+const addSessionDismissedIds = (ids: string[]) => {
+  const merged = Array.from(new Set([...getSessionDismissedIds(), ...ids]));
+  sessionStorage.setItem(SESSION_DISMISSED_KEY, JSON.stringify(merged));
+};
+
 interface Announcement {
   id: string;
   title: string;
@@ -30,6 +45,7 @@ export default function TenantAnnouncementModal() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [dontShowFor24h, setDontShowFor24h] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [direction, setDirection] = useState<"next" | "prev">("next");
@@ -49,7 +65,11 @@ export default function TenantAnnouncementModal() {
         });
 
         const data: Announcement[] = res.data;
-        let unread = data.filter((a) => !a.isRead);
+        const sessionDismissedIds = getSessionDismissedIds();
+
+        let unread = data.filter(
+          (a) => !a.isRead && !sessionDismissedIds.includes(a.id),
+        );
 
         if (unread.length > 0) {
           const typeWeight = {
@@ -129,10 +149,25 @@ export default function TenantAnnouncementModal() {
     }
   };
 
-  const handleSnooze = () => {
-    if (dontShowFor24h) {
+  const handleClose = async () => {
+    const currentAnn = announcements[displayIndex];
+
+    if (dontShowAgain) {
+      setLoading(true);
+
+      try {
+        await AnnouncementService.tenantMarkAsRead(currentAnn.id);
+      } catch (error) {
+        console.error("Failed to mark as read:", error);
+      } finally {
+        setLoading(false);
+      }
+    } else if (dontShowFor24h) {
       const tomorrow = new Date().getTime() + 24 * 60 * 60 * 1000;
       localStorage.setItem("hideAnnouncementsUntil", tomorrow.toString());
+    } else {
+      // ไม่ได้ติ๊กอะไรเลย - อย่างน้อยกันไม่ให้ popup ผุดขึ้นซ้ำในเซสชันนี้
+      addSessionDismissedIds(announcements.map((a) => a.id));
     }
 
     closeModal();
@@ -208,8 +243,10 @@ export default function TenantAnnouncementModal() {
             </div>
           </div>
           <button
-            onClick={handleSnooze}
-            className="cursor-pointer rounded-full p-1 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600"
+            onClick={handleClose}
+            disabled={loading}
+            title="ปิดหน้าต่างนี้ (ยังไม่นับว่าอ่านประกาศ เว้นแต่ติ๊กตัวเลือกด้านล่าง)"
+            className="cursor-pointer rounded-full p-1 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -235,22 +272,43 @@ export default function TenantAnnouncementModal() {
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-4 border-t border-slate-100 bg-slate-50/50 p-4">
-          <div className="flex items-center justify-between text-xs text-gray-500 md:text-sm">
+        <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 p-4">
+          <div className="flex flex-col gap-1.5 text-xs text-gray-500 md:text-sm">
             <label className="group flex cursor-pointer items-center gap-2 select-none">
               <input
                 type="checkbox"
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 transition-shadow focus:ring-blue-500/30"
                 checked={dontShowFor24h}
+                disabled={dontShowAgain}
                 onChange={(e) => setDontShowFor24h(e.target.checked)}
               />
               <span className="transition-colors group-hover:text-gray-700">
-                ไม่ต้องแสดงอีกภายใน 24 ชม.
+                ปิดไว้ก่อน ไม่ต้องแสดงอีกภายใน 24 ชม.
               </span>
             </label>
+            <label className="group flex cursor-pointer items-center gap-2 select-none">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 transition-shadow focus:ring-blue-500/30"
+                checked={dontShowAgain}
+                onChange={(e) => setDontShowAgain(e.target.checked)}
+              />
+              <span className="transition-colors group-hover:text-gray-700">
+                ไม่ต้องแสดงอีกเลย (ยังดูย้อนหลังได้ที่หน้าประกาศ)
+              </span>
+            </label>
+          </div>
+          <div className="flex items-center justify-between">
             <span className="rounded bg-slate-200/70 px-2.5 py-1 text-xs font-semibold text-gray-600 shadow-sm">
               {currentIndex + 1}/ {announcements.length}
             </span>
+            <button
+              onClick={handleClose}
+              disabled={loading}
+              className="cursor-pointer text-xs font-medium text-gray-400 underline-offset-2 hover:text-gray-600 hover:underline disabled:cursor-not-allowed"
+            >
+              ปิดหน้าต่างนี้
+            </button>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex gap-1.5">
@@ -276,6 +334,7 @@ export default function TenantAnnouncementModal() {
             <button
               onClick={handleAcknowledge}
               disabled={loading || isAnimating}
+              title="มาร์คว่าอ่านประกาศฉบับนี้แล้วอย่างถาวร"
               className="flex-1 cursor-pointer rounded-xl bg-blue-600 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-blue-700 active:scale-[0.98] disabled:bg-blue-400 disabled:shadow-none disabled:active:scale-100 md:text-base"
             >
               {loading ? (
@@ -283,8 +342,10 @@ export default function TenantAnnouncementModal() {
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   กำลังบันทึก...
                 </span>
+              ) : currentIndex < announcements.length - 1 ? (
+                "✓ รับทราบประกาศนี้ ไปฉบับถัดไป"
               ) : (
-                "รับทราบประกาศ"
+                "✓ รับทราบประกาศนี้"
               )}
             </button>
           </div>

@@ -4,6 +4,7 @@ import { transporter } from "../config/mail";
 import { getEmailTemplate } from "../services/email-templates";
 import { startMoveOutWorker } from "./moveOutWorker";
 import { startTempCleanupWorker } from "./tempCleanupWorker";
+import { startBillDueReminderWorker } from "./billDueReminderWorker";
 import { env } from "../config/env";
 console.log("========================================");
 console.log("👷 RentFlow Background Workers STARTING...");
@@ -12,6 +13,8 @@ startMoveOutWorker();
 console.log("✅ MoveOut Worker: Started successfully!");
 startTempCleanupWorker();
 console.log("✅ Temp-Drafts Cleanup Worker: Started successfully!");
+startBillDueReminderWorker();
+console.log("✅ Bill Due-Reminder Worker: Started successfully!");
 
 const emailWorker = new Worker(
   "email",

@@ -15,9 +15,19 @@ interface GetMaintenanceQuery {
   limit?: string;
 }
 
-const updateStatusSchema = z.object({
+export const updateStatusSchema = z.object({
   status: z.nativeEnum(MaintenanceStatus),
   note: z.string().optional(),
+});
+
+export const getMaintenanceQuerySchema = z.object({
+  dormId: z.string(),
+  search: z.string().optional(),
+  status: z.string().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  page: z.string().optional(),
+  limit: z.string().optional(),
 });
 
 export const MaintenanceController = {
