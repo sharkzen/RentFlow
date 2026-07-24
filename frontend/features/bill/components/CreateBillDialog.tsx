@@ -68,6 +68,9 @@ interface Props {
   onSubmit: (data: any) => Promise<void> | void;
   selectedDormId: string;
   dormName: string;
+  dueDay?: number;
+  dueMonthOffset?: number;
+  lateFee?: number;
   ocrFeatureEnabled: boolean;
 }
 
@@ -77,6 +80,9 @@ export default function CreateBillDialog({
   onSubmit,
   selectedDormId,
   dormName,
+  dueDay,
+  dueMonthOffset,
+  lateFee,
   ocrFeatureEnabled,
 }: Props) {
   const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
@@ -86,6 +92,7 @@ export default function CreateBillDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewFullImage, setPreviewFullImage] = useState<string | null>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showOverdueConfirm, setShowOverdueConfirm] = useState(false);
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [showDraftList, setShowDraftList] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -451,6 +458,18 @@ export default function CreateBillDialog({
     setItems(newItems);
   };
 
+  const getExpectedDueDate = () => {
+    if (!dueDay) return null;
+
+    const dueDate = new Date(
+      Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
+    );
+
+    dueDate.setDate(dueDay);
+    dueDate.setMonth(dueDate.getMonth() + (dueMonthOffset ?? 0));
+    return dueDate;
+  };
+
   const handleSubmit = async () => {
     if (hasNegativeUsage) {
       const errorRooms = items
@@ -478,6 +497,17 @@ export default function CreateBillDialog({
       return;
     }
 
+    const expectedDueDate = getExpectedDueDate();
+
+    if (expectedDueDate && expectedDueDate < new Date()) {
+      setShowOverdueConfirm(true);
+      return;
+    }
+
+    await proceedSubmit();
+  };
+
+  const proceedSubmit = async () => {
     setIsSubmitting(true);
 
     try {
@@ -753,6 +783,24 @@ export default function CreateBillDialog({
           />
         </div>
       )}
+      <ConfirmDialog
+        isOpen={showOverdueConfirm}
+        onClose={() => setShowOverdueConfirm(false)}
+        onConfirm={() => {
+          setShowOverdueConfirm(false);
+          proceedSubmit();
+        }}
+        title="ยืนยันการสร้างบิลย้อนหลัง?"
+        description={
+          lateFee && lateFee > 0
+            ? `รอบบิลนี้จะครบกำหนดชำระในอดีตไปแล้ว บิลที่สร้างจะถูกตั้งเป็น "เกินกำหนด" ทันที และจะถูกคิดค่าปรับล่าช้าตามจำนวนวันที่เกินกำหนด (${lateFee.toLocaleString()} บาท/วัน) คุณแน่ใจหรือไม่ที่จะสร้างบิลนี้?`
+            : "รอบบิลนี้จะครบกำหนดชำระในอดีตไปแล้ว บิลที่สร้างจะถูกตั้งเป็น \"เกินกำหนด\" ทันที คุณแน่ใจหรือไม่ที่จะสร้างบิลนี้?"
+        }
+        type="warning"
+        confirmText="ใช่, สร้างบิลย้อนหลัง"
+        cancelText="ยกเลิก"
+        isLoading={isSubmitting}
+      />
       <ConfirmDialog
         isOpen={showClearConfirm}
         onClose={() => setShowClearConfirm(false)}

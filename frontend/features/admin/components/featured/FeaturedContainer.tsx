@@ -1,12 +1,20 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { RefreshCw, Search, Star } from "lucide-react";
+import { RefreshCw, Search, Star, Filter } from "lucide-react";
 import { AdminService } from "@/features/admin/services/admin.service";
 import { Dormitory } from "@/features/admin/types";
 import ConfirmDialog, { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
 import { FeaturedOrderList } from "./FeaturedOrderList";
 import { FeaturedTable } from "./FeaturedTable";
+import { CustomSelect } from "@/lib/ui/CustomSelect";
+
+const STATUS_OPTIONS = [
+  { value: "ALL", label: "ทุกสถานะ (Status)" },
+  { value: "ACTIVE", label: "Active (ใช้งานปกติ)" },
+  { value: "PENDING", label: "Pending (รออนุมัติ)" },
+  { value: "BANNED", label: "Banned (ถูกระงับ)" },
+];
 
 export default function FeaturedContainer() {
   const [featuredItems, setFeaturedItems] = useState<Dormitory[]>([]);
@@ -222,19 +230,15 @@ export default function FeaturedContainer() {
             />
           </div>
           <div>
-            <select
-              className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 outline-none focus:ring-blue-500"
+            <CustomSelect
+              icon={<Filter size={16} />}
+              options={STATUS_OPTIONS}
               value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
+              onChange={(val) => {
+                setStatusFilter(val);
                 setPage(1);
               }}
-            >
-              <option value="ALL">ทุกสถานะ (Status)</option>
-              <option value="ACTIVE">Active (ใช้งานปกติ)</option>
-              <option value="PENDING">Pending (รออนุมัติ)</option>
-              <option value="BANNED">Banned (ถูกระงับ)</option>
-            </select>
+            />
           </div>
         </div>
         <FeaturedTable

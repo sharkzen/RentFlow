@@ -102,6 +102,8 @@ export default function BillDetailDialog({
     currentStatus === "PENDING" ||
     currentStatus === "WAITING_FOR_VERIFICATION" ||
     currentStatus === "OVERDUE";
+  const canEditItems =
+    bill.status === "PENDING" || bill.status === "OVERDUE";
   const advancePayment = (bill as any).tenant?.advancePayment || 0;
   const items = (bill as any).items || [];
   const chargeItems = items.filter((item: any) => item.type === "CHARGE");
@@ -583,7 +585,7 @@ export default function BillDetailDialog({
                       <FileText size={18} className="text-gray-400" />
                       สรุปยอดชำระ
                     </h4>
-                    {bill.status === "PENDING" &&
+                    {canEditItems &&
                       !isAddingItem &&
                       !editingItemId && (
                         <button
@@ -792,7 +794,7 @@ export default function BillDetailDialog({
                                     {item.type === "DISCOUNT" ? "-" : ""}฿
                                     {item.amount.toLocaleString()}
                                   </span>
-                                  {bill.status === "PENDING" &&
+                                  {canEditItems &&
                                     !editingItemId && (
                                       <div className="flex items-center gap-1 opacity-100 transition-opacity">
                                         <button

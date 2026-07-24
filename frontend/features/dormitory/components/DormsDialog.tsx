@@ -13,11 +13,15 @@ import {
   AlertCircle,
   Home,
   Save,
-  CheckCircle2,
+  Check,
   Trash2,
+  ChevronRight,
+  ChevronDown,
+  CreditCard,
+  Image as ImageIcon,
 } from "lucide-react";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useOnClickOutside } from "usehooks-ts";
 import ImageSection from "./ImageSection";
 import { DormService } from "@/features/dormitory/services/dorm.service";
@@ -39,11 +43,14 @@ interface DormsDialogProps {
   onRefresh?: () => void;
 }
 
-const Label = ({ icon: Icon, children, required }: any) => (
+const Label = ({ icon: Icon, children, required, optional }: any) => (
   <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
     {Icon && <Icon size={16} className="text-slate-400" />}
     {children}
     {required && <span className="text-red-500">*</span>}
+    {optional && (
+      <span className="text-xs font-normal text-slate-400">(ไม่บังคับ)</span>
+    )}
   </label>
 );
 
@@ -57,6 +64,179 @@ const Input = ({
   />
 );
 
+type StepId = "general" | "pricing" | "billing" | "images";
+
+const STEPS: { id: StepId; label: string; icon: any }[] = [
+  { id: "general", label: "ข้อมูลทั่วไป", icon: Home },
+  { id: "pricing", label: "ราคา & ค่าใช้จ่าย", icon: DollarSign },
+  { id: "billing", label: "รอบบิล & ชำระเงิน", icon: CreditCard },
+  { id: "images", label: "รูปภาพ", icon: ImageIcon },
+];
+
+const THAI_MONTHS_SHORT = [
+  "มกรา",
+  "กุมภา",
+  "มีนา",
+  "เมษา",
+  "พฤษภา",
+  "มิถุนา",
+  "กรกฎา",
+  "สิงหา",
+  "กันยา",
+  "ตุลา",
+  "พฤศจิกา",
+  "ธันวา",
+];
+
+const DUE_MONTH_OFFSETS = [
+  { value: 0, label: "ชำระภายในเดือนที่ออกบิล" },
+  { value: 1, label: "ชำระเดือนถัดไป" },
+];
+
+const DueMonthOffsetSelect = ({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (val: number) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selected =
+    DUE_MONTH_OFFSETS.find((o) => o.value === value) ?? DUE_MONTH_OFFSETS[1];
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div
+        className={`flex h-10.5 w-full cursor-pointer items-center justify-between rounded-lg border px-4 text-sm transition-all focus:outline-none ${isOpen ? "border-indigo-500 bg-white ring-2 ring-indigo-100" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className="text-slate-900">{selected.label}</span>
+        <ChevronDown
+          size={16}
+          className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </div>
+      {isOpen && (
+        <div className="absolute z-10 mt-1 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+          {DUE_MONTH_OFFSETS.map((option) => (
+            <div
+              key={option.value}
+              className={`cursor-pointer px-4 py-2 text-sm hover:bg-indigo-50 ${value === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-slate-700"}`}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const StepDropdown = ({
+  value,
+  onChange,
+  completion,
+}: {
+  value: StepId;
+  onChange: (id: StepId) => void;
+  completion: Record<StepId, boolean>;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const activeIndex = STEPS.findIndex((s) => s.id === value);
+  const active = STEPS[activeIndex];
+  const ActiveIcon = active.icon;
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div
+        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "border-indigo-500 bg-white ring-2 ring-indigo-100" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
+            {activeIndex + 1}
+          </span>
+          <ActiveIcon size={15} className="text-slate-400" />
+          <span className="font-semibold text-slate-700">{active.label}</span>
+        </div>
+        <ChevronDown
+          size={16}
+          className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </div>
+      {isOpen && (
+        <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+          {STEPS.map((step, idx) => {
+            const StepIcon = step.icon;
+            const isDone = completion[step.id];
+            const isActive = step.id === value;
+            return (
+              <div
+                key={step.id}
+                className={`flex cursor-pointer items-center gap-2.5 px-3 py-2.5 ${isActive ? "bg-indigo-50 font-semibold text-indigo-700" : "text-slate-700 hover:bg-slate-50"}`}
+                onClick={() => {
+                  onChange(step.id);
+                  setIsOpen(false);
+                }}
+              >
+                <span
+                  className={`flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                    isActive
+                      ? "bg-indigo-600 text-white"
+                      : isDone
+                        ? "bg-emerald-50 text-emerald-600"
+                        : "border border-slate-200 bg-white text-slate-400"
+                  }`}
+                >
+                  {isDone && !isActive ? <Check size={12} /> : idx + 1}
+                </span>
+                <StepIcon size={15} className="text-slate-400" />
+                <span className="text-sm">{step.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function DormsDialog({
   dorm,
   onClose,
@@ -65,6 +245,8 @@ export default function DormsDialog({
 }: DormsDialogProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [activeStep, setActiveStep] = useState<StepId>("general");
+  const [showAdvancedFees, setShowAdvancedFees] = useState(false);
 
   useHotkeys("esc", () => {
     if (!isDeleteDialogOpen) onClose();
@@ -105,6 +287,13 @@ export default function DormsDialog({
     setInitialData({
       ...formData,
     });
+    // เปิดส่วน "เพิ่มเติม" อัตโนมัติถ้ามีค่าติดมาจากเดิมอยู่แล้ว
+    if (
+      (dorm.settings?.commonFee ?? 0) > 0 ||
+      (dorm.settings?.lateFee ?? 0) > 0
+    ) {
+      setShowAdvancedFees(true);
+    }
   }, []);
 
   const updateField = useCallback((field: keyof DormFormData, value: any) => {
@@ -138,6 +327,48 @@ export default function DormsDialog({
     },
     [],
   );
+
+  // เช็คว่าแต่ละ step กรอกข้อมูลจำเป็นครบหรือยัง เพื่อโชว์ติ๊กถูกที่แถบด้านซ้าย
+  const stepCompletion = useMemo<Record<StepId, boolean>>(
+    () => ({
+      general: !!formData.name && !!formData.address && !!formData.mapUrl,
+      pricing:
+        !!formData.roomPrice &&
+        Number(formData.roomPrice) > 0 &&
+        !!formData.waterRate &&
+        Number(formData.waterRate) > 0 &&
+        !!formData.electricRate &&
+        Number(formData.electricRate) > 0,
+      billing:
+        !!formData.dueDay &&
+        !!formData.bankName &&
+        !!formData.bankAccount &&
+        !!formData.bankHolder,
+      images: true,
+    }),
+    [formData],
+  );
+
+  // ตัวอย่างวันครบกำหนดชำระ อ้างอิงเดือนปัจจุบัน เพื่อให้เข้าใจ dueDay + dueMonthOffset ได้ง่ายขึ้น
+  const dueDateExample = useMemo(() => {
+    const day = Number(formData.dueDay);
+    if (!day || day < 1 || day > 31) {
+      return "กรอกวันที่ครบกำหนดชำระ เพื่อดูตัวอย่างรอบบิล";
+    }
+
+    const now = new Date();
+    const billMonth = THAI_MONTHS_SHORT[now.getMonth()];
+    const dueMonth =
+      THAI_MONTHS_SHORT[
+        (now.getMonth() + Number(formData.dueMonthOffset)) % 12
+      ];
+
+    if (Number(formData.dueMonthOffset) === 0) {
+      return `เช่น บิลเดือน${billMonth} จะกำหนดชำระไม่เกินวันที่ ${day} ${dueMonth} (เดือนเดียวกัน)`;
+    }
+
+    return `เช่น ตอนนี้เดือน${billMonth} จะกำหนดชำระไม่เกินวันที่ ${day} ${dueMonth}`;
+  }, [formData.dueDay, formData.dueMonthOffset]);
 
   const handleSave = async () => {
     const missingFields: string[] = [];
@@ -260,202 +491,322 @@ export default function DormsDialog({
               <X size={20} />
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto bg-slate-50/50">
-            <form
-              className="space-y-6 p-6"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSave();
-              }}
-            >
-              <div className="rounded-xl border border-slate-100 bg-white p-5">
-                <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
-                  <Home size={16} />
-                  ข้อมูลพื้นฐาน
-                </h3>
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  <div className="md:col-span-2">
-                    <Label required>ชื่อหอพัก</Label>
-                    <Input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => updateField("name", e.target.value)}
-                      placeholder="เช่น หอพักสุขใจ เรสซิเดนซ์"
-                    />
-                  </div>
-                  <div>
-                    <Label required icon={DollarSign}>
-                      ราคาห้องเช่า (เริ่มต้น)
-                    </Label>
-                    <div className="relative">
+
+          <div className="flex flex-1 overflow-hidden bg-slate-50/50">
+            {/* แถบขั้นตอนด้านซ้าย */}
+            <nav className="hidden w-52 shrink-0 space-y-1 overflow-y-auto border-r border-slate-100 bg-white p-3 sm:block">
+              {STEPS.map((step, idx) => {
+                const isActive = activeStep === step.id;
+                const isDone = stepCompletion[step.id];
+                return (
+                  <button
+                    key={step.id}
+                    type="button"
+                    onClick={() => setActiveStep(step.id)}
+                    className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition ${
+                      isActive
+                        ? "bg-indigo-50 text-indigo-700"
+                        : "text-slate-500 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                        isActive
+                          ? "bg-indigo-600 text-white"
+                          : isDone
+                            ? "bg-emerald-50 text-emerald-600"
+                            : "border border-slate-200 bg-white text-slate-400"
+                      }`}
+                    >
+                      {isDone && !isActive ? <Check size={12} /> : idx + 1}
+                    </span>
+                    <span className="flex-1">{step.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="flex flex-1 flex-col overflow-y-auto">
+              {/* แถบขั้นตอนแบบ dropdown สำหรับจอเล็ก */}
+              <div className="shrink-0 border-b border-slate-100 bg-white px-4 py-3 sm:hidden">
+                <StepDropdown
+                  value={activeStep}
+                  onChange={setActiveStep}
+                  completion={stepCompletion}
+                />
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSave();
+                }}
+                className="p-6"
+              >
+                {activeStep === "general" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-800">
+                        ข้อมูลทั่วไป
+                      </h3>
+                      <p className="text-sm text-slate-500">
+                        ชื่อ ที่อยู่ และรายละเอียดที่ผู้เช่าจะเห็นในหน้าประกาศ
+                      </p>
+                    </div>
+                    <div>
+                      <Label required>ชื่อหอพัก</Label>
                       <Input
-                        type="number"
-                        min="0"
-                        value={formData.roomPrice}
-                        onChange={(e) =>
-                          handleNumberChange("roomPrice", e.target.value)
-                        }
-                        onKeyDown={preventInvalidNumberKeys}
-                        className="pl-9"
-                        placeholder="0"
+                        type="text"
+                        value={formData.name}
+                        onChange={(e) => updateField("name", e.target.value)}
+                        placeholder="เช่น หอพักสุขใจ เรสซิเดนซ์"
                       />
-                      <span className="absolute top-2.5 left-3 text-slate-400">
-                        ฿
-                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                      <div>
+                        <Label required icon={MapPin}>
+                          ที่อยู่
+                        </Label>
+                        <Input
+                          value={formData.address}
+                          onChange={(e) =>
+                            updateField("address", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label required>ลิงก์ Google Maps</Label>
+                        <Input
+                          value={formData.mapUrl}
+                          onChange={(e) =>
+                            updateField("mapUrl", e.target.value)
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label required>คำอธิบาย</Label>
+                      <textarea
+                        value={formData.description}
+                        onChange={(e) =>
+                          updateField("description", e.target.value)
+                        }
+                        rows={5}
+                        className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
+                        placeholder="รายละเอียดเกี่ยวกับหอพัก..."
+                      />
                     </div>
                   </div>
-                  <div className="md:col-span-2">
-                    <Label required>คำอธิบาย</Label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) =>
-                        updateField("description", e.target.value)
-                      }
-                      rows={4}
-                      className="h-40 w-full resize-none border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
-                      placeholder="รายละเอียดเกี่ยวกับหอพัก..."
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-100 bg-white p-5">
-                <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
-                  <MapPin size={16} />
-                  ที่ตั้งและแผนที่
-                </h3>
-                <div className="grid grid-cols-1 gap-5">
-                  <div>
-                    <Label required>ที่อยู่</Label>
-                    <Input
-                      value={formData.address}
-                      onChange={(e) => updateField("address", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label required>ลิงก์ Google Maps</Label>{" "}
-                    <Input
-                      value={formData.mapUrl}
-                      onChange={(e) => updateField("mapUrl", e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-              <DormPaymentSettings
-                formData={formData}
-                updateField={updateField}
-              />
-              <div className="rounded-xl border border-slate-100 bg-white p-5">
-                <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
-                  <Zap size={16} />
-                  ค่าสาธารณูปโภค & ค่าธรรมเนียม
-                </h3>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                  <div>
-                    <Label required icon={Zap}>
-                      ค่าไฟ (บาท/หน่วย)
-                    </Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={formData.electricRate}
-                      onChange={(e) =>
-                        handleNumberChange("electricRate", e.target.value)
-                      }
-                      onKeyDown={preventInvalidNumberKeys}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label required icon={Droplets}>
-                      ค่าน้ำ (บาท/หน่วย)
-                    </Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={formData.waterRate}
-                      onChange={(e) =>
-                        handleNumberChange("waterRate", e.target.value)
-                      }
-                      onKeyDown={preventInvalidNumberKeys}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label icon={Info}>ส่วนกลาง (บาท/เดือน)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={formData.commonFee}
-                      onChange={(e) =>
-                        handleNumberChange("commonFee", e.target.value)
-                      }
-                      onKeyDown={preventInvalidNumberKeys}
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-100 bg-white p-5">
-                <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
-                  <Calendar size={16} />
-                  รอบบิลและการชำระเงิน
-                </h3>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  <div>
-                    <Label required icon={Calendar}>
-                      ชำระไม่เกินวันที่
-                    </Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="31"
-                      value={formData.dueDay}
-                      onChange={(e) =>
-                        handleNumberChange("dueDay", e.target.value)
-                      }
-                      onKeyDown={preventInvalidNumberKeys}
-                      placeholder="1"
-                    />
-                  </div>
-                  <div>
-                    <Label icon={AlertCircle}>ค่าปรับล่าช้า (บาท/วัน)</Label>
-                    <Input
-                      type="number"
-                      min="0"
-                      value={formData.lateFee}
-                      onChange={(e) =>
-                        handleNumberChange("lateFee", e.target.value)
-                      }
-                      onKeyDown={preventInvalidNumberKeys}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label icon={Info}>รอบการชำระ</Label>
-                    <select
-                      value={formData.dueMonthOffset}
-                      onChange={(e) =>
-                        updateField("dueMonthOffset", parseInt(e.target.value))
-                      }
-                      className="h-[42px] w-full rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 outline-none"
+                )}
+
+                {activeStep === "pricing" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-800">
+                        ราคา & ค่าใช้จ่าย
+                      </h3>
+                      <p className="text-sm text-slate-500">
+                        ตั้งราคาเริ่มต้นและอัตราค่าน้ำ-ไฟ
+                        ระบบจะใช้คำนวณบิลอัตโนมัติ
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                      <div>
+                        <Label required icon={DollarSign}>
+                          ราคาห้องเช่า(ราคาเริ่มต้น)
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={formData.roomPrice}
+                            onChange={(e) =>
+                              handleNumberChange("roomPrice", e.target.value)
+                            }
+                            onKeyDown={preventInvalidNumberKeys}
+                            className="pr-14"
+                            placeholder="0"
+                          />
+                          <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                            บาท/ด.
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <Label required icon={Zap}>
+                          ค่าไฟ
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={formData.electricRate}
+                            onChange={(e) =>
+                              handleNumberChange("electricRate", e.target.value)
+                            }
+                            onKeyDown={preventInvalidNumberKeys}
+                            className="pr-16"
+                            placeholder="0"
+                          />
+                          <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                            บาท/หน่วย
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <Label required icon={Droplets}>
+                          ค่าน้ำ
+                        </Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={formData.waterRate}
+                            onChange={(e) =>
+                              handleNumberChange("waterRate", e.target.value)
+                            }
+                            onKeyDown={preventInvalidNumberKeys}
+                            className="pr-16"
+                            placeholder="0"
+                          />
+                          <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                            บาท/หน่วย
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvancedFees((v) => !v)}
+                      className="flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-indigo-600"
                     >
-                      <option value={0}>ชำระภายในเดือนที่ออกบิล</option>
-                      <option value={1}>ชำระเดือนถัดไป</option>
-                    </select>
+                      <ChevronRight
+                        size={16}
+                        className={`transition-transform ${showAdvancedFees ? "rotate-90" : ""}`}
+                      />
+                      ค่าใช้จ่ายเพิ่มเติม (ส่วนกลาง, ค่าปรับ)
+                    </button>
+
+                    {showAdvancedFees && (
+                      <div className="grid grid-cols-1 gap-5 rounded-lg border border-slate-100 bg-white p-4 sm:grid-cols-2">
+                        <div>
+                          <Label icon={Info} optional>
+                            ค่าส่วนกลาง
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              min="0"
+                              value={formData.commonFee}
+                              onChange={(e) =>
+                                handleNumberChange("commonFee", e.target.value)
+                              }
+                              onKeyDown={preventInvalidNumberKeys}
+                              className="pr-14"
+                              placeholder="0"
+                            />
+                            <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                              บาท/ด.
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <Label icon={AlertCircle} optional>
+                            ค่าปรับชำระล่าช้า
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              min="0"
+                              value={formData.lateFee}
+                              onChange={(e) =>
+                                handleNumberChange("lateFee", e.target.value)
+                              }
+                              onKeyDown={preventInvalidNumberKeys}
+                              className="pr-14"
+                              placeholder="0"
+                            />
+                            <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                              บาท/วัน
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-100 bg-white p-5">
-                <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
-                  <CheckCircle2 size={16} />
-                  รูปภาพหอพัก
-                </h3>
-                <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50">
-                  <ImageSection dormId={dorm.id} />
-                </div>
-              </div>
-            </form>
+                )}
+
+                {activeStep === "billing" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-800">
+                        รอบบิล & การชำระเงิน
+                      </h3>
+                      <p className="text-sm text-slate-500">
+                        กำหนดวันครบกำหนดและบัญชีที่ผู้เช่าโอนเข้า
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                      <div>
+                        <Label required icon={Calendar}>
+                          ชำระไม่เกินวันที่
+                        </Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="31"
+                          value={formData.dueDay}
+                          onChange={(e) =>
+                            handleNumberChange("dueDay", e.target.value)
+                          }
+                          onKeyDown={preventInvalidNumberKeys}
+                          placeholder="1"
+                        />
+                      </div>
+                      <div>
+                        <Label icon={Info}>รอบการชำระ</Label>
+                        <DueMonthOffsetSelect
+                          value={Number(formData.dueMonthOffset)}
+                          onChange={(val) =>
+                            updateField("dueMonthOffset", val)
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-2.5 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-slate-600">
+                      <Info
+                        size={16}
+                        className="mt-0.5 shrink-0 text-indigo-500"
+                      />
+                      <span>{dueDateExample}</span>
+                    </div>
+                    <DormPaymentSettings
+                      formData={formData}
+                      updateField={updateField}
+                    />
+                  </div>
+                )}
+
+                {activeStep === "images" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-800">
+                        รูปภาพหอพัก
+                      </h3>
+                      <p className="text-sm text-slate-500">
+                        รูปแรกจะถูกใช้เป็นภาพปกในหน้ารายการและหน้าประกาศ
+                      </p>
+                    </div>
+                    <div className="rounded-lg border border-dashed border-slate-300 bg-white">
+                      <ImageSection dormId={dorm.id} />
+                    </div>
+                  </div>
+                )}
+              </form>
+            </div>
           </div>
+
           <div className="flex items-center justify-between border-t border-slate-100 bg-white px-6 py-4 text-xs sm:text-sm">
             <button
               type="button"

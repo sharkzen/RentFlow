@@ -77,8 +77,8 @@ export default function BillContainer() {
   const sendableBills = bills.filter(
     (b) => b.status === "PENDING" || b.status === "OVERDUE",
   );
-  const currentDormName =
-    dorms.find((d) => d.id === selectedDorm)?.name || "เลือกหอพัก";
+  const currentDorm = dorms.find((d) => d.id === selectedDorm);
+  const currentDormName = currentDorm?.name || "เลือกหอพัก";
 
   useEffect(() => {
     const currentDormId = searchParams.get("dormId") || "ALL";
@@ -462,6 +462,9 @@ export default function BillContainer() {
           onSubmit={handleCreateBill}
           selectedDormId={selectedDorm}
           dormName={currentDormName}
+          dueDay={currentDorm?.settings?.dueDay}
+          dueMonthOffset={currentDorm?.settings?.dueMonthOffset}
+          lateFee={currentDorm?.settings?.lateFee}
           ocrFeatureEnabled={features?.data?.enabled || false}
         />
       )}

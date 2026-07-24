@@ -41,7 +41,7 @@ export const DormitoryCard = ({ tenant }: { tenant: TenantContractDetail }) => {
               ค่าเช่ารายเดือน
             </p>
             <p className="text-2xl font-bold">
-              ฿{(tenant.roomPriceSnapshot ?? 0).toLocaleString()}
+              ฿{(tenant.room.basePrice ?? 0).toLocaleString()}
             </p>
           </div>
         </div>

@@ -19,6 +19,20 @@ import {
 
 import { toast } from "react-toastify";
 import { Dormitory } from "@/features/admin";
+import { CustomSelect } from "@/lib/ui/CustomSelect";
+
+const STATUS_OPTIONS = [
+  { value: "ALL", label: "ทุกสถานะ (Status)" },
+  { value: "ACTIVE", label: "Active (ใช้งานปกติ)" },
+  { value: "PENDING", label: "Pending (รออนุมัติ)" },
+  { value: "BANNED", label: "Banned (ถูกระงับ)" },
+];
+
+const PUBLISHED_OPTIONS = [
+  { value: "all", label: "การเผยแพร่ (All)" },
+  { value: "true", label: "Published (แสดงผล)" },
+  { value: "false", label: "Unpublished (ซ่อน)" },
+];
 
 export default function DormitoryContainer() {
   const [data, setData] = useState<Dormitory[]>([]);
@@ -198,33 +212,24 @@ export default function DormitoryContainer() {
           />
         </div>
         <div>
-          <select
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 outline-none focus:ring-blue-500"
+          <CustomSelect
+            options={STATUS_OPTIONS}
             value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
+            onChange={(val) => {
+              setStatusFilter(val);
               setPage(1);
             }}
-          >
-            <option value="ALL">ทุกสถานะ (Status)</option>
-            <option value="ACTIVE">Active (ใช้งานปกติ)</option>
-            <option value="PENDING">Pending (รออนุมัติ)</option>
-            <option value="BANNED">Banned (ถูกระงับ)</option>
-          </select>
+          />
         </div>
         <div>
-          <select
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 outline-none focus:ring-blue-500"
+          <CustomSelect
+            options={PUBLISHED_OPTIONS}
             value={publishedFilter}
-            onChange={(e) => {
-              setPublishedFilter(e.target.value);
+            onChange={(val) => {
+              setPublishedFilter(val);
               setPage(1);
             }}
-          >
-            <option value="all">การเผยแพร่ (All)</option>
-            <option value="true">Published (แสดงผล)</option>
-            <option value="false">Unpublished (ซ่อน)</option>
-          </select>
+          />
         </div>
       </div>
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">

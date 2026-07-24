@@ -6,10 +6,19 @@ import {
   Loader2,
   Trash2,
   ExternalLink,
+  Building2,
+  Megaphone,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { AnnouncementService } from "@/features/announcement/services/announcement.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
+import { CustomSelect } from "@/lib/ui/CustomSelect";
+
+const TYPE_OPTIONS = [
+  { value: "NORMAL", label: "ทั่วไป (Normal)" },
+  { value: "IMPORTANT", label: "สำคัญ (Important)" },
+  { value: "URGENT", label: "ด่วน (Urgent)" },
+];
 
 interface CreateAnnouncementModalProps {
   dormitoryId?: string;
@@ -185,44 +194,38 @@ export default function CreateAnnouncementModal({
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 เลือกหอพัก <span className="text-red-500">*</span>
               </label>
-              <select
+              <CustomSelect
+                icon={<Building2 size={16} />}
                 disabled={isLoading || isLoadingDorms}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 transition-all outline-none focus:border-blue-500 focus:border-transparent focus:ring-4 focus:ring-blue-500/10 disabled:bg-gray-50"
-                value={formData.dormitoryId}
-                onChange={(e) =>
-                  handleInputChange("dormitoryId", e.target.value)
+                placeholder={
+                  isLoadingDorms ? "กำลังโหลดข้อมูล..." : "ไม่พบข้อมูลหอพักของคุณ"
                 }
-              >
-                {isLoadingDorms ? (
-                  <option value="">กำลังโหลดข้อมูล...</option>
-                ) : dorms.length === 0 ? (
-                  <option value="">ไม่พบข้อมูลหอพักของคุณ</option>
-                ) : (
-                  <>
-                    <option value="ALL">ทุกหอพัก</option>
-                    {dorms.map((dorm: any) => (
-                      <option key={dorm.id} value={dorm.id}>
-                        {dorm.name}
-                      </option>
-                    ))}
-                  </>
-                )}
-              </select>
+                options={
+                  isLoadingDorms
+                    ? []
+                    : [
+                        { value: "ALL", label: "ทุกหอพัก" },
+                        ...dorms.map((dorm: any) => ({
+                          value: dorm.id,
+                          label: dorm.name,
+                        })),
+                      ]
+                }
+                value={formData.dormitoryId}
+                onChange={(val) => handleInputChange("dormitoryId", val)}
+              />
             </div>
             <div className="flex-1">
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 ประเภท
               </label>
-              <select
+              <CustomSelect
+                icon={<Megaphone size={16} />}
                 disabled={isLoading}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 transition-all outline-none focus:border-blue-500 focus:border-transparent focus:ring-4 focus:ring-blue-500/10 disabled:bg-gray-50"
+                options={TYPE_OPTIONS}
                 value={formData.type}
-                onChange={(e) => handleInputChange("type", e.target.value)}
-              >
-                <option value="NORMAL">ทั่วไป (Normal)</option>
-                <option value="IMPORTANT">สำคัญ (Important)</option>
-                <option value="URGENT">ด่วน (Urgent)</option>
-              </select>
+                onChange={(val) => handleInputChange("type", val)}
+              />
             </div>
           </div>
           <div>

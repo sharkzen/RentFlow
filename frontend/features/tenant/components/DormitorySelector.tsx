@@ -1,3 +1,6 @@
+import { Building2 } from "lucide-react";
+import { CustomSelect } from "@/lib/ui/CustomSelect";
+
 type Props = {
   dormitories: {
     id: string;
@@ -16,20 +19,15 @@ export default function DormitorySelector({
   onChange,
 }: Props) {
   return (
-    <select
-      className="rounded border px-3 py-2"
+    <CustomSelect
+      icon={<Building2 size={16} />}
+      options={dormitories.map((d) => ({ value: d.id, label: d.name }))}
       value={selectedDorm.id}
-      onChange={(e) => {
-        const dorm = dormitories.find((d) => d.id === e.target.value);
+      onChange={(id) => {
+        const dorm = dormitories.find((d) => d.id === id);
 
         if (dorm) onChange(dorm);
       }}
-    >
-      {dormitories.map((d) => (
-        <option key={d.id} value={d.id}>
-          {d.name}
-        </option>
-      ))}
-    </select>
+    />
   );
 }

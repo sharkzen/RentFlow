@@ -1,6 +1,14 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { CreditCard, Wallet, Building2, ChevronDown } from "lucide-react";
+import {
+  CreditCard,
+  Wallet,
+  Building2,
+  ChevronDown,
+  Smartphone,
+  IdCard,
+  Landmark,
+} from "lucide-react";
 import { DormFormData } from "@/features/dormitory";
 
 interface PaymentSettingsProps {
@@ -176,6 +184,82 @@ const BankSelect = ({
   );
 };
 
+const PROMPTPAY_TYPES = [
+  { id: "", name: "-- ไม่ระบุ --", icon: Wallet },
+  { id: "PHONE", name: "เบอร์โทรศัพท์", icon: Smartphone },
+  { id: "ID_CARD", name: "บัตรประชาชน", icon: IdCard },
+  { id: "E_WALLET", name: "E-Wallet ID", icon: Landmark },
+];
+
+const PromptPayTypeSelect = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selected =
+    PROMPTPAY_TYPES.find((t) => t.id === value) ?? PROMPTPAY_TYPES[0];
+  const SelectedIcon = selected.icon;
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div
+        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "border-indigo-500 bg-white ring-2 ring-indigo-100" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center gap-3">
+          <SelectedIcon size={16} className="text-slate-400" />
+          <span className={value ? "text-slate-900" : "text-slate-400"}>
+            {selected.name}
+          </span>
+        </div>
+        <ChevronDown
+          size={16}
+          className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </div>
+      {isOpen && (
+        <div className="absolute z-10 mt-1 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+          {PROMPTPAY_TYPES.map((type) => {
+            const TypeIcon = type.icon;
+            return (
+              <div
+                key={type.id}
+                className={`flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-indigo-50 ${value === type.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-slate-700"}`}
+                onClick={() => {
+                  onChange(type.id);
+                  setIsOpen(false);
+                }}
+              >
+                <TypeIcon size={16} className="text-slate-400" />
+                <span className="text-sm">{type.name}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function DormPaymentSettings({
   formData,
   updateField,
@@ -232,16 +316,10 @@ export default function DormPaymentSettings({
         </div>
         <div>
           <Label icon={Wallet}>ประเภทพร้อมเพย์</Label>
-          <select
+          <PromptPayTypeSelect
             value={formData.promptPayType || ""}
-            onChange={(e) => updateField("promptPayType", e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all outline-none focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100"
-          >
-            <option value="">-- ไม่ระบุ --</option>
-            <option value="PHONE">เบอร์โทรศัพท์</option>
-            <option value="ID_CARD">บัตรประชาชน</option>
-            <option value="E_WALLET">E-Wallet ID</option>
-          </select>
+            onChange={(val) => updateField("promptPayType", val)}
+          />
         </div>
         <div>
           <Label>เลขพร้อมเพย์ / เบอร์โทร</Label>

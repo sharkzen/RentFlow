@@ -13,7 +13,6 @@ export type Tenant = {
   address: string | null;
   numberOfResidents: number;
   tenantNameSnapshot: string | null;
-  roomPriceSnapshot: number | null;
   securityDeposit: number;
   advancePayment: number;
   entranceFee: number;
@@ -160,7 +159,6 @@ export interface TenantContractDetail {
   emergencyContactPhone: string | null;
   numberOfResidents: number;
   notes: string | null;
-  roomPriceSnapshot: number;
   securityDeposit: number;
   advancePayment: number;
   entranceFee: number;

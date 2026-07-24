@@ -2,9 +2,17 @@
 import React, { useState, useEffect } from "react";
 import CreateAnnouncementModal from "./CreateAnnouncementModal";
 import AnnouncementList from "./AnnouncementList";
-import { Plus, Megaphone, BellOff } from "lucide-react";
+import { Plus, Megaphone, BellOff, Building2, Filter } from "lucide-react";
 import { AnnouncementService } from "@/features/announcement/services/announcement.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
+import { CustomSelect } from "@/lib/ui/CustomSelect";
+
+const TYPE_OPTIONS = [
+  { value: "ALL", label: "ทุกประเภท" },
+  { value: "NORMAL", label: "ทั่วไป (Normal)" },
+  { value: "IMPORTANT", label: "สำคัญ (Important)" },
+  { value: "URGENT", label: "ด่วน (Urgent)" },
+];
 
 export default function AnnouncementClient() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -88,34 +96,27 @@ export default function AnnouncementClient() {
         </button>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <select
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none disabled:bg-gray-50 sm:w-auto"
-          value={selectedDormitory}
-          onChange={(e) => setSelectedDormitory(e.target.value)}
-          disabled={isDormsLoading || dorms.length === 0}
-        >
-          {isDormsLoading ? (
-            <option value="">⏳ กำลังโหลด...</option>
-          ) : dorms.length === 0 ? (
-            <option value="">❌ ไม่พบหอพัก</option>
-          ) : (
-            dorms.map((dorm) => (
-              <option key={dorm.id} value={dorm.id}>
-                {dorm.name}
-              </option>
-            ))
-          )}
-        </select>
-        <select
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value)}
-          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:w-auto"
-        >
-          <option value="ALL">ทุกประเภท</option>
-          <option value="NORMAL">ทั่วไป (Normal)</option>
-          <option value="IMPORTANT">สำคัญ (Important)</option>
-          <option value="URGENT">ด่วน (Urgent)</option>
-        </select>
+        <div className="w-full sm:w-auto">
+          <CustomSelect
+            icon={<Building2 size={16} />}
+            disabled={isDormsLoading || dorms.length === 0}
+            placeholder={isDormsLoading ? "กำลังโหลด..." : "ไม่พบหอพัก"}
+            options={dorms.map((dorm) => ({
+              value: dorm.id,
+              label: dorm.name,
+            }))}
+            value={selectedDormitory}
+            onChange={setSelectedDormitory}
+          />
+        </div>
+        <div className="w-full sm:w-auto">
+          <CustomSelect
+            icon={<Filter size={16} />}
+            options={TYPE_OPTIONS}
+            value={selectedType}
+            onChange={setSelectedType}
+          />
+        </div>
       </div>
       {!isLoading && !isDormsLoading && filteredAnnouncements.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-gray-50 px-4 py-16 text-center">

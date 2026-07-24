@@ -46,7 +46,7 @@ export default function RoomCard({
   const itemsPerPage = 10;
   const startItem = (page - 1) * itemsPerPage + 1;
   const endItem = Math.min(page * itemsPerPage, totalItems);
-  const gridTemplate = "grid-cols-[1.2fr_1.5fr_1.2fr_1.2fr_1.2fr_0.8fr_100px]";
+  const gridTemplate = "grid-cols-[0.8fr_1.2fr_1.5fr_1.2fr_1.2fr_1.2fr_100px]";
 
   return (
     <>
@@ -54,22 +54,27 @@ export default function RoomCard({
         <div
           className={`grid ${gridTemplate} gap-4 border-b border-gray-200 bg-gray-50 px-6 py-4 text-xs font-medium tracking-wider text-gray-500 uppercase`}
         >
+          <div className="font-semibold">ชั้น</div>
           <div className="font-semibold">หมายเลขห้อง</div>
           <div className="font-semibold">หอพัก</div>
           <div className="font-semibold">สถานะ</div>
           <div className="font-semibold">ประเภท</div>
           <div className="font-semibold">ราคา/เดือน</div>
-          <div className="font-semibold">ชั้น</div>
           <div className="font-semibold">จัดการ</div>
         </div>
         <div className="custom-scrollbar flex-1 overflow-auto bg-white">
           <div className="min-w-335">
-            {rooms.map((room) => (
+            {rooms.map((room, index) => (
               <div
                 key={room.id}
                 onClick={() => setEditingRoom(room)}
-                className={`group grid ${gridTemplate} cursor-pointer items-center gap-4 border-b border-gray-100 px-6 py-4 transition-colors last:border-0 hover:bg-gray-50`}
+                className={`group grid ${gridTemplate} cursor-pointer items-center gap-4 border-b border-gray-100 px-6 py-4 transition-colors last:border-0 hover:bg-indigo-50/40 ${
+                  index % 2 === 0 ? "bg-white" : "bg-gray-50/60"
+                }`}
               >
+                <div className="text-sm font-medium text-gray-600">
+                  ชั้น {room.floor}
+                </div>
                 <div>
                   <span className="text-sm font-bold text-gray-900 transition-colors group-hover:text-indigo-600">
                     {room.roomNumber}
@@ -101,7 +106,6 @@ export default function RoomCard({
                 <div className="font-medium text-gray-900">
                   ฿{room.basePrice?.toLocaleString() ?? 0}
                 </div>
-                <div className="text-sm text-gray-500">ชั้น {room.floor}</div>
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={(e) => {

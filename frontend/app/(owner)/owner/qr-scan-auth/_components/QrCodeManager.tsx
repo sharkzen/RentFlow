@@ -4,7 +4,7 @@ import { DormService } from "@/features/dormitory/services/dorm.service";
 import { RoomService } from "@/features/room/services/room.service";
 import { QrScanAuthService } from "@/features/qr-scan-auth/services/qr-scan-auth.services";
 import { QrCodeFilters } from "./QrCodeFilters";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw, Info } from "lucide-react";
 import { toast } from "react-toastify";
 import Skeleton from "@/lib/ui/Skeleton";
 import ConfirmDialog, { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
@@ -277,6 +277,13 @@ export default function QrCodeManager() {
         onBulkCreate={handleBulkCreate}
         isBulkLoading={isBulkLoading}
       />
+      <div className="flex items-start gap-2.5 border-b border-amber-100 bg-amber-50/60 px-4 py-3 text-xs text-amber-800 sm:px-5 sm:text-sm">
+        <Info className="mt-0.5 h-4 w-4 shrink-0" />
+        <span>
+          ห้องที่ยังไม่มีผู้เช่าจะยังสร้าง QR Code ไม่ได้
+          ต้องมีผู้เช่าเข้าพักก่อนจึงจะสร้างได้
+        </span>
+      </div>
       <div className="w-full overflow-x-auto">
         <table className="w-full text-left text-sm whitespace-nowrap">
           <thead>

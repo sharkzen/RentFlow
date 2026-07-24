@@ -15,6 +15,7 @@ interface CustomSelectProps {
   placeholder?: string;
   icon?: React.ReactNode;
   className?: string;
+  disabled?: boolean;
 }
 
 export const CustomSelect = ({
@@ -24,6 +25,7 @@ export const CustomSelect = ({
   placeholder = "เลือก...",
   icon,
   className = "",
+  disabled = false,
 }: CustomSelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,8 +49,10 @@ export const CustomSelect = ({
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       <button
+        type="button"
+        disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-full w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold transition-all hover:border-blue-400 focus:ring-2 focus:ring-blue-100 ${isOpen ? "border-blue-500 ring-2 ring-blue-100" : ""}`}
+        className={`flex h-full w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold transition-all hover:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-60 ${isOpen ? "border-blue-500 ring-2 ring-blue-100" : ""}`}
       >
         <div className="flex items-center gap-2 truncate">
           {icon && <span className="text-gray-400">{icon}</span>}

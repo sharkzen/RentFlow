@@ -1,10 +1,11 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { ScrollText, Search, RefreshCw, Calendar } from "lucide-react";
+import { ScrollText, Search, RefreshCw, Calendar, ListFilter } from "lucide-react";
 import { AdminService } from "@/features/admin/services/admin.service";
 import { ActivityLog } from "@/features/admin/types";
 import { AuditLogTable } from "./AuditLogTable";
+import { CustomSelect } from "@/lib/ui/CustomSelect";
 
 export default function AuditLogContainer() {
   const [logs, setLogs] = useState<ActivityLog[]>([]);
@@ -91,21 +92,18 @@ export default function AuditLogContainer() {
           />
         </div>
         <div>
-          <select
-            className="w-full rounded-lg border border-gray-200 bg-white px-4 py-2 outline-none focus:ring-blue-500"
+          <CustomSelect
+            icon={<ListFilter size={16} />}
+            options={[
+              { value: "ALL", label: "ทุกประเภท (Entity)" },
+              ...entityTypes.map((type) => ({ value: type, label: type })),
+            ]}
             value={entityTypeFilter}
-            onChange={(e) => {
-              setEntityTypeFilter(e.target.value);
+            onChange={(val) => {
+              setEntityTypeFilter(val);
               setPage(1);
             }}
-          >
-            <option value="ALL">ทุกประเภท (Entity)</option>
-            {entityTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div className="relative">
           <Calendar

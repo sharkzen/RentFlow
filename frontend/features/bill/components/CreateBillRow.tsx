@@ -7,6 +7,7 @@ import {
   Trash2,
   AlertCircle,
 } from "lucide-react";
+import { CustomSelect } from "@/lib/ui/CustomSelect";
 
 interface BillItem {
   id: string;
@@ -63,29 +64,23 @@ export default function CreateBillRow({
         <label className="text-xs font-bold text-gray-700 lg:hidden">
           เลือกห้องพัก
         </label>
-        <div className="relative">
-          <Home className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
-          <select
-            value={item.roomId}
-            onChange={(e) => onRoomSelect(index, e.target.value)}
-            className={`h-10 w-full cursor-pointer appearance-none rounded-lg border bg-white pr-8 pl-9 text-sm font-medium transition-all outline-none focus:ring-2 ${!item.roomId ? "border-gray-300 text-gray-500 focus:border-indigo-500 focus:ring-indigo-100" : "border-indigo-200 bg-indigo-50/30 text-indigo-700 focus:border-indigo-500 focus:ring-indigo-100"}`}
-          >
-            <option value="" disabled>
-              -- เลือกห้องพัก --
-            </option>
-            {isLoadingRooms ? (
-              <option disabled>กำลังโหลดข้อมูล...</option>
-            ) : availableRooms.length > 0 ? (
-              availableRooms.map((r) => (
-                <option key={r.id} value={r.id}>
-                  ห้อง {r.roomNumber}
-                </option>
-              ))
-            ) : (
-              <option disabled>ไม่มีห้องพักที่มีผู้เช่า</option>
-            )}
-          </select>
-        </div>
+        <CustomSelect
+          icon={<Home size={16} />}
+          disabled={isLoadingRooms || availableRooms.length === 0}
+          placeholder={
+            isLoadingRooms
+              ? "กำลังโหลดข้อมูล..."
+              : availableRooms.length === 0
+                ? "ไม่มีห้องพักที่มีผู้เช่า"
+                : "-- เลือกห้องพัก --"
+          }
+          options={availableRooms.map((r) => ({
+            value: r.id,
+            label: `ห้อง ${r.roomNumber}`,
+          }))}
+          value={item.roomId || null}
+          onChange={(val) => onRoomSelect(index, val)}
+        />
         {item.tenantName && (
           <div className="flex items-center gap-1.5 rounded-md bg-gray-100 px-2 py-1.5 text-xs text-gray-600">
             <User size={12} />

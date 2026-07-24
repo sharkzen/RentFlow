@@ -930,6 +930,20 @@ export const tenantService = {
 
         include: {
           payment: true,
+
+          room: {
+            include: {
+              dormitory: {
+                select: {
+                  settings: {
+                    select: {
+                      lateFee: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       }),
       prisma.bill.count({
@@ -937,21 +951,68 @@ export const tenantService = {
       }),
     ]);
 
-    let items = rawItems.map((bill) => {
-      let currentStatus = bill.status;
-      let currentTotal = bill.total;
+    let items = await Promise.all(
+      rawItems.map(async (bill) => {
+        const { room, ...billFields } = bill;
 
-      if (bill.status === "PENDING" && today > new Date(bill.dueDate)) {
-        currentStatus = "OVERDUE" as any;
-        currentTotal = bill.total + (bill.lateFeeSnapshot || 0);
-      }
+        if (
+          bill.status !== "PAID" &&
+          bill.status !== "CANCELLED" &&
+          today > new Date(bill.dueDate)
+        ) {
+          const dailyRate = room?.dormitory?.settings?.lateFee || 0;
+          const dueDate = new Date(bill.dueDate);
+          const startDate = new Date(
+            dueDate.getFullYear(),
+            dueDate.getMonth(),
+            dueDate.getDate(),
+          );
+          const endDate = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate(),
+          );
+          const daysLate = Math.floor(
+            (endDate.getTime() - startDate.getTime()) / 86400000,
+          );
+          const calculatedLateFee = Math.max(daysLate, 0) * dailyRate;
 
-      return {
-        ...bill,
-        status: currentStatus,
-        total: currentTotal,
-      };
-    });
+          if (calculatedLateFee > bill.lateFeeSnapshot) {
+            const feeDifference = calculatedLateFee - bill.lateFeeSnapshot;
+
+            const updated = await prisma.bill.update({
+              where: {
+                id: bill.id,
+              },
+
+              data: {
+                lateFeeSnapshot: calculatedLateFee,
+
+                total: {
+                  increment: feeDifference,
+                },
+
+                status: "OVERDUE",
+              },
+            });
+
+            return {
+              ...billFields,
+              lateFeeSnapshot: updated.lateFeeSnapshot,
+              total: updated.total,
+              status: updated.status,
+            };
+          }
+
+          return {
+            ...billFields,
+            status: "OVERDUE" as any,
+          };
+        }
+
+        return billFields;
+      }),
+    );
 
     items.sort((a, b) => {
       const priority: Record<string, number> = {
@@ -982,13 +1043,46 @@ export const tenantService = {
           in: ["PENDING", "OVERDUE"],
         },
       },
+
+      include: {
+        room: {
+          include: {
+            dormitory: {
+              select: {
+                settings: {
+                  select: {
+                    lateFee: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     const totalPending = allPendingBills.reduce((sum, bill) => {
       let billAmount = bill.total;
 
       if (bill.status === "PENDING" && today > new Date(bill.dueDate)) {
-        billAmount += bill.lateFeeSnapshot || 0;
+        const dailyRate = bill.room?.dormitory?.settings?.lateFee || 0;
+        const dueDate = new Date(bill.dueDate);
+        const startDate = new Date(
+          dueDate.getFullYear(),
+          dueDate.getMonth(),
+          dueDate.getDate(),
+        );
+        const endDate = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate(),
+        );
+        const daysLate = Math.floor(
+          (endDate.getTime() - startDate.getTime()) / 86400000,
+        );
+        const calculatedLateFee = Math.max(daysLate, 0) * dailyRate;
+
+        billAmount += Math.max(calculatedLateFee, bill.lateFeeSnapshot || 0);
       }
 
       return sum + billAmount;

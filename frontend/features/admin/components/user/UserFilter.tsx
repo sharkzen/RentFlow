@@ -1,5 +1,13 @@
 import React from "react";
-import { Search, ChevronDown, Filter } from "lucide-react";
+import { Search, Filter } from "lucide-react";
+import { CustomSelect } from "@/lib/ui/CustomSelect";
+
+const STATUS_OPTIONS = [
+  { value: "ALL", label: "สถานะทั้งหมด" },
+  { value: "ACTIVE", label: "ใช้งานปกติ (Active)" },
+  { value: "BANNED", label: "ถูกระงับ (Banned)" },
+  { value: "PENDING", label: "รออนุมัติ (Pending)" },
+];
 
 interface UserFilterProps {
   search: string;
@@ -28,23 +36,13 @@ export default function UserFilter({
           className="block w-full rounded-lg border-0 py-2.5 pr-3 pl-10 text-gray-900 ring-1 ring-gray-300 transition-shadow ring-inset placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600 focus:ring-inset sm:text-sm sm:leading-6"
         />
       </div>
-      <div className="relative w-full md:w-56">
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Filter className="h-4 w-4 text-gray-500" />
-        </div>
-        <select
+      <div className="w-full md:w-56">
+        <CustomSelect
+          options={STATUS_OPTIONS}
           value={status}
-          onChange={(e) => onStatusChange(e.target.value)}
-          className="block w-full cursor-pointer appearance-none rounded-lg border-0 bg-white py-2.5 pr-10 pl-10 text-gray-900 ring-1 ring-gray-300 transition-shadow ring-inset focus:ring-2 focus:ring-blue-600 focus:ring-inset sm:text-sm sm:leading-6"
-        >
-          <option value="ALL">สถานะทั้งหมด</option>
-          <option value="ACTIVE">ใช้งานปกติ (Active)</option>
-          <option value="BANNED">ถูกระงับ (Banned)</option>
-          <option value="PENDING">รออนุมัติ (Pending)</option>
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-          <ChevronDown className="h-5 w-5 text-gray-400" aria-hidden="true" />
-        </div>
+          onChange={onStatusChange}
+          icon={<Filter size={16} />}
+        />
       </div>
     </div>
   );

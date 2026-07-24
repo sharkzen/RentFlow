@@ -96,6 +96,11 @@ export const billService = {
               dormitory: {
                 select: {
                   name: true,
+                  settings: {
+                    select: {
+                      lateFee: true,
+                    },
+                  },
                 },
               },
             },
@@ -141,9 +146,53 @@ export const billService = {
       items.map(async (bill) => {
         const today = new Date();
 
-        if (bill.status === "PENDING" && today > new Date(bill.dueDate)) {
-          bill.status = "OVERDUE" as any;
-          bill.total = bill.total + bill.lateFeeSnapshot;
+        if (
+          bill.status !== "PAID" &&
+          bill.status !== "CANCELLED" &&
+          today > new Date(bill.dueDate)
+        ) {
+          const dailyRate = (bill.room as any).dormitory.settings?.lateFee || 0;
+          const dueDate = new Date(bill.dueDate);
+          const startDate = new Date(
+            dueDate.getFullYear(),
+            dueDate.getMonth(),
+            dueDate.getDate(),
+          );
+          const endDate = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate(),
+          );
+          const daysLate = Math.floor(
+            (endDate.getTime() - startDate.getTime()) / 86400000,
+          );
+          const calculatedLateFee = Math.max(daysLate, 0) * dailyRate;
+
+          if (calculatedLateFee > bill.lateFeeSnapshot) {
+            const feeDifference = calculatedLateFee - bill.lateFeeSnapshot;
+
+            const updated = await prisma.bill.update({
+              where: {
+                id: bill.id,
+              },
+
+              data: {
+                lateFeeSnapshot: calculatedLateFee,
+
+                total: {
+                  increment: feeDifference,
+                },
+
+                status: "OVERDUE",
+              },
+            });
+
+            bill.lateFeeSnapshot = updated.lateFeeSnapshot;
+            bill.total = updated.total;
+            bill.status = updated.status;
+          } else if (bill.status === "PENDING") {
+            bill.status = "OVERDUE" as any;
+          }
         }
 
         if (!bill.payment || !bill.payment.slips.length) return bill;
@@ -556,11 +605,38 @@ export const billService = {
         Number(item.currentElectric) - Number(item.prevElectric);
       const waterFee = waterUsed * dormSettings.waterRate;
       const electricFee = electricUsed * dormSettings.electricRate;
-      const total =
-        room.basePrice + waterFee + electricFee + Number(item.commonFee);
       const dueDate = new Date(saveDate);
       dueDate.setDate(dormSettings.dueDay);
       dueDate.setMonth(dueDate.getMonth() + dormSettings.dueMonthOffset);
+
+      // บิลย้อนหลังที่ครบกำหนดชำระไปแล้วตั้งแต่ตอนสร้าง ให้คิดค่าปรับสะสมตามจำนวนวันทันที แทนที่จะรอรอบถัดไปที่มีคนเปิดดูรายการบิล
+      const now = new Date();
+      const isImmediatelyOverdue = dueDate < now;
+      let lateFeeAmount = 0;
+
+      if (isImmediatelyOverdue) {
+        const startDate = new Date(
+          dueDate.getFullYear(),
+          dueDate.getMonth(),
+          dueDate.getDate(),
+        );
+        const endDate = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        const daysLate = Math.floor(
+          (endDate.getTime() - startDate.getTime()) / 86400000,
+        );
+        lateFeeAmount = Math.max(daysLate, 0) * dormSettings.lateFee;
+      }
+
+      const total =
+        room.basePrice +
+        waterFee +
+        electricFee +
+        Number(item.commonFee) +
+        lateFeeAmount;
 
       const newBill = await prisma.bill.create({
         data: {
@@ -582,9 +658,11 @@ export const billService = {
           electricRateSnapshot: dormSettings.electricRate,
           electricFeeSnapshot: electricFee,
           commonFeeSnapshot: Number(item.commonFee),
-          lateFeeSnapshot: dormSettings.lateFee,
+          lateFeeSnapshot: isImmediatelyOverdue
+            ? lateFeeAmount
+            : dormSettings.lateFee,
           total: total,
-          status: "PENDING",
+          status: isImmediatelyOverdue ? "OVERDUE" : "PENDING",
           waterImageKey: finalWaterKey,
           electricImageKey: finalElectricKey,
         },

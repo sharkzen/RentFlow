@@ -1,9 +1,22 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { X, Image as ImageIcon, Loader2, Trash2 } from "lucide-react";
+import {
+  X,
+  Image as ImageIcon,
+  Loader2,
+  Trash2,
+  Megaphone,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { AnnouncementService } from "@/features/announcement/services/announcement.service";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
+import { CustomSelect } from "@/lib/ui/CustomSelect";
+
+const TYPE_OPTIONS = [
+  { value: "NORMAL", label: "ทั่วไป (Normal)" },
+  { value: "IMPORTANT", label: "สำคัญ (Important)" },
+  { value: "URGENT", label: "ด่วน (Urgent)" },
+];
 
 interface AnnouncementEditModalProps {
   item: any;
@@ -226,16 +239,13 @@ export default function AnnouncementEditModal({
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                   ประเภท
                 </label>
-                <select
+                <CustomSelect
+                  icon={<Megaphone size={16} />}
                   disabled={isLoading}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 transition-all outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:bg-gray-50"
+                  options={TYPE_OPTIONS}
                   value={type}
-                  onChange={(e) => setType(e.target.value)}
-                >
-                  <option value="NORMAL">ทั่วไป (Normal)</option>
-                  <option value="IMPORTANT">สำคัญ (Important)</option>
-                  <option value="URGENT">ด่วน (Urgent)</option>
-                </select>
+                  onChange={setType}
+                />
               </div>
             </div>
             <div>
