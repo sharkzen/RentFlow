@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { RefreshCw, Search, Star, Filter } from "lucide-react";
 import { AdminService } from "@/features/admin/services/admin.service";
@@ -45,6 +45,8 @@ export default function FeaturedContainer() {
 
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
 
+  const isMountedRef = useRef(true);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -59,11 +61,11 @@ export default function FeaturedContainer() {
 
     try {
       const res = await AdminService.getFeaturedList();
-      setFeaturedItems(res);
+      if (isMountedRef.current) setFeaturedItems(res);
     } catch (error) {
-      toast.error("ไม่สามารถโหลดรายการหอพักแนะนำได้");
+      if (isMountedRef.current) toast.error("ไม่สามารถโหลดรายการหอพักแนะนำได้");
     } finally {
-      setIsFeaturedLoading(false);
+      if (isMountedRef.current) setIsFeaturedLoading(false);
     }
   }, []);
 
@@ -78,22 +80,34 @@ export default function FeaturedContainer() {
         statusFilter,
         "all",
       );
-      setTableData(res.data);
-      setTotalPages(res.meta.totalPages);
-      setTotalItems(res.meta.total);
+      if (isMountedRef.current) {
+        setTableData(res.data);
+        setTotalPages(res.meta.totalPages);
+        setTotalItems(res.meta.total);
+      }
     } catch (error) {
-      toast.error("ไม่สามารถโหลดข้อมูลหอพักได้");
+      if (isMountedRef.current) toast.error("ไม่สามารถโหลดข้อมูลหอพักได้");
     } finally {
-      setIsTableLoading(false);
+      if (isMountedRef.current) setIsTableLoading(false);
     }
   }, [page, debouncedSearch, statusFilter]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchFeatured();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchFeatured]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchTable();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchTable]);
 
   const refreshAll = () => {

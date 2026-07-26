@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { AdminService } from "@/features/admin/services/admin.service";
 import { OwnerApproval } from "@/features/admin/types";
 import ApprovalDetailModal from "./ApprovalDetailModal";
@@ -50,6 +50,8 @@ export default function ApprovalContainer() {
 
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
 
+  const isMountedRef = useRef(true);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -64,18 +66,25 @@ export default function ApprovalContainer() {
 
     try {
       const res = await AdminService.getPendingList(page, 10, debouncedSearch);
-      setData(res.data);
-      setTotalPages(res.meta.totalPages);
-      setTotalItems(res.meta.total);
+      if (isMountedRef.current) {
+        setData(res.data);
+        setTotalPages(res.meta.totalPages);
+        setTotalItems(res.meta.total);
+      }
     } catch (error) {
-      toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+      if (isMountedRef.current) toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูล");
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   }, [page, debouncedSearch]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchData();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchData]);
 
   const openApproveConfirm = (item: OwnerApproval) => {

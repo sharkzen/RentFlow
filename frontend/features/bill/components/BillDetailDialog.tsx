@@ -1,6 +1,7 @@
 "use client";
 import { RefObject, useRef, useState } from "react";
 import log from "@/lib/logger";
+import { showBackendError } from "@/lib/backendError";
 
 import {
   X,
@@ -22,7 +23,7 @@ import {
   FileX,
 } from "lucide-react";
 
-import { Bill } from "@/features/bill/types";
+import { Bill, BillItem } from "@/features/bill/types";
 import BillSlipSidebar from "./BillSlipSidebar";
 import { useScrollLock, useOnClickOutside } from "usehooks-ts";
 import ConfirmDialog, { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
@@ -104,13 +105,13 @@ export default function BillDetailDialog({
     currentStatus === "OVERDUE";
   const canEditItems =
     bill.status === "PENDING" || bill.status === "OVERDUE";
-  const advancePayment = (bill as any).tenant?.advancePayment || 0;
-  const items = (bill as any).items || [];
-  const chargeItems = items.filter((item: any) => item.type === "CHARGE");
-  const discountItems = items.filter((item: any) => item.type === "DISCOUNT");
+  const advancePayment = bill.tenant?.advancePayment || 0;
+  const items = bill.items || [];
+  const chargeItems = items.filter((item) => item.type === "CHARGE");
+  const discountItems = items.filter((item) => item.type === "DISCOUNT");
   const allItemsSorted = [...chargeItems, ...discountItems];
   const hasAppliedAdvance = items.some(
-    (item: any) => item.name === "หักเงินค่าเช่าล่วงหน้า",
+    (item) => item.name === "หักเงินค่าเช่าล่วงหน้า",
   );
 
   const handleActionClick = (status: "PAID" | "DELETE" | "REJECT") => {
@@ -199,7 +200,9 @@ export default function BillDetailDialog({
           error: {
             render({ data }: any) {
               const errorData = data?.response?.data;
-              return errorData?.message || "เกิดข้อผิดพลาดในการลบบิล";
+              return errorData?.message
+                ? showBackendError(errorData.message)
+                : "เกิดข้อผิดพลาดในการลบบิล";
             },
           },
         });
@@ -365,7 +368,7 @@ export default function BillDetailDialog({
     }
   };
 
-  const handleStartEdit = (item: any) => {
+  const handleStartEdit = (item: BillItem) => {
     setEditingItemId(item.id);
 
     setEditItemData({
@@ -635,7 +638,7 @@ export default function BillDetailDialog({
                     {allItemsSorted && allItemsSorted.length > 0 && (
                       <div className="my-3 border-t border-dashed border-gray-200 pt-3">
                         <div className="space-y-3">
-                          {allItemsSorted.map((item: any) => {
+                          {allItemsSorted.map((item) => {
                             if (editingItemId === item.id) {
                               return (
                                 <div

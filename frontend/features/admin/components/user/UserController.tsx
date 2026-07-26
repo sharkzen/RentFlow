@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { AdminService } from "@/features/admin/services/admin.service";
 import { OwnerUser, PaginatedResponse } from "@/features/admin";
 import { toast } from "react-toastify";
@@ -20,6 +20,8 @@ export default function UserController() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
+  const isMountedRef = useRef(true);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -38,18 +40,25 @@ export default function UserController() {
         debouncedSearch,
         status,
       );
-      setData(res.data);
-      setMeta(res.meta);
+      if (isMountedRef.current) {
+        setData(res.data);
+        setMeta(res.meta);
+      }
     } catch (error) {
       console.error("Failed to fetch users", error);
-      toast.error("ไม่สามารถดึงข้อมูลผู้ใช้งานได้");
+      if (isMountedRef.current) toast.error("ไม่สามารถดึงข้อมูลผู้ใช้งานได้");
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   }, [page, debouncedSearch, status]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchData();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchData]);
 
   const handleViewDetail = async (user: OwnerUser) => {

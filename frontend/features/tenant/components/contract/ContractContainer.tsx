@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { TenantService } from "@/features/tenant/services/tenant.service";
 import { TenantInfoCard } from "./TenantInfoCard";
 import { FinancialCard } from "./FinancialCard";
@@ -15,20 +15,27 @@ export default function ContractContainer() {
   );
   const [loading, setLoading] = useState(true);
 
+  const isMountedRef = useRef(true);
+
   const loadContractDetail = useCallback(async () => {
     try {
       setLoading(true);
       const data = await TenantService.getContractDetail();
-      setTenantData(data);
+      if (isMountedRef.current) setTenantData(data);
     } catch (error) {
       console.error("Failed to load contract:", error);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    isMountedRef.current = true;
     loadContractDetail();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [loadContractDetail]);
 
   if (loading)

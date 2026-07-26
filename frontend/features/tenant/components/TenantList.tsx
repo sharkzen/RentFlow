@@ -1,4 +1,4 @@
-import { Tenant } from "@/features/tenant";
+import { Tenant, TenantReEntryData } from "@/features/tenant";
 import {
   Pencil,
   UserX,
@@ -30,7 +30,8 @@ export default function TenantList({
 }: Props) {
   const [editingTenantId, setEditingTenantId] = useState<string | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [prefilledData, setPrefilledData] = useState<any>(null);
+  const [prefilledData, setPrefilledData] =
+    useState<TenantReEntryData | null>(null);
 
   const handleEditClick = (e: React.MouseEvent, tenantId: string) => {
     e.stopPropagation();
@@ -42,7 +43,7 @@ export default function TenantList({
     onEditSuccess?.();
   };
 
-  const handleReEntryFromEdit = (data: any) => {
+  const handleReEntryFromEdit = (data: TenantReEntryData) => {
     setEditingTenantId(null);
     setPrefilledData(data);
     setIsAddOpen(true);

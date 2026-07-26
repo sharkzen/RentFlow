@@ -1,7 +1,7 @@
 import OwnerNavbar from "@/features/owner/components/OwnerNavbar";
-import { fetchWithRefresh } from "@/lib/api/fetchWithRefresh";
 import { redirect } from "next/navigation";
-import { Role, Status, type User } from "@/features/auth";
+import { Role, Status } from "@/features/auth";
+import { fetchCurrentUser } from "@/lib/auth/requireRole";
 import FormPending from "@/lib/ui/status/FormPending";
 import FormBanned from "@/lib/ui/status/FormBanned";
 
@@ -10,14 +10,7 @@ export default async function OwnerLayout({
 }: {
   children: React.ReactNode;
 }) {
-  let me: User;
-
-  try {
-    const baseUrl = process.env.API_URL || "http://localhost:3001";
-    me = await fetchWithRefresh(`${baseUrl}/api/auth/me`);
-  } catch (error) {
-    redirect("/auth/login");
-  }
+  const me = await fetchCurrentUser();
 
   if (me.role === Role.TENANT) redirect("/tenant/dashboard");
 

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Megaphone, ChevronRight } from "lucide-react";
 import { AnnouncementService } from "@/features/announcement/services/announcement.service";
@@ -17,21 +17,29 @@ export default function RecentAnnouncements() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isMountedRef = useRef(true);
+
   useEffect(() => {
+    isMountedRef.current = true;
+
     const fetchAnnouncements = async () => {
       try {
         const res = await AnnouncementService.tenantGetAnnouncements({
           limit: 3,
         });
-        setAnnouncements(res.data);
+        if (isMountedRef.current) setAnnouncements(res.data);
       } catch (error) {
         console.error("Failed to fetch announcements:", error);
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) setLoading(false);
       }
     };
 
     fetchAnnouncements();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   return (

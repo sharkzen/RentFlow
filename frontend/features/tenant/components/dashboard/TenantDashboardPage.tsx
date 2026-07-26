@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import BillStatusCard from "./BillStatusCard";
 import UtilityUsageCard from "./UtilityUsageCard";
 import QuickStatsCard from "./QuickStatsCard";
@@ -14,21 +14,28 @@ export default function TenantDashboardPage() {
   const [dashboard, setDashboard] = useState<TenantDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const isMountedRef = useRef(true);
+
   const fetchTenantDashboard = async () => {
     try {
       setLoading(true);
       const data = await TenantService.getDashboard();
-      setDashboard(data);
+      if (isMountedRef.current) setDashboard(data);
     } catch (error) {
       console.error(error);
-      toast.error("ไม่สามารถดึงข้อมูลได้");
+      if (isMountedRef.current) toast.error("ไม่สามารถดึงข้อมูลได้");
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchTenantDashboard();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   if (loading) return <DashboardSkeleton />;

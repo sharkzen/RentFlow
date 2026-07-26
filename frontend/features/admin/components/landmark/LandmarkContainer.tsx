@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { AdminService } from "@/features/admin/services/admin.service";
 import { Landmark, CreateLandmarkPayload } from "@/features/admin/types";
@@ -29,6 +29,8 @@ export default function LandmarkContainer() {
 
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const isMountedRef = useRef(true);
+
   const handleOpenCreateModal = () => {
     setEditingLandmark(null);
     setIsModalOpen(true);
@@ -44,22 +46,30 @@ export default function LandmarkContainer() {
 
     try {
       const res = await AdminService.getLandmarks(page, 10, search);
-      setLandmarks(res.data);
+      if (isMountedRef.current) {
+        setLandmarks(res.data);
 
-      setMeta({
-        totalPages: res.meta.totalPages,
-      });
+        setMeta({
+          totalPages: res.meta.totalPages,
+        });
+      }
     } catch (error) {
       console.error(error);
-      toast.error("โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
+      if (isMountedRef.current)
+        toast.error("โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
     const timer = setTimeout(() => fetchLandmarks(), 500);
-    return () => clearTimeout(timer);
+
+    return () => {
+      clearTimeout(timer);
+      isMountedRef.current = false;
+    };
   }, [page, search]);
 
   const handleCreate = async (payload: CreateLandmarkPayload) => {

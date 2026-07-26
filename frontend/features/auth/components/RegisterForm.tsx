@@ -24,6 +24,7 @@ import {
 } from "@/features/auth/validators";
 import FormSuccess from "@/lib/ui/status/FormSuccess";
 import { showBackendError } from "@/lib/backendError";
+import InfoTooltip from "@/lib/ui/InfoTooltip";
 
 export default function OwnerRegisterForm() {
   const mutation = useRegister();
@@ -331,6 +332,25 @@ export default function OwnerRegisterForm() {
                           {" "}
                           เปิด Map
                         </Link>
+                        <InfoTooltip>
+                          <p className="font-semibold text-gray-800">
+                            วิธีปักหมุดให้ตรงตำแหน่งจริง
+                          </p>
+                          <ol className="mt-1.5 list-decimal space-y-1 pl-4">
+                            <li>เปิด Google Maps แล้วเลื่อนแผนที่ไปยังหอพัก</li>
+                            <li>
+                              กดค้าง (long-press)
+                              บนตำแหน่งหอพักตรงจุดเป๊ะๆ เพื่อปักหมุดเอง
+                            </li>
+                            <li>
+                              กด Share แล้วคัดลอกลิงก์มาวางในช่องนี้
+                            </li>
+                          </ol>
+                          <p className="mt-1.5 text-amber-600">
+                            อย่าเสิร์ชหาชื่อหอแล้วกด Share ทันที
+                            เพราะอาจได้ลิงก์ของสถานที่ใกล้เคียงที่ไม่ตรงจริง
+                          </p>
+                        </InfoTooltip>
                       </label>
                       <input
                         id="mapUrl"

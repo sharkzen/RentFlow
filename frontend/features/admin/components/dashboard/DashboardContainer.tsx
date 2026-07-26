@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AdminService } from "@/features/admin/services/admin.service";
 import type { DashboardData } from "@/features/admin";
 
@@ -24,20 +24,28 @@ export default function DashboardContainer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const isMountedRef = useRef(true);
+
   useEffect(() => {
+    isMountedRef.current = true;
+
     const fetchData = async () => {
       try {
         const result = await AdminService.getDashboard();
-        setData(result);
+        if (isMountedRef.current) setData(result);
       } catch (err) {
         console.error("Failed to fetch dashboard data", err);
-        setError(true);
+        if (isMountedRef.current) setError(true);
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) setLoading(false);
       }
     };
 
     fetchData();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   if (loading) return <DashboardSkeleton />;

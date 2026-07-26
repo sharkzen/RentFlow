@@ -31,6 +31,8 @@ export const errorMessageMap: Record<string, string> = {
     "ห้องมีผู้เช่าอยู่ ไม่สามารถเปลี่ยนสถานะได้ กรุณาแจ้งย้ายออกก่อน",
   CANNOT_SET_STATUS_TO_OCCUPIED_MANUALLY:
     "ไม่สามารถตั้งสถานะมีผู้เช่าโดยตรงได้ กรุณาไปที่เมนูจัดการผู้เช่า",
+  CANNOT_DELETE_PAID_BILL:
+    "ไม่สามารถลบบิลที่ชำระเงินแล้วได้ เพื่อรักษาประวัติการเงิน",
 };
 
 export function showBackendError(code?: string) {

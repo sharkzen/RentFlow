@@ -29,13 +29,14 @@ import log from "@/lib/logger";
 import DatePickerTh from "@/lib/ui/DatePickerTh";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import MoveOutDialog from "./MoveOutDialog";
+import { TenantReEntryData } from "@/features/tenant/types";
 
 interface EditTenantDialogProps {
   isOpen: boolean;
   onClose: () => void;
   tenantId: string | null;
   onSuccess: () => void;
-  onReEntry?: (data: any) => void;
+  onReEntry?: (data: TenantReEntryData) => void;
 }
 
 export default function EditTenantDialog({

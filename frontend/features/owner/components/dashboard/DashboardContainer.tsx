@@ -1,14 +1,37 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Home, Calendar, FileDown } from "lucide-react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Dormitory } from "@/features/dormitory";
 import { Spinner } from "@/lib/ui/Spinner";
 import { CustomSelect } from "@/lib/ui/CustomSelect";
+import dynamic from "next/dynamic";
 import { FinancialSection } from "./FinancialSection";
 import { MaintenanceSection } from "./MaintenanceSection";
-import { RevenueChart } from "./RevenueChart";
-import { MaintenancePieChart } from "./MaintenancePieChart";
+
+const RevenueChart = dynamic(
+  () => import("./RevenueChart").then((mod) => mod.RevenueChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-64 items-center justify-center">
+        <Spinner />
+      </div>
+    ),
+  },
+);
+
+const MaintenancePieChart = dynamic(
+  () => import("./MaintenancePieChart").then((mod) => mod.MaintenancePieChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-64 items-center justify-center">
+        <Spinner />
+      </div>
+    ),
+  },
+);
 import log from "@/lib/logger";
 import { toast } from "react-toastify";
 
@@ -21,10 +44,12 @@ export default function DashboardContainer() {
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
+  const isMountedRef = useRef(true);
+
   const fetchDorms = useCallback(async () => {
     try {
       const data = await DormService.getDorm();
-      setDorms(data);
+      if (isMountedRef.current) setDorms(data);
     } catch (error) {
       log.error("Failed to fetch dorms", error);
     }
@@ -40,20 +65,30 @@ export default function DashboardContainer() {
         queryMonth,
         queryYear,
       );
-      setOverview(data);
+      if (isMountedRef.current) setOverview(data);
     } catch (error) {
       log.error("Failed to fetch dashboard data", error);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   }, [selectedDormId, month, year]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchDorms();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchDorms]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchOverview();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchOverview]);
 
   const handleExport = async () => {

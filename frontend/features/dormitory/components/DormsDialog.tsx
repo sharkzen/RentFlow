@@ -21,7 +21,14 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useOnClickOutside } from "usehooks-ts";
 import ImageSection from "./ImageSection";
 import { DormService } from "@/features/dormitory/services/dorm.service";
@@ -31,12 +38,21 @@ import { showBackendError } from "@/lib/backendError";
 import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
+import InfoTooltip from "@/lib/ui/InfoTooltip";
 import Link from "next/link";
 import DormPaymentSettings from "./DormPaymentSettings";
 
+interface DormPaymentSetting {
+  bankName?: string;
+  bankAccount?: string;
+  bankHolder?: string;
+  promptPayType?: string;
+  promptPayValue?: string;
+}
+
 interface DormsDialogProps {
   dorm: Dormitory & {
-    paymentSetting?: any;
+    paymentSetting?: DormPaymentSetting;
   };
   onClose: () => void;
   onEdit?: () => void;
@@ -102,6 +118,9 @@ const DueMonthOffsetSelect = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const listboxId = useId();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -120,31 +139,78 @@ const DueMonthOffsetSelect = ({
   const selected =
     DUE_MONTH_OFFSETS.find((o) => o.value === value) ?? DUE_MONTH_OFFSETS[1];
 
+  const focusOption = (index: number) => {
+    const clamped = (index + DUE_MONTH_OFFSETS.length) % DUE_MONTH_OFFSETS.length;
+    optionRefs.current[clamped]?.focus();
+  };
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter") {
+      e.preventDefault();
+      setIsOpen(true);
+      requestAnimationFrame(() => focusOption(0));
+    }
+  };
+
+  const handleOptionKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      focusOption(index + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      focusOption(index - 1);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    } else if (e.key === "Tab") {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
-      <div
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
         className={`flex h-10.5 w-full cursor-pointer items-center justify-between rounded-lg border px-4 text-sm transition-all focus:outline-none ${isOpen ? "border-indigo-500 bg-white ring-2 ring-indigo-100" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
         onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={handleTriggerKeyDown}
       >
         <span className="text-slate-900">{selected.label}</span>
         <ChevronDown
           size={16}
           className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
-      </div>
+      </button>
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
-          {DUE_MONTH_OFFSETS.map((option) => (
-            <div
+        <div
+          id={listboxId}
+          role="listbox"
+          className="absolute z-10 mt-1 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+        >
+          {DUE_MONTH_OFFSETS.map((option, index) => (
+            <button
               key={option.value}
-              className={`cursor-pointer px-4 py-2 text-sm hover:bg-indigo-50 ${value === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-slate-700"}`}
+              ref={(el) => {
+                optionRefs.current[index] = el;
+              }}
+              type="button"
+              role="option"
+              aria-selected={value === option.value}
+              className={`w-full cursor-pointer px-4 py-2 text-left text-sm hover:bg-indigo-50 ${value === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-slate-700"}`}
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
+                triggerRef.current?.focus();
               }}
+              onKeyDown={(e) => handleOptionKeyDown(e, index)}
             >
               {option.label}
-            </div>
+            </button>
           ))}
         </div>
       )}
@@ -163,6 +229,9 @@ const StepDropdown = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const listboxId = useId();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -182,11 +251,46 @@ const StepDropdown = ({
   const active = STEPS[activeIndex];
   const ActiveIcon = active.icon;
 
+  const focusOption = (index: number) => {
+    const clamped = (index + STEPS.length) % STEPS.length;
+    optionRefs.current[clamped]?.focus();
+  };
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter") {
+      e.preventDefault();
+      setIsOpen(true);
+      requestAnimationFrame(() => focusOption(0));
+    }
+  };
+
+  const handleOptionKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      focusOption(index + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      focusOption(index - 1);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    } else if (e.key === "Tab") {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
-      <div
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
         className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "border-indigo-500 bg-white ring-2 ring-indigo-100" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
         onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={handleTriggerKeyDown}
       >
         <div className="flex items-center gap-2.5">
           <span className="flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
@@ -199,21 +303,33 @@ const StepDropdown = ({
           size={16}
           className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
-      </div>
+      </button>
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+        <div
+          id={listboxId}
+          role="listbox"
+          className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+        >
           {STEPS.map((step, idx) => {
             const StepIcon = step.icon;
             const isDone = completion[step.id];
             const isActive = step.id === value;
             return (
-              <div
+              <button
                 key={step.id}
-                className={`flex cursor-pointer items-center gap-2.5 px-3 py-2.5 ${isActive ? "bg-indigo-50 font-semibold text-indigo-700" : "text-slate-700 hover:bg-slate-50"}`}
+                ref={(el) => {
+                  optionRefs.current[idx] = el;
+                }}
+                type="button"
+                role="option"
+                aria-selected={isActive}
+                className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left ${isActive ? "bg-indigo-50 font-semibold text-indigo-700" : "text-slate-700 hover:bg-slate-50"}`}
                 onClick={() => {
                   onChange(step.id);
                   setIsOpen(false);
+                  triggerRef.current?.focus();
                 }}
+                onKeyDown={(e) => handleOptionKeyDown(e, idx)}
               >
                 <span
                   className={`flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
@@ -228,7 +344,7 @@ const StepDropdown = ({
                 </span>
                 <StepIcon size={15} className="text-slate-400" />
                 <span className="text-sm">{step.label}</span>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -575,7 +691,30 @@ export default function DormsDialog({
                         />
                       </div>
                       <div>
-                        <Label required>ลิงก์ Google Maps</Label>
+                        <Label required>
+                          ลิงก์ Google Maps
+                          <InfoTooltip>
+                            <p className="font-semibold text-slate-800">
+                              วิธีปักหมุดให้ตรงตำแหน่งจริง
+                            </p>
+                            <ol className="mt-1.5 list-decimal space-y-1 pl-4">
+                              <li>
+                                เปิด Google Maps แล้วเลื่อนแผนที่ไปยังหอพัก
+                              </li>
+                              <li>
+                                กดค้าง (long-press)
+                                บนตำแหน่งหอพักตรงจุดเป๊ะๆ เพื่อปักหมุดเอง
+                              </li>
+                              <li>
+                                กด Share แล้วคัดลอกลิงก์มาวางในช่องนี้
+                              </li>
+                            </ol>
+                            <p className="mt-1.5 text-amber-600">
+                              อย่าเสิร์ชหาชื่อหอแล้วกด Share ทันที
+                              เพราะอาจได้ลิงก์ของสถานที่ใกล้เคียงที่ไม่ตรงจริง
+                            </p>
+                          </InfoTooltip>
+                        </Label>
                         <Input
                           value={formData.mapUrl}
                           onChange={(e) =>

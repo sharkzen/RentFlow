@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import {
   User,
@@ -33,6 +33,8 @@ export default function FormProfile() {
   const [errors, setErrors] = useState<Partial<OwnerProfile>>({});
   const [originalData, setOriginalData] = useState(formData);
 
+  const isMountedRef = useRef(true);
+
   const fetchProfile = async () => {
     try {
       setIsLoading(true);
@@ -45,18 +47,25 @@ export default function FormProfile() {
         facebook: data.facebook || "",
       };
 
-      setFormData(mappedData);
-      setOriginalData(mappedData);
+      if (isMountedRef.current) {
+        setFormData(mappedData);
+        setOriginalData(mappedData);
+      }
     } catch (error) {
-      toast.error("ไม่สามารถโหลดข้อมูลโปรไฟล์ได้");
+      if (isMountedRef.current) toast.error("ไม่สามารถโหลดข้อมูลโปรไฟล์ได้");
       log.error("Error fetching profile:", error);
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) setIsLoading(false);
     }
   };
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchProfile();
+
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

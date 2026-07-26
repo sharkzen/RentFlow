@@ -17,7 +17,6 @@ import {
   X,
   Star,
   FileCode2,
-  ScrollText,
 } from "lucide-react";
 
 export default function AdminSidebar() {
@@ -59,11 +58,6 @@ export default function AdminSidebar() {
       name: "ฟีเจอร์ (Features)",
       href: routes.admin.features,
       icon: <Settings size={20} />,
-    },
-    {
-      name: "ประวัติกิจกรรม (Audit Log)",
-      href: routes.admin.activityLogs,
-      icon: <ScrollText size={20} />,
     },
   ];
 

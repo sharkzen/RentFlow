@@ -23,6 +23,7 @@ import {
 import { Rooms } from "@/features/room/types";
 import { RoomService } from "@/features/room/services/room.service";
 import { TenantService } from "@/features/tenant/services/tenant.service";
+import { TenantReEntryData } from "@/features/tenant/types";
 import log from "@/lib/logger";
 import { toast } from "react-toastify";
 import { useScrollLock, useOnClickOutside } from "usehooks-ts";
@@ -35,7 +36,7 @@ interface AddTenantDialogProps {
   onClose: () => void;
   dormId: string;
   onSuccess: () => void;
-  initialData?: any;
+  initialData?: TenantReEntryData | null;
 }
 
 const getTodayString = () => {

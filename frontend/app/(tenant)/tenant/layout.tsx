@@ -1,23 +1,16 @@
 import TenantNavbar from "@/features/tenant/components/TenantNavbar";
 import TenantAnnouncementModal from "@/features/announcement/components/TenantAnnouncementModal";
 import TenantBanned from "./TenantBanned";
-import { fetchWithRefresh } from "@/lib/api/fetchWithRefresh";
 import { redirect } from "next/navigation";
-import { Role, Status, type User } from "@/features/auth";
+import { Role, Status } from "@/features/auth";
+import { fetchCurrentUser } from "@/lib/auth/requireRole";
 
 export default async function TenantLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  let me: User;
-
-  try {
-    const baseUrl = process.env.API_URL || "http://localhost:3001";
-    me = await fetchWithRefresh(`${baseUrl}/api/auth/me`);
-  } catch (error) {
-    redirect("/auth/login");
-  }
+  const me = await fetchCurrentUser();
 
   if (me.role !== Role.TENANT) redirect("/");
 

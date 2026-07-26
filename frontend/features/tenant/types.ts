@@ -195,3 +195,21 @@ export interface TenantContractDetail {
     };
   };
 }
+
+export interface TenantReEntryData {
+  userId?: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  idCard: string;
+  address: string;
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  securityDeposit: number;
+  advancePayment: number;
+  entranceFee: number;
+  moveInDate: string;
+  contractStartDate: string;
+  contractEndDate: string;
+}

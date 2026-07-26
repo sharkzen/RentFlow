@@ -148,35 +148,3 @@ export interface CreateLandmarkPayload {
   mapUrl: string;
 }
 
-export interface ActivityLog {
-  id: string;
-  userId: string | null;
-  tenantId: string | null;
-  action: string;
-  entityType: string | null;
-  entityId: string | null;
-  metadata: any;
-  ipAddress: string | null;
-  createdAt: string;
-  user: {
-    id: string;
-    email: string;
-    role: "ADMIN" | "OWNER" | "TENANT";
-  } | null;
-  tenant: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  } | null;
-}
-
-export interface ActivityLogResponse {
-  data: ActivityLog[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-  entityTypes: string[];
-}

@@ -21,7 +21,7 @@ export interface UpdateFeaturePayload {
   enabled?: boolean;
 }
 
-export interface ApiResponse_Feature<T = any> {
+export interface ApiResponse_Feature<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;

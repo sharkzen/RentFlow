@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useId, useRef, useState, useEffect } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +29,9 @@ export const CustomSelect = ({
 }: CustomSelectProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const listboxId = useId();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -46,12 +49,46 @@ export const CustomSelect = ({
 
   const selectedLabel = options.find((opt) => opt.value === value)?.label;
 
+  const focusOption = (index: number) => {
+    const clamped = (index + options.length) % options.length;
+    optionRefs.current[clamped]?.focus();
+  };
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter") {
+      e.preventDefault();
+      setIsOpen(true);
+      requestAnimationFrame(() => focusOption(0));
+    }
+  };
+
+  const handleOptionKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      focusOption(index + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      focusOption(index - 1);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    } else if (e.key === "Tab") {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <div className={`relative ${className}`} ref={containerRef}>
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
+        onKeyDown={handleTriggerKeyDown}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
         className={`flex h-full w-full cursor-pointer items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold transition-all hover:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-60 ${isOpen ? "border-blue-500 ring-2 ring-blue-100" : ""}`}
       >
         <div className="flex items-center gap-2 truncate">
@@ -68,18 +105,30 @@ export const CustomSelect = ({
         />
       </button>
       {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-40 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 duration-200">
+        <div
+          id={listboxId}
+          role="listbox"
+          className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-40 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 duration-200"
+        >
           <div className="custom-scrollbar max-h-60 overflow-y-auto">
-            {options.map((option) => {
+            {options.map((option, index) => {
               const isActive = option.value === value;
 
               return (
                 <button
                   key={option.value}
+                  ref={(el) => {
+                    optionRefs.current[index] = el;
+                  }}
+                  type="button"
+                  role="option"
+                  aria-selected={isActive}
                   onClick={() => {
                     onChange(option.value);
                     setIsOpen(false);
+                    triggerRef.current?.focus();
                   }}
+                  onKeyDown={(e) => handleOptionKeyDown(e, index)}
                   className={`flex w-full cursor-pointer items-center justify-between px-4 py-2.5 text-left text-sm transition-colors ${isActive ? "bg-blue-50 font-semibold text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}
                 >
                   <span className="truncate">{option.label}</span>
