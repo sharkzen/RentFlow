@@ -65,7 +65,7 @@ export default function AdminSidebar() {
     <>
       {!sidebarOpen && (
         <button
-          className="fixed top-4 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-indigo-600 lg:hidden"
+          className="fixed top-3 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-indigo-600 lg:hidden"
           onClick={() => setSidebarOpen(true)}
           aria-label="Open Menu"
         >
@@ -74,7 +74,7 @@ export default function AdminSidebar() {
       )}
       {sidebarOpen && (
         <button
-          className="fixed top-4 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-indigo-600 lg:hidden"
+          className="fixed top-3 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 hover:text-indigo-600 lg:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-label="Close Menu"
         >

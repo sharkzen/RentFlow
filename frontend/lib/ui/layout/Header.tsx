@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +21,9 @@ export default function Header() {
   const initial = user?.fullName?.charAt(0).toUpperCase() || "U";
   const firstName = user?.fullName?.trim().split(/\s+/)[0];
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuItemRefs = useRef<(HTMLElement | null)[]>([]);
+  const menuId = useId();
 
   useEffect(() => {
     setIsMounted(true);
@@ -44,6 +47,37 @@ export default function Header() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [dropdownOpen]);
+
+  const focusMenuItem = (index: number) => {
+    const items = menuItemRefs.current.filter(Boolean);
+    if (items.length === 0) return;
+    const clamped = (index + items.length) % items.length;
+    items[clamped]?.focus();
+  };
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setDropdownOpen(true);
+      requestAnimationFrame(() => focusMenuItem(0));
+    }
+  };
+
+  const handleMenuKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      focusMenuItem(index + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      focusMenuItem(index - 1);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setDropdownOpen(false);
+      triggerRef.current?.focus();
+    } else if (e.key === "Tab") {
+      setDropdownOpen(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -118,7 +152,12 @@ export default function Header() {
               ) : (
                 <div className="relative" ref={dropdownRef}>
                   <button
+                    ref={triggerRef}
                     onClick={() => setDropdownOpen(!dropdownOpen)}
+                    onKeyDown={handleTriggerKeyDown}
+                    aria-haspopup="menu"
+                    aria-expanded={dropdownOpen}
+                    aria-controls={menuId}
                     className="flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 pr-3 transition-all hover:cursor-pointer hover:bg-white/80 active:scale-95"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
@@ -135,6 +174,8 @@ export default function Header() {
                   <AnimatePresence>
                     {dropdownOpen && (
                       <motion.div
+                        id={menuId}
+                        role="menu"
                         initial={{
                           opacity: 0,
                           y: 10,
@@ -154,7 +195,7 @@ export default function Header() {
                           duration: 0.2,
                           ease: "easeOut",
                         }}
-                        className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl border border-gray-100 bg-white p-2 ring-1 ring-black/5"
+                        className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl bg-white p-2 ring-1 ring-black/5"
                       >
                         <div className="mb-1 border-b border-gray-100 px-3 py-2">
                           <p className="truncate text-xs font-medium text-slate-400">
@@ -166,24 +207,39 @@ export default function Header() {
                         </div>
                         <div className="space-y-1">
                           <Link
+                            ref={(el) => {
+                              menuItemRefs.current[0] = el;
+                            }}
                             href={"/"}
+                            role="menuitem"
                             onClick={() => setDropdownOpen(false)}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600"
+                            onKeyDown={(e) => handleMenuKeyDown(e, 0)}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 focus:bg-slate-50 focus:text-indigo-600 focus:outline-none"
                           >
                             <Home size={16} />
                             หน้าหลัก
                           </Link>
                           <Link
+                            ref={(el) => {
+                              menuItemRefs.current[1] = el;
+                            }}
                             href={dashboardRole(user.role)}
+                            role="menuitem"
                             onClick={() => setDropdownOpen(false)}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600"
+                            onKeyDown={(e) => handleMenuKeyDown(e, 1)}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 focus:bg-slate-50 focus:text-indigo-600 focus:outline-none"
                           >
                             <LayoutDashboard size={16} />
                             แดชบอร์ด
                           </Link>
                           <button
+                            ref={(el) => {
+                              menuItemRefs.current[2] = el;
+                            }}
+                            role="menuitem"
                             onClick={handleLogout}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition-colors hover:cursor-pointer hover:bg-red-50"
+                            onKeyDown={(e) => handleMenuKeyDown(e, 2)}
+                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition-colors hover:cursor-pointer hover:bg-red-50 focus:bg-red-50 focus:outline-none"
                           >
                             <LogOut size={16} />
                             ออกจากระบบ
