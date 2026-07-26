@@ -8,6 +8,7 @@ import { EmailType } from "@/queues/email.types";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@/config/env";
 import { createActivityLog } from "@/services/activity-log.service";
+import logger from "@/utils/logger";
 
 export const AnnouncementService = {
   _verifyOwnership: async (announcementId: string, userId: string) => {
@@ -263,8 +264,6 @@ export const AnnouncementService = {
       },
     });
 
-    console.log("📢 sendEmail flag:", sendEmail);
-
     if (sendEmail) {
       const tenants = await prisma.tenantProfile.findMany({
         where: {
@@ -280,11 +279,6 @@ export const AnnouncementService = {
         },
       });
 
-      console.log("👥 tenants found:", tenants.length);
-      console.log(
-        "📧 tenant emails:",
-        tenants.map((t) => t.user.email),
-      );
       const imageUrl = announcement.images?.[0]?.objectKey
         ? await generateSignedUrl(
             announcement.images[0].objectKey,
@@ -292,33 +286,30 @@ export const AnnouncementService = {
           )
         : null;
 
-      for (const tenant of tenants) {
-        const email = tenant.user.email;
-        console.log("📨 adding to queue:", email);
+      await Promise.all(
+        tenants.map((tenant) =>
+          emailQueue.add(EMAIL_JOB_NAME, {
+            type: EmailType.ANNOUNCEMENT,
+            to: tenant.user.email,
 
-        const job = await emailQueue.add(EMAIL_JOB_NAME, {
-          type: EmailType.ANNOUNCEMENT,
-          to: email,
+            data: {
+              dormName: isOwner.name,
+              title,
+              content,
+              type,
 
-          data: {
-            dormName: isOwner.name,
-            title,
-            content,
-            type,
+              date: new Date().toLocaleDateString("th-TH", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                timeZone: "Asia/Bangkok",
+              }),
 
-            date: new Date().toLocaleDateString("th-TH", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              timeZone: "Asia/Bangkok",
-            }),
-
-            imageUrl,
-          },
-        });
-
-        console.log("✅ job added:", job.id);
-      }
+              imageUrl,
+            },
+          }),
+        ),
+      );
 
       await prisma.announcement.update({
         where: {
@@ -370,16 +361,16 @@ export const AnnouncementService = {
     });
 
     if (data.imageBuffer) {
-      for (const file of oldFiles) {
-        try {
-          await deleteFile(file.objectKey);
-        } catch (err) {
-          console.error(
-            `Failed to delete old file from R2: ${file.objectKey}`,
-            err,
-          );
-        }
-      }
+      await Promise.all(
+        oldFiles.map((file) =>
+          deleteFile(file.objectKey).catch((err) =>
+            logger.error(
+              `Failed to delete old file from R2: ${file.objectKey}`,
+              err,
+            ),
+          ),
+        ),
+      );
 
       await prisma.file.deleteMany({
         where: {
@@ -410,16 +401,16 @@ export const AnnouncementService = {
         },
       };
     } else if (data.removeImage) {
-      for (const file of oldFiles) {
-        try {
-          await deleteFile(file.objectKey);
-        } catch (err) {
-          console.error(
-            `Failed to delete file from R2: ${file.objectKey}`,
-            err,
-          );
-        }
-      }
+      await Promise.all(
+        oldFiles.map((file) =>
+          deleteFile(file.objectKey).catch((err) =>
+            logger.error(
+              `Failed to delete file from R2: ${file.objectKey}`,
+              err,
+            ),
+          ),
+        ),
+      );
 
       await prisma.file.deleteMany({
         where: {
@@ -465,16 +456,16 @@ export const AnnouncementService = {
       },
     });
 
-    for (const file of files) {
-      try {
-        await deleteFile(file.objectKey);
-      } catch (err) {
-        console.error(
-          `Failed to delete file from R2 during announcement deletion: ${file.objectKey}`,
-          err,
-        );
-      }
-    }
+    await Promise.all(
+      files.map((file) =>
+        deleteFile(file.objectKey).catch((err) =>
+          logger.error(
+            `Failed to delete file from R2 during announcement deletion: ${file.objectKey}`,
+            err,
+          ),
+        ),
+      ),
+    );
 
     await prisma.$transaction([
       prisma.file.deleteMany({
@@ -602,8 +593,8 @@ export const AnnouncementService = {
 
     try {
       await deleteFile(file.objectKey);
-    } catch (err) {
-      console.error(`Failed to delete file from R2: ${file.objectKey}`, err);
+    } catch (err: any) {
+      logger.error(`Failed to delete file from R2: ${file.objectKey}`, err);
     }
 
     await prisma.file.delete({

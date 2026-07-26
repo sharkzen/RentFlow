@@ -16,6 +16,8 @@ import path from "path";
 import { AppError } from "@/lib/errors";
 import { ZodError } from "zod";
 import { registerSwagger } from "@/config/swagger";
+import { authMiddleware, authRoleMiddleware } from "@/middleware/auth.middleware";
+import { Role } from "@/types/role.type";
 
 export async function buildApp() {
   const app = Fastify({
@@ -68,7 +70,9 @@ export async function buildApp() {
     prefix: "/public/",
   });
 
-  app.get("/api/status", async (request, reply) => {
+  app.get("/api/status", {
+    preHandler: [authMiddleware, authRoleMiddleware([Role.ADMIN])],
+  }, async (request, reply) => {
     const uptime = process.uptime();
     const uptimeString = new Date(uptime * 1000).toISOString().substr(11, 8);
     const memoryUsage = process.memoryUsage();

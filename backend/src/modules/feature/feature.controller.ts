@@ -68,12 +68,20 @@ export const featureController = {
 
     const user = request.user as UserDecodedDto;
 
-    const result = await FeatureService.updateFeature(
-      key,
-      parsed.data,
-      user.sub,
-    );
-    return reply.send(result);
+    try {
+      const result = await FeatureService.updateFeature(
+        key,
+        parsed.data,
+        user.sub,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.message === "FAILED_TO_UPDATE_FEATURE") {
+        throw AppError.notFound("FEATURE_NOT_FOUND", "ไม่พบฟีเจอร์นี้");
+      }
+
+      throw error;
+    }
   },
 
   deleteFeature: async (request: FastifyRequest, reply: FastifyReply) => {
@@ -83,7 +91,15 @@ export const featureController = {
 
     const user = request.user as UserDecodedDto;
 
-    const result = await FeatureService.deleteFeature(key, user.sub);
-    return reply.send(result);
+    try {
+      const result = await FeatureService.deleteFeature(key, user.sub);
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.message === "FAILED_TO_DELETE_FEATURE") {
+        throw AppError.notFound("FEATURE_NOT_FOUND", "ไม่พบฟีเจอร์นี้");
+      }
+
+      throw error;
+    }
   },
 };

@@ -10,6 +10,7 @@ import {
 
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@/config/env";
+import logger from "@/utils/logger";
 
 export const r2Client = new S3Client({
   region: "auto",
@@ -86,8 +87,8 @@ export async function moveTempFileToPermanent(oldKey: string, newKey: string) {
     );
 
     return newKey;
-  } catch (error) {
-    console.error("Error moving file in R2:", error);
+  } catch (error: any) {
+    logger.error("Error moving file in R2:", error);
     throw new Error("ไม่สามารถย้ายไฟล์รูปภาพได้");
   }
 }
@@ -158,8 +159,8 @@ export async function getBucketSize(): Promise<{
       totalSizeBytes,
       totalFiles,
     };
-  } catch (error) {
-    console.error("Error fetching R2 bucket size:", error);
+  } catch (error: any) {
+    logger.error("Error fetching R2 bucket size:", error);
 
     return {
       totalSizeBytes: 0,

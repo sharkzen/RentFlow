@@ -13,6 +13,7 @@ import {
 import { generateSignedUrl } from "@/services/r2Client";
 import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { generateSlug } from "@/lib/text";
+import logger from "@/utils/logger";
 import { emailQueue, EMAIL_JOB_NAME } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import { getBucketSize } from "@/services/r2Client";
@@ -560,8 +561,8 @@ export const AdminService = {
             ...img,
             url,
           };
-        } catch (error) {
-          console.error(`Error signing url for ${img.objectKey}:`, error);
+        } catch (error: any) {
+          logger.error(`Error signing url for ${img.objectKey}:`, error);
 
           return {
             ...img,
@@ -1106,127 +1107,4 @@ export const AdminService = {
     return result;
   },
 
-  getActivityLogs: async (
-    page: number,
-    limit: number,
-    search?: string,
-    entityType?: string,
-    dateFrom?: string,
-    dateTo?: string,
-  ) => {
-    const skip = (page - 1) * limit;
-
-    const where: Prisma.ActivityLogWhereInput = {
-      action: search
-        ? {
-            contains: search,
-            mode: "insensitive",
-          }
-        : undefined,
-
-      entityType:
-        entityType && entityType !== "ALL" ? entityType : undefined,
-
-      createdAt:
-        dateFrom || dateTo
-          ? {
-              gte: dateFrom ? new Date(dateFrom) : undefined,
-              lte: dateTo ? new Date(`${dateTo}T23:59:59.999Z`) : undefined,
-            }
-          : undefined,
-    };
-
-    const [total, logs, entityTypes] = await prisma.$transaction([
-      prisma.activityLog.count({
-        where,
-      }),
-      prisma.activityLog.findMany({
-        where,
-        skip,
-        take: limit,
-
-        orderBy: {
-          createdAt: "desc",
-        },
-      }),
-      prisma.activityLog.findMany({
-        where: {
-          entityType: {
-            not: null,
-          },
-        },
-
-        select: {
-          entityType: true,
-        },
-
-        distinct: ["entityType"],
-      }),
-    ]);
-
-    const userIds = Array.from(
-      new Set(logs.map((log) => log.userId).filter(Boolean)),
-    ) as string[];
-
-    const tenantIds = Array.from(
-      new Set(logs.map((log) => log.tenantId).filter(Boolean)),
-    ) as string[];
-
-    const [users, tenants] = await Promise.all([
-      userIds.length > 0
-        ? prisma.user.findMany({
-            where: {
-              id: {
-                in: userIds,
-              },
-            },
-
-            select: {
-              id: true,
-              email: true,
-              role: true,
-            },
-          })
-        : [],
-      tenantIds.length > 0
-        ? prisma.tenantProfile.findMany({
-            where: {
-              id: {
-                in: tenantIds,
-              },
-            },
-
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-            },
-          })
-        : [],
-    ]);
-
-    const userMap = new Map(users.map((u) => [u.id, u]));
-    const tenantMap = new Map(tenants.map((t) => [t.id, t]));
-
-    const data = logs.map((log) => ({
-      ...log,
-      user: log.userId ? (userMap.get(log.userId) ?? null) : null,
-      tenant: log.tenantId ? (tenantMap.get(log.tenantId) ?? null) : null,
-    }));
-
-    return {
-      data,
-
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-
-      entityTypes: entityTypes
-        .map((e) => e.entityType)
-        .filter(Boolean) as string[],
-    };
-  },
 };

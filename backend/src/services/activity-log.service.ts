@@ -1,4 +1,3 @@
-import prisma from "@/lib/prisma";
 import logger from "@/utils/logger";
 
 interface ActivityLogInput {
@@ -12,19 +11,16 @@ interface ActivityLogInput {
 }
 
 export async function createActivityLog(data: ActivityLogInput) {
-  try {
-    await prisma.activityLog.create({
-      data: {
-        userId: data.userId,
-        tenantId: data.tenantId,
-        action: data.action,
-        entityType: data.entityType,
-        entityId: data.entityId,
-        metadata: data.metadata,
-        ipAddress: data.ipAddress,
-      },
-    });
-  } catch (error: any) {
-    logger.error(`Activity log error: ${error}`);
-  }
+  logger.info(
+    {
+      userId: data.userId ?? null,
+      tenantId: data.tenantId ?? null,
+      action: data.action,
+      entityType: data.entityType,
+      entityId: data.entityId,
+      metadata: data.metadata,
+      ipAddress: data.ipAddress,
+    },
+    "activity_log",
+  );
 }

@@ -66,11 +66,22 @@ export const AdminController = {
     const { id } = req.params;
     const user = req.user as UserDecodedDto;
 
-    await AdminService.approveOwner(id, user.sub);
+    try {
+      await AdminService.approveOwner(id, user.sub);
 
-    return reply.send({
-      success: true,
-    });
+      return reply.send({
+        success: true,
+      });
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        throw AppError.notFound(
+          "OWNER_NOT_FOUND",
+          "ไม่พบข้อมูลผู้สมัครหอพักนี้",
+        );
+      }
+
+      throw error;
+    }
   },
 
   reject: async (
@@ -84,11 +95,19 @@ export const AdminController = {
     const { id } = req.params;
     const user = req.user as UserDecodedDto;
 
-    await AdminService.rejectOwner(id, user.sub);
+    try {
+      await AdminService.rejectOwner(id, user.sub);
 
-    return reply.send({
-      success: true,
-    });
+      return reply.send({
+        success: true,
+      });
+    } catch (error: any) {
+      if (error.message === "ไม่พบข้อมูลผู้สมัครหอพักนี้") {
+        throw AppError.notFound("OWNER_NOT_FOUND", error.message);
+      }
+
+      throw error;
+    }
   },
 
   getList: async (req: FastifyRequest, reply: FastifyReply) => {
@@ -131,20 +150,39 @@ export const AdminController = {
     const { isFeatured } = toggleFeaturedSchema.parse(req.body);
     const user = req.user as UserDecodedDto;
 
-    const result = await AdminService.toggleFeatured(
-      req.params.id,
-      isFeatured,
-      user.sub,
-    );
-    return reply.send(result);
+    try {
+      const result = await AdminService.toggleFeatured(
+        req.params.id,
+        isFeatured,
+        user.sub,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        throw AppError.notFound("DORM_NOT_FOUND", "ไม่พบข้อมูลหอพักนี้");
+      }
+
+      throw error;
+    }
   },
 
   reorderFeatured: async (req: FastifyRequest, reply: FastifyReply) => {
     const { items } = reorderFeaturedSchema.parse(req.body);
     const user = req.user as UserDecodedDto;
 
-    const result = await AdminService.reorderFeatured(items, user.sub);
-    return reply.send(result);
+    try {
+      const result = await AdminService.reorderFeatured(items, user.sub);
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        throw AppError.notFound(
+          "DORM_NOT_FOUND",
+          "ไม่พบข้อมูลหอพักบางรายการที่ต้องการจัดเรียง",
+        );
+      }
+
+      throw error;
+    }
   },
 
   getDetail: async (
@@ -173,12 +211,20 @@ export const AdminController = {
     const { isPublished } = togglePublishSchema.parse(req.body);
     const user = req.user as UserDecodedDto;
 
-    const result = await AdminService.togglePublish(
-      req.params.id,
-      isPublished,
-      user.sub,
-    );
-    return reply.send(result);
+    try {
+      const result = await AdminService.togglePublish(
+        req.params.id,
+        isPublished,
+        user.sub,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        throw AppError.notFound("DORM_NOT_FOUND", "ไม่พบข้อมูลหอพักนี้");
+      }
+
+      throw error;
+    }
   },
 
   updateStatus: async (
@@ -195,12 +241,20 @@ export const AdminController = {
     const { status } = updateStatusSchema.parse(req.body);
     const user = req.user as UserDecodedDto;
 
-    const result = await AdminService.updateStatus(
-      req.params.id,
-      status,
-      user.sub,
-    );
-    return reply.send(result);
+    try {
+      const result = await AdminService.updateStatus(
+        req.params.id,
+        status,
+        user.sub,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        throw AppError.notFound("DORM_NOT_FOUND", "ไม่พบข้อมูลหอพักนี้");
+      }
+
+      throw error;
+    }
   },
 
   getOwners: async (req: FastifyRequest, reply: FastifyReply) => {
@@ -244,12 +298,20 @@ export const AdminController = {
     const { status } = updateStatusSchema.parse(req.body);
     const user = req.user as UserDecodedDto;
 
-    const result = await AdminService.updateUserStatus(
-      req.params.id,
-      status as any,
-      user.sub,
-    );
-    return reply.send(result);
+    try {
+      const result = await AdminService.updateUserStatus(
+        req.params.id,
+        status as any,
+        user.sub,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        throw AppError.notFound("USER_NOT_FOUND", "ไม่พบข้อมูลผู้ใช้นี้");
+      }
+
+      throw error;
+    }
   },
 
   getLandmarks: async (req: FastifyRequest, reply: FastifyReply) => {
@@ -341,32 +403,19 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const user = req.user as UserDecodedDto;
-    await AdminService.deleteLandmark(req.params.id, user.sub);
 
-    return reply.send({
-      success: true,
-    });
-  },
+    try {
+      await AdminService.deleteLandmark(req.params.id, user.sub);
 
-  getActivityLogs: async (req: FastifyRequest, reply: FastifyReply) => {
-    const {
-      page = 1,
-      limit = 20,
-      q = "",
-      entityType = "ALL",
-      dateFrom,
-      dateTo,
-    } = req.query as any;
+      return reply.send({
+        success: true,
+      });
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        throw AppError.notFound("LANDMARK_NOT_FOUND", "ไม่พบข้อมูลสถานที่นี้");
+      }
 
-    const result = await AdminService.getActivityLogs(
-      Number(page),
-      Number(limit),
-      String(q),
-      String(entityType),
-      dateFrom,
-      dateTo,
-    );
-
-    return reply.send(result);
+      throw error;
+    }
   },
 };

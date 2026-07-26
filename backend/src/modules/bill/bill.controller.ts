@@ -92,6 +92,13 @@ export const BillController = {
         throw AppError.notFound("NOT_FOUND", "ไม่พบข้อมูลบิลที่ต้องการลบ");
       }
 
+      if (error.message === "CANNOT_DELETE_PAID_BILL") {
+        throw AppError.badRequest(
+          "CANNOT_DELETE_PAID_BILL",
+          "ไม่สามารถลบบิลที่ชำระเงินแล้วได้ เพื่อรักษาประวัติการเงิน",
+        );
+      }
+
       throw error;
     }
   },

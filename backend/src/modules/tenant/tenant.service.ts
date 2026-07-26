@@ -1721,8 +1721,8 @@ export const tenantService = {
 
       try {
         await emailQueue.add(EMAIL_JOB_NAME, emailData);
-      } catch (err) {
-        console.error("Failed to queue email:", err);
+      } catch (err: any) {
+        logger.error("Failed to queue email:", err);
       }
     }
 
@@ -1888,21 +1888,23 @@ export const tenantService = {
         },
       });
 
-      for (const img of imagesToDelete) {
-        try {
-          if (img.objectKey) {
-            await deleteFile(img.objectKey);
-          }
+      await Promise.all(
+        imagesToDelete.map(async (img) => {
+          try {
+            if (img.objectKey) {
+              await deleteFile(img.objectKey);
+            }
 
-          await prisma.file.delete({
-            where: {
-              id: img.id,
-            },
-          });
-        } catch (err) {
-          console.error(`Failed to delete image ${img.id}:`, err);
-        }
-      }
+            await prisma.file.delete({
+              where: {
+                id: img.id,
+              },
+            });
+          } catch (err: any) {
+            logger.error(`Failed to delete image ${img.id}:`, err);
+          }
+        }),
+      );
     }
 
     if (data.images) {

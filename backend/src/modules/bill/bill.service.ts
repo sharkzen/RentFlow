@@ -721,6 +721,10 @@ export const billService = {
       throw new Error("FORBIDDEN_ACCESS");
     }
 
+    if (bill.status === "PAID") {
+      throw new Error("CANNOT_DELETE_PAID_BILL");
+    }
+
     return await prisma.$transaction(async (tx) => {
       const advanceItem = bill.items.find(
         (item) =>

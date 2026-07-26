@@ -50,9 +50,20 @@ export const DormController = {
 
     if (!name) throw AppError.badRequest("NAME_REQUIRED");
 
-    const dorm = await dormService.createDorm(name, user.sub);
-    logger.info(dorm);
-    return reply.status(201).send(dorm);
+    try {
+      const dorm = await dormService.createDorm(name, user.sub);
+      logger.info(dorm);
+      return reply.status(201).send(dorm);
+    } catch (error: any) {
+      if (error.message === "FORBIDDEN") {
+        throw AppError.forbidden(
+          "OWNER_PROFILE_NOT_FOUND",
+          "ไม่พบข้อมูลผู้จัดการหอพักของคุณ",
+        );
+      }
+
+      throw error;
+    }
   },
 
   async getDorms(request: FastifyRequest, reply: FastifyReply) {
@@ -60,8 +71,19 @@ export const DormController = {
 
     if (!user) throw AppError.unauthorized("UNAUTHORIZED");
 
-    const dorms = await dormService.getDorms(user);
-    reply.send(dorms);
+    try {
+      const dorms = await dormService.getDorms(user);
+      reply.send(dorms);
+    } catch (error: any) {
+      if (error.message === "UNAUTHORIZED") {
+        throw AppError.forbidden(
+          "OWNER_PROFILE_NOT_FOUND",
+          "ไม่พบข้อมูลผู้จัดการหอพักของคุณ",
+        );
+      }
+
+      throw error;
+    }
   },
 
   async updateDorms(request: FastifyRequest, reply: FastifyReply) {
@@ -264,11 +286,19 @@ export const DormController = {
 
     if (!isOwner) throw AppError.forbidden("FORBIDDEN");
 
-    await dormService.deleteDormImage(imageId, user.sub);
+    try {
+      await dormService.deleteDormImage(imageId, user.sub);
 
-    reply.send({
-      success: true,
-    });
+      reply.send({
+        success: true,
+      });
+    } catch (error: any) {
+      if (error.message === "Image not found") {
+        throw AppError.notFound("IMAGE_NOT_FOUND", "ไม่พบรูปภาพนี้");
+      }
+
+      throw error;
+    }
   },
 
   async reorderDormImages(request: FastifyRequest, reply: FastifyReply) {
@@ -296,11 +326,29 @@ export const DormController = {
 
     if (!ownerDorm) throw AppError.forbidden("FORBIDDEN");
 
-    await dormService.reorderDormImages(dormId, images, user.sub);
+    try {
+      await dormService.reorderDormImages(dormId, images, user.sub);
 
-    reply.send({
-      success: true,
-    });
+      reply.send({
+        success: true,
+      });
+    } catch (error: any) {
+      if (error.message === "Some images do not belong to this dormitory") {
+        throw AppError.badRequest(
+          "IMAGE_MISMATCH",
+          "มีรูปภาพบางรายการไม่ได้อยู่ในหอพักนี้",
+        );
+      }
+
+      if (error.message === "Dormitory must have exactly one cover image") {
+        throw AppError.badRequest(
+          "INVALID_COVER_COUNT",
+          "หอพักต้องมีรูปภาพหน้าปกเพียงรูปเดียวเท่านั้น",
+        );
+      }
+
+      throw error;
+    }
   },
 
   async getDashboard(request: FastifyRequest, reply: FastifyReply) {
