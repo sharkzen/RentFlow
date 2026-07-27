@@ -6,6 +6,7 @@ import BillTable from "./BillTable";
 import CreateBillDialog from "./CreateBillDialog";
 import BillDetailDialog from "./BillDetailDialog";
 import DormSelector from "./DormSelector";
+import SelectDormModal from "./SelectDormModal";
 import BillFilters from "./OwnerBillFilters";
 import { BillService } from "@/features/bill/services/bill.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
@@ -36,6 +37,7 @@ export default function BillContainer() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSendDialogOpen, setIsSendDialogOpen] = useState(false);
+  const [isSelectDormOpen, setIsSelectDormOpen] = useState(false);
 
   const [features, setFeatures] = useState<
     ApiResponse_Feature<Feature> | undefined
@@ -382,7 +384,7 @@ export default function BillContainer() {
             type="button"
             onClick={() => {
               if (selectedDorm === "ALL") {
-                toast.warning("กรุณาเลือกหอพักก่อนสร้างบิล");
+                setIsSelectDormOpen(true);
                 return;
               }
 
@@ -468,6 +470,15 @@ export default function BillContainer() {
           ocrFeatureEnabled={features?.data?.enabled || false}
         />
       )}
+      <SelectDormModal
+        isOpen={isSelectDormOpen}
+        onClose={() => setIsSelectDormOpen(false)}
+        dorms={dorms}
+        onSelect={(dormId) => {
+          setSelectedDorm(dormId);
+          setIsCreateOpen(true);
+        }}
+      />
       {isSendDialogOpen && (
         <SendBillModal
           isOpen={isSendDialogOpen}

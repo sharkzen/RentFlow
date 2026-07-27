@@ -72,15 +72,32 @@ const Label = ({ icon: Icon, children, required, optional }: any) => (
 
 const Input = ({
   className,
+  error,
   ...props
-}: React.InputHTMLAttributes<HTMLInputElement>) => (
+}: React.InputHTMLAttributes<HTMLInputElement> & { error?: boolean }) => (
   <input
-    className={`w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none ${className}`}
+    className={`w-full rounded-lg border bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:outline-none ${
+      error
+        ? "border-red-300 bg-red-50/60 focus:border-red-500 focus:ring-red-100"
+        : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-100"
+    } ${className}`}
     {...props}
   />
 );
 
 type StepId = "general" | "pricing" | "billing" | "images";
+
+const FIELD_META: Partial<
+  Record<keyof DormFormData, { step: StepId; label: string; type: "text" | "number" }>
+> = {
+  name: { step: "general", label: "ชื่อหอพัก", type: "text" },
+  address: { step: "general", label: "ที่อยู่", type: "text" },
+  mapUrl: { step: "general", label: "ลิงก์ Google Maps", type: "text" },
+  description: { step: "general", label: "คำอธิบาย", type: "text" },
+  roomPrice: { step: "pricing", label: "ราคาห้องเช่า", type: "number" },
+  waterRate: { step: "pricing", label: "ค่าน้ำ", type: "number" },
+  electricRate: { step: "pricing", label: "ค่าไฟ", type: "number" },
+};
 
 const STEPS: { id: StepId; label: string; icon: any }[] = [
   { id: "general", label: "ข้อมูลทั่วไป", icon: Home },
@@ -363,6 +380,10 @@ export default function DormsDialog({
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeStep, setActiveStep] = useState<StepId>("general");
   const [showAdvancedFees, setShowAdvancedFees] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Set<keyof DormFormData>>(
+    new Set(),
+  );
+  const [isPaymentConfirmOpen, setIsPaymentConfirmOpen] = useState(false);
 
   useHotkeys("esc", () => {
     if (!isDeleteDialogOpen) onClose();
@@ -417,6 +438,12 @@ export default function DormsDialog({
       ...prev,
       [field]: value,
     }));
+    setFieldErrors((prev) => {
+      if (!prev.has(field)) return prev;
+      const next = new Set(prev);
+      next.delete(field);
+      return next;
+    });
   }, []);
 
   // ฟังก์ชันตัวช่วยสำหรับจัดการ Number Input ให้รับค่าว่างได้ และไม่ติดลบ
@@ -447,7 +474,12 @@ export default function DormsDialog({
   // เช็คว่าแต่ละ step กรอกข้อมูลจำเป็นครบหรือยัง เพื่อโชว์ติ๊กถูกที่แถบด้านซ้าย
   const stepCompletion = useMemo<Record<StepId, boolean>>(
     () => ({
-      general: !!formData.name && !!formData.address && !!formData.mapUrl,
+      general:
+        !!formData.name &&
+        !!formData.address &&
+        !!formData.mapUrl &&
+        !!formData.description &&
+        formData.description.trim() !== "",
       pricing:
         !!formData.roomPrice &&
         Number(formData.roomPrice) > 0 &&
@@ -455,11 +487,7 @@ export default function DormsDialog({
         Number(formData.waterRate) > 0 &&
         !!formData.electricRate &&
         Number(formData.electricRate) > 0,
-      billing:
-        !!formData.dueDay &&
-        !!formData.bankName &&
-        !!formData.bankAccount &&
-        !!formData.bankHolder,
+      billing: !!formData.dueDay,
       images: true,
     }),
     [formData],
@@ -486,33 +514,7 @@ export default function DormsDialog({
     return `เช่น ตอนนี้เดือน${billMonth} จะกำหนดชำระไม่เกินวันที่ ${day} ${dueMonth}`;
   }, [formData.dueDay, formData.dueMonthOffset]);
 
-  const handleSave = async () => {
-    const missingFields: string[] = [];
-
-    // เปลี่ยนมาเช็ค Number() เพื่อครอบคลุมกรณีที่ปล่อยเป็นช่องว่าง "" ไว้
-    if (!formData.roomPrice || Number(formData.roomPrice) <= 0)
-      missingFields.push("ราคาห้องพัก");
-
-    if (!formData.waterRate || Number(formData.waterRate) <= 0)
-      missingFields.push("ค่าน้ำ");
-
-    if (!formData.electricRate || Number(formData.electricRate) <= 0)
-      missingFields.push("ค่าไฟ");
-
-    if (!formData.bankName || formData.bankName.trim() === "")
-      missingFields.push("ชื่อธนาคาร");
-
-    if (!formData.bankAccount || formData.bankAccount.trim() === "")
-      missingFields.push("เลขที่บัญชี");
-
-    if (!formData.bankHolder || formData.bankHolder.trim() === "")
-      missingFields.push("ชื่อบัญชี");
-
-    if (missingFields.length > 0) {
-      toast.error(`กรุณาตั้งค่าข้อมูลให้ครบ: ${missingFields.join(", ")}`);
-      return;
-    }
-
+  const proceedSave = async () => {
     if (initialData && isEqual(initialData, formData)) {
       onClose();
       onRefresh?.();
@@ -544,6 +546,47 @@ export default function DormsDialog({
       log.error(error);
       showBackendError(error);
     }
+  };
+
+  const handleSave = async () => {
+    // ตรวจสอบฟิลด์ที่บังคับกรอกทั้งหมด แล้วพากลับไปหน้าแรกที่ยังกรอกไม่ครบ
+    const missing: { field: keyof DormFormData; step: StepId; label: string }[] =
+      [];
+
+    (Object.keys(FIELD_META) as (keyof DormFormData)[]).forEach((field) => {
+      const meta = FIELD_META[field]!;
+      const value = formData[field];
+      const isEmpty =
+        meta.type === "number"
+          ? !value || Number(value) <= 0
+          : !value || String(value).trim() === "";
+
+      if (isEmpty) missing.push({ field, step: meta.step, label: meta.label });
+    });
+
+    if (missing.length > 0) {
+      setFieldErrors(new Set(missing.map((m) => m.field)));
+      setActiveStep(missing[0].step);
+      toast.error(`กรุณากรอกข้อมูลให้ครบ: ${missing.map((m) => m.label).join(", ")}`);
+      return;
+    }
+
+    setFieldErrors(new Set());
+
+    // ตั้งค่าบัญชีรับเงินไม่บังคับ แต่ถ้ายังไม่ได้กรอกเลยจะถามยืนยันก่อนบันทึก
+    const hasPaymentSetting = !!(
+      formData.bankName?.trim() ||
+      formData.bankAccount?.trim() ||
+      formData.bankHolder?.trim() ||
+      formData.promptPayValue?.trim()
+    );
+
+    if (!hasPaymentSetting) {
+      setIsPaymentConfirmOpen(true);
+      return;
+    }
+
+    await proceedSave();
   };
 
   const handleDelete = async () => {
@@ -676,6 +719,7 @@ export default function DormsDialog({
                         value={formData.name}
                         onChange={(e) => updateField("name", e.target.value)}
                         placeholder="เช่น หอพักสุขใจ เรสซิเดนซ์"
+                        error={fieldErrors.has("name")}
                       />
                     </div>
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
@@ -688,6 +732,7 @@ export default function DormsDialog({
                           onChange={(e) =>
                             updateField("address", e.target.value)
                           }
+                          error={fieldErrors.has("address")}
                         />
                       </div>
                       <div>
@@ -720,19 +765,26 @@ export default function DormsDialog({
                           onChange={(e) =>
                             updateField("mapUrl", e.target.value)
                           }
+                          error={fieldErrors.has("mapUrl")}
                         />
                       </div>
                     </div>
                     <div>
-                      <Label required>คำอธิบาย</Label>
+                      <Label required icon={Info}>
+                        คำอธิบาย
+                      </Label>
                       <textarea
                         value={formData.description}
                         onChange={(e) =>
                           updateField("description", e.target.value)
                         }
                         rows={5}
-                        className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none"
-                        placeholder="รายละเอียดเกี่ยวกับหอพัก..."
+                        className={`w-full resize-none rounded-lg border bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:outline-none ${
+                          fieldErrors.has("description")
+                            ? "border-red-300 bg-red-50/60 focus:border-red-500 focus:ring-red-100"
+                            : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-100"
+                        }`}
+                        placeholder="เช่น หอพักสะดวก มีที่จอดรถ ร่มรื่น ใกล้มหาวิทยาลัย..."
                       />
                     </div>
                   </div>
@@ -765,6 +817,7 @@ export default function DormsDialog({
                             onKeyDown={preventInvalidNumberKeys}
                             className="pr-14"
                             placeholder="0"
+                            error={fieldErrors.has("roomPrice")}
                           />
                           <span className="absolute top-2.5 right-3 text-xs text-slate-400">
                             บาท/ด.
@@ -786,6 +839,7 @@ export default function DormsDialog({
                             onKeyDown={preventInvalidNumberKeys}
                             className="pr-16"
                             placeholder="0"
+                            error={fieldErrors.has("electricRate")}
                           />
                           <span className="absolute top-2.5 right-3 text-xs text-slate-400">
                             บาท/หน่วย
@@ -807,6 +861,7 @@ export default function DormsDialog({
                             onKeyDown={preventInvalidNumberKeys}
                             className="pr-16"
                             placeholder="0"
+                            error={fieldErrors.has("waterRate")}
                           />
                           <span className="absolute top-2.5 right-3 text-xs text-slate-400">
                             บาท/หน่วย
@@ -884,6 +939,7 @@ export default function DormsDialog({
                       </h3>
                       <p className="text-sm text-slate-500">
                         กำหนดวันครบกำหนดและบัญชีที่ผู้เช่าโอนเข้า
+                        (ตั้งค่าบัญชีรับเงินภายหลังได้)
                       </p>
                     </div>
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -930,12 +986,25 @@ export default function DormsDialog({
                 {activeStep === "images" && (
                   <div className="space-y-5">
                     <div>
-                      <h3 className="text-base font-bold text-slate-800">
+                      <h3 className="flex items-center gap-2 text-base font-bold text-slate-800">
                         รูปภาพหอพัก
+                        <span className="text-xs font-normal text-slate-400">
+                          (ไม่บังคับ)
+                        </span>
                       </h3>
                       <p className="text-sm text-slate-500">
                         รูปแรกจะถูกใช้เป็นภาพปกในหน้ารายการและหน้าประกาศ
                       </p>
+                    </div>
+                    <div className="flex items-start gap-2.5 rounded-lg border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-slate-600">
+                      <ImageIcon
+                        size={16}
+                        className="mt-0.5 shrink-0 text-amber-500"
+                      />
+                      <span>
+                        ยังไม่บังคับ แต่หอพักที่มีรูปภาพจะน่าสนใจและมีโอกาสถูกเลือกมากกว่า
+                        แนะนำให้เพิ่มอย่างน้อย 1 รูป
+                      </span>
                     </div>
                     <div className="rounded-lg border border-dashed border-slate-300 bg-white">
                       <ImageSection dormId={dorm.id} />
@@ -985,6 +1054,22 @@ export default function DormsDialog({
         confirmText="ยืนยันลบ"
         cancelText="ไม่, เก็บไว้"
         isLoading={isDeleting}
+      />
+      <ConfirmDialog
+        isOpen={isPaymentConfirmOpen}
+        onClose={() => {
+          setIsPaymentConfirmOpen(false);
+          setActiveStep("billing");
+        }}
+        onConfirm={() => {
+          setIsPaymentConfirmOpen(false);
+          proceedSave();
+        }}
+        title="ยังไม่ได้ตั้งค่าบัญชีรับเงิน"
+        description="คุณยังไม่ได้กรอกข้อมูลบัญชี/พร้อมเพย์สำหรับรับชำระเงิน ผู้เช่าจะยังไม่เห็นช่องทางโอนเงินจนกว่าจะตั้งค่า ต้องการบันทึกข้อมูลต่อเลยหรือไม่?"
+        type="warning"
+        confirmText="บันทึกต่อเลย"
+        cancelText="กลับไปตั้งค่า"
       />
     </RemoveScroll>
   );
