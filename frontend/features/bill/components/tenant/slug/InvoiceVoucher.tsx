@@ -84,7 +84,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
             <div className="mt-2 text-sm leading-relaxed text-slate-600">
               {dorm?.address || "ที่อยู่..."}
               <br />
-              โทร: {dorm?.owner?.phone || "-"}
+              โทร: {dorm?.contacts?.[0]?.phone || "-"}
             </div>
           </div>
           <div className="text-right">

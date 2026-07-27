@@ -222,7 +222,7 @@ export default function FormProfile() {
             ข้อมูลส่วนตัว
           </h3>
           <p className="text-xs text-gray-500">
-            ข้อมูลนี้จะแสดงให้ผู้เช่าเห็นเพื่อใช้ในการติดต่อ
+            ข้อมูลนี้เพื่อการตรวจสอบและติดต่อกับแอดมิน
           </p>
         </div>
         {!isEditing && (
@@ -243,7 +243,6 @@ export default function FormProfile() {
           <div className="group">
             <label className="mb-1.5 block text-xs font-semibold text-gray-700">
               ชื่อ-นามสกุล{" "}
-              <span className="font-normal text-gray-400">(แสดงหน้าหอพัก)</span>{" "}
               {isEditing && <span className="text-red-500">*</span>}
             </label>
             <div className="relative">

@@ -16,6 +16,7 @@ const envSchema = z.object({
   RESET_SECRET: z.string(),
   ENCRYPTION_KEY: z.string(),
   QR_PEPPER_SECRET: z.string(),
+  OTP_PEPPER_SECRET: z.string(),
   ADMIN_EMAIL: z.string().optional(),
   ADMIN_PASSWORD: z.string().optional(),
   R2_ACCOUNT_ID: z.string(),

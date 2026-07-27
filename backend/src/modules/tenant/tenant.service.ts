@@ -687,10 +687,14 @@ export const tenantService = {
                 owner: {
                   select: {
                     fullName: true,
-                    phone: true,
-                    lineId: true,
-                    facebook: true,
                   },
+                },
+
+                contacts: {
+                  orderBy: {
+                    order: "asc",
+                  },
+                  take: 1,
                 },
               },
             },
@@ -815,9 +819,9 @@ export const tenantService = {
 
       contactInfo: {
         name: tenant.room.dormitory.owner.fullName,
-        phone: tenant.room.dormitory.owner.phone,
-        lineId: tenant.room.dormitory.owner.lineId,
-        facebook: tenant.room.dormitory.owner.facebook,
+        phone: tenant.room.dormitory.contacts[0]?.phone ?? null,
+        lineId: tenant.room.dormitory.lineId,
+        facebook: tenant.room.dormitory.facebook,
       },
 
       bill: latestBill
@@ -1117,9 +1121,15 @@ export const tenantService = {
 
                 owner: {
                   select: {
-                    phone: true,
                     fullName: true,
                   },
+                },
+
+                contacts: {
+                  orderBy: {
+                    order: "asc",
+                  },
+                  take: 1,
                 },
               },
             },

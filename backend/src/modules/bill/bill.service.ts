@@ -1590,7 +1590,16 @@ export const billService = {
       include: {
         room: {
           include: {
-            dormitory: true,
+            dormitory: {
+              include: {
+                contacts: {
+                  orderBy: {
+                    order: "asc",
+                  },
+                  take: 1,
+                },
+              },
+            },
           },
         },
 
@@ -1628,7 +1637,7 @@ export const billService = {
 
         data: {
           dormName: bill.room.dormitory.name,
-          ownerPhone: owner.phone || "-",
+          ownerPhone: bill.room.dormitory.contacts?.[0]?.phone || "-",
           billId: bill.id.substring(0, 8).toUpperCase(),
           currentDate: formatDateTH(new Date()),
           tenantName: bill.tenantNameSnapshot,
@@ -1871,6 +1880,13 @@ export const billService = {
             dormitory: {
               include: {
                 owner: true,
+
+                contacts: {
+                  orderBy: {
+                    order: "asc",
+                  },
+                  take: 1,
+                },
               },
             },
           },

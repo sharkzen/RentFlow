@@ -19,6 +19,7 @@ import {
   ChevronDown,
   CreditCard,
   Image as ImageIcon,
+  Phone,
 } from "lucide-react";
 
 import {
@@ -41,6 +42,7 @@ import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import InfoTooltip from "@/lib/ui/InfoTooltip";
 import Link from "next/link";
 import DormPaymentSettings from "./DormPaymentSettings";
+import DormContactSettings from "./DormContactSettings";
 
 interface DormPaymentSetting {
   bankName?: string;
@@ -85,10 +87,13 @@ const Input = ({
   />
 );
 
-type StepId = "general" | "pricing" | "billing" | "images";
+type StepId = "general" | "contact" | "pricing" | "billing" | "images";
 
 const FIELD_META: Partial<
-  Record<keyof DormFormData, { step: StepId; label: string; type: "text" | "number" }>
+  Record<
+    keyof DormFormData,
+    { step: StepId; label: string; type: "text" | "number" }
+  >
 > = {
   name: { step: "general", label: "ชื่อหอพัก", type: "text" },
   address: { step: "general", label: "ที่อยู่", type: "text" },
@@ -101,6 +106,7 @@ const FIELD_META: Partial<
 
 const STEPS: { id: StepId; label: string; icon: any }[] = [
   { id: "general", label: "ข้อมูลทั่วไป", icon: Home },
+  { id: "contact", label: "ข้อมูลติดต่อ", icon: Phone },
   { id: "pricing", label: "ราคา & ค่าใช้จ่าย", icon: DollarSign },
   { id: "billing", label: "รอบบิล & ชำระเงิน", icon: CreditCard },
   { id: "images", label: "รูปภาพ", icon: ImageIcon },
@@ -157,7 +163,8 @@ const DueMonthOffsetSelect = ({
     DUE_MONTH_OFFSETS.find((o) => o.value === value) ?? DUE_MONTH_OFFSETS[1];
 
   const focusOption = (index: number) => {
-    const clamped = (index + DUE_MONTH_OFFSETS.length) % DUE_MONTH_OFFSETS.length;
+    const clamped =
+      (index + DUE_MONTH_OFFSETS.length) % DUE_MONTH_OFFSETS.length;
     optionRefs.current[clamped]?.focus();
   };
 
@@ -405,6 +412,14 @@ export default function DormsDialog({
     name: dorm.name ?? "",
     description: descriptionJsonToText(dorm.description),
     address: dorm.address ?? "",
+    contacts: (dorm.contacts ?? []).map((c) => ({
+      id: c.id,
+      name: c.name ?? "",
+      phone: c.phone,
+    })),
+    lineId: dorm.lineId ?? "",
+    lineType: dorm.lineType ?? "PERSONAL",
+    facebook: dorm.facebook ?? "",
     mapUrl: dorm.mapUrl ?? "",
     roomPrice: dorm.settings?.roomPrice ?? 0,
     waterRate: dorm.settings?.waterRate ?? 0,
@@ -480,6 +495,9 @@ export default function DormsDialog({
         !!formData.mapUrl &&
         !!formData.description &&
         formData.description.trim() !== "",
+      contact:
+        (formData.contacts ?? []).some((c) => c.phone.trim() !== "") &&
+        (!!formData.lineId?.trim() || !!formData.facebook?.trim()),
       pricing:
         !!formData.roomPrice &&
         Number(formData.roomPrice) > 0 &&
@@ -531,6 +549,10 @@ export default function DormsDialog({
       lateFee: Number(formData.lateFee) || 0,
       dueDay: Number(formData.dueDay) || 1,
       description: parseDescription(formData.description),
+
+      contacts: (formData.contacts ?? [])
+        .filter((c) => c.phone.trim() !== "")
+        .map((c) => ({ name: c.name?.trim() || undefined, phone: c.phone.trim() })),
     };
 
     try {
@@ -550,8 +572,11 @@ export default function DormsDialog({
 
   const handleSave = async () => {
     // ตรวจสอบฟิลด์ที่บังคับกรอกทั้งหมด แล้วพากลับไปหน้าแรกที่ยังกรอกไม่ครบ
-    const missing: { field: keyof DormFormData; step: StepId; label: string }[] =
-      [];
+    const missing: {
+      field: keyof DormFormData;
+      step: StepId;
+      label: string;
+    }[] = [];
 
     (Object.keys(FIELD_META) as (keyof DormFormData)[]).forEach((field) => {
       const meta = FIELD_META[field]!;
@@ -567,7 +592,25 @@ export default function DormsDialog({
     if (missing.length > 0) {
       setFieldErrors(new Set(missing.map((m) => m.field)));
       setActiveStep(missing[0].step);
-      toast.error(`กรุณากรอกข้อมูลให้ครบ: ${missing.map((m) => m.label).join(", ")}`);
+      toast.error(
+        `กรุณากรอกข้อมูลให้ครบ: ${missing.map((m) => m.label).join(", ")}`,
+      );
+      return;
+    }
+
+    const hasContactPhone = (formData.contacts ?? []).some(
+      (c) => c.phone.trim() !== "",
+    );
+    const hasLineOrFacebook =
+      !!formData.lineId?.trim() || !!formData.facebook?.trim();
+
+    if (!hasContactPhone || !hasLineOrFacebook) {
+      setActiveStep("contact");
+      toast.error(
+        !hasContactPhone
+          ? "กรุณากรอกเบอร์โทรผู้ติดต่ออย่างน้อย 1 เบอร์"
+          : "กรุณากรอก Line ID หรือ Facebook อย่างน้อย 1 ช่องทาง",
+      );
       return;
     }
 
@@ -747,12 +790,10 @@ export default function DormsDialog({
                                 เปิด Google Maps แล้วเลื่อนแผนที่ไปยังหอพัก
                               </li>
                               <li>
-                                กดค้าง (long-press)
-                                บนตำแหน่งหอพักตรงจุดเป๊ะๆ เพื่อปักหมุดเอง
+                                กดค้าง (long-press) บนตำแหน่งหอพักตรงจุดเป๊ะๆ
+                                เพื่อปักหมุดเอง
                               </li>
-                              <li>
-                                กด Share แล้วคัดลอกลิงก์มาวางในช่องนี้
-                              </li>
+                              <li>กด Share แล้วคัดลอกลิงก์มาวางในช่องนี้</li>
                             </ol>
                             <p className="mt-1.5 text-amber-600">
                               อย่าเสิร์ชหาชื่อหอแล้วกด Share ทันที
@@ -787,6 +828,23 @@ export default function DormsDialog({
                         placeholder="เช่น หอพักสะดวก มีที่จอดรถ ร่มรื่น ใกล้มหาวิทยาลัย..."
                       />
                     </div>
+                  </div>
+                )}
+
+                {activeStep === "contact" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-base font-bold text-slate-800">
+                        ข้อมูลติดต่อ
+                      </h3>
+                      <p className="text-sm text-slate-500">
+                        เบอร์โทร Line และ Facebook ที่ผู้เช่าจะใช้ติดต่อหอพักนี้
+                      </p>
+                    </div>
+                    <DormContactSettings
+                      formData={formData}
+                      updateField={updateField}
+                    />
                   </div>
                 )}
 
@@ -963,9 +1021,7 @@ export default function DormsDialog({
                         <Label icon={Info}>รอบการชำระ</Label>
                         <DueMonthOffsetSelect
                           value={Number(formData.dueMonthOffset)}
-                          onChange={(val) =>
-                            updateField("dueMonthOffset", val)
-                          }
+                          onChange={(val) => updateField("dueMonthOffset", val)}
                         />
                       </div>
                     </div>
@@ -988,9 +1044,7 @@ export default function DormsDialog({
                     <div>
                       <h3 className="flex items-center gap-2 text-base font-bold text-slate-800">
                         รูปภาพหอพัก
-                        <span className="text-xs font-normal text-slate-400">
-                          (ไม่บังคับ)
-                        </span>
+                        <span className="text-red-500">*</span>
                       </h3>
                       <p className="text-sm text-slate-500">
                         รูปแรกจะถูกใช้เป็นภาพปกในหน้ารายการและหน้าประกาศ
@@ -1002,8 +1056,8 @@ export default function DormsDialog({
                         className="mt-0.5 shrink-0 text-amber-500"
                       />
                       <span>
-                        ยังไม่บังคับ แต่หอพักที่มีรูปภาพจะน่าสนใจและมีโอกาสถูกเลือกมากกว่า
-                        แนะนำให้เพิ่มอย่างน้อย 1 รูป
+                        ต้องมีรูปภาพอย่างน้อย 1 รูป จึงจะสามารถเปิดเผยแพร่
+                        (Public) หอพักนี้ได้
                       </span>
                     </div>
                     <div className="rounded-lg border border-dashed border-slate-300 bg-white">

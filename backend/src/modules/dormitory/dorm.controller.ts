@@ -163,6 +163,10 @@ export const DormController = {
         throw AppError.badRequest("INVALID_DORM_ID");
       }
 
+      if (error.message === "DORM_NOT_READY_FOR_PUBLISH") {
+        throw AppError.badRequest("DORM_NOT_READY_FOR_PUBLISH");
+      }
+
       throw AppError.internal("UPDATE_STATUS_FAILED");
     }
   },

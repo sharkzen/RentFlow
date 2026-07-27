@@ -38,11 +38,14 @@ export default function IndexContainer() {
   const maxPrice = searchParams.get("maxPrice");
 
   const { data, isLoading } = useQuery({
-    queryKey: ["dorms", "public", { page, search, landmarkId, minPrice, maxPrice }],
+    queryKey: [
+      "dorms",
+      "public",
+      { page, search, landmarkId, minPrice, maxPrice },
+    ],
     queryFn: () =>
       DormService.getAllDroms({ page, search, landmarkId, minPrice, maxPrice }),
-    // เก็บผลลัพธ์เดิมค้างไว้ระหว่างเปลี่ยนหน้า/ตัวกรอง กันหน้าจอกระพริบเป็น
-    // skeleton ทุกครั้ง — เปลี่ยนแค่หน้าถัดไปเลขหน้ายังโชว์ของเดิมจนกว่าจะโหลดเสร็จ
+
     placeholderData: keepPreviousData,
   });
 

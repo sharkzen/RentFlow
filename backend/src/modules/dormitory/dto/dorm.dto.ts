@@ -3,6 +3,10 @@ export interface DormFormDataDto {
   name: string;
   description: any;
   address: string;
+  contacts?: { name?: string; phone: string }[];
+  lineId?: string;
+  lineType?: "PERSONAL" | "OFFICIAL";
+  facebook?: string;
   latitude: number;
   longitude: number;
   mapUrl: string;

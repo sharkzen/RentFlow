@@ -12,7 +12,7 @@ import {
   loginWithQrSchema,
   ownerRegisterSchema,
   resetPasswordSchema,
-  verifyResetTokenSchema,
+  verifyOtpSchema,
 } from "@/modules/auth/dto/auth.schema";
 
 export const AuthController = {
@@ -206,34 +206,34 @@ export const AuthController = {
   async forgotPassword(request: FastifyRequest, reply: FastifyReply) {
     const { email } = forgotPasswordSchema.parse(request.body);
 
-    try {
-      await authService.requestPasswordReset(email);
+    await authService.requestPasswordReset(email);
 
-      return reply.send({
-        ok: true,
-        message: "กรุณาตรวจสอบอีเมลของคุณ",
-      });
-    } catch (error: any) {
-      if (error.message === "USER_NOT_FOUND") {
-        throw AppError.notFound("USER_NOT_FOUND");
-      }
-
-      throw error;
-    }
+    return reply.send({
+      ok: true,
+      message: "ระบบได้ส่งรหัส OTP ไปยังอีเมลของคุณแล้ว",
+    });
   },
 
-  async verifyResetToken(request: FastifyRequest, reply: FastifyReply) {
-    const { token } = verifyResetTokenSchema.parse(request.body);
+  async verifyOtp(request: FastifyRequest, reply: FastifyReply) {
+    const { email, otp } = verifyOtpSchema.parse(request.body);
 
     try {
-      await authService.verifyTokenValidity(token);
+      const { resetToken } = await authService.verifyOtp(email, otp);
 
       return reply.send({
         ok: true,
+        resetToken,
       });
     } catch (error: any) {
-      if (error.message === "INVALID_OR_EXPIRED_TOKEN") {
-        throw AppError.badRequest("INVALID_OR_EXPIRED_TOKEN");
+      if (error.message === "TOO_MANY_ATTEMPTS") {
+        throw AppError.badRequest("TOO_MANY_ATTEMPTS");
+      }
+
+      if (
+        error.message === "INVALID_OTP" ||
+        error.message === "OTP_NOT_FOUND_OR_EXPIRED"
+      ) {
+        throw AppError.badRequest("INVALID_OR_EXPIRED_OTP");
       }
 
       throw error;
@@ -241,10 +241,10 @@ export const AuthController = {
   },
 
   async resetPassword(request: FastifyRequest, reply: FastifyReply) {
-    const { token, newPassword } = resetPasswordSchema.parse(request.body);
+    const { resetToken, newPassword } = resetPasswordSchema.parse(request.body);
 
     try {
-      await authService.resetPassword(token, newPassword);
+      await authService.resetPassword(resetToken, newPassword);
 
       return reply.send({
         ok: true,

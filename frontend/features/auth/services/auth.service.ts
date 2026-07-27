@@ -43,17 +43,18 @@ export const authService = {
     return res.data;
   },
 
-  verifyResetToken: async (token: string) => {
-    const res = await axios.post("/api/auth/verify-reset-token", {
-      token,
+  verifyOtp: async (email: string, otp: string) => {
+    const res = await axios.post("/api/auth/verify-otp", {
+      email,
+      otp,
     });
 
     return res.data;
   },
 
-  resetPassword: async (token: string, newPassword: string) => {
+  resetPassword: async (resetToken: string, newPassword: string) => {
     const res = await axios.post("/api/auth/reset-password", {
-      token,
+      resetToken,
       newPassword,
     });
 

@@ -49,7 +49,12 @@ export const startBillDueReminderWorker = () => {
                 include: {
                   dormitory: {
                     include: {
-                      owner: true,
+                      contacts: {
+                        orderBy: {
+                          order: "asc",
+                        },
+                        take: 1,
+                      },
                     },
                   },
                 },
@@ -77,7 +82,7 @@ export const startBillDueReminderWorker = () => {
 
                 data: {
                   dormName: bill.room.dormitory.name,
-                  ownerPhone: bill.room.dormitory.owner.phone || "-",
+                  ownerPhone: bill.room.dormitory.contacts?.[0]?.phone || "-",
                   tenantName: bill.tenantNameSnapshot,
                   roomNumber: bill.roomNumberSnapshot,
                   month: formatDateTH(bill.billingMonth),

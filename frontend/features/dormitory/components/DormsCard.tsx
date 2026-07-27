@@ -6,6 +6,7 @@ import { useState } from "react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendError";
+import { toast } from "react-toastify";
 import Link from "next/link";
 
 interface DormsCardProps {
@@ -31,7 +32,8 @@ export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
     } catch (error: any) {
       setPublished(!next);
       log.error(error);
-      showBackendError(error);
+      const code = error?.response?.data?.message;
+      toast.error(showBackendError(code));
     }
   };
 

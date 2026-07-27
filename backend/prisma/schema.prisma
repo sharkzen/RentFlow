@@ -46,8 +46,9 @@ model User {
   status         Status          @default(PENDING)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
-  ownerProfile   OwnerProfile?
-  tenantProfiles TenantProfile[]
+  ownerProfile      OwnerProfile?
+  tenantProfiles    TenantProfile[]
+  passwordResetOtps PasswordResetOtp[]
 }
 
 model OwnerProfile {
@@ -71,6 +72,9 @@ model Dormitory {
   slug                String               @unique
   description         Json?
   address             String
+  lineId              String?
+  lineType            LineType             @default(PERSONAL)
+  facebook            String?
   latitude            Float
   longitude           Float
   mapUrl              String
@@ -89,6 +93,7 @@ model Dormitory {
   maintenanceRequests MaintenanceRequest[]
   paymentSetting      PaymentSetting?
   rooms               Room[]
+  contacts            DormitoryContact[]
 
   @@index([ownerId])
   @@index([isFeatured, featuredOrder])
@@ -117,6 +122,18 @@ model PaymentSetting {
   bankHolder     String?
   isActive       Boolean        @default(true)
   dormitory      Dormitory      @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+}
+
+model DormitoryContact {
+  id          String    @id @default(uuid())
+  dormitoryId String
+  name        String?
+  phone       String
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  dormitory   Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+
+  @@index([dormitoryId])
 }
 
 model Room {
@@ -402,6 +419,11 @@ enum PromptPayType {
   E_WALLET
 }
 
+enum LineType {
+  PERSONAL
+  OFFICIAL
+}
+
 /// *
 ///  * =======================
 ///  * ROOM
@@ -450,6 +472,20 @@ model RoomMeterSetting {
   updatedAt           DateTime @updatedAt
 
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model PasswordResetOtp {
+  id         String    @id @default(uuid())
+  userId     String
+  otpHash    String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model RoomQrAuth {

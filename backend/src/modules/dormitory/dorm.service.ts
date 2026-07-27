@@ -412,6 +412,12 @@ export const dormService = {
 
         owner: true,
 
+        contacts: {
+          orderBy: {
+            order: "asc",
+          },
+        },
+
         rooms: {
           where: {
             deletedAt: null,
@@ -481,10 +487,18 @@ export const dormService = {
         slug: generateSlug(name),
         ownerId: owner.id,
         address: "",
+        lineId: owner.lineId,
+        facebook: owner.facebook,
         latitude: 0,
         longitude: 0,
         mapUrl: "",
         isPublished: false,
+
+        contacts: owner.phone
+          ? {
+              create: [{ name: null, phone: owner.phone, order: 0 }],
+            }
+          : undefined,
       },
     });
 
@@ -548,6 +562,27 @@ export const dormService = {
     if (!dorm) throw new Error("NOT_FOUND");
 
     if (dorm.ownerId !== user.ownerProfile.id) throw new Error("FORBIDDEN");
+
+    if (isPublished) {
+      const readiness = await prisma.dormitory.findUnique({
+        where: { id: dormId },
+        select: {
+          lineId: true,
+          facebook: true,
+          contacts: { select: { id: true } },
+          images: { select: { id: true } },
+        },
+      });
+
+      const isMissingContact = !readiness?.contacts.length;
+      const isMissingLineOrFacebook =
+        !readiness?.lineId && !readiness?.facebook;
+      const isMissingImage = !readiness?.images.length;
+
+      if (isMissingContact || isMissingLineOrFacebook || isMissingImage) {
+        throw new Error("DORM_NOT_READY_FOR_PUBLISH");
+      }
+    }
 
     const updated = await prisma.dormitory.update({
       where: {
@@ -618,6 +653,9 @@ export const dormService = {
           slug: slug,
           description: dorm.description,
           address: dorm.address,
+          lineId: dorm.lineId,
+          lineType: dorm.lineType ?? "PERSONAL",
+          facebook: dorm.facebook === "" ? null : dorm.facebook,
           latitude: latLng?.lat ?? 0,
           longitude: latLng?.lng ?? 0,
           mapUrl: dorm.mapUrl,
@@ -651,6 +689,25 @@ export const dormService = {
           dueMonthOffset: Number(dorm.dueMonthOffset ?? 1),
         },
       });
+
+      if (dorm.contacts) {
+        await tx.dormitoryContact.deleteMany({
+          where: {
+            dormitoryId: dorm.id,
+          },
+        });
+
+        if (dorm.contacts.length > 0) {
+          await tx.dormitoryContact.createMany({
+            data: dorm.contacts.map((c, i) => ({
+              dormitoryId: dorm.id,
+              name: c.name || null,
+              phone: c.phone,
+              order: i,
+            })),
+          });
+        }
+      }
 
       const paymentSetting = await tx.paymentSetting.upsert({
         where: {
@@ -768,6 +825,12 @@ export const dormService = {
 
         owner: true,
         paymentSetting: true,
+
+        contacts: {
+          orderBy: {
+            order: "asc",
+          },
+        },
       },
 
       orderBy: [

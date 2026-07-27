@@ -1,9 +1,5 @@
-import ResetPasswordVerifyForm from "@/features/auth/components/ResetPasswordVerifyForm";
-
-export const metadata = {
-  title: "ตั้งรหัสผ่านใหม่",
-};
+import { redirect } from "next/navigation";
 
 export default function page() {
-  return <ResetPasswordVerifyForm />;
+  redirect("/auth/forgot-password");
 }

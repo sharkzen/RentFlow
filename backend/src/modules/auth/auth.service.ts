@@ -10,16 +10,20 @@ import { LoginDto } from "@/modules/auth/dto/login.dto";
 import { createActivityLog } from "@/services/activity-log.service";
 import {
   signAccessToken,
-  signResetToken,
+  signResetSessionToken,
   verifyRefreshToken,
-  verifyResetToken,
+  verifyResetSessionToken,
 } from "@/utils/jwt";
 import { generateSlug } from "@/lib/text";
+import { generateNumericOtp } from "@/utils/otp";
 import logger from "@/utils/logger";
 import { sendEmailImmediate } from "@/services/mail-sender";
 import { EmailType } from "@/queues/email.types";
 import * as argon2 from "argon2";
 import { env } from "@/config/env";
+
+const OTP_TTL_MS = 5 * 60 * 1000;
+const OTP_MAX_ATTEMPTS = 5;
 
 export const authService = {
   async me(user: UserDecodedDto) {
@@ -298,20 +302,30 @@ export const authService = {
     });
 
     if (!user) {
-      throw new Error("USER_NOT_FOUND");
+      return {
+        message: "OTP_SENT_IF_ACCOUNT_EXISTS",
+      };
     }
 
-    const token = signResetToken({
-      sub: user.id,
-    });
+    const otp = generateNumericOtp(6);
+    const pepper = env.OTP_PEPPER_SECRET;
+    const otpHash = await argon2.hash(otp + pepper);
 
-    const frontendUrl = env.FRONTEND_URL;
-    const resetLink = `${frontendUrl}/auth/reset-password?token=${token}`;
-
-    logger.info({
-      frontendUrl,
-      resetLink,
-    });
+    await prisma.$transaction([
+      prisma.passwordResetOtp.deleteMany({
+        where: {
+          userId: user.id,
+          consumedAt: null,
+        },
+      }),
+      prisma.passwordResetOtp.create({
+        data: {
+          userId: user.id,
+          otpHash,
+          expiresAt: new Date(Date.now() + OTP_TTL_MS),
+        },
+      }),
+    ]);
 
     try {
       await sendEmailImmediate({
@@ -319,7 +333,7 @@ export const authService = {
         to: email,
 
         data: {
-          link: resetLink,
+          otp,
         },
       });
 
@@ -334,24 +348,104 @@ export const authService = {
     }
 
     return {
-      message: "RESET_LINK_SENT",
+      message: "OTP_SENT_IF_ACCOUNT_EXISTS",
     };
   },
 
-  async verifyTokenValidity(token: string) {
-    try {
-      verifyResetToken(token);
+  async verifyOtp(email: string, otp: string) {
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
 
-      return {
-        valid: true,
-      };
-    } catch (error) {
-      throw new Error("INVALID_OR_EXPIRED_TOKEN");
+    if (!user) {
+      throw new Error("INVALID_OTP");
     }
+
+    const record = await prisma.passwordResetOtp.findFirst({
+      where: {
+        userId: user.id,
+        consumedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (!record) {
+      throw new Error("OTP_NOT_FOUND_OR_EXPIRED");
+    }
+
+    if (record.attempts >= OTP_MAX_ATTEMPTS) {
+      throw new Error("TOO_MANY_ATTEMPTS");
+    }
+
+    const pepper = env.OTP_PEPPER_SECRET;
+    const isValid = await argon2.verify(record.otpHash, otp + pepper);
+
+    if (!isValid) {
+      const updated = await prisma.passwordResetOtp.update({
+        where: {
+          id: record.id,
+        },
+
+        data: {
+          attempts: {
+            increment: 1,
+          },
+        },
+      });
+
+      if (updated.attempts >= OTP_MAX_ATTEMPTS) {
+        throw new Error("TOO_MANY_ATTEMPTS");
+      }
+
+      throw new Error("INVALID_OTP");
+    }
+
+    await prisma.passwordResetOtp.update({
+      where: {
+        id: record.id,
+      },
+
+      data: {
+        consumedAt: new Date(),
+      },
+    });
+
+    const resetToken = signResetSessionToken({
+      sub: user.id,
+      purpose: "password_reset",
+      otpId: record.id,
+    });
+
+    return {
+      resetToken,
+    };
   },
 
-  async resetPassword(token: string, newPassword: string) {
-    const payload = verifyResetToken(token);
+  async resetPassword(resetToken: string, newPassword: string) {
+    const payload = verifyResetSessionToken(resetToken);
+
+    const record = await prisma.passwordResetOtp.findFirst({
+      where: {
+        id: payload.otpId,
+        userId: payload.sub,
+        consumedAt: {
+          not: null,
+        },
+      },
+    });
+
+    if (!record) {
+      throw new Error("INVALID_OR_EXPIRED_TOKEN");
+    }
+
     const hashedPassword = await hashPassword(newPassword);
 
     await prisma.user.update({
@@ -364,13 +458,11 @@ export const authService = {
       },
     });
 
-    logger.info("EMAIL JOB ADDED");
-
     await createActivityLog({
-      userId: payload.sub as string,
+      userId: payload.sub,
       action: "RESET_PASSWORD_SUCCESS",
       entityType: "User",
-      entityId: payload.sub as string,
+      entityId: payload.sub,
     });
 
     return {

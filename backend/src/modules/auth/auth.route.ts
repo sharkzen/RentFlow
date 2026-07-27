@@ -16,7 +16,7 @@ import {
   loginSchema,
   loginWithQrSchema,
   forgotPasswordSchema,
-  verifyResetTokenSchema,
+  verifyOtpSchema,
   resetPasswordSchema,
 } from "@/modules/auth/dto/auth.schema";
 
@@ -122,22 +122,37 @@ export async function authRoute(app: FastifyInstance) {
 
     schema: {
       tags: ["Auth (Public)"],
-      summary: "ขอลิงก์รีเซ็ตรหัสผ่านทางอีเมล",
+      summary: "ขอรหัส OTP รีเซ็ตรหัสผ่านทางอีเมล",
       body: zodBody(forgotPasswordSchema),
 
       response: {
-        200: okResponse("ส่งอีเมลลิงก์รีเซ็ตรหัสผ่านสำเร็จ (ถ้ามีบัญชีนี้อยู่จริง)"),
+        200: okResponse("ส่งรหัส OTP รีเซ็ตรหัสผ่านสำเร็จ (ถ้ามีบัญชีนี้อยู่จริง)"),
         400: commonErrorResponses[400],
       },
     },
   }, AuthController.forgotPassword);
+
+  app.post("/verify-otp", {
+    ...bruteForceRateLimit,
+
+    schema: {
+      tags: ["Auth (Public)"],
+      summary: "ตรวจสอบรหัส OTP รีเซ็ตรหัสผ่าน",
+      body: zodBody(verifyOtpSchema),
+
+      response: {
+        200: okResponse("ตรวจสอบ OTP สำเร็จ"),
+        400: commonErrorResponses[400],
+      },
+    },
+  }, AuthController.verifyOtp);
 
   app.post("/reset-password", {
     ...bruteForceRateLimit,
 
     schema: {
       tags: ["Auth (Public)"],
-      summary: "ตั้งรหัสผ่านใหม่ด้วย token จากอีเมล",
+      summary: "ตั้งรหัสผ่านใหม่ด้วย reset token ที่ได้จากการยืนยัน OTP",
       body: zodBody(resetPasswordSchema),
 
       response: {
@@ -146,19 +161,6 @@ export async function authRoute(app: FastifyInstance) {
       },
     },
   }, AuthController.resetPassword);
-
-  app.post("/verify-reset-token", {
-    schema: {
-      tags: ["Auth (Public)"],
-      summary: "ตรวจสอบว่า token รีเซ็ตรหัสผ่านยังใช้ได้หรือไม่",
-      body: zodBody(verifyResetTokenSchema),
-
-      response: {
-        200: okResponse("ตรวจสอบ token สำเร็จ"),
-        400: commonErrorResponses[400],
-      },
-    },
-  }, AuthController.verifyResetToken);
 
   app.register(async (routeRoles) => {
     routeRoles.addHook("preHandler", authMiddleware);

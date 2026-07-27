@@ -31,11 +31,15 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email(),
 });
 
-export const verifyResetTokenSchema = z.object({
-  token: z.string(),
+export const verifyOtpSchema = z.object({
+  email: z.string().email(),
+  otp: z
+    .string()
+    .length(6)
+    .regex(/^\d{6}$/),
 });
 
 export const resetPasswordSchema = z.object({
-  token: z.string(),
+  resetToken: z.string(),
   newPassword: z.string(),
 });

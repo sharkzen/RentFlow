@@ -33,6 +33,8 @@ export const errorMessageMap: Record<string, string> = {
     "ไม่สามารถตั้งสถานะมีผู้เช่าโดยตรงได้ กรุณาไปที่เมนูจัดการผู้เช่า",
   CANNOT_DELETE_PAID_BILL:
     "ไม่สามารถลบบิลที่ชำระเงินแล้วได้ เพื่อรักษาประวัติการเงิน",
+  DORM_NOT_READY_FOR_PUBLISH:
+    "ยังเผยแพร่ไม่ได้ กรุณากรอกเบอร์ติดต่ออย่างน้อย 1 เบอร์, Line หรือ Facebook อย่างน้อย 1 ช่องทาง และเพิ่มรูปภาพหอพักอย่างน้อย 1 รูป",
 };
 
 export function showBackendError(code?: string) {

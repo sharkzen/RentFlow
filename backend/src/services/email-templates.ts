@@ -52,7 +52,11 @@ const getSubject = (text: string) => {
   return text;
 };
 
-const wrapEmail = (title: string, contentHtml: string) => {
+const wrapEmail = (title: string, contentHtml: string, preheader?: string) => {
+  const preheaderHtml = preheader
+    ? `<div style="display: none; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; font-size: 1px; line-height: 1px; color: ${THEME.bg};">${preheader}</div>`
+    : "";
+
   return `
     <!DOCTYPE html>
     <html lang="th">
@@ -68,7 +72,7 @@ const wrapEmail = (title: string, contentHtml: string) => {
         body, table, td, p, a, li, blockquote {
           font-family: 'Sarabun', 'TH Sarabun New', Helvetica, Arial, sans-serif !important;
         }
-        
+
         /* Mobile Responsive */
         @media only screen and (max-width: 600px) {
           .paper { width: 100% !important; padding: 15px !important; }
@@ -80,7 +84,7 @@ const wrapEmail = (title: string, contentHtml: string) => {
       </style>
     </head>
     <body style="margin: 0; padding: 20px 0; background-color: ${THEME.bg}; -webkit-font-smoothing: antialiased;">
-      
+      ${preheaderHtml}
       <table role="presentation" class="paper" align="center" width="700" style="margin: 0 auto; background-color: ${THEME.paper}; border: 1px solid ${THEME.border}; border-spacing: 0;">
         <tr>
           <td style="padding: 40px;">
@@ -661,8 +665,8 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
     }
     case EmailType.RESET_PASSWORD:
       return {
-        subject: getSubject("รีเซ็ตรหัสผ่าน"),
-        html: getResetPasswordHtml(data.link),
+        subject: getSubject(`${data.otp} คือรหัส OTP สำหรับรีเซ็ตรหัสผ่านของคุณ`),
+        html: getResetPasswordOtpHtml(data.otp),
       };
     case EmailType.OWNER_APPROVED: {
       const loginLink = env.FRONTEND_URL;
@@ -1252,7 +1256,7 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
   }
 };
 
-export const getResetPasswordHtml = (resetLink: string) => {
+export const getResetPasswordOtpHtml = (otp: string) => {
   const title = "รีเซ็ตรหัสผ่าน";
 
   const content = `
@@ -1270,7 +1274,7 @@ export const getResetPasswordHtml = (resetLink: string) => {
 
     <p style="color: ${THEME.secondary}; font-size: 16px; line-height: 1.6; margin: 0 0 32px 0; font-family: 'Sarabun', sans-serif; text-align: center;">
       เราได้รับคำขอให้รีเซ็ตรหัสผ่านสำหรับบัญชีของคุณ<br>
-      หากคุณเป็นผู้ส่งคำขอนี้ กดปุ่มด้านล่างเพื่อตั้งใหม่ได้เลย
+      กรอกรหัส OTP ด้านล่างในหน้าเว็บเพื่อตั้งรหัสผ่านใหม่
     </p>
 
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" width="100%" style="margin: 0 auto 32px auto;">
@@ -1278,11 +1282,10 @@ export const getResetPasswordHtml = (resetLink: string) => {
         <td align="center">
           <table role="presentation" border="0" cellpadding="0" cellspacing="0">
             <tr>
-              <td align="center" bgcolor="${THEME.primary}" style="border-radius: 8px;">
-                <a href="${resetLink}" class="button-link"
-                   style="display: inline-block; padding: 14px 32px; font-family: 'Sarabun', sans-serif; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 8px; background-color: ${THEME.primary}; border: 1px solid ${THEME.primary};">
-                   ตั้งรหัสผ่านใหม่
-                </a>
+              <td align="center" bgcolor="${THEME.dangerBg}" style="border: 1px solid ${THEME.border}; border-radius: 8px; padding: 20px 40px;">
+                <span style="display: inline-block; font-family: 'Courier New', monospace; font-size: 36px; font-weight: 700; letter-spacing: 10px; color: ${THEME.text};">
+                  ${otp}
+                </span>
               </td>
             </tr>
           </table>
@@ -1298,7 +1301,7 @@ export const getResetPasswordHtml = (resetLink: string) => {
               <td valign="top" width="24" style="padding-right: 12px; font-size: 18px;">⚠️</td>
               <td>
                 <p style="margin: 0; color: ${THEME.dangerText}; font-size: 14px; line-height: 1.5; font-family: 'Sarabun', sans-serif; text-align: left;">
-                  <strong>ความปลอดภัย:</strong> ลิงก์นี้จะหมดอายุใน <strong>15 นาที</strong><br>
+                  <strong>ความปลอดภัย:</strong> รหัส OTP นี้จะหมดอายุใน <strong>5 นาที</strong><br>
                   หากคุณไม่ได้ทำรายการนี้ กรุณาเพิกเฉยต่ออีเมลฉบับนี้
                 </p>
               </td>
@@ -1307,16 +1310,11 @@ export const getResetPasswordHtml = (resetLink: string) => {
         </td>
       </tr>
     </table>
-
-    <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid ${THEME.border}; text-align: left;">
-      <p style="color: #94A3B8; font-size: 12px; margin: 0 0 8px 0; font-family: 'Sarabun', sans-serif;">
-        หากปุ่มด้านบนใช้งานไม่ได้ ให้คัดลอกลิงก์นี้ไปวางในเบราว์เซอร์:
-      </p>
-      <p style="margin: 0; font-size: 12px; line-height: 1.4; word-break: break-all;">
-        <a href="${resetLink}" style="color: ${THEME.primary}; text-decoration: none;">${resetLink}</a>
-      </p>
-    </div>
   `;
 
-  return wrapEmail(title, minifyHtml(content));
+  return wrapEmail(
+    title,
+    minifyHtml(content),
+    `รหัส OTP ของคุณคือ ${otp} หมดอายุใน 5 นาที`,
+  );
 };

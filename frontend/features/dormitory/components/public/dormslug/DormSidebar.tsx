@@ -26,7 +26,14 @@ const LineIcon = ({ className }: { className?: string }) => (
 );
 
 export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
-  const { settings, owner, availability } = data;
+  const { settings, owner, availability, contacts, lineId, lineType, facebook } =
+    data;
+
+  const lineUrl = lineId
+    ? lineType === "OFFICIAL"
+      ? `https://line.me/R/ti/p/${lineId}`
+      : `https://line.me/ti/p/~${lineId}`
+    : null;
 
   return (
     <div className="overflow-hidden bg-white sm:rounded-2xl">
@@ -151,29 +158,31 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
 
       {/* Contact */}
       <div className="border-t border-slate-100 bg-white px-6 py-5">
-        <p className="mb-1 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+        <p className="mb-1 text-xs font-semibold tracking-wider uppercase">
           ติดต่อห้องพัก
-        </p>
-        <p className="mb-4 text-base font-bold text-slate-900">
-          {owner.fullName}
         </p>
 
         <div className="space-y-3">
-          <a
-            href={`tel:${owner.phone}`}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white transition-all hover:bg-slate-700 active:scale-95"
-          >
-            <Phone size={16} />
-            โทร {owner.phone}
-          </a>
-
-          {(owner.lineId || owner.facebook) && (
-            <div
-              className={`grid gap-2 ${owner.lineId && owner.facebook ? "grid-cols-2" : "grid-cols-1"}`}
+          {contacts.map((contact) => (
+            <a
+              key={contact.id}
+              href={`tel:${contact.phone}`}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white transition-all hover:bg-slate-700 active:scale-95"
             >
-              {owner.lineId && (
+              <Phone size={16} />
+              {contact.name
+                ? `${contact.name} · ${contact.phone}`
+                : `โทร ${contact.phone}`}
+            </a>
+          ))}
+
+          {(lineUrl || facebook) && (
+            <div
+              className={`grid gap-2 ${lineUrl && facebook ? "grid-cols-2" : "grid-cols-1"}`}
+            >
+              {lineUrl && (
                 <a
-                  href={`https://line.me/ti/p/~${owner.lineId}`}
+                  href={lineUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 rounded-xl bg-[#06C755]/10 px-4 py-3 text-sm font-semibold text-[#06C755] transition-colors hover:bg-[#06C755]/20 active:scale-95"
@@ -182,9 +191,9 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
                   Line
                 </a>
               )}
-              {owner.facebook && (
+              {facebook && (
                 <a
-                  href={owner.facebook}
+                  href={facebook}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 rounded-xl bg-[#1877F2]/10 px-4 py-3 text-sm font-semibold text-[#1877F2] transition-colors hover:bg-[#1877F2]/20 active:scale-95"
