@@ -31,6 +31,7 @@ export const updateDormSchema = z
     longitude: z.number(),
     mapUrl: z.string(),
     roomPrice: z.number().optional(),
+    waterBillingType: z.enum(["METERED", "FLAT_RATE"]).optional(),
     waterRate: z.number(),
     electricRate: z.number(),
     commonFee: z.number().optional(),

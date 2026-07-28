@@ -11,6 +11,7 @@ export interface DormFormDataDto {
   longitude: number;
   mapUrl: string;
   roomPrice?: number;
+  waterBillingType?: "METERED" | "FLAT_RATE";
   waterRate: number;
   electricRate: number;
   commonFee?: number;

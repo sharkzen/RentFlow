@@ -8,10 +8,25 @@ interface InfoTooltipProps {
 }
 
 const POPOVER_WIDTH = 288;
+const VIEWPORT_MARGIN = 12;
+const MIN_SPACE_BELOW = 160;
+
+interface PopoverPosition {
+  left: number;
+  width: number;
+  maxHeight: number;
+  top?: number;
+  bottom?: number;
+}
 
 export default function InfoTooltip({ children }: InfoTooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [position, setPosition] = useState<PopoverPosition>({
+    top: 0,
+    left: 0,
+    width: POPOVER_WIDTH,
+    maxHeight: 400,
+  });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -22,12 +37,26 @@ export default function InfoTooltip({ children }: InfoTooltipProps) {
       const rect = buttonRef.current?.getBoundingClientRect();
       if (!rect) return;
 
+      const width = Math.min(
+        POPOVER_WIDTH,
+        window.innerWidth - VIEWPORT_MARGIN * 2,
+      );
       const left = Math.min(
         rect.left,
-        window.innerWidth - POPOVER_WIDTH - 12,
+        window.innerWidth - width - VIEWPORT_MARGIN,
       );
 
-      setPosition({ top: rect.bottom + 8, left: Math.max(left, 12) });
+      const spaceBelow = window.innerHeight - rect.bottom - VIEWPORT_MARGIN;
+      const spaceAbove = rect.top - VIEWPORT_MARGIN;
+      const openAbove = spaceBelow < MIN_SPACE_BELOW && spaceAbove > spaceBelow;
+
+      setPosition({
+        left: Math.max(left, VIEWPORT_MARGIN),
+        width,
+        maxHeight: Math.max(openAbove ? spaceAbove : spaceBelow, 120),
+        top: openAbove ? undefined : rect.bottom + 8,
+        bottom: openAbove ? window.innerHeight - rect.top + 8 : undefined,
+      });
     };
 
     updatePosition();
@@ -61,7 +90,9 @@ export default function InfoTooltip({ children }: InfoTooltipProps) {
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-200 text-gray-600 transition-colors hover:bg-gray-300"
+        className={`flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-200 text-gray-600 transition-colors hover:bg-gray-300 ${
+          !isOpen ? "animate-pulse hover:animate-none" : ""
+        }`}
       >
         <Info size={11} strokeWidth={2.5} />
       </button>
@@ -71,10 +102,12 @@ export default function InfoTooltip({ children }: InfoTooltipProps) {
             ref={popoverRef}
             style={{
               top: position.top,
+              bottom: position.bottom,
               left: position.left,
-              width: POPOVER_WIDTH,
+              width: position.width,
+              maxHeight: position.maxHeight,
             }}
-            className="fixed z-9999 rounded-xl border border-gray-200 bg-white p-3 text-xs leading-relaxed text-gray-600 shadow-lg"
+            className="fixed z-9999 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 text-xs leading-relaxed text-gray-600 shadow-lg"
           >
             {children}
           </div>,

@@ -665,7 +665,9 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
     }
     case EmailType.RESET_PASSWORD:
       return {
-        subject: getSubject(`${data.otp} คือรหัส OTP สำหรับรีเซ็ตรหัสผ่านของคุณ`),
+        subject: getSubject(
+          `${data.otp} คือรหัส OTP สำหรับรีเซ็ตรหัสผ่านของคุณ`,
+        ),
         html: getResetPasswordOtpHtml(data.otp),
       };
     case EmailType.OWNER_APPROVED: {
@@ -800,13 +802,6 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
             <table width="100%" style="margin-bottom: 30px;">
               <tr>
                 <td align="center">
-                  <div style="background-color: ${THEME.dangerBg}; width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 4px solid #ffffff; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.15);">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: block; margin: 0 auto; padding-top: 22px;">
-                      <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="${THEME.danger}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      <path d="M12 8V12" stroke="${THEME.danger}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      <circle cx="12" cy="16" r="1" fill="${THEME.danger}"/>
-                    </svg>
-                  </div>
                   <h1 style="color: ${THEME.text}; margin: 0 0 10px 0; font-size: 24px; font-weight: 800; text-align: center;">
                     แจ้งผลการตรวจสอบบัญชี
                   </h1>
@@ -829,7 +824,7 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
                 </div>
                 <ul style="margin: 0; padding-left: 20px; color: #9f1239; font-size: 14px; line-height: 1.7;">
                   <li><strong>การปักหมุดที่ตั้งหอพัก:</strong> กรุณาตรวจสอบและปักหมุดตำแหน่งที่ตั้งหอพักในแผนที่ให้ตรงกับความจริง</li>
-                  <li><strong>ข้อมูลและเอกสาร:</strong> ตรวจสอบเอกสารยืนยันตัวตนหรือเอกสารสิทธิ์ให้ชัดเจน และระบุข้อมูลหอพักให้ตรงกับเอกสารที่แนบมา</li>
+                  <li><strong>ข้อมูลและเอกสาร:</strong> ตรวจสอบข้อมูลให้ถูกต้องว่าเป็นข้อมูลจริงทั้งหมด</li>
                 </ul>
               </div>
 

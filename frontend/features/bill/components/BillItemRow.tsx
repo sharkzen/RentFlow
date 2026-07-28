@@ -33,6 +33,7 @@ interface BillItemRowProps {
   isLoadingRooms: boolean;
   isSubmitting: boolean;
   canRemove: boolean;
+  isWaterFlatRate?: boolean;
   onRoomSelect: (index: number, roomId: string) => void;
   onChange: (index: number, field: keyof BillItem, value: any) => void;
   onRemove: (id: string) => void;
@@ -48,6 +49,7 @@ export default function BillItemRow({
   isLoadingRooms,
   isSubmitting,
   canRemove,
+  isWaterFlatRate = false,
   onRoomSelect,
   onChange,
   onRemove,
@@ -118,87 +120,99 @@ export default function BillItemRow({
                   : "text-blue-600"
               }
             />
-            ประปา
+            ประปา{isWaterFlatRate && " (เหมาจ่าย)"}
           </div>
-          <div className="flex items-center gap-2">
-            {item.waterImage && (
-              <>
-                <img
-                  src={item.waterImage}
-                  onClick={() => onViewImage(item.waterImage!)}
-                  className="h-7 w-7 cursor-pointer rounded border border-blue-200 object-cover transition-transform hover:scale-110"
-                  alt="water"
-                />
-                <button
-                  type="button"
-                  onClick={() => setImageToDelete("WATER")}
-                  className="flex cursor-pointer items-center gap-1 rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-600 transition-colors hover:bg-red-100"
-                >
-                  <Trash2 size={14} />
-                  ลบรูป
-                </button>
-              </>
-            )}
-            <button
-              type="button"
-              onClick={() => onCaptureImage(index, "WATER")}
-              className={`cursor-pointer rounded-md p-1.5 transition-colors ${item.waterImage ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600 hover:bg-blue-200"}`}
-            >
-              <Camera size={14} />
-            </button>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <div className="mb-1 flex items-center justify-between">
-              <label className="text-[10px] font-bold text-gray-400">
-                ครั้งก่อน
-              </label>
+          {!isWaterFlatRate && (
+            <div className="flex items-center gap-2">
+              {item.waterImage && (
+                <>
+                  <img
+                    src={item.waterImage}
+                    onClick={() => onViewImage(item.waterImage!)}
+                    className="h-7 w-7 cursor-pointer rounded border border-blue-200 object-cover transition-transform hover:scale-110"
+                    alt="water"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setImageToDelete("WATER")}
+                    className="flex cursor-pointer items-center gap-1 rounded-md bg-red-50 px-2 py-1.5 text-xs text-red-600 transition-colors hover:bg-red-100"
+                  >
+                    <Trash2 size={14} />
+                    ลบรูป
+                  </button>
+                </>
+              )}
               <button
                 type="button"
-                onClick={toggleEditPrev}
-                className="flex cursor-pointer items-center gap-0.5 text-[10px] font-medium text-indigo-500 transition-colors hover:text-indigo-700"
+                onClick={() => onCaptureImage(index, "WATER")}
+                className={`cursor-pointer rounded-md p-1.5 transition-colors ${item.waterImage ? "bg-green-100 text-green-600" : "bg-blue-100 text-blue-600 hover:bg-blue-200"}`}
               >
-                <Edit size={10} />
-                <span>{item.isPrevEditable ? "ล็อก" : "แก้ไข"}</span>
+                <Camera size={14} />
               </button>
             </div>
-            <input
-              type="number"
-              value={item.prevWater}
-              disabled={!item.isPrevEditable || isSubmitting}
-              onChange={(e) => onChange(index, "prevWater", e.target.value)}
-              className={`h-9 w-full rounded-lg border text-center text-sm font-bold transition-all outline-none ${item.isPrevEditable ? "border-indigo-300 bg-white ring-2 ring-indigo-100" : "border-gray-200 bg-gray-100 text-gray-500"}`}
-            />
-          </div>
-          <div className="flex-1">
-            <label
-              className={`mb-1 block text-[10px] font-bold ${!isWaterEmpty && waterUsage < 0 ? "text-red-600" : "text-blue-600"}`}
-            >
-              ล่าสุด
-            </label>
-            <input
-              type="number"
-              value={item.currentWater}
-              disabled={isSubmitting}
-              onChange={(e) => onChange(index, "currentWater", e.target.value)}
-              className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isWaterEmpty && waterUsage < 0 ? "border-red-400 bg-white text-red-600 focus:ring-red-200" : "border-blue-200 focus:ring-blue-200"} `}
-            />
-          </div>
+          )}
         </div>
-        {!isWaterEmpty && (
-          <div
-            className={`mt-2 flex items-center justify-end text-[11px] font-bold ${waterUsage < 0 ? "text-red-500" : "text-blue-600"}`}
-          >
-            {waterUsage < 0 ? (
-              <span className="flex animate-pulse items-center gap-1">
-                <AlertCircle size={12} />
-                ค่าต้องมากกว่าครั้งก่อน!
-              </span>
-            ) : (
-              <span>ใช้ไป: {waterUsage}หน่วย</span>
+        {isWaterFlatRate ? (
+          <p className="text-[11px] text-blue-600">
+            ห้องนี้คิดค่าน้ำแบบเหมาจ่าย ไม่ต้องจดมิเตอร์
+          </p>
+        ) : (
+          <>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-[10px] font-bold text-gray-400">
+                    ครั้งก่อน
+                  </label>
+                  <button
+                    type="button"
+                    onClick={toggleEditPrev}
+                    className="flex cursor-pointer items-center gap-0.5 text-[10px] font-medium text-indigo-500 transition-colors hover:text-indigo-700"
+                  >
+                    <Edit size={10} />
+                    <span>{item.isPrevEditable ? "ล็อก" : "แก้ไข"}</span>
+                  </button>
+                </div>
+                <input
+                  type="number"
+                  value={item.prevWater}
+                  disabled={!item.isPrevEditable || isSubmitting}
+                  onChange={(e) => onChange(index, "prevWater", e.target.value)}
+                  className={`h-9 w-full rounded-lg border text-center text-sm font-bold transition-all outline-none ${item.isPrevEditable ? "border-indigo-300 bg-white ring-2 ring-indigo-100" : "border-gray-200 bg-gray-100 text-gray-500"}`}
+                />
+              </div>
+              <div className="flex-1">
+                <label
+                  className={`mb-1 block text-[10px] font-bold ${!isWaterEmpty && waterUsage < 0 ? "text-red-600" : "text-blue-600"}`}
+                >
+                  ล่าสุด
+                </label>
+                <input
+                  type="number"
+                  value={item.currentWater}
+                  disabled={isSubmitting}
+                  onChange={(e) =>
+                    onChange(index, "currentWater", e.target.value)
+                  }
+                  className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isWaterEmpty && waterUsage < 0 ? "border-red-400 bg-white text-red-600 focus:ring-red-200" : "border-blue-200 focus:ring-blue-200"} `}
+                />
+              </div>
+            </div>
+            {!isWaterEmpty && (
+              <div
+                className={`mt-2 flex items-center justify-end text-[11px] font-bold ${waterUsage < 0 ? "text-red-500" : "text-blue-600"}`}
+              >
+                {waterUsage < 0 ? (
+                  <span className="flex animate-pulse items-center gap-1">
+                    <AlertCircle size={12} />
+                    ค่าต้องมากกว่าครั้งก่อน!
+                  </span>
+                ) : (
+                  <span>ใช้ไป: {waterUsage}หน่วย</span>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </div>
       <div

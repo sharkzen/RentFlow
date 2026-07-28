@@ -214,7 +214,7 @@ const DueMonthOffsetSelect = ({
         <div
           id={listboxId}
           role="listbox"
-          className="absolute z-10 mt-1 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+          className="absolute z-10 mt-1 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1"
         >
           {DUE_MONTH_OFFSETS.map((option, index) => (
             <button
@@ -332,7 +332,7 @@ const StepDropdown = ({
         <div
           id={listboxId}
           role="listbox"
-          className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+          className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1"
         >
           {STEPS.map((step, idx) => {
             const StepIcon = step.icon;
@@ -391,21 +391,19 @@ export default function DormsDialog({
     new Set(),
   );
   const [isPaymentConfirmOpen, setIsPaymentConfirmOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useHotkeys("esc", () => {
-    if (!isDeleteDialogOpen) onClose();
+    if (!isDeleteDialogOpen && !isPaymentConfirmOpen) onClose();
   });
 
   const closeRef = useRef<HTMLDivElement>(null!);
 
   useOnClickOutside(closeRef, () => {
-    if (!isDeleteDialogOpen) {
+    if (!isDeleteDialogOpen && !isPaymentConfirmOpen) {
       onClose();
     }
   });
-
-  const [initialData, setInitialData] = useState<DormFormData | null>(null);
-  const isEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
 
   const [formData, setFormData] = useState<DormFormData>({
     id: dorm.id,
@@ -422,6 +420,7 @@ export default function DormsDialog({
     facebook: dorm.facebook ?? "",
     mapUrl: dorm.mapUrl ?? "",
     roomPrice: dorm.settings?.roomPrice ?? 0,
+    waterBillingType: dorm.settings?.waterBillingType ?? "METERED",
     waterRate: dorm.settings?.waterRate ?? 0,
     electricRate: dorm.settings?.electricRate ?? 0,
     commonFee: dorm.settings?.commonFee ?? 0,
@@ -436,9 +435,6 @@ export default function DormsDialog({
   });
 
   useEffect(() => {
-    setInitialData({
-      ...formData,
-    });
     // เปิดส่วน "เพิ่มเติม" อัตโนมัติถ้ามีค่าติดมาจากเดิมอยู่แล้ว
     if (
       (dorm.settings?.commonFee ?? 0) > 0 ||
@@ -533,12 +529,6 @@ export default function DormsDialog({
   }, [formData.dueDay, formData.dueMonthOffset]);
 
   const proceedSave = async () => {
-    if (initialData && isEqual(initialData, formData)) {
-      onClose();
-      onRefresh?.();
-      return;
-    }
-
     // จัดระเบียบตัวเลขก่อนส่งเข้า Backend เพื่อป้องกันบัค (กรณีตั้งทิ้งไว้เป็น "")
     const payload: DormFormData = {
       ...formData,
@@ -552,8 +542,13 @@ export default function DormsDialog({
 
       contacts: (formData.contacts ?? [])
         .filter((c) => c.phone.trim() !== "")
-        .map((c) => ({ name: c.name?.trim() || undefined, phone: c.phone.trim() })),
+        .map((c) => ({
+          name: c.name?.trim() || undefined,
+          phone: c.phone.trim(),
+        })),
     };
+
+    setIsSaving(true);
 
     try {
       await toast.promise(DormService.updateDorm(payload), {
@@ -566,7 +561,10 @@ export default function DormsDialog({
       onClose();
     } catch (error: any) {
       log.error(error);
-      showBackendError(error);
+      // แจ้งเตือนผู้ใช้ชัดเจนว่าบันทึกไม่สำเร็จ ข้อมูลที่กรอกยังอยู่ในฟอร์ม ไม่หายไปไหน
+      toast.error(showBackendError(error?.response?.data?.message));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -671,7 +669,7 @@ export default function DormsDialog({
       <div className="fixed inset-0 z-50 flex justify-center bg-slate-900/40 sm:items-center sm:p-4">
         <div
           ref={closeRef}
-          className="flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl ring-1 ring-slate-900/5 sm:max-h-[90vh] sm:max-w-4xl sm:rounded-2xl"
+          className="flex h-full w-full flex-col overflow-hidden bg-white ring-1 ring-slate-900/5 sm:max-h-[90vh] sm:max-w-4xl sm:rounded-2xl"
         >
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
             <div className="flex flex-col">
@@ -782,23 +780,48 @@ export default function DormsDialog({
                         <Label required>
                           ลิงก์ Google Maps
                           <InfoTooltip>
-                            <p className="font-semibold text-slate-800">
-                              วิธีปักหมุดให้ตรงตำแหน่งจริง
+                            <p className="font-semibold text-gray-800">
+                              วิธีคัดลอกลิงก์ตำแหน่งที่ถูกต้อง
                             </p>
-                            <ol className="mt-1.5 list-decimal space-y-1 pl-4">
+
+                            <ol className="mt-2 list-decimal space-y-1.5 pl-4">
                               <li>
-                                เปิด Google Maps แล้วเลื่อนแผนที่ไปยังหอพัก
+                                เปิด{" "}
+                                <strong>Google Maps ผ่านเว็บเบราว์เซอร์</strong>
+                                (เช่น Chrome, Edge หรือ Safari)
+                                <span className="block text-xs text-gray-500">
+                                  ไม่แนะนำให้ทำผ่านแอป Google Maps
+                                </span>
                               </li>
+
                               <li>
-                                กดค้าง (long-press) บนตำแหน่งหอพักตรงจุดเป๊ะๆ
-                                เพื่อปักหมุดเอง
+                                เลื่อนแผนที่ไปยังตำแหน่งของหอพักให้ตรงที่สุด
                               </li>
-                              <li>กด Share แล้วคัดลอกลิงก์มาวางในช่องนี้</li>
+
+                              <li>
+                                คลิกหรือกดค้างบนตำแหน่งหอพักจริง เพื่อ
+                                <strong>ปักหมุด (Dropped Pin)</strong>
+                                <span className="block text-xs text-gray-500">
+                                  อย่าค้นหาชื่อหอพักแล้วกดแชร์ทันที
+                                </span>
+                              </li>
+
+                              <li>
+                                เมื่อปักหมุดแล้ว ให้คัดลอกลิงก์จาก
+                                <strong>แถบ URL ด้านบนของเบราว์เซอร์</strong>
+                                แล้วนำมาวางในช่องนี้
+                              </li>
                             </ol>
-                            <p className="mt-1.5 text-amber-600">
-                              อย่าเสิร์ชหาชื่อหอแล้วกด Share ทันที
-                              เพราะอาจได้ลิงก์ของสถานที่ใกล้เคียงที่ไม่ตรงจริง
-                            </p>
+
+                            <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 p-2 text-amber-700">
+                              <p className="font-medium">⚠️ ข้อควรระวัง</p>
+                              <p className="mt-1 text-sm">
+                                หากค้นหาชื่อหอพักแล้วกดแชร์ทันที Google Maps
+                                อาจสร้างลิงก์ของสถานที่ที่อยู่ใกล้เคียง
+                                หรือพิกัดที่ไม่ตรงกับตำแหน่งจริงของหอพัก
+                                ทำให้ผู้เช่าเดินทางผิดตำแหน่งได้
+                              </p>
+                            </div>
                           </InfoTooltip>
                         </Label>
                         <Input
@@ -849,22 +872,28 @@ export default function DormsDialog({
                 )}
 
                 {activeStep === "pricing" && (
-                  <div className="space-y-5">
-                    <div>
-                      <h3 className="text-base font-bold text-slate-800">
+                  <div className="space-y-6">
+                    {/* ส่วนหัว */}
+                    <div className="border-b border-slate-100 pb-4">
+                      <h3 className="flex items-center gap-2.5 text-lg font-bold text-slate-800">
+                        <div className="flex rounded-lg bg-indigo-100 p-1.5 text-indigo-600">
+                          <DollarSign size={20} />
+                        </div>
                         ราคา & ค่าใช้จ่าย
                       </h3>
-                      <p className="text-sm text-slate-500">
+                      <p className="mt-1.5 text-sm text-slate-500">
                         ตั้งราคาเริ่มต้นและอัตราค่าน้ำ-ไฟ
-                        ระบบจะใช้คำนวณบิลอัตโนมัติ
+                        ระบบจะนำไปใช้คำนวณบิลอัตโนมัติ
                       </p>
                     </div>
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                      <div>
+
+                    {/* 1. ราคาห้องเช่า (ดึงออกมาให้เด่น ไม่โดนบีบ) */}
+                    <div className="rounded-xl border border-slate-200 bg-white p-5">
+                      <div className="max-w-md">
                         <Label required icon={DollarSign}>
-                          ราคาห้องเช่า(ราคาเริ่มต้น)
+                          ราคาห้องเช่า (เริ่มต้น)
                         </Label>
-                        <div className="relative">
+                        <div className="relative mt-2">
                           <Input
                             type="number"
                             min="0"
@@ -873,20 +902,25 @@ export default function DormsDialog({
                               handleNumberChange("roomPrice", e.target.value)
                             }
                             onKeyDown={preventInvalidNumberKeys}
-                            className="pr-14"
+                            className="h-12 pr-16 pl-4 text-lg font-semibold text-indigo-700 transition-colors focus:border-indigo-500 focus:ring-indigo-100"
                             placeholder="0"
                             error={fieldErrors.has("roomPrice")}
                           />
-                          <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                          <span className="absolute top-3.5 right-4 text-sm font-medium text-slate-400">
                             บาท/ด.
                           </span>
                         </div>
                       </div>
-                      <div>
+                    </div>
+
+                    {/* 2. ค่าน้ำ - ค่าไฟ (แบ่ง 2 คอลัมน์ให้มีพื้นที่) */}
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                      {/* ค่าไฟ */}
+                      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
                         <Label required icon={Zap}>
                           ค่าไฟ
                         </Label>
-                        <div className="relative">
+                        <div className="relative mt-2">
                           <Input
                             type="number"
                             min="0"
@@ -895,7 +929,7 @@ export default function DormsDialog({
                               handleNumberChange("electricRate", e.target.value)
                             }
                             onKeyDown={preventInvalidNumberKeys}
-                            className="pr-16"
+                            className="pr-20"
                             placeholder="0"
                             error={fieldErrors.has("electricRate")}
                           />
@@ -904,10 +938,43 @@ export default function DormsDialog({
                           </span>
                         </div>
                       </div>
-                      <div>
+
+                      {/* ค่าน้ำ */}
+                      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
                         <Label required icon={Droplets}>
                           ค่าน้ำ
                         </Label>
+                        {/* ปรับปุ่ม Toggle ให้หน้าตาเหมือน iOS Segmented Control */}
+                        <div className="mt-2 mb-3 flex gap-1 rounded-lg bg-slate-200/60 p-1 text-xs font-medium">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateField("waterBillingType", "METERED")
+                            }
+                            className={`flex-1 cursor-pointer rounded-md py-1.5 transition-all duration-200 ${
+                              (formData.waterBillingType ?? "METERED") ===
+                              "METERED"
+                                ? "bg-white text-indigo-700 ring-1 ring-slate-900/5"
+                                : "text-slate-500 hover:bg-slate-200/50 hover:text-slate-700"
+                            }`}
+                          >
+                            คิดตามหน่วย
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateField("waterBillingType", "FLAT_RATE")
+                            }
+                            className={`flex-1 cursor-pointer rounded-md py-1.5 transition-all duration-200 ${
+                              formData.waterBillingType === "FLAT_RATE"
+                                ? "bg-white text-indigo-700 ring-1 ring-slate-900/5"
+                                : "text-slate-500 hover:bg-slate-200/50 hover:text-slate-700"
+                            }`}
+                          >
+                            เหมาจ่าย
+                          </button>
+                        </div>
+
                         <div className="relative">
                           <Input
                             type="number"
@@ -917,75 +984,105 @@ export default function DormsDialog({
                               handleNumberChange("waterRate", e.target.value)
                             }
                             onKeyDown={preventInvalidNumberKeys}
-                            className="pr-16"
+                            className="pr-20"
                             placeholder="0"
                             error={fieldErrors.has("waterRate")}
                           />
                           <span className="absolute top-2.5 right-3 text-xs text-slate-400">
-                            บาท/หน่วย
+                            {formData.waterBillingType === "FLAT_RATE"
+                              ? "บาท/ด."
+                              : "บาท/หน่วย"}
                           </span>
                         </div>
+                        <p className="mt-2.5 text-[11px] leading-relaxed text-slate-400">
+                          {formData.waterBillingType === "FLAT_RATE"
+                            ? "ผู้เช่าจ่ายค่าน้ำเหมาจ่ายเท่ากันทุกเดือน ไม่ต้องจดมิเตอร์"
+                            : "คำนวณบิลจาก: (หน่วยเดือนนี้ - หน่วยเดือนก่อน) × ราคา"}
+                        </p>
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setShowAdvancedFees((v) => !v)}
-                      className="flex cursor-pointer items-center gap-1.5 text-sm font-semibold text-indigo-600"
-                    >
-                      <ChevronRight
-                        size={16}
-                        className={`transition-transform ${showAdvancedFees ? "rotate-90" : ""}`}
-                      />
-                      ค่าใช้จ่ายเพิ่มเติม (ส่วนกลาง, ค่าปรับ)
-                    </button>
+                    {/* 3. ค่าใช้จ่ายเพิ่มเติม (ทำเป็นแท็บ Accordion ดูเนียนตา) */}
+                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white transition-all">
+                      <button
+                        type="button"
+                        onClick={() => setShowAdvancedFees((v) => !v)}
+                        className={`flex w-full cursor-pointer items-center justify-between p-4 text-sm font-semibold transition-colors ${
+                          showAdvancedFees
+                            ? "bg-slate-50 text-indigo-700"
+                            : "text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className={`rounded-md p-1 transition-colors ${
+                              showAdvancedFees
+                                ? "bg-indigo-100 text-indigo-600"
+                                : "bg-slate-100 text-slate-500"
+                            }`}
+                          >
+                            <Info size={16} />
+                          </div>
+                          ตั้งค่าเพิ่มเติม (ค่าส่วนกลาง, ค่าปรับล่าช้า)
+                        </div>
+                        <ChevronRight
+                          size={18}
+                          className={`text-slate-400 transition-transform duration-300 ${
+                            showAdvancedFees ? "rotate-90 text-indigo-500" : ""
+                          }`}
+                        />
+                      </button>
 
-                    {showAdvancedFees && (
-                      <div className="grid grid-cols-1 gap-5 rounded-lg border border-slate-100 bg-white p-4 sm:grid-cols-2">
-                        <div>
-                          <Label icon={Info} optional>
-                            ค่าส่วนกลาง
-                          </Label>
-                          <div className="relative">
-                            <Input
-                              type="number"
-                              min="0"
-                              value={formData.commonFee}
-                              onChange={(e) =>
-                                handleNumberChange("commonFee", e.target.value)
-                              }
-                              onKeyDown={preventInvalidNumberKeys}
-                              className="pr-14"
-                              placeholder="0"
-                            />
-                            <span className="absolute top-2.5 right-3 text-xs text-slate-400">
-                              บาท/ด.
-                            </span>
+                      {showAdvancedFees && (
+                        <div className="grid grid-cols-1 gap-5 border-t border-slate-100 bg-slate-50 p-5 sm:grid-cols-2">
+                          <div>
+                            <Label icon={Info} optional>
+                              ค่าส่วนกลาง
+                            </Label>
+                            <div className="relative mt-2">
+                              <Input
+                                type="number"
+                                min="0"
+                                value={formData.commonFee}
+                                onChange={(e) =>
+                                  handleNumberChange(
+                                    "commonFee",
+                                    e.target.value,
+                                  )
+                                }
+                                onKeyDown={preventInvalidNumberKeys}
+                                className="bg-white pr-16"
+                                placeholder="0"
+                              />
+                              <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                                บาท/ด.
+                              </span>
+                            </div>
+                          </div>
+                          <div>
+                            <Label icon={AlertCircle} optional>
+                              ค่าปรับชำระล่าช้า
+                            </Label>
+                            <div className="relative mt-2">
+                              <Input
+                                type="number"
+                                min="0"
+                                value={formData.lateFee}
+                                onChange={(e) =>
+                                  handleNumberChange("lateFee", e.target.value)
+                                }
+                                onKeyDown={preventInvalidNumberKeys}
+                                className="bg-white pr-16"
+                                placeholder="0"
+                              />
+                              <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                                บาท/วัน
+                              </span>
+                            </div>
                           </div>
                         </div>
-                        <div>
-                          <Label icon={AlertCircle} optional>
-                            ค่าปรับชำระล่าช้า
-                          </Label>
-                          <div className="relative">
-                            <Input
-                              type="number"
-                              min="0"
-                              value={formData.lateFee}
-                              onChange={(e) =>
-                                handleNumberChange("lateFee", e.target.value)
-                              }
-                              onKeyDown={preventInvalidNumberKeys}
-                              className="pr-14"
-                              placeholder="0"
-                            />
-                            <span className="absolute top-2.5 right-3 text-xs text-slate-400">
-                              บาท/วัน
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -1089,7 +1186,8 @@ export default function DormsDialog({
               <button
                 type="button"
                 onClick={handleSave}
-                className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 font-medium text-white hover:bg-indigo-700"
+                disabled={isSaving}
+                className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Save size={18} />
                 บันทึกข้อมูล
@@ -1115,15 +1213,16 @@ export default function DormsDialog({
           setIsPaymentConfirmOpen(false);
           setActiveStep("billing");
         }}
-        onConfirm={() => {
+        onConfirm={async () => {
+          await proceedSave();
           setIsPaymentConfirmOpen(false);
-          proceedSave();
         }}
         title="ยังไม่ได้ตั้งค่าบัญชีรับเงิน"
         description="คุณยังไม่ได้กรอกข้อมูลบัญชี/พร้อมเพย์สำหรับรับชำระเงิน ผู้เช่าจะยังไม่เห็นช่องทางโอนเงินจนกว่าจะตั้งค่า ต้องการบันทึกข้อมูลต่อเลยหรือไม่?"
         type="warning"
         confirmText="บันทึกต่อเลย"
         cancelText="กลับไปตั้งค่า"
+        isLoading={isSaving}
       />
     </RemoveScroll>
   );

@@ -46,6 +46,7 @@ export interface DormitorySettings {
   id: string;
   dormitoryId: string;
   roomPrice: number;
+  waterBillingType: "METERED" | "FLAT_RATE";
   waterRate: number;
   electricRate: number;
   commonFee: number;
@@ -98,6 +99,7 @@ export interface DormFormData {
   facebook?: string;
   mapUrl: string;
   roomPrice: number;
+  waterBillingType: "METERED" | "FLAT_RATE";
   waterRate: number;
   electricRate: number;
   commonFee: number;
@@ -185,6 +187,7 @@ export type DormSlugResponse = {
     id: string;
     dormitoryId: string;
     roomPrice: number;
+    waterBillingType: "METERED" | "FLAT_RATE";
     waterRate: number;
     electricRate: number;
     commonFee: number;

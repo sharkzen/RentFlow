@@ -467,6 +467,7 @@ export default function BillContainer() {
           dueDay={currentDorm?.settings?.dueDay}
           dueMonthOffset={currentDorm?.settings?.dueMonthOffset}
           lateFee={currentDorm?.settings?.lateFee}
+          isWaterFlatRate={currentDorm?.settings?.waterBillingType === "FLAT_RATE"}
           ocrFeatureEnabled={features?.data?.enabled || false}
         />
       )}

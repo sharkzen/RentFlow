@@ -71,6 +71,7 @@ interface Props {
   dueDay?: number;
   dueMonthOffset?: number;
   lateFee?: number;
+  isWaterFlatRate?: boolean;
   ocrFeatureEnabled: boolean;
 }
 
@@ -83,6 +84,7 @@ export default function CreateBillDialog({
   dueDay,
   dueMonthOffset,
   lateFee,
+  isWaterFlatRate = false,
   ocrFeatureEnabled,
 }: Props) {
   const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
@@ -195,7 +197,8 @@ export default function CreateBillDialog({
 
   const hasNegativeUsage = items.some(
     (item) =>
-      (item.currentWater !== "" &&
+      (!isWaterFlatRate &&
+        item.currentWater !== "" &&
         Number(item.currentWater) < item.prevWater) ||
       (item.currentElectric !== "" &&
         Number(item.currentElectric) < item.prevElectric),
@@ -489,7 +492,10 @@ export default function CreateBillDialog({
     }
 
     const invalidItems = items.filter(
-      (i) => !i.roomId || i.currentWater === "" || i.currentElectric === "",
+      (i) =>
+        !i.roomId ||
+        (!isWaterFlatRate && i.currentWater === "") ||
+        i.currentElectric === "",
     );
 
     if (invalidItems.length > 0) {
@@ -517,7 +523,9 @@ export default function CreateBillDialog({
         items: items.map((item) => ({
           roomId: item.roomId,
           prevWater: item.prevWater,
-          currentWater: Number(item.currentWater),
+          currentWater: isWaterFlatRate
+            ? item.prevWater
+            : Number(item.currentWater),
           waterImageKey: item.waterImageKey,
           prevElectric: item.prevElectric,
           currentElectric: Number(item.currentElectric),
@@ -640,6 +648,7 @@ export default function CreateBillDialog({
               isLoadingRooms={isLoadingRooms}
               isSubmitting={isSubmitting}
               canRemove={items.length > 1}
+              isWaterFlatRate={isWaterFlatRate}
               onRoomSelect={handleRoomSelect}
               onChange={handleChange}
               onRemove={(id) => setItems(items.filter((i) => i.id !== id))}

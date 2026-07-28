@@ -122,11 +122,15 @@ export const buildBulkBillHtmlTemplate = (
               </tr>
               <tr>
                 <td>
-                  <div class="font-bold">ค่าน้ำประปา</div>
-                  <div class="unit-detail">(มิเตอร์: ${bill.prevWaterUnitSnapshot} - ${bill.currentWaterUnitSnapshot})</div>
+                  <div class="font-bold">ค่าน้ำประปา${bill.waterBillingTypeSnapshot === "FLAT_RATE" ? " (เหมาจ่าย)" : ""}</div>
+                  ${
+                    bill.waterBillingTypeSnapshot === "FLAT_RATE"
+                      ? ""
+                      : `<div class="unit-detail">(มิเตอร์: ${bill.prevWaterUnitSnapshot} - ${bill.currentWaterUnitSnapshot})</div>`
+                  }
                 </td>
-                <td class="text-center">${bill.waterUsedSnapshot}</td>
-                <td class="text-right">${formatMoney(bill.waterRateSnapshot)}</td>
+                <td class="text-center">${bill.waterBillingTypeSnapshot === "FLAT_RATE" ? "-" : bill.waterUsedSnapshot}</td>
+                <td class="text-right">${bill.waterBillingTypeSnapshot === "FLAT_RATE" ? "-" : formatMoney(bill.waterRateSnapshot)}</td>
                 <td class="text-right font-bold">${formatMoney(bill.waterFeeSnapshot)}</td>
               </tr>
               <tr>

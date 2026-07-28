@@ -111,6 +111,7 @@ export interface IBillDetail {
   roomPriceSnapshot: number;
   billingMonth: string;
   dueDate: string;
+  waterBillingTypeSnapshot: "METERED" | "FLAT_RATE";
   prevWaterUnitSnapshot: number;
   currentWaterUnitSnapshot: number;
   waterUsedSnapshot: number;

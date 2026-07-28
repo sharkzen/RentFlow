@@ -635,7 +635,16 @@ export const dormService = {
     }
 
     const slug = generateSlug(dorm.name);
-    const latLng = await getLatLngFromUrl(dorm.mapUrl ?? 0);
+    let latLng: { lat: number; lng: number } | null = null;
+
+    try {
+      latLng = await getLatLngFromUrl(dorm.mapUrl ?? 0);
+    } catch (error) {
+      logger.error(
+        `getLatLngFromUrl failed for dorm ${dorm.id}, keeping previous coordinates: ${error}`,
+      );
+    }
+
     const validPromptPayType =
       dorm.promptPayType &&
       ["PHONE", "ID_CARD", "E_WALLET"].includes(dorm.promptPayType)
@@ -656,8 +665,8 @@ export const dormService = {
           lineId: dorm.lineId,
           lineType: dorm.lineType ?? "PERSONAL",
           facebook: dorm.facebook === "" ? null : dorm.facebook,
-          latitude: latLng?.lat ?? 0,
-          longitude: latLng?.lng ?? 0,
+          latitude: latLng?.lat ?? existingDorm.latitude ?? 0,
+          longitude: latLng?.lng ?? existingDorm.longitude ?? 0,
           mapUrl: dorm.mapUrl,
           status: "ACTIVE",
         },
@@ -670,6 +679,7 @@ export const dormService = {
 
         update: {
           roomPrice: Number(dorm.roomPrice),
+          waterBillingType: dorm.waterBillingType ?? "METERED",
           waterRate: Number(dorm.waterRate),
           electricRate: Number(dorm.electricRate),
           commonFee: Number(dorm.commonFee ?? 0),
@@ -681,6 +691,7 @@ export const dormService = {
         create: {
           dormitoryId: dorm.id,
           roomPrice: Number(dorm.roomPrice),
+          waterBillingType: dorm.waterBillingType ?? "METERED",
           waterRate: Number(dorm.waterRate),
           electricRate: Number(dorm.electricRate),
           commonFee: Number(dorm.commonFee ?? 0),

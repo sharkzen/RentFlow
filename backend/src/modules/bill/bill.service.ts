@@ -600,10 +600,15 @@ export const billService = {
       ]);
 
       const tenant = room.tenants[0];
-      const waterUsed = Number(item.currentWater) - Number(item.prevWater);
+      const isWaterFlatRate = dormSettings.waterBillingType === "FLAT_RATE";
+      const waterUsed = isWaterFlatRate
+        ? 0
+        : Number(item.currentWater) - Number(item.prevWater);
       const electricUsed =
         Number(item.currentElectric) - Number(item.prevElectric);
-      const waterFee = waterUsed * dormSettings.waterRate;
+      const waterFee = isWaterFlatRate
+        ? dormSettings.waterRate
+        : waterUsed * dormSettings.waterRate;
       const electricFee = electricUsed * dormSettings.electricRate;
       const dueDate = new Date(saveDate);
       dueDate.setDate(dormSettings.dueDay);
@@ -647,8 +652,13 @@ export const billService = {
           tenantNameSnapshot: `${tenant.firstName} ${tenant.lastName}`,
           roomNumberSnapshot: room.roomNumber,
           roomPriceSnapshot: room.basePrice,
-          prevWaterUnitSnapshot: Number(item.prevWater),
-          currentWaterUnitSnapshot: Number(item.currentWater),
+          waterBillingTypeSnapshot: dormSettings.waterBillingType,
+          prevWaterUnitSnapshot: isWaterFlatRate
+            ? 0
+            : Number(item.prevWater),
+          currentWaterUnitSnapshot: isWaterFlatRate
+            ? 0
+            : Number(item.currentWater),
           waterUsedSnapshot: waterUsed,
           waterRateSnapshot: dormSettings.waterRate,
           waterFeeSnapshot: waterFee,

@@ -129,7 +129,9 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             </span>
             <span className="text-sm font-semibold text-slate-800">
               {settings?.waterRate > 0
-                ? `${settings.waterRate} บ./หน่วย`
+                ? settings?.waterBillingType === "FLAT_RATE"
+                  ? `${settings.waterRate} บาท/ด. (เหมาจ่าย)`
+                  : `${settings.waterRate} บ./หน่วย`
                 : "ยังไม่กำหนด"}
             </span>
           </div>

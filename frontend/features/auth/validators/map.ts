@@ -1,3 +1,12 @@
+export const extractMapUrlFromText = (text: string): string => {
+  if (typeof text !== "string") return "";
+
+  const trimmed = text.trim();
+  const match = trimmed.match(/https?:\/\/\S+/);
+
+  return match ? match[0] : trimmed;
+};
+
 export const isValidMapLink = (link: string): boolean => {
   if (typeof link !== "string") return false;
 

@@ -71,10 +71,17 @@ export const FinancialCard = ({ tenant }: { tenant: TenantContractDetail }) => {
             <Droplets size={20} />
           </div>
           <div>
-            <p className="text-xs font-medium text-blue-600">ค่าน้ำ</p>
+            <p className="text-xs font-medium text-blue-600">
+              ค่าน้ำ
+              {settings.waterBillingType === "FLAT_RATE" && " (เหมาจ่าย)"}
+            </p>
             <p className="text-lg font-bold text-blue-900">
               {settings.waterRate}{" "}
-              <span className="text-xs font-normal">บาท/หน่วย</span>
+              <span className="text-xs font-normal">
+                {settings.waterBillingType === "FLAT_RATE"
+                  ? "บาท/เดือน"
+                  : "บาท/หน่วย"}
+              </span>
             </p>
           </div>
         </div>

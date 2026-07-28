@@ -27,6 +27,15 @@ const URL_COORD_PATTERNS: RegExp[] = [
   /[?&]center=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/,
 ];
 
+export function extractMapUrlFromText(text: string): string {
+  if (typeof text !== "string") return "";
+
+  const trimmed = text.trim();
+  const match = trimmed.match(/https?:\/\/\S+/);
+
+  return match ? match[0] : trimmed;
+}
+
 function isValidLatLng(lat: number, lng: number): boolean {
   return (
     Number.isFinite(lat) &&
@@ -201,7 +210,7 @@ async function resolveWithFallbackUserAgents(
 export async function getLatLngFromUrl(url: string): Promise<LatLng | null> {
   if (!url) return null;
 
-  const trimmedUrl = url.trim();
+  const trimmedUrl = extractMapUrlFromText(url);
 
   if (!trimmedUrl) return null;
 

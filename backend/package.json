@@ -9,6 +9,7 @@
     "dev:worker": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register --watch src src/workers/email.worker.ts",
     "dev": "npx prisma db seed && concurrently --kill-others \"npm run dev:server\" \"npm run dev:worker\"",
     "clean": "shx rm -rf dist",
+    "db:reset": "npx prisma db push --force-reset && npx prisma generate && npx prisma db seed",
     "prebuild": "npm run clean",
     "build:server": "esbuild src/server.ts --bundle --platform=node --packages=external --outdir=dist",
     "build:worker": "esbuild src/workers/email.worker.ts --bundle --platform=node --packages=external --outdir=dist/workers",

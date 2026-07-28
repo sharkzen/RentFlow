@@ -38,14 +38,14 @@ model File {
 }
 
 model User {
-  id             String          @id @default(uuid())
-  email          String          @unique
-  password       String
-  role           UserRole
-  deletedAt      DateTime?
-  status         Status          @default(PENDING)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id                String             @id @default(uuid())
+  email             String             @unique
+  password          String
+  role              UserRole
+  deletedAt         DateTime?
+  status            Status             @default(PENDING)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
   ownerProfile      OwnerProfile?
   tenantProfiles    TenantProfile[]
   passwordResetOtps PasswordResetOtp[]
@@ -100,16 +100,17 @@ model Dormitory {
 }
 
 model DormitorySetting {
-  id             String    @id @default(uuid())
-  dormitoryId    String    @unique
-  roomPrice      Float?
-  waterRate      Float
-  electricRate   Float
-  commonFee      Float     @default(0)
-  lateFee        Float     @default(0)
-  dueDay         Int
-  dueMonthOffset Int       @default(1)
-  dormitory      Dormitory @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
+  id               String           @id @default(uuid())
+  dormitoryId      String           @unique
+  roomPrice        Float?
+  waterBillingType WaterBillingType @default(METERED)
+  waterRate        Float
+  electricRate     Float
+  commonFee        Float            @default(0)
+  lateFee          Float            @default(0)
+  dueDay           Int
+  dueMonthOffset   Int              @default(1)
+  dormitory        Dormitory        @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
 }
 
 model PaymentSetting {
@@ -196,7 +197,7 @@ model TenantProfile {
 }
 
 model Bill {
-  id                          String        @id @default(uuid())
+  id                          String           @id @default(uuid())
   roomId                      String
   tenantId                    String
   tenantNameSnapshot          String
@@ -204,6 +205,7 @@ model Bill {
   roomPriceSnapshot           Float
   billingMonth                DateTime
   dueDate                     DateTime
+  waterBillingTypeSnapshot    WaterBillingType @default(METERED)
   prevWaterUnitSnapshot       Float
   currentWaterUnitSnapshot    Float
   waterUsedSnapshot           Float
@@ -220,13 +222,13 @@ model Bill {
   lateFeeSnapshot             Float
   total                       Float
   note                        String?
-  status                      BillStatus    @default(PENDING)
-  archived                    Boolean       @default(false)
-  createdAt                   DateTime      @default(now())
+  status                      BillStatus       @default(PENDING)
+  archived                    Boolean          @default(false)
+  createdAt                   DateTime         @default(now())
   lastNotifiedAt              DateTime?
   reminderSentAt              DateTime?
-  room                        Room          @relation(fields: [roomId], references: [id])
-  tenant                      TenantProfile @relation(fields: [tenantId], references: [id])
+  room                        Room             @relation(fields: [roomId], references: [id])
+  tenant                      TenantProfile    @relation(fields: [tenantId], references: [id])
   items                       BillItem[]
   payment                     Payment?
 
@@ -411,6 +413,11 @@ enum Status {
 enum BillItemType {
   CHARGE
   DISCOUNT
+}
+
+enum WaterBillingType {
+  METERED
+  FLAT_RATE
 }
 
 enum PromptPayType {

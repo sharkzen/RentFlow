@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { extractMapUrlFromText } from "../../../lib/extractLatLng";
 
 export const adminRegisterSchema = z.object({
   email: z.string().email(),
@@ -12,7 +13,7 @@ export const ownerRegisterSchema = z.object({
   phone: z.string(),
   dormName: z.string(),
   address: z.string(),
-  mapUrl: z.string(),
+  mapUrl: z.string().transform((val) => extractMapUrlFromText(val)),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
 });

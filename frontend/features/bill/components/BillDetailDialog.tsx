@@ -512,22 +512,31 @@ export default function BillDetailDialog({
                   <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
                     <div className="mb-3 flex items-center gap-2 border-b border-blue-50 pb-2 font-bold text-blue-700">
                       <Droplets size={18} />
-                      มิเตอร์น้ำ {bill?.waterRateSnapshot}/หน่วย
+                      {bill?.waterBillingTypeSnapshot === "FLAT_RATE"
+                        ? "ค่าน้ำเหมาจ่าย"
+                        : `มิเตอร์น้ำ ${bill?.waterRateSnapshot}/หน่วย`}
                     </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between text-gray-500">
-                        <span>ก่อนหน้า</span>
-                        <span>{bill.prevWaterUnitSnapshot}</span>
-                      </div>
-                      <div className="flex justify-between font-medium">
-                        <span>ล่าสุด</span>
-                        <span>{bill.currentWaterUnitSnapshot}</span>
-                      </div>
-                      <div className="mt-1 flex justify-between rounded-lg bg-blue-50 p-2 text-xs font-bold text-blue-800">
-                        <span>ใช้ {bill.waterUsedSnapshot}หน่วย</span>
+                    {bill?.waterBillingTypeSnapshot === "FLAT_RATE" ? (
+                      <div className="flex justify-between rounded-lg bg-blue-50 p-2 text-xs font-bold text-blue-800">
+                        <span>เหมาจ่ายรายเดือน</span>
                         <span>฿{bill.waterFeeSnapshot.toLocaleString()}</span>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between text-gray-500">
+                          <span>ก่อนหน้า</span>
+                          <span>{bill.prevWaterUnitSnapshot}</span>
+                        </div>
+                        <div className="flex justify-between font-medium">
+                          <span>ล่าสุด</span>
+                          <span>{bill.currentWaterUnitSnapshot}</span>
+                        </div>
+                        <div className="mt-1 flex justify-between rounded-lg bg-blue-50 p-2 text-xs font-bold text-blue-800">
+                          <span>ใช้ {bill.waterUsedSnapshot}หน่วย</span>
+                          <span>฿{bill.waterFeeSnapshot.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="rounded-xl border border-amber-100 bg-white p-4 shadow-sm">
                     <div className="mb-3 flex items-center gap-2 border-b border-amber-50 pb-2 font-bold text-amber-700">

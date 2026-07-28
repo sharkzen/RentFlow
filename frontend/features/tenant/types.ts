@@ -179,6 +179,7 @@ export interface TenantContractDetail {
       name: string;
       address: string;
       settings: {
+        waterBillingType: "METERED" | "FLAT_RATE";
         waterRate: number;
         electricRate: number;
         commonFee: number;
