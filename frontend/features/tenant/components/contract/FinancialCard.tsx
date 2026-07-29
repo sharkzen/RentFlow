@@ -33,7 +33,6 @@ export const FinancialCard = ({ tenant }: { tenant: TenantContractDetail }) => {
       <h3 className="text-foreground mb-5 text-sm font-bold">
         ค่าใช้จ่ายตามสัญญา
       </h3>
-
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {moneyItems.map((item) => (
           <div
@@ -58,7 +57,6 @@ export const FinancialCard = ({ tenant }: { tenant: TenantContractDetail }) => {
           {formatMoney(totalUpfront)}
         </span>
       </div>
-
       <h4 className="text-foreground mt-6 mb-3 text-sm font-bold">
         อัตราค่าน้ำ-ไฟ และรอบบิล
       </h4>

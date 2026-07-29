@@ -15,13 +15,10 @@ export default function Loading() {
           <div className="relative w-full md:w-auto">
             <Skeleton className="h-[42px] w-full min-w-[200px]" rounded="lg" />
           </div>
-
           <Skeleton className="h-[42px] w-[140px]" rounded="lg" />
-
           <Skeleton className="h-[42px] w-[110px]" rounded="lg" />
         </div>
       </div>
-
       <div className="border-border bg-surface flex flex-col gap-4 rounded-xl border p-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative w-full lg:max-w-xs">
           <Skeleton className="h-10 w-full" rounded="lg" />
@@ -36,7 +33,6 @@ export default function Loading() {
           </div>
         </div>
       </div>
-
       <div className="flex h-[65vh] w-full flex-col">
         <div className="w-full flex-1 overflow-hidden">
           <div className="border-border bg-surface flex h-full max-h-[calc(100vh-200px)] w-full flex-col overflow-hidden rounded-t-xl border shadow-sm">
@@ -58,7 +54,6 @@ export default function Loading() {
                 จัดการ
               </div>
             </div>
-
             <div className="custom-scrollbar bg-surface flex-1 overflow-hidden">
               <div className="min-w-[335px] text-nowrap">
                 {Array.from({
@@ -94,7 +89,6 @@ export default function Loading() {
             </div>
           </div>
         </div>
-
         <div className="border-border bg-surface flex items-center justify-between border-t p-2">
           <div className="text-muted text-xs">
             <Skeleton className="h-4 w-40" rounded="md" />

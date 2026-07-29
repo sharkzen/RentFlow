@@ -159,7 +159,6 @@ export function QrCodeFilters({
           placeholder="เลือกหอพัก"
         />
       </div>
-
       <div className="flex w-full min-w-0 items-stretch [&_[role=combobox]]:h-11 [&_button]:h-11 [&>div]:h-11 [&>div]:w-full">
         <CustomSelect
           icon={Filter}
@@ -169,7 +168,6 @@ export function QrCodeFilters({
           placeholder="สถานะ QR"
         />
       </div>
-
       <div className="relative h-11 w-full min-w-0 sm:col-span-2 lg:col-span-1">
         <Search className="text-muted absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2" />
         <input
@@ -188,7 +186,6 @@ export function QrCodeFilters({
           </button>
         )}
       </div>
-
       <button
         disabled={selectedCount === 0 || isBulkLoading}
         onClick={onBulkCreate}

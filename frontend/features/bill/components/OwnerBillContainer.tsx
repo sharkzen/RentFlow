@@ -356,45 +356,54 @@ export default function BillContainer() {
 
   return (
     <div className="relative flex h-[calc(100dvh-2rem)] w-full flex-col gap-4">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-foreground text-3xl font-bold tracking-tight">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="shrink-0">
+          <h1 className="text-foreground text-2xl font-bold tracking-tight sm:text-3xl">
             รายการบิลค่าเช่า
           </h1>
-          <p className="text-muted text-xs sm:text-sm">
+          <p className="text-muted mt-1 text-xs sm:text-sm">
             จัดการบิล ตรวจสอบยอดชำระ และออกบิลใหม่
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2 max-sm:justify-between sm:gap-3">
-          <DormSelector
-            dorms={dorms}
-            selectedDorm={selectedDorm}
-            onSelect={setSelectedDorm}
-          />
-          <button
-            type="button"
-            disabled={sendableBills.length === 0}
-            onClick={() => setIsSendDialogOpen(true)}
-            className={`flex items-center gap-2 rounded-lg border px-6 py-2.5 text-sm font-medium shadow-xs transition-all active:scale-95 ${loading || sendableBills.length === 0 ? "border-border bg-background text-muted cursor-not-allowed opacity-50" : "bg-surface cursor-pointer border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"}`}
-          >
-            <Send size={18} />
-            <span>ส่งบิลแจ้งลูกบ้าน</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (selectedDorm === "ALL") {
-                setIsSelectDormOpen(true);
-                return;
-              }
 
-              setIsCreateOpen(true);
-            }}
-            className="flex cursor-pointer items-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 hover:from-blue-700 hover:to-blue-600 active:scale-95"
-          >
-            <Plus size={18} />
-            <span>สร้างบิล</span>
-          </button>
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap xl:w-auto xl:flex-1 xl:flex-nowrap xl:justify-end">
+          <div className="w-full sm:w-auto">
+            <DormSelector
+              dorms={dorms}
+              selectedDorm={selectedDorm}
+              onSelect={setSelectedDorm}
+            />
+          </div>
+
+          <div className="flex w-full gap-2 sm:w-auto sm:flex-1 xl:flex-initial">
+            <button
+              type="button"
+              disabled={sendableBills.length === 0}
+              onClick={() => setIsSendDialogOpen(true)}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium shadow-xs transition-all active:scale-95 sm:flex-none sm:px-6 ${loading || sendableBills.length === 0 ? "border-border bg-background text-muted cursor-not-allowed opacity-50" : "bg-surface cursor-pointer border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"}`}
+            >
+              <Send size={18} className="shrink-0" />
+              <span className="whitespace-nowrap">
+                ส่งบิล<span className="hidden sm:inline">แจ้งลูกบ้าน</span>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedDorm === "ALL") {
+                  setIsSelectDormOpen(true);
+                  return;
+                }
+
+                setIsCreateOpen(true);
+              }}
+              className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 hover:from-blue-700 hover:to-blue-600 active:scale-95 sm:ml-auto sm:flex-none sm:px-6"
+            >
+              <Plus size={18} className="shrink-0" />
+              <span className="whitespace-nowrap">สร้างบิล</span>
+            </button>
+          </div>
         </div>
       </div>
       <BillFilters
@@ -419,7 +428,7 @@ export default function BillContainer() {
             onPrint={handlePrint}
           />
         </div>
-        <div className="border-border bg-surface flex items-center justify-between border-t p-2">
+        <div className="border-border bg-surface mt-3 flex items-center justify-between border-t p-2">
           <div className="text-muted text-xs">
             แสดง {(page - 1) * LIMIT + (totalItems > 0 ? 1 : 0)}ถึง{" "}
             {Math.min(page * LIMIT, totalItems)}จาก {totalItems}รายการ

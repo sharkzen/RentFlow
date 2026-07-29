@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
+
 import {
   X,
   Camera,
@@ -8,7 +9,10 @@ import {
   Edit3,
   Settings,
   Droplets,
+  LightbulbOff,
+  Focus,
 } from "lucide-react";
+
 import { toast } from "react-toastify";
 import log from "@/lib/logger";
 import { RoomService } from "@/features/room/services/room.service";
@@ -400,12 +404,12 @@ export default function MeterScannerModal({
             <X size={20} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-6 text-center">
-          <div className="mb-4">
+
+        <div className="flex-1 overflow-y-auto p-4 text-center">
+          <div className="mb-2 flex justify-evenly">
             <h2 className="text-2xl font-black text-indigo-700">
               ห้อง {roomNumber}
             </h2>
-            <p className="text-muted font-medium">{tenantName}</p>
           </div>
           {step === "setup" ? (
             <div className="mx-auto max-w-md rounded-2xl border-2 border-indigo-100 bg-indigo-50/50 p-6 text-left">
@@ -463,83 +467,118 @@ export default function MeterScannerModal({
               </div>
             </div>
           ) : (
-            <div className="relative mx-auto aspect-square w-full max-w-[320px] overflow-hidden rounded-2xl bg-black shadow-inner">
-              {step === "camera" ? (
-                <video
-                  ref={videoRef}
-                  playsInline
-                  muted
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              ) : (
-                preview && (
-                  <img
-                    src={preview}
-                    alt="Captured"
+            <div className="flex flex-col items-center">
+              <div className="relative mx-auto aspect-square w-full max-w-[320px] overflow-hidden rounded-2xl bg-black">
+                {step === "camera" ? (
+                  <video
+                    ref={videoRef}
+                    playsInline
+                    muted
                     className="absolute inset-0 h-full w-full object-cover"
                   />
-                )
-              )}
-              {step === "camera" && (
-                <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
-                  <div className="box-content h-[13.6%] w-[45.5%] rounded border-2 border-red-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"></div>
-                  {!isCameraReady && (
-                    <RefreshCw
-                      size={40}
-                      className="absolute animate-spin text-white/50"
+                ) : (
+                  preview && (
+                    <img
+                      src={preview}
+                      alt="Captured"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
-                  )}
-                </div>
-              )}
-              {step === "processing" && (
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
-                  <RefreshCw
-                    size={48}
-                    className="mb-4 animate-spin text-indigo-400"
-                  />
-                  <p className="text-lg font-bold text-white">
-                    กำลังดึงตัวเลข...
-                  </p>
-                </div>
-              )}
-              {step === "result" && (
-                <div className="animate-in fade-in absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 px-6 backdrop-blur-md">
-                  <p
-                    className={`mb-3 text-sm font-bold ${ocrWarning ? "text-amber-400" : "text-emerald-400"}`}
-                  >
-                    {ocrWarning
-                      ? "⚠️ กรุณาตรวจสอบตัวเลข"
-                      : "✅ ตรวจสอบความถูกต้อง"}
-                  </p>
-                  <div className="relative w-full">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={ocrValue}
-                      onChange={(e) =>
-                        setOcrValue(e.target.value.replace(/[^0-9]/g, ""))
-                      }
-                      className={`w-full rounded-2xl border-4 bg-white py-4 text-center text-5xl font-black tracking-[0.2em] text-slate-800 transition-all outline-none ${ocrWarning ? "border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.4)]" : ocrValue ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-slate-300"}`}
-                      placeholder="00000"
-                    />
-                    <Edit3
-                      className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-slate-400"
-                      size={24}
-                    />
+                  )
+                )}
+
+                {step === "camera" && (
+                  <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
+                    <div className="box-content h-[13.6%] w-[45.5%] rounded border-2 border-red-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"></div>
+                    {!isCameraReady && (
+                      <RefreshCw
+                        size={40}
+                        className="absolute animate-spin text-white/50"
+                      />
+                    )}
                   </div>
-                  {ocrWarning && (
-                    <p className="mt-3 max-w-xs text-sm font-medium text-amber-300">
-                      {ocrWarning}
+                )}
+
+                {step === "processing" && (
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <RefreshCw
+                      size={48}
+                      className="mb-4 animate-spin text-indigo-400"
+                    />
+                    <p className="text-lg font-bold text-white">
+                      กำลังดึงตัวเลข...
                     </p>
-                  )}
+                  </div>
+                )}
+
+                {step === "result" && (
+                  <div className="animate-in fade-in absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 px-6 backdrop-blur-md">
+                    <p
+                      className={`mb-3 text-sm font-bold ${ocrWarning ? "text-amber-400" : "text-emerald-400"}`}
+                    >
+                      {ocrWarning
+                        ? "⚠️ กรุณาตรวจสอบตัวเลข"
+                        : "✅ ตรวจสอบความถูกต้อง"}
+                    </p>
+                    <div className="relative w-full">
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={ocrValue}
+                        onChange={(e) =>
+                          setOcrValue(e.target.value.replace(/[^0-9]/g, ""))
+                        }
+                        className={`w-full rounded-2xl border-4 bg-white py-4 text-center text-5xl font-black tracking-[0.2em] text-slate-800 transition-all outline-none ${ocrWarning ? "border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.4)]" : ocrValue ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-slate-300"}`}
+                        placeholder="00000"
+                      />
+                      <Edit3
+                        className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-slate-400"
+                        size={24}
+                      />
+                    </div>
+                    {ocrWarning && (
+                      <p className="mt-3 max-w-xs text-sm font-medium text-amber-300">
+                        {ocrWarning}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+              {step === "camera" && (
+                <div className="mx-auto mt-5 w-full max-w-[320px] rounded-2xl bg-slate-800 p-4 shadow-sm">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3 text-slate-200">
+                      <Focus className="h-4 w-4 shrink-0 text-red-400" />
+                      <span className="text-left text-xs leading-tight font-medium">
+                        สแกนให้ตัวเลขอยู่ในกรอบสีแดง
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-200">
+                      <LightbulbOff className="h-4 w-4 shrink-0 text-amber-400" />
+                      <span className="text-left text-xs leading-tight font-medium">
+                        โปรดหลีกเลี่ยงแสงสะท้อนบนหน้าปัด
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-200">
+                      <Edit3 className="h-4 w-4 shrink-0 text-blue-400" />
+                      <span className="text-left text-xs leading-tight font-medium">
+                        พิมพ์แก้ไขตัวเลขเองได้ หากอ่านไม่ครบ
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-200">
+                      <Camera className="h-4 w-4 shrink-0 text-emerald-400" />
+                      <span className="text-left text-xs leading-tight font-medium">
+                        ระบบจะเก็บรูปเพื่อบันทึกหลังสแกน
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
           )}
         </div>
-        <div className="border-border bg-surface border-t p-6 pt-0">
+        <div className="border-border bg-surface mt-2 border-t p-6 pt-0">
           {step === "setup" ? (
             <div className="mt-6 flex gap-4">
               <button

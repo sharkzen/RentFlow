@@ -13,7 +13,6 @@ export default function Loading() {
           <Skeleton className="h-10 w-full shrink-0 sm:w-36" rounded="lg" />
         </div>
       </div>
-
       <div className="border-border bg-surface flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center">
         <Skeleton className="h-10 flex-1" rounded="lg" />
         <div className="bg-border hidden h-8 w-px sm:block"></div>
@@ -26,7 +25,6 @@ export default function Loading() {
           />
         </div>
       </div>
-
       <div className="border-border bg-surface flex h-[65vh] w-full flex-col overflow-hidden rounded-xl border">
         <div className="border-border bg-background border-b px-6 py-4">
           <div className="grid grid-cols-7 gap-4">
@@ -39,7 +37,6 @@ export default function Loading() {
             <Skeleton className="ml-auto h-4 w-12" rounded="md" />
           </div>
         </div>
-
         <div className="flex-1 space-y-4 overflow-hidden p-6">
           {Array.from({
             length: 6,
@@ -58,7 +55,6 @@ export default function Loading() {
             </div>
           ))}
         </div>
-
         <div className="border-border bg-surface mt-auto border-t px-6 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <Skeleton className="h-4 w-48" rounded="md" />

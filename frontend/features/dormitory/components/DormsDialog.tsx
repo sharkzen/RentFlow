@@ -925,7 +925,6 @@ export default function DormsDialog({
                         ระบบจะนำไปใช้คำนวณบิลอัตโนมัติ
                       </p>
                     </div>
-
                     <div className="border-border bg-surface rounded-xl border p-5">
                       <div className="max-w-md">
                         <Label required icon={DollarSign}>
@@ -950,7 +949,6 @@ export default function DormsDialog({
                         </div>
                       </div>
                     </div>
-
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                       <div className="border-border bg-background rounded-xl border p-5">
                         <Label required icon={Zap}>
@@ -974,12 +972,10 @@ export default function DormsDialog({
                           </span>
                         </div>
                       </div>
-
                       <div className="border-border bg-background rounded-xl border p-5">
                         <Label required icon={Droplets}>
                           ค่าน้ำ
                         </Label>
-
                         <div className="bg-border/60 mt-2 mb-3 flex gap-1 rounded-lg p-1 text-xs font-medium">
                           <button
                             type="button"
@@ -1026,7 +1022,6 @@ export default function DormsDialog({
                         </p>
                       </div>
                     </div>
-
                     <div className="border-border bg-surface overflow-hidden rounded-xl border transition-all">
                       <button
                         type="button"

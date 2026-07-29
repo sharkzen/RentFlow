@@ -14,12 +14,10 @@ export default function Loading() {
         </div>
         <Skeleton className="h-10 w-full sm:w-36" rounded="lg" />
       </div>
-
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
         <Skeleton className="h-10 w-full sm:w-52" rounded="lg" />
         <Skeleton className="h-10 w-full sm:w-44" rounded="lg" />
       </div>
-
       <div className="space-y-4">
         {Array.from({
           length: 3,
