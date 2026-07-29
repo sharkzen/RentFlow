@@ -16,17 +16,19 @@ import { useSearchParams, useRouter } from "next/navigation";
 import SendBillModal, { BillSummary } from "./SendBillModal";
 import { Feature, ApiResponse_Feature } from "@/features/feature/services";
 import { FeatureService } from "@/features/feature/services/feature.service";
+import LoadingPage from "@/app/(owner)/owner/bills/loading";
 
 export default function BillContainer() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const urlFilter = searchParams.get("filter");
-  const urlDormId = searchParams.get("dormId");
+  const urlFilter = searchParams.get("filter") || "ALL";
+  const urlDormId = searchParams.get("dormId") || "ALL";
   const [dorms, setDorms] = useState<any[]>([]);
   const [selectedDorm, setSelectedDorm] = useState<string>(urlDormId || "ALL");
   const [statusFilter, setStatusFilter] = useState<string>(urlFilter || "ALL");
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [search, setSearch] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<Date | null>(null);
@@ -98,7 +100,7 @@ export default function BillContainer() {
   }, [selectedDorm, statusFilter, router, searchParams]);
 
   useEffect(() => {
-    const fetchDorms = async () => {
+    const initData = async () => {
       try {
         const res = await DormService.getDorm();
 
@@ -109,12 +111,15 @@ export default function BillContainer() {
           },
           ...res,
         ]);
+
+        const featureRes = await FeatureService.getFeature("OCR_BILL");
+        setFeatures(featureRes);
       } catch (err) {
         log.error(err);
       }
     };
 
-    fetchDorms();
+    initData();
   }, []);
 
   useEffect(() => {
@@ -126,28 +131,20 @@ export default function BillContainer() {
   }, [search, statusFilter, selectedMonth, selectedDorm]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (selectedDorm) fetchBills();
-    }, 400);
+    const timer = setTimeout(
+      () => {
+        fetchBills();
+      },
+      search ? 400 : 0,
+    );
 
     return () => clearTimeout(timer);
-  }, [search]);
-
-  useEffect(() => {
-    const fetchFeatures = async () => {
-      try {
-        const res = await FeatureService.getFeature("OCR_BILL");
-        setFeatures(res);
-      } catch (err) {
-        log.error("Failed to fetch features:", err);
-      }
-    };
-
-    fetchFeatures();
-  }, []);
+  }, [selectedDorm, statusFilter, selectedMonth, page, search]);
 
   const fetchBills = async () => {
-    setLoading(true);
+    if (dorms.length === 0 && isInitialLoading) {
+      setLoading(true);
+    }
 
     try {
       const params: any = {
@@ -180,6 +177,7 @@ export default function BillContainer() {
       log.error(err);
     } finally {
       setLoading(false);
+      setIsInitialLoading(false);
     }
   };
 
@@ -354,14 +352,16 @@ export default function BillContainer() {
     });
   };
 
+  if (loading || !dorms || !bills) return <LoadingPage />;
+
   return (
     <div className="relative flex h-[calc(100dvh-2rem)] w-full flex-col gap-4">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-foreground text-3xl font-bold tracking-tight">
             รายการบิลค่าเช่า
           </h1>
-          <p className="text-xs text-gray-500 sm:text-sm">
+          <p className="text-muted text-xs sm:text-sm">
             จัดการบิล ตรวจสอบยอดชำระ และออกบิลใหม่
           </p>
         </div>
@@ -375,7 +375,7 @@ export default function BillContainer() {
             type="button"
             disabled={sendableBills.length === 0}
             onClick={() => setIsSendDialogOpen(true)}
-            className={`flex items-center gap-2 rounded-lg border px-6 py-2.5 text-sm font-medium shadow-xs transition-all active:scale-95 ${loading || sendableBills.length === 0 ? "cursor-not-allowed border-gray-100 bg-gray-50 text-gray-400 opacity-50" : "cursor-pointer border-blue-200 bg-white text-blue-700 hover:border-blue-300 hover:bg-blue-50"}`}
+            className={`flex items-center gap-2 rounded-lg border px-6 py-2.5 text-sm font-medium shadow-xs transition-all active:scale-95 ${loading || sendableBills.length === 0 ? "border-border bg-background text-muted cursor-not-allowed opacity-50" : "bg-surface cursor-pointer border-blue-200 text-blue-700 hover:border-blue-300 hover:bg-blue-50"}`}
           >
             <Send size={18} />
             <span>ส่งบิลแจ้งลูกบ้าน</span>
@@ -390,7 +390,7 @@ export default function BillContainer() {
 
               setIsCreateOpen(true);
             }}
-            className="flex cursor-pointer items-center gap-2 rounded-lg border bg-linear-to-r from-blue-600 to-blue-500 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 hover:from-blue-700 hover:to-blue-600 active:scale-95"
+            className="flex cursor-pointer items-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-6 py-2.5 text-sm font-medium text-white transition-all hover:bg-indigo-700 hover:from-blue-700 hover:to-blue-600 active:scale-95"
           >
             <Plus size={18} />
             <span>สร้างบิล</span>
@@ -419,8 +419,8 @@ export default function BillContainer() {
             onPrint={handlePrint}
           />
         </div>
-        <div className="flex items-center justify-between border-t border-gray-100 bg-white p-2">
-          <div className="text-xs text-gray-500">
+        <div className="border-border bg-surface flex items-center justify-between border-t p-2">
+          <div className="text-muted text-xs">
             แสดง {(page - 1) * LIMIT + (totalItems > 0 ? 1 : 0)}ถึง{" "}
             {Math.min(page * LIMIT, totalItems)}จาก {totalItems}รายการ
           </div>
@@ -428,17 +428,17 @@ export default function BillContainer() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="rounded-lg p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+              className="hover:bg-background rounded-lg p-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ChevronLeft size={16} />
             </button>
-            <span className="text-sm text-gray-600">
+            <span className="text-muted text-sm">
               หน้า {page}/ {totalPages}
             </span>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="rounded-lg p-2 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+              className="hover:bg-background rounded-lg p-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ChevronRight size={16} />
             </button>
@@ -467,7 +467,9 @@ export default function BillContainer() {
           dueDay={currentDorm?.settings?.dueDay}
           dueMonthOffset={currentDorm?.settings?.dueMonthOffset}
           lateFee={currentDorm?.settings?.lateFee}
-          isWaterFlatRate={currentDorm?.settings?.waterBillingType === "FLAT_RATE"}
+          isWaterFlatRate={
+            currentDorm?.settings?.waterBillingType === "FLAT_RATE"
+          }
           ocrFeatureEnabled={features?.data?.enabled || false}
         />
       )}

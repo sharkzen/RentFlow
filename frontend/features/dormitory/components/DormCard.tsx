@@ -40,9 +40,9 @@ export default function DormCard({
 
   return (
     <Link href={`/dorms/${slug}`} className="group block h-full">
-      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 will-change-transform backface-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-100/50">
-        <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-200">
-          {isFull && <div className="absolute inset-0 z-10 bg-black/30" />}
+      <div className="border-border bg-surface relative flex h-full w-full flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 will-change-transform backface-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-100/50">
+        <div className="bg-background relative aspect-4/3 w-full overflow-hidden">
+          {isFull && <div className="absolute inset-0 z-10" />}
           {isFeatured && (
             <span className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white shadow-md">
               <Star size={12} fill="currentColor" />
@@ -61,7 +61,7 @@ export default function DormCard({
           />
           <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
           <div className="absolute right-3 bottom-3 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-            <div className="rounded-full bg-white p-2 text-blue-600 shadow-lg">
+            <div className="bg-surface rounded-full p-2 text-blue-600 shadow-lg">
               <Search size={18} />
             </div>
           </div>
@@ -89,41 +89,39 @@ export default function DormCard({
               </span>
             )}
             {isNotSpecified && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2.5 py-1 text-[11px] font-bold tracking-wide text-gray-500 ring-1 ring-gray-400/20">
+              <span className="bg-background text-muted ring-border inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold tracking-wide ring-1">
                 <HelpCircle size={12} strokeWidth={2.5} />
                 ไม่ระบุ
               </span>
             )}
           </div>
           <h3
-            className="mb-1 line-clamp-1 text-lg font-bold text-gray-900 transition-colors group-hover:text-blue-600"
+            className="text-foreground mb-1 line-clamp-1 text-lg font-bold transition-colors group-hover:text-blue-600"
             title={title}
           >
             {title}
           </h3>
-          <div className="mb-4 flex items-center text-sm text-gray-500">
-            <MapPin size={16} className="mr-1 shrink-0 text-gray-400" />
+          <div className="text-muted mb-4 flex items-center text-sm">
+            <MapPin size={16} className="text-muted mr-1 shrink-0" />
             <span className="line-clamp-1">{location}</span>
           </div>
-          <div className="mt-auto border-t border-gray-50 pt-3">
+          <div className="border-border mt-auto border-t pt-3">
             <div className="flex items-end justify-between">
               <div className="flex flex-col">
-                <span className="text-[10px] tracking-wider text-gray-400 uppercase">
+                <span className="text-muted text-[10px] tracking-wider uppercase">
                   ราคาเริ่มต้น
                 </span>
                 <div className="flex items-baseline gap-1">
                   <span
-                    className={`text-xl font-bold ${isFull ? "text-gray-400" : "text-[#1d6ef2]"}`}
+                    className={`text-xl font-bold ${isFull ? "text-muted" : "text-[#1d6ef2]"}`}
                   >
                     ฿{price.toLocaleString()}
                   </span>
-                  <span className="text-sm font-medium text-gray-400">
-                    /เดือน
-                  </span>
+                  <span className="text-muted text-sm font-medium">/เดือน</span>
                 </div>
               </div>
               <span
-                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${isFull ? "cursor-not-allowed bg-gray-100 text-gray-400" : "bg-gray-50 text-gray-600 group-hover:bg-blue-600 group-hover:text-white"}`}
+                className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${isFull ? "bg-background text-muted cursor-not-allowed" : "bg-background text-muted group-hover:bg-blue-600 group-hover:text-white"}`}
               >
                 {isFull ? "ห้องเต็ม" : "ดูรายละเอียด"}
               </span>

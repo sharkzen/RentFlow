@@ -50,32 +50,28 @@ function CustomSelect({
   const selectedOption = options.find((opt) => opt.value === value);
 
   return (
-    <div className="relative w-full" ref={ref}>
+    <div className="relative h-full w-full min-w-0" ref={ref}>
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`flex w-full items-center justify-between rounded-xl border bg-white px-4 py-2.5 text-sm transition-all focus:ring-2 focus:ring-blue-500/20 focus:outline-none ${isOpen ? "border-blue-500 ring-2 ring-blue-500/20" : "border-gray-200 hover:border-gray-300"} ${disabled ? "cursor-not-allowed bg-gray-50 opacity-50" : "cursor-pointer"}`}
+        className={`bg-surface flex w-full min-w-0 items-center justify-between rounded-xl border px-4 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "border-blue-500" : "border-border hover:border-muted"} ${disabled ? "bg-background cursor-not-allowed opacity-50" : "cursor-pointer"}`}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Icon
-            className={`h-4 w-4 ${isOpen ? "text-blue-500" : "text-gray-400"}`}
+            className={`h-4 w-4 shrink-0 ${isOpen ? "text-blue-500" : "text-muted"}`}
           />
           <span
-            className={
-              selectedOption && value !== "all"
-                ? "font-medium text-gray-900"
-                : "text-gray-500"
-            }
+            className={`truncate text-left ${selectedOption && value !== "all" ? "text-foreground font-medium" : "text-muted"}`}
           >
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
         <ChevronDown
-          className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted h-4 w-4 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute z-50 mt-2 max-h-60 w-full origin-top overflow-auto rounded-xl border border-gray-100 bg-white p-1.5 shadow-xl ring-1 ring-black/5">
+        <div className="border-border bg-surface animate-in fade-in zoom-in-95 absolute z-50 mt-2 max-h-60 w-full origin-top space-y-1 overflow-auto rounded-xl border p-1.5 shadow-xl ring-1 ring-black/5">
           {options.map((option) => {
             const isSelected = value === option.value;
 
@@ -86,10 +82,12 @@ function CustomSelect({
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${isSelected ? "bg-blue-50 font-semibold text-blue-700" : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"}`}
+                className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${isSelected ? "bg-blue-50 font-semibold text-blue-700 dark:bg-gray-800" : "text-foreground hover:bg-background hover:text-foreground"}`}
               >
-                {option.label}
-                {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+                <span className="truncate pr-2 text-left">{option.label}</span>
+                {isSelected && (
+                  <Check className="h-4 w-4 shrink-0 text-blue-600" />
+                )}
               </button>
             );
           })}
@@ -151,8 +149,8 @@ export function QrCodeFilters({
   ];
 
   return (
-    <div className="grid w-full min-w-0 grid-cols-1 items-stretch gap-3 rounded-t-xl border-b border-gray-100 bg-gray-50/30 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.2fr)_auto] lg:gap-4">
-      <div className="min-w-0">
+    <div className="border-border bg-background/30 grid w-full min-w-0 grid-cols-1 items-center gap-3 rounded-t-xl border-b p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[1fr_1fr_1.2fr_auto] lg:gap-4">
+      <div className="flex w-full min-w-0 items-stretch [&_[role=combobox]]:h-11 [&_button]:h-11 [&>div]:h-11 [&>div]:w-full">
         <CustomSelect
           icon={Building2}
           value={selectedDormId}
@@ -161,7 +159,8 @@ export function QrCodeFilters({
           placeholder="เลือกหอพัก"
         />
       </div>
-      <div className="min-w-0">
+
+      <div className="flex w-full min-w-0 items-stretch [&_[role=combobox]]:h-11 [&_button]:h-11 [&>div]:h-11 [&>div]:w-full">
         <CustomSelect
           icon={Filter}
           value={statusFilter}
@@ -170,28 +169,30 @@ export function QrCodeFilters({
           placeholder="สถานะ QR"
         />
       </div>
-      <div className="relative min-w-0 sm:col-span-2 lg:col-span-1">
-        <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
+
+      <div className="relative h-11 w-full min-w-0 sm:col-span-2 lg:col-span-1">
+        <Search className="text-muted absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2" />
         <input
           type="text"
           placeholder="ค้นหาห้อง..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="h-full w-full min-w-0 rounded-xl border border-gray-200 bg-white py-2.5 pr-10 pl-10 text-sm text-gray-900 transition-all placeholder:text-gray-400 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+          className="border-border bg-surface text-foreground placeholder:text-muted hover:border-muted h-full w-full min-w-0 rounded-xl border pr-10 pl-10 text-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
         />
         {searchTerm && (
           <button
             onClick={() => setSearchTerm("")}
-            className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full bg-gray-100 p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600"
+            className="bg-background text-muted hover:bg-border hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 transition-colors"
           >
             <X className="h-3 w-3" />
           </button>
         )}
       </div>
+
       <button
         disabled={selectedCount === 0 || isBulkLoading}
         onClick={onBulkCreate}
-        className={`flex min-w-0 items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold whitespace-nowrap transition-all duration-200 sm:col-span-2 lg:col-span-1 lg:w-auto ${selectedCount > 0 && !isBulkLoading ? "cursor-pointer bg-blue-600 text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.98]" : "cursor-not-allowed border border-gray-200 bg-gray-100 text-gray-400"}`}
+        className={`flex h-11 w-full min-w-0 items-center justify-center gap-2 rounded-xl px-6 text-sm font-semibold whitespace-nowrap transition-all duration-200 sm:col-span-2 lg:col-span-1 lg:w-auto ${selectedCount > 0 && !isBulkLoading ? "cursor-pointer bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98]" : "bg-background text-muted cursor-not-allowed opacity-60"}`}
       >
         {isBulkLoading ? (
           <>

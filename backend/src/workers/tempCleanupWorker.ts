@@ -2,7 +2,6 @@ import { Worker, Queue } from "bullmq";
 import { redisConnection } from "@/lib/redis";
 import logger from "@/utils/logger";
 import { cleanupOldTempDrafts } from "@/services/r2Client";
-
 const MAX_TEMP_AGE_MS = 24 * 60 * 60 * 1000;
 
 export const tempCleanupQueue = new Queue("temp-cleanup-queue", {
@@ -17,9 +16,7 @@ export const startTempCleanupWorker = () => {
         logger.info("[Worker] Running temp-drafts cleanup...");
 
         try {
-          const { deletedCount } = await cleanupOldTempDrafts(
-            MAX_TEMP_AGE_MS,
-          );
+          const { deletedCount } = await cleanupOldTempDrafts(MAX_TEMP_AGE_MS);
 
           logger.info(
             `[Worker] temp-drafts cleanup done. Deleted ${deletedCount} orphaned file(s).`,

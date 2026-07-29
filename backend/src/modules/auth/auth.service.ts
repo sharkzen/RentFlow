@@ -8,12 +8,14 @@ import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { hashPassword, verifyPassword } from "@/modules/auth/lib/password";
 import { LoginDto } from "@/modules/auth/dto/login.dto";
 import { createActivityLog } from "@/services/activity-log.service";
+
 import {
   signAccessToken,
   signResetSessionToken,
   verifyRefreshToken,
   verifyResetSessionToken,
 } from "@/utils/jwt";
+
 import { generateSlug } from "@/lib/text";
 import { generateNumericOtp } from "@/utils/otp";
 import logger from "@/utils/logger";
@@ -21,7 +23,6 @@ import { sendEmailImmediate } from "@/services/mail-sender";
 import { EmailType } from "@/queues/email.types";
 import * as argon2 from "argon2";
 import { env } from "@/config/env";
-
 const OTP_TTL_MS = 5 * 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
 
@@ -367,6 +368,7 @@ export const authService = {
       where: {
         userId: user.id,
         consumedAt: null,
+
         expiresAt: {
           gt: new Date(),
         },
@@ -436,6 +438,7 @@ export const authService = {
       where: {
         id: payload.otpId,
         userId: payload.sub,
+
         consumedAt: {
           not: null,
         },

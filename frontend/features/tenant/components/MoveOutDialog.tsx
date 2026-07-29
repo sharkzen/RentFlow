@@ -38,24 +38,24 @@ export default function MoveOutDialog({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 transition-all">
-      <div className="flex w-full max-w-md flex-col rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+      <div className="bg-surface flex w-full max-w-md flex-col rounded-2xl shadow-2xl">
+        <div className="border-border flex items-center justify-between border-b px-6 py-4">
           <div className="flex items-center gap-2 text-red-600">
             <AlertTriangle size={20} />
             <h3 className="text-lg font-bold">แจ้งย้ายออกผู้เช่า</h3>
           </div>
           <button
             onClick={onClose}
-            className="cursor-pointer rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100"
+            className="text-muted hover:bg-background cursor-pointer rounded-full p-2 transition-colors"
             disabled={isLoading}
           >
             <X size={20} />
           </button>
         </div>
         <div className="p-6">
-          <p className="mb-4 text-sm text-gray-600">
+          <p className="text-muted mb-4 text-sm">
             คุณกำลังดำเนินการแจ้งย้ายออกสำหรับ{" "}
-            <strong className="text-gray-900">{tenantName}</strong>
+            <strong className="text-foreground">{tenantName}</strong>
           </p>
           <div className="mb-6">
             <DatePickerTh
@@ -86,12 +86,12 @@ export default function MoveOutDialog({
             </p>
           </div>
         </div>
-        <div className="mt-auto flex items-center justify-end gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50 px-6 py-4">
+        <div className="border-border bg-background mt-auto flex items-center justify-end gap-3 rounded-b-2xl border-t px-6 py-4">
           <button
             type="button"
             onClick={onClose}
             disabled={isLoading}
-            className="cursor-pointer rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            className="border-border bg-surface text-foreground hover:bg-background cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
           >
             ยกเลิก
           </button>

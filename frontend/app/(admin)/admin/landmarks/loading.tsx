@@ -3,7 +3,7 @@ import Skeleton from "@/lib/ui/Skeleton";
 
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="bg-background min-h-screen">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <Skeleton className="h-7 w-56" />
@@ -11,7 +11,7 @@ export default function Loading() {
         </div>
         <Skeleton className="h-10 w-32" rounded="lg" />
       </div>
-      <div className="mt-6 mb-6 rounded-xl border border-gray-100 bg-white p-4">
+      <div className="border-border bg-surface mt-6 mb-6 rounded-xl border p-4">
         <Skeleton className="h-10 w-full max-w-md" rounded="lg" />
       </div>
       <TableSkeleton columns={4} rows={6} />

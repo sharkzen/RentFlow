@@ -17,7 +17,13 @@ export default function OtpBoxInput({
   autoFocus,
 }: OtpBoxInputProps) {
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
-  const digits = Array.from({ length }, (_, i) => value[i] ?? "");
+
+  const digits = Array.from(
+    {
+      length,
+    },
+    (_, i) => value[i] ?? "",
+  );
 
   useEffect(() => {
     if (autoFocus) {
@@ -45,6 +51,7 @@ export default function OtpBoxInput({
 
       for (const char of cleaned) {
         if (cursor >= length) break;
+
         next[cursor] = char;
         cursor += 1;
       }
@@ -91,7 +98,9 @@ export default function OtpBoxInput({
 
   const handlePaste = (index: number, e: React.ClipboardEvent) => {
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "");
+
     if (!pasted) return;
+
     e.preventDefault();
     handleChange(index, pasted);
   };
@@ -117,7 +126,7 @@ export default function OtpBoxInput({
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={(e) => handlePaste(index, e)}
           onFocus={(e) => e.target.select()}
-          className="h-12 w-10 rounded-lg border border-slate-300 text-center font-mono text-2xl font-semibold text-slate-900 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-400 sm:h-14 sm:w-12"
+          className="border-border text-foreground disabled:bg-background disabled:text-muted h-12 w-10 rounded-lg border text-center font-mono text-2xl font-semibold shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:h-14 sm:w-12"
         />
       ))}
     </div>

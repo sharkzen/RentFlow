@@ -17,7 +17,7 @@ export default function BillItem({ bill, onClick }: Props) {
   return (
     <div
       onClick={() => onClick(bill.id)}
-      className="group relative flex cursor-pointer flex-col gap-4 border-b border-slate-100 bg-white p-5 transition-all duration-200 last:border-0 hover:bg-slate-50 active:bg-slate-100 md:flex-row md:items-center md:justify-between md:px-8 md:py-5"
+      className="group border-border bg-surface hover:bg-background active:bg-background relative flex cursor-pointer flex-col gap-4 border-b p-5 transition-all duration-200 last:border-0 md:flex-row md:items-center md:justify-between md:px-8 md:py-5"
       role="button"
       tabIndex={0}
       aria-label={`ดูรายละเอียดบิลประจำเดือน ${format(dateObj, "MMMM yyyy", {
@@ -35,21 +35,20 @@ export default function BillItem({ bill, onClick }: Props) {
           />
         </div>
         <div className="flex-1">
-          <h4 className="text-sm font-bold text-slate-800 transition-colors group-hover:text-indigo-600 sm:text-base">
+          <h4 className="text-foreground text-sm font-bold transition-colors group-hover:text-indigo-600 sm:text-base">
             รอบบิล{" "}
             {format(dateObj, "MMMM yyyy", {
               locale: th,
             })}
           </h4>
-          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-slate-500 sm:text-xs">
+          <div className="text-muted mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-medium sm:text-xs">
             {bill.roomNumberSnapshot && (
-              <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-slate-600">
+              <span className="bg-background text-foreground rounded-md px-1.5 py-0.5">
                 ห้อง {bill.roomNumberSnapshot}
               </span>
             )}
-            <span className="flex items-center gap-1 text-slate-400">
-              <span className="h-1 w-1 rounded-full bg-slate-300"></span>
-              ครบกำหนด{" "}
+            <span className="text-muted flex items-center gap-1">
+              <span className="bg-muted h-1 w-1 rounded-full"></span>ครบกำหนด{" "}
               {format(dueDateObj, "d MMM yy", {
                 locale: th,
               })}
@@ -59,10 +58,10 @@ export default function BillItem({ bill, onClick }: Props) {
       </div>
       <div className="flex items-center justify-between gap-4 pl-14 sm:pl-17 md:w-auto md:flex-none md:justify-end md:gap-6 md:pl-0">
         <div className="flex flex-col text-left md:w-32 md:items-end md:text-right lg:w-40">
-          <span className="text-[10px] font-medium text-slate-400 md:hidden">
+          <span className="text-muted text-[10px] font-medium md:hidden">
             ยอดชำระ
           </span>
-          <span className="text-base leading-tight font-bold text-slate-900 sm:text-lg">
+          <span className="text-foreground text-base leading-tight font-bold sm:text-lg">
             ฿
             {bill.total.toLocaleString("th-TH", {
               minimumFractionDigits: 2,
@@ -73,7 +72,7 @@ export default function BillItem({ bill, onClick }: Props) {
           <BillStatusBadge status={bill.status} />
         </div>
         <div className="flex shrink-0 items-center justify-center pl-2 md:pl-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 transition-all duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-active:scale-90">
+          <div className="text-muted flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-active:scale-90">
             <ChevronRight size={20} />
           </div>
         </div>

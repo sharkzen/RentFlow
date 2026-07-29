@@ -74,6 +74,7 @@ export const FeatureService = {
         action: "CREATE_FEATURE",
         entityType: "Feature",
         entityId: feature.id,
+
         metadata: {
           key: feature.key,
         },
@@ -138,6 +139,7 @@ export const FeatureService = {
         action: "DELETE_FEATURE",
         entityType: "Feature",
         entityId: feature.id,
+
         metadata: {
           key,
         },

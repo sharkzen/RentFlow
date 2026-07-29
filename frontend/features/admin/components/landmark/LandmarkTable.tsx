@@ -23,10 +23,10 @@ export const LandmarkTable = ({
 }: Props) => {
   if (isLoading) {
     return (
-      <div className="flex h-64 w-full items-center justify-center rounded-xl border border-gray-100 bg-white shadow-sm">
+      <div className="border-border bg-surface flex h-64 w-full items-center justify-center rounded-xl border shadow-sm">
         <div className="flex animate-pulse flex-col items-center">
-          <div className="mb-2 h-4 w-4 rounded-full bg-gray-200"></div>
-          <span className="text-sm text-gray-400">กำลังโหลดข้อมูล...</span>
+          <div className="bg-skeleton mb-2 h-4 w-4 rounded-full"></div>
+          <span className="text-muted text-sm">กำลังโหลดข้อมูล...</span>
         </div>
       </div>
     );
@@ -34,7 +34,7 @@ export const LandmarkTable = ({
 
   if (data.length === 0) {
     return (
-      <div className="flex w-full flex-col items-center justify-center rounded-xl border border-gray-100 bg-white py-16 text-gray-400">
+      <div className="border-border bg-surface text-muted flex w-full flex-col items-center justify-center rounded-xl border py-16">
         <MapPinOff className="mb-3 h-12 w-12 opacity-50" />
         <p>ไม่พบข้อมูลสถานที่</p>
       </div>
@@ -42,10 +42,10 @@ export const LandmarkTable = ({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+    <div className="border-border bg-surface overflow-hidden rounded-xl border shadow-sm">
       <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm text-gray-600">
-          <thead className="border-b border-gray-100 bg-gray-50 font-semibold text-gray-900">
+        <table className="text-muted min-w-full text-left text-sm">
+          <thead className="border-border bg-background text-foreground border-b font-semibold">
             <tr>
               <th className="px-6 py-4 whitespace-nowrap">ชื่อสถานที่</th>
               <th className="px-6 py-4 whitespace-nowrap">ประเภท</th>
@@ -54,10 +54,13 @@ export const LandmarkTable = ({
               <th className="px-6 py-4 text-right whitespace-nowrap">จัดการ</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-border divide-y">
             {data.map((item) => (
-              <tr key={item.id} className="transition-colors hover:bg-gray-50">
-                <td className="px-6 py-4 font-medium whitespace-nowrap text-gray-900">
+              <tr
+                key={item.id}
+                className="hover:bg-background transition-colors"
+              >
+                <td className="text-foreground px-6 py-4 font-medium whitespace-nowrap">
                   {item.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -65,7 +68,7 @@ export const LandmarkTable = ({
                     {item.type.replace("_", " ")}
                   </span>
                 </td>
-                <td className="px-6 py-4 font-mono text-xs whitespace-nowrap text-gray-500">
+                <td className="text-muted px-6 py-4 font-mono text-xs whitespace-nowrap">
                   {item.latitude.toFixed(5)}, {item.longitude.toFixed(5)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -102,8 +105,8 @@ export const LandmarkTable = ({
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-6 py-4">
-        <span className="text-xs text-gray-500">
+      <div className="border-border bg-background flex items-center justify-between border-t px-6 py-4">
+        <span className="text-muted text-xs">
           หน้า {page}จาก {totalPages}
         </span>
         <div className="flex gap-2">

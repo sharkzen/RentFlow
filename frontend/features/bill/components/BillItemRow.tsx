@@ -84,7 +84,7 @@ export default function BillItemRow({
 
   return (
     <div
-      className={`group relative grid grid-cols-1 gap-4 rounded-xl border bg-white p-4 pt-8 transition-all lg:grid-cols-12 lg:items-start lg:pt-4 ${waterUsage < 0 || electricUsage < 0 ? "border-red-400 shadow-[0_0_15px_rgba(248,113,113,0.3)]" : "border-gray-200 hover:border-indigo-300"} `}
+      className={`group bg-surface relative grid grid-cols-1 gap-4 rounded-xl border p-4 pt-8 transition-all lg:grid-cols-12 lg:items-start lg:pt-4 ${waterUsage < 0 || electricUsage < 0 ? "border-red-400 shadow-[0_0_15px_rgba(248,113,113,0.3)]" : "border-border hover:border-indigo-300"} `}
     >
       <div
         className={`absolute top-0 left-0 z-10 flex items-center justify-center rounded-tl-xl rounded-br-lg px-3 py-1.5 text-xs font-bold text-white ${waterUsage < 0 || electricUsage < 0 ? "bg-red-500" : "bg-slate-700"} `}
@@ -100,13 +100,13 @@ export default function BillItemRow({
           isLoading={isLoadingRooms}
         />
         {item.tenantName && (
-          <p className="mt-1 px-1 text-[10px] text-gray-400">
+          <p className="text-muted mt-1 px-1 text-[10px]">
             ผู้เช่า: {item.tenantName}
           </p>
         )}
       </div>
       <div
-        className={`col-span-1 rounded-lg border p-3 transition-colors lg:col-span-4 ${!isWaterEmpty && waterUsage < 0 ? "border-red-200 bg-red-50/50" : "border-blue-100 bg-blue-50/30"} `}
+        className={`col-span-1 rounded-lg border p-3 transition-colors lg:col-span-4 ${!isWaterEmpty && waterUsage < 0 ? "border-red-200 bg-red-50/50 dark:bg-red-50/20" : "border-blue-100 bg-blue-50/50 dark:bg-blue-50/10"} `}
       >
         <div className="mb-3 flex items-center justify-between">
           <div
@@ -161,7 +161,7 @@ export default function BillItemRow({
             <div className="flex gap-2">
               <div className="flex-1">
                 <div className="mb-1 flex items-center justify-between">
-                  <label className="text-[10px] font-bold text-gray-400">
+                  <label className="text-muted text-[10px] font-bold">
                     ครั้งก่อน
                   </label>
                   <button
@@ -174,11 +174,16 @@ export default function BillItemRow({
                   </button>
                 </div>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={item.prevWater}
                   disabled={!item.isPrevEditable || isSubmitting}
-                  onChange={(e) => onChange(index, "prevWater", e.target.value)}
-                  className={`h-9 w-full rounded-lg border text-center text-sm font-bold transition-all outline-none ${item.isPrevEditable ? "border-indigo-300 bg-white ring-2 ring-indigo-100" : "border-gray-200 bg-gray-100 text-gray-500"}`}
+                  onChange={(e) => {
+                    const numericValue = e.target.value.replace(/[^0-9]/g, "");
+                    onChange(index, "prevWater", numericValue);
+                  }}
+                  className={`h-9 w-full rounded-lg border text-center text-sm font-bold transition-all outline-none ${item.isPrevEditable ? "bg-surface border-indigo-300 ring-2 ring-indigo-100" : "border-border bg-background text-muted"}`}
                 />
               </div>
               <div className="flex-1">
@@ -188,13 +193,16 @@ export default function BillItemRow({
                   ล่าสุด
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={item.currentWater}
                   disabled={isSubmitting}
-                  onChange={(e) =>
-                    onChange(index, "currentWater", e.target.value)
-                  }
-                  className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isWaterEmpty && waterUsage < 0 ? "border-red-400 bg-white text-red-600 focus:ring-red-200" : "border-blue-200 focus:ring-blue-200"} `}
+                  onChange={(e) => {
+                    const numericValue = e.target.value.replace(/[^0-9]/g, "");
+                    onChange(index, "currentWater", numericValue);
+                  }}
+                  className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isWaterEmpty && waterUsage < 0 ? "border-red-400 bg-white text-red-600 focus:ring-red-200" : "border-blue-200 focus:ring-blue-200"}`}
                 />
               </div>
             </div>
@@ -216,7 +224,7 @@ export default function BillItemRow({
         )}
       </div>
       <div
-        className={`col-span-1 rounded-lg border p-3 transition-colors lg:col-span-4 ${!isElectricEmpty && electricUsage < 0 ? "border-red-200 bg-red-50/50" : "border-amber-100 bg-amber-50/30"} `}
+        className={`col-span-1 rounded-lg border p-3 transition-colors lg:col-span-4 ${!isElectricEmpty && electricUsage < 0 ? "border-red-200 bg-red-50/50 dark:bg-red-50/20" : "border-amber-100 bg-amber-50/30 dark:bg-amber-50/10"} `}
       >
         <div className="mb-3 flex items-center justify-between">
           <div
@@ -263,7 +271,7 @@ export default function BillItemRow({
         <div className="flex gap-2">
           <div className="flex-1">
             <div className="mb-1 flex items-center justify-between">
-              <label className="text-[10px] font-bold text-gray-400">
+              <label className="text-muted text-[10px] font-bold">
                 ครั้งก่อน
               </label>
               <button
@@ -276,11 +284,16 @@ export default function BillItemRow({
               </button>
             </div>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={item.prevElectric}
               disabled={!item.isPrevEditable || isSubmitting}
-              onChange={(e) => onChange(index, "prevElectric", e.target.value)}
-              className={`h-9 w-full rounded-lg border text-center text-sm font-bold transition-all outline-none ${item.isPrevEditable ? "border-indigo-300 bg-white ring-2 ring-indigo-100" : "border-gray-200 bg-gray-100 text-gray-500"}`}
+              onChange={(e) => {
+                const numericValue = e.target.value.replace(/[^0-9]/g, "");
+                onChange(index, "prevElectric", numericValue);
+              }}
+              className={`h-9 w-full rounded-lg border text-center text-sm font-bold transition-all outline-none ${item.isPrevEditable ? "bg-surface border-indigo-300 ring-2 ring-indigo-100" : "border-border bg-background text-muted"}`}
             />
           </div>
           <div className="flex-1">
@@ -290,12 +303,15 @@ export default function BillItemRow({
               ล่าสุด
             </label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={item.currentElectric}
               disabled={isSubmitting}
-              onChange={(e) =>
-                onChange(index, "currentElectric", e.target.value)
-              }
+              onChange={(e) => {
+                const numericValue = e.target.value.replace(/[^0-9]/g, "");
+                onChange(index, "currentElectric", numericValue);
+              }}
               className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isElectricEmpty && electricUsage < 0 ? "border-red-400 bg-white text-red-600 focus:ring-red-200" : "border-amber-200 focus:ring-amber-200"} `}
             />
           </div>
@@ -320,7 +336,7 @@ export default function BillItemRow({
           type="button"
           onClick={() => onRemove(item.id)}
           disabled={!canRemove || isSubmitting}
-          className="cursor-pointer text-gray-300 transition-colors hover:text-red-500 disabled:opacity-0"
+          className="text-muted cursor-pointer transition-colors hover:text-red-500 disabled:opacity-0"
         >
           <Trash2 size={20} />
         </button>

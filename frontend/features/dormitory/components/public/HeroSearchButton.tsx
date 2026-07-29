@@ -17,7 +17,7 @@ export default function HeroSearchButton() {
   return (
     <button
       onClick={onSearch}
-      className="group relative flex w-full cursor-pointer items-center justify-center gap-3 rounded-full bg-white px-8 py-4 text-base font-bold text-slate-800 shadow-[0_0_40px_-10px_rgba(59,130,246,0.4)] transition-all hover:-translate-y-1 hover:shadow-[0_0_60px_-15px_rgba(59,130,246,0.6)] active:scale-95"
+      className="group relative flex w-full cursor-pointer items-center justify-center gap-3 rounded-full border border-slate-200 bg-white px-8 py-4 text-base font-bold text-slate-800 shadow-[0_0_40px_-10px_rgba(59,130,246,0.4)] transition-all hover:-translate-y-1 hover:shadow-[0_0_60px_-15px_rgba(59,130,246,0.6)] active:scale-95"
     >
       <Search className="h-5 w-5 text-blue-600 transition-transform duration-300 group-hover:scale-110 group-hover:text-cyan-500" />
       <span>เริ่มค้นหาห้องพักเลย</span>

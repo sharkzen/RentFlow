@@ -5,6 +5,7 @@ import {
 import { Role } from "@/types/role.type";
 import { FastifyInstance } from "fastify";
 import { TenantController } from "@/modules/tenant/tenant.controller";
+
 import {
   getTenantDormQuerySchema,
   getMyBillsQuerySchema,
@@ -15,6 +16,7 @@ import {
   getMaintenanceQuerySchema,
   reEntryTenantSchema,
 } from "@/modules/tenant/dto/tenant.schema";
+
 import {
   zodBody,
   okResponse,
@@ -42,297 +44,480 @@ export async function tenantRoute(app: FastifyInstance) {
       authRoleMiddleware([Role.ADMIN, Role.OWNER]),
     );
 
-    routeRoles.post("/", {
-      schema: {
-        tags: ["Tenant Management (Owner/Admin)"],
-        summary: "เพิ่มผู้เช่าใหม่เข้าห้องพัก",
-        security: [{ bearerAuth: [] }],
-        body: zodBody(createTenantSchema),
+    routeRoles.post(
+      "/",
+      {
+        schema: {
+          tags: ["Tenant Management (Owner/Admin)"],
+          summary: "เพิ่มผู้เช่าใหม่เข้าห้องพัก",
 
-        response: {
-          201: okResponse("เพิ่มผู้เช่าสำเร็จ"),
-          400: commonErrorResponses[400],
-          401: commonErrorResponses[401],
-          403: commonErrorResponses[403],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          body: zodBody(createTenantSchema),
+
+          response: {
+            201: okResponse("เพิ่มผู้เช่าสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+          },
         },
       },
-    }, TenantController.createTenant);
+      TenantController.createTenant,
+    );
 
-    routeRoles.get("/:dormId", {
-      schema: {
-        tags: ["Tenant Management (Owner/Admin)"],
-        summary: "รายชื่อผู้เช่าในหอพัก (ค้นหา/กรองได้)",
-        security: [{ bearerAuth: [] }],
-        params: idParam("dormId"),
-        querystring: zodBody(getTenantDormQuerySchema),
+    routeRoles.get(
+      "/:dormId",
+      {
+        schema: {
+          tags: ["Tenant Management (Owner/Admin)"],
+          summary: "รายชื่อผู้เช่าในหอพัก (ค้นหา/กรองได้)",
 
-        response: {
-          200: paginatedItemsResponse("รายชื่อผู้เช่า"),
-          401: commonErrorResponses[401],
-          403: commonErrorResponses[403],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam("dormId"),
+          querystring: zodBody(getTenantDormQuerySchema),
+
+          response: {
+            200: paginatedItemsResponse("รายชื่อผู้เช่า"),
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+          },
         },
       },
-    }, TenantController.getTenantDorm);
+      TenantController.getTenantDorm,
+    );
 
-    routeRoles.get("/detail/:tenantId", {
-      schema: {
-        tags: ["Tenant Management (Owner/Admin)"],
-        summary: "รายละเอียดผู้เช่ารายบุคคล",
-        security: [{ bearerAuth: [] }],
-        params: idParam("tenantId"),
+    routeRoles.get(
+      "/detail/:tenantId",
+      {
+        schema: {
+          tags: ["Tenant Management (Owner/Admin)"],
+          summary: "รายละเอียดผู้เช่ารายบุคคล",
 
-        response: {
-          200: okResponse("รายละเอียดผู้เช่า"),
-          401: commonErrorResponses[401],
-          403: commonErrorResponses[403],
-          404: commonErrorResponses[404],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam("tenantId"),
+
+          response: {
+            200: okResponse("รายละเอียดผู้เช่า"),
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
         },
       },
-    }, TenantController.getTenantById);
+      TenantController.getTenantById,
+    );
 
-    routeRoles.patch("/:tenantId", {
-      schema: {
-        tags: ["Tenant Management (Owner/Admin)"],
-        summary: "แก้ไขข้อมูลผู้เช่า",
-        security: [{ bearerAuth: [] }],
-        params: idParam("tenantId"),
-        body: zodBody(updateTenantSchema),
+    routeRoles.patch(
+      "/:tenantId",
+      {
+        schema: {
+          tags: ["Tenant Management (Owner/Admin)"],
+          summary: "แก้ไขข้อมูลผู้เช่า",
 
-        response: {
-          200: okResponse("แก้ไขข้อมูลผู้เช่าสำเร็จ"),
-          400: commonErrorResponses[400],
-          401: commonErrorResponses[401],
-          403: commonErrorResponses[403],
-          404: commonErrorResponses[404],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam("tenantId"),
+          body: zodBody(updateTenantSchema),
+
+          response: {
+            200: okResponse("แก้ไขข้อมูลผู้เช่าสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
         },
       },
-    }, TenantController.updateTenant);
+      TenantController.updateTenant,
+    );
 
-    routeRoles.post("/:tenantId/move-out", {
-      schema: {
-        tags: ["Tenant Management (Owner/Admin)"],
-        summary: "ย้ายผู้เช่าออก (ทันทีหรือกำหนดวันล่วงหน้า)",
-        security: [{ bearerAuth: [] }],
-        params: idParam("tenantId"),
-        body: zodBody(moveOutSchema),
+    routeRoles.post(
+      "/:tenantId/move-out",
+      {
+        schema: {
+          tags: ["Tenant Management (Owner/Admin)"],
+          summary: "ย้ายผู้เช่าออก (ทันทีหรือกำหนดวันล่วงหน้า)",
 
-        response: {
-          200: okResponse("บันทึกการย้ายออกสำเร็จ"),
-          400: commonErrorResponses[400],
-          401: commonErrorResponses[401],
-          403: commonErrorResponses[403],
-          404: commonErrorResponses[404],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam("tenantId"),
+          body: zodBody(moveOutSchema),
+
+          response: {
+            200: okResponse("บันทึกการย้ายออกสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
         },
       },
-    }, TenantController.moveOut);
+      TenantController.moveOut,
+    );
 
-    routeRoles.post("/re-entry", {
-      schema: {
-        tags: ["Tenant Management (Owner/Admin)"],
-        summary: "สร้างสัญญาเช่าใหม่ให้ผู้ใช้ที่เคยเป็นผู้เช่ามาก่อน (เข้าอยู่ซ้ำ)",
-        security: [{ bearerAuth: [] }],
-        body: zodBody(reEntryTenantSchema),
+    routeRoles.post(
+      "/re-entry",
+      {
+        schema: {
+          tags: ["Tenant Management (Owner/Admin)"],
+          summary:
+            "สร้างสัญญาเช่าใหม่ให้ผู้ใช้ที่เคยเป็นผู้เช่ามาก่อน (เข้าอยู่ซ้ำ)",
 
-        response: {
-          200: okResponse("สร้างสัญญาเช่าใหม่สำเร็จ"),
-          400: commonErrorResponses[400],
-          401: commonErrorResponses[401],
-          403: commonErrorResponses[403],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          body: zodBody(reEntryTenantSchema),
+
+          response: {
+            200: okResponse("สร้างสัญญาเช่าใหม่สำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+          },
         },
       },
-    }, TenantController.reEntryTenant);
+      TenantController.reEntryTenant,
+    );
 
-    routeRoles.post("/:tenantId/cancel-move-out", {
-      schema: {
-        tags: ["Tenant Management (Owner/Admin)"],
-        summary: "ยกเลิกการย้ายออกที่กำหนดไว้ล่วงหน้า",
-        security: [{ bearerAuth: [] }],
-        params: idParam("tenantId"),
+    routeRoles.post(
+      "/:tenantId/cancel-move-out",
+      {
+        schema: {
+          tags: ["Tenant Management (Owner/Admin)"],
+          summary: "ยกเลิกการย้ายออกที่กำหนดไว้ล่วงหน้า",
 
-        response: {
-          200: okResponse("ยกเลิกการย้ายออกสำเร็จ"),
-          401: commonErrorResponses[401],
-          403: commonErrorResponses[403],
-          404: commonErrorResponses[404],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam("tenantId"),
+
+          response: {
+            200: okResponse("ยกเลิกการย้ายออกสำเร็จ"),
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
         },
       },
-    }, TenantController.cancelMoveOut);
+      TenantController.cancelMoveOut,
+    );
   });
 
   app.register(async (routeRoles) => {
     routeRoles.addHook("preHandler", authMiddleware);
     routeRoles.addHook("preHandler", authRoleMiddleware([Role.TENANT]));
 
-    routeRoles.get("/dashboard", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "ข้อมูลสรุป dashboard ของผู้เช่า",
-        security: [{ bearerAuth: [] }],
+    routeRoles.get(
+      "/dashboard",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "ข้อมูลสรุป dashboard ของผู้เช่า",
 
-        response: {
-          200: okResponse("ข้อมูลสรุป dashboard ผู้เช่า"),
-          401: commonErrorResponses[401],
-        },
-      },
-    }, TenantController.getDashboard);
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
 
-    routeRoles.get("/bills", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "รายการบิลของผู้เช่าที่ login อยู่",
-        security: [{ bearerAuth: [] }],
-        querystring: zodBody(getMyBillsQuerySchema),
-
-        response: {
-          200: paginatedItemsResponse("รายการบิลของผู้เช่า"),
-          401: commonErrorResponses[401],
-        },
-      },
-    }, TenantController.getMyBills);
-
-    routeRoles.get("/bills/:billId", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "รายละเอียดบิล",
-        security: [{ bearerAuth: [] }],
-        params: idParam("billId"),
-
-        response: {
-          200: okResponse("รายละเอียดบิล"),
-          401: commonErrorResponses[401],
-          404: commonErrorResponses[404],
-        },
-      },
-    }, TenantController.getBillById);
-
-    routeRoles.get("/bills/:billId/print", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "พิมพ์/ดาวน์โหลดบิลเป็น PDF",
-        security: [{ bearerAuth: [] }],
-        params: idParam("billId"),
-
-        response: {
-          200: {
-            description: "ไฟล์ PDF ของบิล",
-            type: "string",
-            format: "binary",
+          response: {
+            200: okResponse("ข้อมูลสรุป dashboard ผู้เช่า"),
+            401: commonErrorResponses[401],
           },
-
-          401: commonErrorResponses[401],
-          404: commonErrorResponses[404],
         },
       },
-    }, TenantController.printBillTenant);
+      TenantController.getDashboard,
+    );
 
-    routeRoles.post("/payment/generate-qr", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "สร้าง QR PromptPay สำหรับชำระบิล",
-        security: [{ bearerAuth: [] }],
-        body: zodBody(generateQrPaymentSchema),
+    routeRoles.get(
+      "/bills",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "รายการบิลของผู้เช่าที่ login อยู่",
 
-        response: {
-          200: okResponse("สร้าง QR ชำระเงินสำเร็จ"),
-          400: commonErrorResponses[400],
-          401: commonErrorResponses[401],
-          404: commonErrorResponses[404],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          querystring: zodBody(getMyBillsQuerySchema),
+
+          response: {
+            200: paginatedItemsResponse("รายการบิลของผู้เช่า"),
+            401: commonErrorResponses[401],
+          },
         },
       },
-    }, TenantController.generateQrPayment);
+      TenantController.getMyBills,
+    );
 
-    routeRoles.post("/payment/upload-slip", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "อัปโหลดสลิปชำระเงิน (multipart/form-data: file, billId, refNo)",
-        description: "field ไฟล์รูปสลิป + field billId (จำเป็น) + field refNo (ไม่บังคับ)",
-        security: [{ bearerAuth: [] }],
-        consumes: ["multipart/form-data"],
+    routeRoles.get(
+      "/bills/:billId",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "รายละเอียดบิล",
 
-        response: {
-          200: okResponse("อัปโหลดสลิปสำเร็จ"),
-          400: commonErrorResponses[400],
-          401: commonErrorResponses[401],
-          403: commonErrorResponses[403],
-          404: commonErrorResponses[404],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam("billId"),
+
+          response: {
+            200: okResponse("รายละเอียดบิล"),
+            401: commonErrorResponses[401],
+            404: commonErrorResponses[404],
+          },
         },
       },
-    }, TenantController.uploadSlip);
+      TenantController.getBillById,
+    );
 
-    routeRoles.post("/maintenance", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "แจ้งซ่อม (multipart/form-data: title, description, ไฟล์แนบสูงสุด 2 รูป)",
-        security: [{ bearerAuth: [] }],
-        consumes: ["multipart/form-data"],
+    routeRoles.get(
+      "/bills/:billId/print",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "พิมพ์/ดาวน์โหลดบิลเป็น PDF",
 
-        response: {
-          201: okResponse("แจ้งซ่อมสำเร็จ"),
-          400: commonErrorResponses[400],
-          401: commonErrorResponses[401],
-          404: commonErrorResponses[404],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam("billId"),
+
+          response: {
+            200: {
+              description: "ไฟล์ PDF ของบิล",
+              type: "string",
+              format: "binary",
+            },
+
+            401: commonErrorResponses[401],
+            404: commonErrorResponses[404],
+          },
         },
       },
-    }, TenantController.createMaintenance);
+      TenantController.printBillTenant,
+    );
 
-    routeRoles.get("/maintenance/history", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "ประวัติการแจ้งซ่อมของผู้เช่า",
-        security: [{ bearerAuth: [] }],
-        querystring: zodBody(getMaintenanceQuerySchema),
+    routeRoles.post(
+      "/payment/generate-qr",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "สร้าง QR PromptPay สำหรับชำระบิล",
 
-        response: {
-          200: paginatedItemsResponse("ประวัติการแจ้งซ่อม"),
-          401: commonErrorResponses[401],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          body: zodBody(generateQrPaymentSchema),
+
+          response: {
+            200: okResponse("สร้าง QR ชำระเงินสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            404: commonErrorResponses[404],
+          },
         },
       },
-    }, TenantController.getMyHistoryMaintenances);
+      TenantController.generateQrPayment,
+    );
 
-    routeRoles.patch("/maintenance/:requestId", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "แก้ไขคำขอแจ้งซ่อม (multipart/form-data: title, description, images, deletedImageIds)",
-        security: [{ bearerAuth: [] }],
-        consumes: ["multipart/form-data"],
-        params: idParam("requestId"),
+    routeRoles.post(
+      "/payment/upload-slip",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary:
+            "อัปโหลดสลิปชำระเงิน (multipart/form-data: file, billId, refNo)",
+          description:
+            "field ไฟล์รูปสลิป + field billId (จำเป็น) + field refNo (ไม่บังคับ)",
 
-        response: {
-          200: okResponse("แก้ไขคำขอแจ้งซ่อมสำเร็จ"),
-          400: commonErrorResponses[400],
-          401: commonErrorResponses[401],
-          404: commonErrorResponses[404],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          consumes: ["multipart/form-data"],
+
+          response: {
+            200: okResponse("อัปโหลดสลิปสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
         },
       },
-    }, TenantController.updateMaintenance);
+      TenantController.uploadSlip,
+    );
 
-    routeRoles.delete("/maintenance/:requestId", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "ยกเลิกคำขอแจ้งซ่อม (ยกเลิกได้เฉพาะสถานะ OPEN)",
-        security: [{ bearerAuth: [] }],
-        params: idParam("requestId"),
+    routeRoles.post(
+      "/maintenance",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary:
+            "แจ้งซ่อม (multipart/form-data: title, description, ไฟล์แนบสูงสุด 2 รูป)",
 
-        response: {
-          200: okResponse("ยกเลิกคำขอแจ้งซ่อมสำเร็จ"),
-          400: commonErrorResponses[400],
-          401: commonErrorResponses[401],
-          404: commonErrorResponses[404],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          consumes: ["multipart/form-data"],
+
+          response: {
+            201: okResponse("แจ้งซ่อมสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            404: commonErrorResponses[404],
+          },
         },
       },
-    }, TenantController.cancelMaintenance);
+      TenantController.createMaintenance,
+    );
 
-    routeRoles.get("/contract", {
-      schema: {
-        tags: ["Tenant Self-Service (Tenant)"],
-        summary: "รายละเอียดสัญญาเช่าของผู้เช่า",
-        security: [{ bearerAuth: [] }],
+    routeRoles.get(
+      "/maintenance/history",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "ประวัติการแจ้งซ่อมของผู้เช่า",
 
-        response: {
-          200: okResponse("รายละเอียดสัญญาเช่า"),
-          401: commonErrorResponses[401],
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          querystring: zodBody(getMaintenanceQuerySchema),
+
+          response: {
+            200: paginatedItemsResponse("ประวัติการแจ้งซ่อม"),
+            401: commonErrorResponses[401],
+          },
         },
       },
-    }, TenantController.getContractDetail);
+      TenantController.getMyHistoryMaintenances,
+    );
+
+    routeRoles.patch(
+      "/maintenance/:requestId",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary:
+            "แก้ไขคำขอแจ้งซ่อม (multipart/form-data: title, description, images, deletedImageIds)",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          consumes: ["multipart/form-data"],
+          params: idParam("requestId"),
+
+          response: {
+            200: okResponse("แก้ไขคำขอแจ้งซ่อมสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      TenantController.updateMaintenance,
+    );
+
+    routeRoles.delete(
+      "/maintenance/:requestId",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "ยกเลิกคำขอแจ้งซ่อม (ยกเลิกได้เฉพาะสถานะ OPEN)",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam("requestId"),
+
+          response: {
+            200: okResponse("ยกเลิกคำขอแจ้งซ่อมสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      TenantController.cancelMaintenance,
+    );
+
+    routeRoles.get(
+      "/contract",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "รายละเอียดสัญญาเช่าของผู้เช่า",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          response: {
+            200: okResponse("รายละเอียดสัญญาเช่า"),
+            401: commonErrorResponses[401],
+          },
+        },
+      },
+      TenantController.getContractDetail,
+    );
   });
 }

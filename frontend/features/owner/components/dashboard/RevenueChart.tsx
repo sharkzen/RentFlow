@@ -147,7 +147,7 @@ export const RevenueChart = ({ data }: RevenueChartProps) => {
 
   return (
     <div className="flex h-full w-full flex-col justify-center">
-      <h3 className="mb-4 text-center text-sm font-semibold text-gray-500">
+      <h3 className="text-muted mb-4 text-center text-sm font-semibold">
         แนวโน้มรายได้ (Revenue Trend)
       </h3>
       <div className="h-64 w-full overflow-hidden">

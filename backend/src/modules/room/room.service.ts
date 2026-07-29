@@ -533,6 +533,7 @@ export const roomService = {
               orderBy: {
                 order: "asc",
               },
+
               take: 1,
             },
           },
@@ -724,6 +725,7 @@ export const roomService = {
               orderBy: {
                 order: "asc",
               },
+
               take: 1,
             },
           },

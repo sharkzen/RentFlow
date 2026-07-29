@@ -1,12 +1,14 @@
 "use client";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import React from "react";
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  subValue?: string;
+  subValue?: string | number;
   icon: React.ReactNode;
   colorClass: string;
+  prefix?: string;
 }
 
 export const StatCard = ({
@@ -15,15 +17,22 @@ export const StatCard = ({
   subValue,
   icon,
   colorClass,
+  prefix = "",
 }: StatCardProps) => (
-  <div className="flex items-start justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+  <div className="border-border bg-surface flex items-start justify-between rounded-2xl border p-5 shadow-sm transition-all hover:shadow-md">
     <div>
-      <p className="text-sm font-medium text-gray-500">{title}</p>
-      <h3 className="mt-1 text-2xl font-bold text-gray-900">{value}</h3>
-      {subValue && (
-        <p className="mt-1 text-xs font-medium text-gray-400">{subValue}</p>
+      <p className="text-muted text-sm font-medium">{title}</p>
+      <h3 className="text-foreground mt-1 text-2xl font-bold">
+        {prefix}
+        <AnimatedNumber value={value} />
+      </h3>
+      {subValue !== undefined && (
+        <p className="text-muted mt-1 text-xs font-medium">
+          <AnimatedNumber value={subValue} />
+          บิล
+        </p>
       )}
     </div>
-    <div className={`rounded-xl p-3 ${colorClass}`}>{icon}</div>
+    <div className={` ${colorClass}`}>{icon}</div>
   </div>
 );

@@ -119,51 +119,51 @@ export default function MaintenanceDetailModal({
           onClick={onClose}
         />
         <div
-          className="animate-in fade-in zoom-in-95 relative flex h-full w-full flex-col overflow-hidden bg-white duration-200 sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-3xl"
+          className="bg-surface animate-in fade-in zoom-in-95 relative flex h-full w-full flex-col overflow-hidden duration-200 sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-3xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex shrink-0 items-center justify-between border-b border-slate-100 bg-white px-5 py-4 sm:px-8">
-            <h3 className="text-lg font-bold text-slate-900 sm:text-xl">
+          <div className="border-border bg-surface flex shrink-0 items-center justify-between border-b px-5 py-4 sm:px-8">
+            <h3 className="text-foreground text-lg font-bold sm:text-xl">
               {isEditing ? "แก้ไขข้อมูลแจ้งซ่อม" : "รายละเอียดแจ้งซ่อม"}
             </h3>
             <button
               onClick={onClose}
-              className="cursor-pointer rounded-full p-2 text-gray-400 transition-colors hover:bg-slate-100"
+              className="text-muted hover:bg-background cursor-pointer rounded-full p-2 transition-colors"
             >
               <X size={24} />
             </button>
           </div>
-          <div className="custom-scrollbar flex-1 overflow-y-auto bg-white px-5 py-6 sm:px-8">
+          <div className="custom-scrollbar bg-surface flex-1 overflow-y-auto px-5 py-6 sm:px-8">
             {isEditing ? (
               <form id="edit-form" onSubmit={handleSave} className="space-y-6">
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  <label className="text-foreground mb-2 block text-sm font-semibold">
                     หัวข้อปัญหา
                   </label>
                   <input
                     type="text"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                    className="border-border bg-background text-foreground focus:bg-surface w-full rounded-2xl border px-4 py-3 text-sm outline-none focus:border-indigo-500"
                     required
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  <label className="text-foreground mb-2 block text-sm font-semibold">
                     รายละเอียด
                   </label>
                   <textarea
                     value={editDesc}
                     onChange={(e) => setEditDesc(e.target.value)}
                     rows={4}
-                    className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:bg-white"
+                    className="border-border bg-background text-foreground focus:bg-surface w-full resize-none rounded-2xl border px-4 py-3 text-sm outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  <label className="text-foreground mb-2 block text-sm font-semibold">
                     รูปภาพเพิ่มเติม
                   </label>
-                  <div className="relative rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center transition-colors hover:bg-slate-100">
+                  <div className="border-border bg-background hover:bg-border/40 relative rounded-2xl border-2 border-dashed p-6 text-center transition-colors">
                     <input
                       type="file"
                       multiple
@@ -177,8 +177,8 @@ export default function MaintenanceDetailModal({
                         ])
                       }
                     />
-                    <UploadCloud className="mx-auto h-8 w-8 text-slate-400" />
-                    <p className="mt-2 text-sm font-medium text-slate-600">
+                    <UploadCloud className="text-muted mx-auto h-8 w-8" />
+                    <p className="text-muted mt-2 text-sm font-medium">
                       แตะเพื่ออัปโหลดรูปภาพ
                     </p>
                   </div>
@@ -188,7 +188,7 @@ export default function MaintenanceDetailModal({
                     {existingImages.map((img) => (
                       <div
                         key={img.id}
-                        className="relative aspect-square overflow-hidden rounded-xl border border-slate-200"
+                        className="border-border relative aspect-square overflow-hidden rounded-xl border"
                       >
                         <img
                           src={img.url}
@@ -232,13 +232,13 @@ export default function MaintenanceDetailModal({
               </form>
             ) : (
               <div className="space-y-8">
-                <div className="flex items-center justify-between border-b border-slate-50 pb-4">
+                <div className="border-border flex items-center justify-between border-b pb-4">
                   <div
                     className={`rounded-full px-4 py-1 text-xs font-bold ring-1 ${statusConfig[request.status].style}`}
                   >
                     {statusConfig[request.status].label}
                   </div>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-muted text-xs">
                     แจ้งเมื่อ:{" "}
                     {format(new Date(request.createdAt), "d MMM yyyy HH:mm", {
                       locale: th,
@@ -246,12 +246,12 @@ export default function MaintenanceDetailModal({
                   </span>
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-slate-900">
+                  <h4 className="text-foreground text-xl font-bold">
                     {request.title}
                   </h4>
-                  <div className="mt-4 rounded-2xl bg-slate-50 p-5 leading-relaxed whitespace-pre-line text-slate-700">
+                  <div className="bg-background text-foreground mt-4 rounded-2xl p-5 leading-relaxed whitespace-pre-line">
                     {request.description || (
-                      <span className="text-slate-400 italic">
+                      <span className="text-muted italic">
                         ไม่ได้ระบุรายละเอียด
                       </span>
                     )}
@@ -259,7 +259,7 @@ export default function MaintenanceDetailModal({
                 </div>
                 {request.images && request.images.length > 0 && (
                   <div>
-                    <p className="mb-4 text-sm font-bold text-slate-900">
+                    <p className="text-foreground mb-4 text-sm font-bold">
                       รูปภาพประกอบ ({request.images.length})
                     </p>
                     <div className="grid grid-cols-3 gap-3">
@@ -267,7 +267,7 @@ export default function MaintenanceDetailModal({
                         <div
                           key={img.id}
                           onClick={() => setSelectedImage(img.url)}
-                          className="group relative aspect-square cursor-zoom-in overflow-hidden rounded-2xl border border-slate-200"
+                          className="border-border group relative aspect-square cursor-zoom-in overflow-hidden rounded-2xl border"
                         >
                           <img
                             src={img.url}
@@ -285,7 +285,7 @@ export default function MaintenanceDetailModal({
               </div>
             )}
           </div>
-          <div className="shrink-0 border-t border-slate-100 bg-white p-5 sm:px-8">
+          <div className="border-border bg-surface shrink-0 border-t p-5 sm:px-8">
             {!isEditing && (
               <div className="flex w-full items-center justify-between gap-3">
                 {canEditOrDelete ? (
@@ -306,7 +306,7 @@ export default function MaintenanceDetailModal({
                     </button>
                   </>
                 ) : (
-                  <div className="w-full text-center text-sm text-slate-400 italic">
+                  <div className="text-muted w-full text-center text-sm italic">
                     รายการนี้อยู่ระหว่างดำเนินการหรือเสร็จสิ้นแล้ว
                     ไม่สามารถแก้ไขได้
                   </div>
@@ -318,7 +318,7 @@ export default function MaintenanceDetailModal({
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="cursor-pointer rounded-xl px-6 py-2.5 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-100"
+                  className="text-muted hover:bg-background cursor-pointer rounded-xl px-6 py-2.5 text-sm font-bold transition-colors"
                 >
                   ยกเลิก
                 </button>

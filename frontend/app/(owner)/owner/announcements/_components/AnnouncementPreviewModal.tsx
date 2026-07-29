@@ -22,11 +22,11 @@ export default function AnnouncementPreviewModal({
       >
         <X size={24} />
       </button>
-      <div className="flex max-h-[85vh] w-full max-w-[340px] flex-col overflow-hidden bg-white">
+      <div className="bg-surface flex max-h-[85vh] w-full max-w-[340px] flex-col overflow-hidden">
         <div className="shrink-0 bg-blue-600 p-4 text-center font-medium text-white shadow-sm">
           แจ้งเตือนประกาศ
         </div>
-        <div className="flex-1 space-y-4 overflow-y-auto p-5 pb-8 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200">
+        <div className="[&::-webkit-scrollbar-thumb]:bg-border flex-1 space-y-4 overflow-y-auto p-5 pb-8 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full">
           <div className="flex items-center justify-between">
             <span
               className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${item.type === "URGENT" ? "bg-red-100 text-red-700" : item.type === "IMPORTANT" ? "bg-orange-100 text-orange-700" : "bg-blue-100 text-blue-700"}`}
@@ -38,15 +38,15 @@ export default function AnnouncementPreviewModal({
                   ? "สำคัญ"
                   : "ประกาศทั่วไป"}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-muted text-xs">
               {dayjs(item.createdAt).format("DD MMM YYYY HH:mm")}
             </span>
           </div>
-          <h3 className="text-base font-bold break-words text-gray-900">
+          <h3 className="text-foreground text-base font-bold break-words">
             {item.title}
           </h3>
           {imageUrl && (
-            <div className="w-full shrink-0 overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+            <div className="border-border bg-background w-full shrink-0 overflow-hidden rounded-lg border">
               <img
                 src={imageUrl}
                 alt="Announcement"
@@ -54,14 +54,14 @@ export default function AnnouncementPreviewModal({
               />
             </div>
           )}
-          <div className="text-sm break-words whitespace-pre-wrap text-gray-600">
+          <div className="text-muted text-sm break-words whitespace-pre-wrap">
             {item.content}
           </div>
         </div>
-        <div className="shrink-0 border-t border-gray-100 bg-white p-4">
+        <div className="border-border bg-surface shrink-0 border-t p-4">
           <button
             onClick={onClose}
-            className="w-full rounded-xl bg-gray-100 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200"
+            className="bg-background text-foreground hover:bg-border w-full rounded-xl py-3 text-sm font-semibold transition-colors"
           >
             รับทราบ / ปิดประกาศ
           </button>

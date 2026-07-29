@@ -1,12 +1,13 @@
 import DormSlugContainer from "@/features/dormitory/components/public/dormslug/DormSlugContainer";
 import type { Metadata } from "next";
-
 const API_URL = process.env.API_URL || "http://localhost:3001";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{
+    slug: string;
+  }>;
 }): Promise<Metadata> {
   const { slug } = await params;
 

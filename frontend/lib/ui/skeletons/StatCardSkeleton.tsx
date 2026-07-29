@@ -2,7 +2,7 @@ import Skeleton from "@/lib/ui/Skeleton";
 
 export function StatCardSkeleton() {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-6">
+    <div className="border-border bg-surface rounded-2xl border p-6">
       <div className="flex items-start justify-between">
         <div className="space-y-3">
           <Skeleton className="h-4 w-24" />
@@ -26,7 +26,9 @@ export function StatCardGridSkeleton({
 }: StatCardGridSkeletonProps) {
   return (
     <div className={`grid ${columns}`}>
-      {Array.from({ length: count }).map((_, i) => (
+      {Array.from({
+        length: count,
+      }).map((_, i) => (
         <StatCardSkeleton key={i} />
       ))}
     </div>

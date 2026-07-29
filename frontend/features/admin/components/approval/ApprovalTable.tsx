@@ -11,7 +11,7 @@ interface Props {
 export default function ApprovalTable({ data, onView }: Props) {
   if (data.length === 0) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 text-gray-400">
+      <div className="border-border bg-background text-muted flex h-64 flex-col items-center justify-center rounded-xl border border-dashed">
         <Clock className="mb-2 h-10 w-10 opacity-50" />
         <p>ไม่มีรายการที่รออนุมัติ</p>
       </div>
@@ -19,10 +19,10 @@ export default function ApprovalTable({ data, onView }: Props) {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <div className="border-border bg-surface overflow-hidden rounded-xl border shadow-sm">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50 text-xs tracking-wider text-gray-500 uppercase">
+          <thead className="bg-background text-muted text-xs tracking-wider uppercase">
             <tr>
               <th className="px-6 py-4 font-semibold">วันที่สมัคร</th>
               <th className="px-6 py-4 font-semibold">ผู้สมัคร (Owner)</th>
@@ -31,26 +31,26 @@ export default function ApprovalTable({ data, onView }: Props) {
               <th className="px-6 py-4 text-right font-semibold">จัดการ</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-border divide-y">
             {data.map((item) => (
               <tr
                 key={item.id}
-                className="transition-colors hover:bg-gray-50/60"
+                className="hover:bg-background/60 transition-colors"
               >
-                <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                <td className="text-muted px-6 py-4 whitespace-nowrap">
                   {format(new Date(item.createdAt), "d MMM yy HH:mm", {
                     locale: th,
                   })}
                 </td>
                 <td className="px-6 py-4">
                   <div>
-                    <p className="font-semibold text-gray-900">
+                    <p className="text-foreground font-semibold">
                       {item.fullName}
                     </p>
-                    <p className="text-xs text-gray-500">{item.user.email}</p>
+                    <p className="text-muted text-xs">{item.user.email}</p>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-gray-600">
+                <td className="text-muted px-6 py-4">
                   <div className="flex flex-col text-xs">
                     {item.phone && <span>Tel: {item.phone}</span>}
                     {item.lineId && (

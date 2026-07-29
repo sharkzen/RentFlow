@@ -5,9 +5,9 @@ import DormsDialog from "./DormsDialog";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Plus, Building2, Ban } from "lucide-react";
 import DromCreate from "./DromCreate";
-import { Spinner } from "@/lib/ui/Spinner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dormitory } from "@/features/dormitory";
+import LoadingPage from "@/app/(owner)/owner/dorms/loading";
 
 export default function DormsContainer() {
   const queryClient = useQueryClient();
@@ -29,6 +29,8 @@ export default function DormsContainer() {
     setSelectedDorm(null);
   };
 
+  if (isLoading) return <LoadingPage />;
+
   return (
     <div className="container">
       {onCreate && (
@@ -37,12 +39,12 @@ export default function DormsContainer() {
           onSuccess={refreshDorms}
         />
       )}
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-center">
+      <div className="border-border mb-8 flex flex-col items-start justify-between gap-4 border-b pb-4 sm:flex-row sm:items-center">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h2 className="text-foreground text-3xl font-bold tracking-tight">
             หอพักของคุณ
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="text-muted mt-1 text-sm">
             จัดการรายการหอพัก ข้อมูลราคา และสถานะการเผยแพร่
           </p>
         </div>
@@ -56,17 +58,13 @@ export default function DormsContainer() {
           </button>
         </div>
       </div>
-      {isLoading ? (
-        <div className="flex h-64 items-center justify-center">
-          <Spinner />
-        </div>
-      ) : dorms.length === 0 ? (
-        <div className="flex h-80 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50 text-center">
-          <div className="mb-4 rounded-full bg-slate-100 p-4">
-            <Building2 className="h-10 w-10 text-slate-400" />
+      {dorms.length === 0 ? (
+        <div className="border-border bg-background flex h-80 flex-col items-center justify-center rounded-3xl border-2 border-dashed text-center">
+          <div className="bg-surface mb-4 rounded-full p-4">
+            <Building2 className="text-muted h-10 w-10" />
           </div>
-          <h3 className="text-lg font-medium text-slate-900">ยังไม่มีหอพัก</h3>
-          <p className="mt-1 text-sm text-slate-500">
+          <h3 className="text-foreground text-lg font-medium">ยังไม่มีหอพัก</h3>
+          <p className="text-muted mt-1 text-sm">
             เริ่มต้นด้วยการสร้างหอพักแรกของคุณ
           </p>
           <button
@@ -91,7 +89,6 @@ export default function DormsContainer() {
                     </span>
                   </div>
                 )}
-
                 <div
                   className={
                     isBanned

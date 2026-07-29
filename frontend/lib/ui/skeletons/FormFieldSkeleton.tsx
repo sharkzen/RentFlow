@@ -20,7 +20,9 @@ export function FormFieldGroupSkeleton({
 }: FormFieldGroupSkeletonProps) {
   return (
     <div className="space-y-5">
-      {Array.from({ length: fields }).map((_, i) => (
+      {Array.from({
+        length: fields,
+      }).map((_, i) => (
         <FormFieldSkeleton key={i} />
       ))}
       {withButton && <Skeleton className="h-11 w-full" rounded="lg" />}

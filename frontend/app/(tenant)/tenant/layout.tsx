@@ -18,7 +18,7 @@ export default async function TenantLayout({
 
   return (
     <>
-      <div className="flex min-h-screen bg-white">
+      <div className="bg-background flex min-h-screen">
         <TenantNavbar />
         <main className="flex-1 overflow-hidden p-4 md:p-8">{children}</main>
       </div>

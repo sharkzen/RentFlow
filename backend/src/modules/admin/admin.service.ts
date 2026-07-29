@@ -35,22 +35,47 @@ export const AdminService = {
       r2Stats,
     ] = await Promise.all([
       prisma.user.count(),
-      prisma.user.count({ where: { role: UserRole.OWNER } }),
-      prisma.user.count({ where: { role: UserRole.TENANT } }),
-      prisma.ownerProfile.count({ where: { status: OwnerStatus.PENDING } }),
+      prisma.user.count({
+        where: {
+          role: UserRole.OWNER,
+        },
+      }),
+      prisma.user.count({
+        where: {
+          role: UserRole.TENANT,
+        },
+      }),
+      prisma.ownerProfile.count({
+        where: {
+          status: OwnerStatus.PENDING,
+        },
+      }),
       prisma.dormitory.count(),
       prisma.dormitory.count({
         where: {
-          OR: [{ isPublished: false }, { status: Status.PENDING }],
+          OR: [
+            {
+              isPublished: false,
+            },
+            {
+              status: Status.PENDING,
+            },
+          ],
         },
       }),
       prisma.room.count(),
       prisma.maintenanceRequest.count({
-        where: { status: MaintenanceStatus.OPEN },
+        where: {
+          status: MaintenanceStatus.OPEN,
+        },
       }),
       prisma.user.findMany({
         take: 5,
-        orderBy: { createdAt: "desc" },
+
+        orderBy: {
+          createdAt: "desc",
+        },
+
         select: {
           id: true,
           email: true,
@@ -59,28 +84,20 @@ export const AdminService = {
           status: true,
         },
       }),
-      // เรียกใช้ฟังก์ชันเดิม (ควรเช็คข้างในว่ามันอ่าน process.env.S3_BUCKET แล้ว)
       getBucketSize(),
     ]);
 
-    // --- แก้ไขการดึงขนาดฐานข้อมูล PostgreSQL ตรงนี้ ---
-    // คิวรีนี้จะคำนวณขนาดรวมของ "ตารางทั้งหมด" ใน Schema 'public' (รวม Index ของตารางนั้นด้วย)
-    // ซึ่งจะตรงกับขนาดข้อมูลที่คุณจัดการผ่าน Prisma มากกว่า
     const dbSizeResult = await prisma.$queryRaw<{ total_size: bigint }[]>`
       SELECT SUM(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::bigint as total_size
       FROM pg_tables
       WHERE schemaname = 'public';
     `;
 
-    // แปลงค่าเป็น Number และจัดการกรณีที่ผลลัพธ์ว่าง
     const dbSizeBytes = Number(dbSizeResult[0]?.total_size || 0);
-
-    // --- ส่วนที่เหลือเหมือนเดิม ---
     const r2SizeBytes = r2Stats.totalSizeBytes;
     const dbFormatted = formatBytes(dbSizeBytes);
     const r2Formatted = formatBytes(r2SizeBytes);
     const dbSizeGB = dbSizeBytes / (1024 * 1024 * 1024);
-
     let dbAiAdvice = "ฐานข้อมูลอยู่ในเกณฑ์ปกติ ไม่จำเป็นต้องจัดการเพิ่มเติม";
     let shouldOptimizeDb = false;
 
@@ -102,25 +119,30 @@ export const AdminService = {
         totalDormitories,
         totalRooms,
       },
+
       actionRequired: {
         pendingOwners,
         pendingDormitories,
         openMaintenance,
       },
+
       storage: {
         database: {
           displayValue: `${dbFormatted.value} ${dbFormatted.unit}`,
           aiAdvice: dbAiAdvice,
           shouldOptimize: shouldOptimizeDb,
         },
+
         r2: {
           displayValue: `${r2Formatted.value} ${r2Formatted.unit}`,
           totalFiles: r2Stats.totalFiles,
         },
       },
+
       recentUsers,
     };
   },
+
   getPendingOwners: async (page: number, limit: number, search: string) => {
     const skip = (page - 1) * limit;
 
@@ -358,6 +380,7 @@ export const AdminService = {
       action: "REJECT_OWNER",
       entityType: "OwnerProfile",
       entityId: id,
+
       metadata: {
         ownerName,
       },
@@ -578,6 +601,7 @@ export const AdminService = {
       action: "TOGGLE_DORM_PUBLISH",
       entityType: "Dormitory",
       entityId: id,
+
       metadata: {
         isPublished,
       },
@@ -602,6 +626,7 @@ export const AdminService = {
       action: "UPDATE_DORM_STATUS_ADMIN",
       entityType: "Dormitory",
       entityId: id,
+
       metadata: {
         status,
       },
@@ -656,6 +681,7 @@ export const AdminService = {
       action: "TOGGLE_DORM_FEATURED",
       entityType: "Dormitory",
       entityId: id,
+
       metadata: {
         isFeatured,
       },
@@ -710,7 +736,10 @@ export const AdminService = {
   },
 
   reorderFeatured: async (
-    items: { id: string; order: number }[],
+    items: {
+      id: string;
+      order: number;
+    }[],
     adminUserId: string,
   ) => {
     await prisma.$transaction(
@@ -731,6 +760,7 @@ export const AdminService = {
       userId: adminUserId,
       action: "REORDER_FEATURED_DORMS",
       entityType: "Dormitory",
+
       metadata: {
         count: items.length,
       },
@@ -928,6 +958,7 @@ export const AdminService = {
       action: "UPDATE_USER_STATUS",
       entityType: "User",
       entityId: userId,
+
       metadata: {
         status,
       },
@@ -1020,6 +1051,7 @@ export const AdminService = {
       action: "CREATE_LANDMARK",
       entityType: "Landmark",
       entityId: result.id,
+
       metadata: {
         name: data.name,
       },

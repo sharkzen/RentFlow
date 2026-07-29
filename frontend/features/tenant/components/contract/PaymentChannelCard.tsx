@@ -9,23 +9,23 @@ export const PaymentChannelCard = ({
   const paymentSetting = tenant.room.dormitory.paymentSetting;
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100">
-      <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-800">
+    <div className="bg-surface ring-border rounded-2xl p-6 shadow-sm ring-1">
+      <h3 className="text-foreground mb-4 flex items-center gap-2 text-sm font-bold">
         <Landmark size={18} className="text-blue-500" />
         ช่องทางการชำระเงิน
       </h3>
       {paymentSetting?.bankAccount ? (
-        <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-          <p className="text-xs font-medium text-slate-400">
+        <div className="border-border bg-background rounded-xl border p-4">
+          <p className="text-muted text-xs font-medium">
             {paymentSetting.bankName || "ไม่ระบุธนาคาร"}
           </p>
-          <p className="mt-0.5 text-lg font-bold tracking-wide text-slate-800">
+          <p className="text-foreground mt-0.5 text-lg font-bold tracking-wide">
             {paymentSetting.bankAccount}
           </p>
-          <p className="text-sm text-slate-500">{paymentSetting.bankHolder}</p>
+          <p className="text-muted text-sm">{paymentSetting.bankHolder}</p>
         </div>
       ) : (
-        <p className="text-sm text-slate-400">ไม่ได้ตั้งค่าบัญชีธนาคาร</p>
+        <p className="text-muted text-sm">ไม่ได้ตั้งค่าบัญชีธนาคาร</p>
       )}
       {paymentSetting?.promptPayValue && (
         <div className="mt-3 flex items-center gap-3 rounded-xl bg-blue-50 px-4 py-3">

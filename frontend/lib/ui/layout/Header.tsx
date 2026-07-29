@@ -2,17 +2,27 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/providers/AuthProvider";
 import useLogout from "@/features/auth/hooks/useLogout";
 import { toast } from "react-toastify";
-import { LayoutDashboard, LogOut, ChevronDown, Home } from "lucide-react";
+import {
+  LayoutDashboard,
+  LogOut,
+  ChevronDown,
+  Home,
+  Sun,
+  Moon,
+} from "lucide-react";
 import { Role } from "@/features/auth";
 import Skeleton from "@/lib/ui/Skeleton";
 import log from "@/lib/logger";
 
 export default function Header() {
   const { user, loading: authLoading, setUser } = useAuth();
+
+  const { resolvedTheme, setTheme } = useTheme();
 
   const [isMounted, setIsMounted] = useState(false);
   const logoutMutation = useLogout();
@@ -50,7 +60,9 @@ export default function Header() {
 
   const focusMenuItem = (index: number) => {
     const items = menuItemRefs.current.filter(Boolean);
+
     if (items.length === 0) return;
+
     const clamped = (index + items.length) % items.length;
     items[clamped]?.focus();
   };
@@ -117,12 +129,48 @@ export default function Header() {
     }
   };
 
+  const toggleTheme = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
+
+    if (!("startViewTransition" in document)) {
+      setTheme(nextTheme);
+      return;
+    }
+
+    const x = e.clientX;
+    const y = e.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
+
+    const transition = document.startViewTransition(() => {
+      setTheme(nextTheme);
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 500,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        },
+      );
+    });
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-[#F3F4F6]/80 backdrop-blur-md">
+    <header className="bg-background/80 border-border sticky top-0 z-50 w-full border-b backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
         <Link
           href="/"
-          className={`group flex items-center text-xl font-bold tracking-tight text-slate-900 ${user ? "max-[960px]:pl-10" : ""}`}
+          className={`text-foreground group flex items-center text-xl font-bold tracking-tight ${user ? "max-[960px]:pl-10" : ""}`}
         >
           Rent
           <span className="ml-1 bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
@@ -130,8 +178,22 @@ export default function Header() {
           </span>
         </Link>
         <div className="flex items-center gap-3">
+          {isMounted && (
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label="สลับธีมสว่าง/มืด"
+              className="border-border text-muted hover:bg-surface flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border transition-colors active:scale-95"
+            >
+              {resolvedTheme === "dark" ? (
+                <Sun size={16} />
+              ) : (
+                <Moon size={16} />
+              )}
+            </button>
+          )}
           {!isMounted || authLoading ? (
-            <Skeleton className="h-8 w-32 rounded-full bg-white/50" />
+            <Skeleton className="bg-surface/50 h-8 w-32 rounded-full" />
           ) : (
             <>
               {!user ? (
@@ -158,17 +220,17 @@ export default function Header() {
                     aria-haspopup="menu"
                     aria-expanded={dropdownOpen}
                     aria-controls={menuId}
-                    className="flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 pr-3 transition-all hover:cursor-pointer hover:bg-white/80 active:scale-95"
+                    className="border-border bg-surface hover:bg-background flex items-center gap-2 rounded-full border p-1 pr-3 transition-all hover:cursor-pointer active:scale-95"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
                       {initial}
                     </div>
-                    <span className="hidden text-sm font-semibold text-slate-700 md:block">
+                    <span className="text-foreground hidden text-sm font-semibold md:block">
                       {firstName}
                     </span>
                     <ChevronDown
                       size={14}
-                      className={`text-slate-400 transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`}
+                      className={`text-muted transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`}
                     />
                   </button>
                   <AnimatePresence>
@@ -195,13 +257,13 @@ export default function Header() {
                           duration: 0.2,
                           ease: "easeOut",
                         }}
-                        className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl bg-white p-2 ring-1 ring-black/5"
+                        className="bg-surface absolute right-0 mt-2 w-56 origin-top-right rounded-2xl p-2 ring-1 ring-black/5"
                       >
-                        <div className="mb-1 border-b border-gray-100 px-3 py-2">
-                          <p className="truncate text-xs font-medium text-slate-400">
+                        <div className="border-border mb-1 border-b px-3 py-2">
+                          <p className="text-muted truncate text-xs font-medium">
                             บัญชีผู้ใช้
                           </p>
-                          <p className="truncate text-sm font-bold text-slate-900">
+                          <p className="text-foreground truncate text-sm font-bold">
                             {user.email}
                           </p>
                         </div>
@@ -214,7 +276,7 @@ export default function Header() {
                             role="menuitem"
                             onClick={() => setDropdownOpen(false)}
                             onKeyDown={(e) => handleMenuKeyDown(e, 0)}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 focus:bg-slate-50 focus:text-indigo-600 focus:outline-none"
+                            className="text-muted hover:bg-background focus:bg-background flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:text-indigo-600 focus:text-indigo-600 focus:outline-none"
                           >
                             <Home size={16} />
                             หน้าหลัก
@@ -227,7 +289,7 @@ export default function Header() {
                             role="menuitem"
                             onClick={() => setDropdownOpen(false)}
                             onKeyDown={(e) => handleMenuKeyDown(e, 1)}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 focus:bg-slate-50 focus:text-indigo-600 focus:outline-none"
+                            className="text-muted hover:bg-background focus:bg-background flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:text-indigo-600 focus:text-indigo-600 focus:outline-none"
                           >
                             <LayoutDashboard size={16} />
                             แดชบอร์ด

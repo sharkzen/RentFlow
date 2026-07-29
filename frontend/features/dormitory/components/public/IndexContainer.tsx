@@ -12,15 +12,15 @@ const DormSkeleton = () => (
     {[...Array(8)].map((_, i) => (
       <div
         key={i}
-        className="flex flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm"
+        className="border-border bg-surface flex flex-col overflow-hidden rounded-3xl border shadow-sm"
       >
-        <div className="aspect-4/3 w-full animate-pulse bg-slate-200" />
+        <div className="bg-background aspect-4/3 w-full animate-pulse" />
         <div className="space-y-3 p-4">
-          <div className="h-5 w-3/4 animate-pulse rounded-full bg-slate-200" />
-          <div className="h-4 w-1/2 animate-pulse rounded-full bg-slate-100" />
+          <div className="bg-background h-5 w-3/4 animate-pulse rounded-full" />
+          <div className="bg-background h-4 w-1/2 animate-pulse rounded-full opacity-70" />
           <div className="mt-4 flex items-center justify-between">
-            <div className="h-6 w-20 animate-pulse rounded-full bg-slate-200" />
-            <div className="h-8 w-8 animate-pulse rounded-full bg-slate-100" />
+            <div className="bg-background h-6 w-20 animate-pulse rounded-full" />
+            <div className="bg-background h-8 w-8 animate-pulse rounded-full opacity-70" />
           </div>
         </div>
       </div>
@@ -72,7 +72,7 @@ export default function IndexContainer() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-[#F3F4F6] pb-24">
+    <main className="bg-grid bg-background relative min-h-screen w-full pb-24">
       <div className="mx-auto sm:px-4">
         <div className="py-6">
           <DormFilter />

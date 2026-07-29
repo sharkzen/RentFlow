@@ -3,7 +3,6 @@ export const extractMapUrlFromText = (text: string): string => {
 
   const trimmed = text.trim();
   const match = trimmed.match(/https?:\/\/\S+/);
-
   return match ? match[0] : trimmed;
 };
 

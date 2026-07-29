@@ -77,7 +77,12 @@ export const AdminService = {
     return res.data;
   },
 
-  reorderFeatured: async (items: { id: string; order: number }[]) => {
+  reorderFeatured: async (
+    items: {
+      id: string;
+      order: number;
+    }[],
+  ) => {
     const res = await axios.put("/api/admin/dormitories/featured/order", {
       items,
     });

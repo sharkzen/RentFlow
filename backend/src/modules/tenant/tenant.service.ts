@@ -694,6 +694,7 @@ export const tenantService = {
                   orderBy: {
                     order: "asc",
                   },
+
                   take: 1,
                 },
               },
@@ -1085,7 +1086,6 @@ export const tenantService = {
           (endDate.getTime() - startDate.getTime()) / 86400000,
         );
         const calculatedLateFee = Math.max(daysLate, 0) * dailyRate;
-
         billAmount += Math.max(calculatedLateFee, bill.lateFeeSnapshot || 0);
       }
 
@@ -1129,6 +1129,7 @@ export const tenantService = {
                   orderBy: {
                     order: "asc",
                   },
+
                   take: 1,
                 },
               },
@@ -2179,6 +2180,7 @@ export const tenantService = {
       action: "RE_ENTRY_TENANT",
       entityType: "TenantProfile",
       entityId: createdProfile.id,
+
       metadata: {
         roomId: data.roomId,
         userId: data.userId,

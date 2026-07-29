@@ -51,9 +51,9 @@ const DormMap = ({
     !(latitude === 0 && longitude === 0);
 
   return (
-    <div className="mt-8 rounded-xl border border-gray-200 bg-white p-5">
+    <div className="border-border bg-surface mt-8 rounded-xl border p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-lg font-bold text-gray-800">
+        <h3 className="text-foreground flex items-center gap-2 text-lg font-bold">
           <MapPin className="text-red-500" size={20} />
           แผนที่และการเดินทาง
         </h3>
@@ -69,12 +69,12 @@ const DormMap = ({
         )}
       </div>
       {address && (
-        <p className="mb-4 rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
-          <span className="font-semibold text-gray-900">ที่อยู่:</span>{" "}
+        <p className="bg-background text-muted mb-4 rounded-lg p-3 text-sm">
+          <span className="text-foreground font-semibold">ที่อยู่:</span>{" "}
           {address}
         </p>
       )}
-      <div className="relative h-80 w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+      <div className="border-border bg-background relative h-80 w-full overflow-hidden rounded-lg border">
         {hasValidLatLng ? (
           <iframe
             width="100%"
@@ -89,7 +89,7 @@ const DormMap = ({
             className="h-full w-full"
           ></iframe>
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-gray-400">
+          <div className="text-muted flex h-full flex-col items-center justify-center gap-3 text-center">
             <MapPin size={40} />
             <p className="text-sm">ไม่พบพิกัดแผนที่</p>
           </div>
@@ -122,15 +122,15 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
         className="fixed inset-0 bg-black/60 transition-opacity"
         onClick={onClose}
       />
-      <div className="animate-in fade-in zoom-in-95 relative flex h-screen w-full max-w-6xl flex-col overflow-hidden bg-white shadow-xl duration-200 sm:rounded-xl">
-        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+      <div className="animate-in fade-in zoom-in-95 bg-surface relative flex h-screen w-full max-w-6xl flex-col overflow-hidden shadow-xl duration-200 sm:rounded-xl">
+        <div className="border-border flex items-center justify-between border-b px-6 py-4">
           <div>
-            <h2 className="line-clamp-1 text-xl font-bold text-gray-900">
+            <h2 className="text-foreground line-clamp-1 text-xl font-bold">
               {data.name}
             </h2>
-            <div className="mt-1 flex items-center gap-2 text-sm text-gray-500">
+            <div className="text-muted mt-1 flex items-center gap-2 text-sm">
               <span
-                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${data.isPublished ? "bg-green-50 text-green-700 ring-green-600/20" : "bg-gray-50 text-gray-600 ring-gray-500/10"}`}
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${data.isPublished ? "bg-green-50 text-green-700 ring-green-600/20" : "bg-background text-muted ring-gray-500/10"}`}
               >
                 {data.isPublished ? "เผยแพร่แล้ว" : "ซ่อนอยู่"}
               </span>
@@ -145,22 +145,22 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="text-muted hover:bg-background hover:text-foreground cursor-pointer rounded-lg p-2 transition-colors"
           >
             <X size={24} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto bg-gray-50/50 p-6">
+        <div className="bg-background/50 flex-1 overflow-y-auto p-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div className="lg:col-span-8">
-              <div className="rounded-xl border border-gray-200 bg-white p-4">
-                <div className="mb-4 flex items-center gap-2 font-semibold text-gray-900">
+              <div className="border-border bg-surface rounded-xl border p-4">
+                <div className="text-foreground mb-4 flex items-center gap-2 font-semibold">
                   <Building2 className="text-blue-600" size={20} />
                   รูปภาพหอพัก
                 </div>
                 {validImages.length > 0 ? (
                   <div className="space-y-4">
-                    <div className="group relative aspect-video w-full overflow-hidden rounded-lg border border-gray-100 bg-gray-100">
+                    <div className="group border-border bg-background relative aspect-video w-full overflow-hidden rounded-lg border">
                       <img
                         src={validImages[currentImageIndex].url!}
                         alt={`View ${currentImageIndex}`}
@@ -173,7 +173,7 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                               e.stopPropagation();
                               handlePrevImage();
                             }}
-                            className="absolute top-1/2 left-2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-gray-800 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:bg-white"
+                            className="bg-surface/90 text-foreground hover:bg-surface absolute top-1/2 left-2 -translate-y-1/2 rounded-full p-2 opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
                           >
                             <ChevronLeft size={20} />
                           </button>
@@ -182,7 +182,7 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                               e.stopPropagation();
                               handleNextImage();
                             }}
-                            className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-gray-800 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 hover:bg-white"
+                            className="bg-surface/90 text-foreground hover:bg-surface absolute top-1/2 right-2 -translate-y-1/2 rounded-full p-2 opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
                           >
                             <ChevronRight size={20} />
                           </button>
@@ -214,7 +214,7 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex h-60 flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 text-gray-400">
+                  <div className="border-border bg-background text-muted flex h-60 flex-col items-center justify-center rounded-lg border-2 border-dashed">
                     <Building2 size={32} className="mb-2 opacity-50" />
                     <span>ไม่มีรูปภาพ</span>
                   </div>
@@ -228,13 +228,13 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
               />
             </div>
             <div className="space-y-6 lg:col-span-4">
-              <div className="rounded-xl border border-gray-200 bg-white p-5">
-                <h3 className="mb-4 border-b border-gray-100 pb-2 text-base font-bold text-gray-900">
+              <div className="border-border bg-surface rounded-xl border p-5">
+                <h3 className="border-border text-foreground mb-4 border-b pb-2 text-base font-bold">
                   สถานะทางระบบ
                 </h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">สถานะหอพัก</span>
+                    <span className="text-muted">สถานะหอพัก</span>
                     <span
                       className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${data.status === "ACTIVE" ? "bg-blue-50 text-blue-700 ring-1 ring-blue-700/10 ring-inset" : data.status === "BANNED" ? "bg-red-50 text-red-700 ring-1 ring-red-600/10 ring-inset" : "bg-orange-50 text-orange-700 ring-1 ring-orange-600/10 ring-inset"}`}
                     >
@@ -242,22 +242,22 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">จำนวนห้องพัก</span>
-                    <span className="font-medium text-gray-900">
+                    <span className="text-muted">จำนวนห้องพัก</span>
+                    <span className="text-foreground font-medium">
                       {data._count?.rooms || 0}ห้อง
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">การมองเห็น</span>
-                    <div className="flex items-center gap-1 font-medium text-gray-700">
-                      <Globe size={14} className="text-gray-400" />
+                    <span className="text-muted">การมองเห็น</span>
+                    <div className="text-foreground/80 flex items-center gap-1 font-medium">
+                      <Globe size={14} className="text-muted" />
                       {data.isPublished ? "สาธารณะ" : "ส่วนตัว"}
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="rounded-xl border border-gray-200 bg-white p-5">
-                <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-gray-900">
+              <div className="border-border bg-surface rounded-xl border p-5">
+                <h3 className="text-foreground mb-4 flex items-center gap-2 text-base font-bold">
                   <User size={18} className="text-blue-600" />
                   ข้อมูลเจ้าของ
                 </h3>
@@ -266,31 +266,31 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                     {data.owner.fullName.charAt(0)}
                   </div>
                   <div className="overflow-hidden">
-                    <p className="text-xs text-gray-500">ชื่อผู้ติดต่อ</p>
-                    <p className="truncate font-semibold text-gray-900">
+                    <p className="text-muted text-xs">ชื่อผู้ติดต่อ</p>
+                    <p className="text-foreground truncate font-semibold">
                       {data.owner.fullName}
                     </p>
                   </div>
                 </div>
-                <div className="space-y-3 rounded-lg bg-gray-50 p-3">
+                <div className="bg-background space-y-3 rounded-lg p-3">
                   <div className="flex items-center gap-3 text-sm">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm">
+                    <div className="bg-surface text-muted flex h-8 w-8 items-center justify-center rounded-full shadow-sm">
                       <Mail size={14} />
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <p className="text-xs text-gray-400">อีเมล</p>
-                      <p className="truncate font-medium text-gray-900">
+                      <p className="text-muted text-xs">อีเมล</p>
+                      <p className="text-foreground truncate font-medium">
                         {data.owner.user.email}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm">
+                    <div className="bg-surface text-muted flex h-8 w-8 items-center justify-center rounded-full shadow-sm">
                       <Phone size={14} />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400">เบอร์โทรศัพท์</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-muted text-xs">เบอร์โทรศัพท์</p>
+                      <p className="text-foreground font-medium">
                         {data.owner.phone || "-"}
                       </p>
                     </div>

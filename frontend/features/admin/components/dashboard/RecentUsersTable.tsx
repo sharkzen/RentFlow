@@ -17,7 +17,7 @@ export const RecentUsersTable = ({ users }: RecentUsersTableProps) => {
       case "TENANT":
         return "bg-emerald-100 text-emerald-700 ring-emerald-500/10";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-background text-foreground";
     }
   };
 
@@ -30,19 +30,19 @@ export const RecentUsersTable = ({ users }: RecentUsersTableProps) => {
       case "BANNED":
         return "text-red-500";
       default:
-        return "text-gray-400";
+        return "text-muted";
     }
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white">
-      <div className="flex items-center justify-between border-b border-gray-50 px-6 py-5">
-        <h3 className="font-bold text-gray-800">ผู้ใช้งานล่าสุด</h3>
-        <span className="text-xs text-gray-400">5 รายการล่าสุด</span>
+    <div className="border-border bg-surface overflow-hidden rounded-2xl border">
+      <div className="border-border flex items-center justify-between border-b px-6 py-5">
+        <h3 className="text-foreground font-bold">ผู้ใช้งานล่าสุด</h3>
+        <span className="text-muted text-xs">5 รายการล่าสุด</span>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="bg-gray-50/50 text-gray-500">
+          <thead className="bg-background/50 text-muted">
             <tr>
               <th className="px-6 py-4 font-medium">Email</th>
               <th className="px-6 py-4 font-medium">สิทธิ์ (Role)</th>
@@ -50,13 +50,13 @@ export const RecentUsersTable = ({ users }: RecentUsersTableProps) => {
               <th className="px-6 py-4 font-medium">วันที่สมัคร</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-border divide-y">
             {users.map((user) => (
               <tr
                 key={user.id}
-                className="transition-colors hover:bg-gray-50/50"
+                className="hover:bg-background/50 transition-colors"
               >
-                <td className="px-6 py-4 font-medium text-gray-700">
+                <td className="text-foreground px-6 py-4 font-medium">
                   {user.email}
                 </td>
                 <td className="px-6 py-4">
@@ -71,7 +71,7 @@ export const RecentUsersTable = ({ users }: RecentUsersTableProps) => {
                 >
                   {user.status}
                 </td>
-                <td className="px-6 py-4 text-gray-500">
+                <td className="text-muted px-6 py-4">
                   {format(new Date(user.createdAt), "d MMM yy HH:mm", {
                     locale: th,
                   })}
@@ -80,7 +80,7 @@ export const RecentUsersTable = ({ users }: RecentUsersTableProps) => {
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
+                <td colSpan={4} className="text-muted px-6 py-8 text-center">
                   ไม่มีข้อมูลผู้ใช้งานล่าสุด
                 </td>
               </tr>

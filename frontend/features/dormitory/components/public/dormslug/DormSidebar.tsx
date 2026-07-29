@@ -26,8 +26,15 @@ const LineIcon = ({ className }: { className?: string }) => (
 );
 
 export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
-  const { settings, owner, availability, contacts, lineId, lineType, facebook } =
-    data;
+  const {
+    settings,
+    owner,
+    availability,
+    contacts,
+    lineId,
+    lineType,
+    facebook,
+  } = data;
 
   const lineUrl = lineId
     ? lineType === "OFFICIAL"

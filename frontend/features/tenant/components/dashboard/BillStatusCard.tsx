@@ -22,21 +22,21 @@ interface Props {
 export default function BillStatusCard({ bill }: Props) {
   if (!bill) {
     return (
-      <div className="group relative flex min-h-[240px] w-full flex-col items-center justify-center overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm transition-all hover:shadow-md sm:p-8">
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+      <div className="group border-border bg-surface relative flex min-h-[240px] w-full flex-col items-center justify-center overflow-hidden rounded-3xl border p-6 text-center shadow-sm transition-all hover:shadow-md sm:p-8">
+        <div className="absolute inset-0 bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
         <div className="relative z-10 flex flex-col items-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-emerald-500 shadow-inner ring-4 ring-white transition-transform group-hover:scale-110">
+          <div className="ring-surface bg-background mb-4 flex h-16 w-16 items-center justify-center rounded-full text-emerald-500 shadow-inner ring-4 transition-transform group-hover:scale-110">
             <CheckCircle2 size={32} />
           </div>
-          <h2 className="text-lg font-bold text-slate-800 sm:text-xl">
+          <h2 className="text-foreground text-lg font-bold sm:text-xl">
             ไม่มียอดค้างชำระ
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="text-muted mt-1 text-sm">
             ขอบคุณที่ชำระค่าเช่าตรงเวลาครับ
           </p>
           <Link
             href="/tenant/bills"
-            className="mt-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition-all hover:border-indigo-300 hover:bg-slate-50 hover:text-indigo-600"
+            className="border-border bg-surface text-muted hover:bg-background mt-6 inline-flex items-center gap-2 rounded-full border px-6 py-2.5 text-sm font-semibold shadow-sm transition-all hover:border-indigo-300 hover:text-indigo-600"
           >
             <Receipt size={16} />
             ดูประวัติบิล

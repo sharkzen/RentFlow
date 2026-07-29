@@ -14,7 +14,7 @@ export default function UserTable({
   onViewDetail,
 }: UserTableProps) {
   const renderStatusBadge = (status: string) => {
-    let styles = "bg-gray-100 text-gray-600";
+    let styles = "bg-background text-muted";
     let label = status;
 
     switch (status) {
@@ -43,18 +43,18 @@ export default function UserTable({
 
   if (isLoading) {
     return (
-      <div className="w-full rounded-xl border border-gray-100 bg-white p-20 text-center shadow-sm">
+      <div className="border-border bg-surface w-full rounded-xl border p-20 text-center shadow-sm">
         <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-blue-600 motion-reduce:animate-[spin_1.5s_linear_infinite]" />
-        <p className="mt-4 text-gray-500">กำลังโหลดข้อมูล...</p>
+        <p className="text-muted mt-4">กำลังโหลดข้อมูล...</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white">
+    <div className="border-border bg-surface overflow-hidden rounded-xl border">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-gray-600">
-          <thead className="bg-gray-50/50 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+        <table className="text-muted w-full text-left text-sm">
+          <thead className="bg-background/50 text-muted text-xs font-semibold tracking-wider uppercase">
             <tr>
               <th scope="col" className="px-6 py-4">
                 ผู้ประกอบการ
@@ -76,10 +76,10 @@ export default function UserTable({
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 border-t border-gray-100 bg-white">
+          <tbody className="divide-border border-border bg-surface divide-y border-t">
             {data.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-gray-400">
+                <td colSpan={6} className="text-muted py-12 text-center">
                   <div className="flex flex-col items-center justify-center">
                     <UserCircle2 className="mb-2 h-12 w-12 opacity-20" />
                     <span>ไม่พบข้อมูลผู้ใช้งาน</span>
@@ -91,7 +91,7 @@ export default function UserTable({
                 <tr
                   key={user.id}
                   onClick={() => onViewDetail(user)}
-                  className="group cursor-pointer transition-colors hover:bg-gray-50/80"
+                  className="group hover:bg-background/80 cursor-pointer transition-colors"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -103,10 +103,10 @@ export default function UserTable({
                         </span>
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
+                        <div className="text-foreground font-semibold transition-colors group-hover:text-blue-600">
                           {user.ownerProfile?.fullName || "รอการระบุชื่อ"}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-muted text-xs">
                           ID: {user.id.slice(0, 8)}...
                         </div>
                       </div>
@@ -114,18 +114,18 @@ export default function UserTable({
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="text-gray-900">{user.email}</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-foreground">{user.email}</span>
+                      <span className="text-muted text-xs">
                         {user.ownerProfile?.phone || "-"}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-600">
+                    <span className="bg-background text-muted inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-2 text-xs font-medium">
                       {user.ownerProfile?._count.dormitories || 0}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-center text-xs text-gray-500">
+                  <td className="text-muted px-6 py-4 text-center text-xs">
                     {new Date(user.createdAt).toLocaleDateString("th-TH")}
                   </td>
                   <td className="px-6 py-4 text-center">
@@ -134,7 +134,7 @@ export default function UserTable({
                   <td className="px-6 py-4 text-right">
                     <button
                       onClick={() => onViewDetail(user)}
-                      className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-all hover:bg-blue-50 hover:text-blue-600 focus:ring-2 focus:ring-blue-600/20 focus:outline-none"
+                      className="text-muted inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-blue-50 hover:text-blue-600 focus:ring-2 focus:ring-blue-600/20 focus:outline-none"
                       title="ดูรายละเอียด"
                     >
                       <Eye className="h-4 w-4" />

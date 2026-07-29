@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 const PHONE_REGEX = /^0[0-9]{8,9}$/;
 const LINE_ID_REGEX = /^[a-zA-Z0-9@._-]+$/;
 
@@ -9,7 +8,8 @@ export const phoneSchema = z
   .optional()
   .or(z.literal(""))
   .refine((val) => !val || PHONE_REGEX.test(val), {
-    message: "Invalid phone number format (must be 9-10 digits starting with 0)",
+    message:
+      "Invalid phone number format (must be 9-10 digits starting with 0)",
   });
 
 export const lineIdSchema = z
@@ -33,7 +33,8 @@ export const dormContactSchema = z.object({
     .trim()
     .min(1, "กรุณากรอกเบอร์โทรศัพท์")
     .refine((val) => REQUIRED_PHONE_REGEX.test(val), {
-      message: "Invalid phone number format (must be 9-10 digits starting with 0)",
+      message:
+        "Invalid phone number format (must be 9-10 digits starting with 0)",
     }),
 });
 

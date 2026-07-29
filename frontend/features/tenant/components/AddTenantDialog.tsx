@@ -255,34 +255,34 @@ export default function AddTenantDialog({
   };
 
   const inputBaseClass =
-    "w-full h-10 rounded-lg border border-gray-300 bg-white text-sm text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all placeholder:text-gray-400";
+    "w-full h-10 rounded-lg border border-border bg-surface text-sm text-foreground focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all placeholder:text-muted";
   const inputClass = `${inputBaseClass} px-3`;
   const inputWithIconClass = `${inputBaseClass} pl-10 pr-3`;
   const iconClass =
-    "absolute top-3 left-3 h-4 w-4 text-gray-400 pointer-events-none";
+    "absolute top-3 left-3 h-4 w-4 text-muted pointer-events-none";
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 p-4 transition-all duration-200">
-      <div className="flex h-full max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-gray-200">
-        <div className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
+      <div className="bg-surface ring-border flex h-full max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl shadow-xl ring-1">
+        <div className="border-border bg-surface flex items-center justify-between border-b px-6 py-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-800">
+            <h2 className="text-foreground text-lg font-bold">
               {initialData ? "ทำสัญญาใหม่ให้ผู้เช่าเดิม" : "เพิ่มผู้เช่าใหม่"}
             </h2>
-            <p className="mt-0.5 text-xs text-gray-500">
+            <p className="text-muted mt-0.5 text-xs">
               กรอกข้อมูลเพื่อสร้างบัญชี ทำสัญญาเช่า และบันทึกข้อมูลการเงิน
             </p>
           </div>
           <button
             onClick={onClose}
-            className="group cursor-pointer rounded-full bg-gray-50 p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 active:scale-95"
+            className="group bg-background text-muted hover:bg-border hover:text-foreground cursor-pointer rounded-full p-2 transition-colors active:scale-95"
           >
             <X size={20} />
           </button>
         </div>
-        <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto bg-gray-50/30 p-2">
+        <div className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-background/30 flex-1 overflow-y-auto p-2">
           <form
             id="add-tenant-form"
             onSubmit={handleSubmit}
@@ -290,20 +290,20 @@ export default function AddTenantDialog({
           >
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               <div className="space-y-6">
-                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-87.5">
+                <div className="border-border bg-surface rounded-xl border p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-87.5">
                   <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                     <Home size={16} />
                     ข้อมูลห้องพักและสัญญา
                   </h3>
                   <div className="space-y-4">
-                    <div ref={roomSelectRef} className="relative z-20">
-                      <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                    <div ref={roomSelectRef} className="relative">
+                      <label className="text-foreground mb-1.5 block text-xs font-semibold">
                         เลือกห้องพัก <span className="text-red-500">*</span>
                       </label>
                       <button
                         type="button"
                         onClick={() => setIsRoomSelectOpen(!isRoomSelectOpen)}
-                        className={`flex h-10 w-full cursor-pointer items-center justify-between rounded-lg border px-3 text-sm transition-all focus:ring-2 focus:ring-indigo-200 focus:outline-none ${formData.roomId ? "border-indigo-200 bg-indigo-50/50 text-indigo-900" : "border-gray-300 bg-white text-gray-500 hover:border-gray-400"}`}
+                        className={`flex h-10 w-full cursor-pointer items-center justify-between rounded-lg border px-3 text-sm transition-all focus:ring-2 focus:ring-indigo-200 focus:outline-none ${formData.roomId ? "border-indigo-200 bg-indigo-50/50 text-indigo-900" : "border-border bg-surface text-muted hover:border-muted"}`}
                       >
                         <span className="truncate">
                           {selectedRoomObj
@@ -312,16 +312,16 @@ export default function AddTenantDialog({
                         </span>
                         <ChevronDown
                           size={16}
-                          className={`ml-2 text-gray-400 transition-transform duration-200 ${isRoomSelectOpen ? "rotate-180" : ""}`}
+                          className={`text-muted ml-2 transition-transform duration-200 ${isRoomSelectOpen ? "rotate-180" : ""}`}
                         />
                       </button>
                       {isRoomSelectOpen && (
-                        <div className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-1 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl ring-1 ring-black/5 duration-100">
-                          <div className="sticky top-0 border-b border-gray-100 bg-gray-50 p-2">
+                        <div className="border-border bg-surface animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-1 w-full overflow-hidden rounded-lg border shadow-xl ring-1 ring-black/5 duration-100">
+                          <div className="border-border bg-background sticky top-0 border-b p-2">
                             <div className="relative">
                               <Search
                                 size={14}
-                                className="absolute top-2.5 left-3 text-gray-400"
+                                className="text-muted absolute top-2.5 left-3"
                               />
                               <input
                                 type="text"
@@ -329,7 +329,7 @@ export default function AddTenantDialog({
                                 placeholder="ค้นหาเลขห้อง..."
                                 value={roomSearch}
                                 onChange={(e) => setRoomSearch(e.target.value)}
-                                className="h-9 w-full rounded-md border border-gray-200 bg-white pr-3 pl-9 text-xs focus:border-indigo-500 focus:outline-none"
+                                className="border-border bg-surface h-9 w-full rounded-md border pr-3 pl-9 text-xs focus:border-indigo-500 focus:outline-none"
                               />
                             </div>
                           </div>
@@ -339,11 +339,11 @@ export default function AddTenantDialog({
                                 <li
                                   key={room.id}
                                   onClick={() => handleSelectRoom(room.id)}
-                                  className={`flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-indigo-50 ${formData.roomId === room.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700"}`}
+                                  className={`flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-indigo-50 ${formData.roomId === room.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-foreground"}`}
                                 >
                                   <div>
                                     <div>ห้อง {room.roomNumber}</div>
-                                    <div className="text-[10px] text-gray-500">
+                                    <div className="text-muted text-[10px]">
                                       ชั้น {room.floor}•{" "}
                                       {room.type === "AIR" ? "แอร์" : "พัดลม"}
                                     </div>
@@ -357,7 +357,7 @@ export default function AddTenantDialog({
                                 </li>
                               ))
                             ) : (
-                              <li className="px-4 py-6 text-center text-xs text-gray-400">
+                              <li className="text-muted px-4 py-6 text-center text-xs">
                                 ไม่พบห้องพักกรุณา
                                 <Link
                                   className="text-blue-500 underline"
@@ -404,7 +404,7 @@ export default function AddTenantDialog({
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           จำนวนผู้พัก (คน)
                         </label>
                         <div className="relative">
@@ -424,18 +424,18 @@ export default function AddTenantDialog({
                     </div>
                   </div>
                 </div>
-                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+                <div className="border-border bg-surface rounded-xl border p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
                   <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-emerald-600 uppercase">
                     <Coins size={16} />
                     ข้อมูลการเงิน (วันทำสัญญา)
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                      <label className="text-foreground mb-1.5 block text-xs font-semibold">
                         เงินประกันความเสียหาย
                       </label>
                       <div className="relative w-full">
-                        <span className="absolute top-2.5 left-3 font-sans text-sm text-gray-400">
+                        <span className="text-muted absolute top-2.5 left-3 font-sans text-sm">
                           ฿
                         </span>
                         <input
@@ -451,11 +451,11 @@ export default function AddTenantDialog({
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           ค่าเช่าล่วงหน้า
                         </label>
                         <div className="relative">
-                          <span className="absolute top-2.5 left-3 font-sans text-sm text-gray-400">
+                          <span className="text-muted absolute top-2.5 left-3 font-sans text-sm">
                             ฿
                           </span>
                           <input
@@ -470,11 +470,11 @@ export default function AddTenantDialog({
                         </div>
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           ค่าแรกเข้า
                         </label>
                         <div className="relative">
-                          <span className="absolute top-2.5 left-3 font-sans text-sm text-gray-400">
+                          <span className="text-muted absolute top-2.5 left-3 font-sans text-sm">
                             ฿
                           </span>
                           <input
@@ -491,14 +491,14 @@ export default function AddTenantDialog({
                     </div>
                   </div>
                 </div>
-                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
-                  <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-gray-600 uppercase">
+                <div className="border-border bg-surface rounded-xl border p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+                  <h3 className="text-muted mb-4 flex items-center gap-2 text-sm font-bold tracking-wider uppercase">
                     <Contact size={16} />
                     ข้อมูลผู้ติดต่อฉุกเฉิน
                   </h3>
                   <div className="mb-4 grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                      <label className="text-foreground mb-1.5 block text-xs font-semibold">
                         ชื่อผู้ติดต่อ
                       </label>
                       <input
@@ -510,7 +510,7 @@ export default function AddTenantDialog({
                       />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                      <label className="text-foreground mb-1.5 block text-xs font-semibold">
                         เบอร์โทร
                       </label>
                       <input
@@ -533,7 +533,7 @@ export default function AddTenantDialog({
                     </div>
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                    <label className="text-foreground mb-1.5 block text-xs font-semibold">
                       หมายเหตุเพิ่มเติม
                     </label>
                     <textarea
@@ -541,14 +541,14 @@ export default function AddTenantDialog({
                       value={formData.notes}
                       onChange={handleChange}
                       rows={2}
-                      className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                      className="border-border placeholder:text-muted w-full resize-none rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
                       placeholder="เช่น นัดทำสัญญา, ย้ายของ..."
                     />
                   </div>
                 </div>
               </div>
               <div className="space-y-6">
-                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-87.5">
+                <div className="border-border bg-surface rounded-xl border p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-87.5">
                   <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                     <User size={16} />
                     ข้อมูลส่วนตัวผู้เช่า
@@ -556,7 +556,7 @@ export default function AddTenantDialog({
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           ชื่อจริง <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -569,7 +569,7 @@ export default function AddTenantDialog({
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           นามสกุล <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -584,7 +584,7 @@ export default function AddTenantDialog({
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           เบอร์โทรศัพท์
                         </label>
                         <div className="relative">
@@ -612,7 +612,7 @@ export default function AddTenantDialog({
                         </div>
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           เลขบัตรประชาชน
                         </label>
                         <div className="relative">
@@ -641,31 +641,31 @@ export default function AddTenantDialog({
                       </div>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                      <label className="text-foreground mb-1.5 block text-xs font-semibold">
                         ที่อยู่ตามทะเบียนบ้านตามบัตร ปชช
                       </label>
                       <div className="relative">
-                        <MapPin className="pointer-events-none absolute top-3 left-3 h-4 w-4 text-gray-400" />
+                        <MapPin className="text-muted pointer-events-none absolute top-3 left-3 h-4 w-4" />
                         <textarea
                           name="address"
                           value={formData.address}
                           onChange={handleChange}
                           rows={3}
-                          className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 pl-10 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                          className="border-border placeholder:text-muted w-full resize-none rounded-lg border px-3 py-2 pl-10 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
                           placeholder="บ้านเลขที่, ถนน, ตำบล/แขวง..."
                         />
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+                <div className="border-border bg-surface rounded-xl border p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
                   <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                     <Lock size={16} />
                     บัญชีเข้าใช้งาน (App Login)
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                      <label className="text-foreground mb-1.5 block text-xs font-semibold">
                         อีเมล <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
@@ -676,20 +676,20 @@ export default function AddTenantDialog({
                           value={formData.email}
                           onChange={handleChange}
                           required
-                          disabled={!!initialData?.userId}
-                          className={`${inputWithIconClass} ${initialData?.userId ? "cursor-not-allowed bg-gray-100 text-gray-500" : ""}`}
+                          className={inputWithIconClass}
                         />
                         {initialData?.userId && (
-                          <p className="mt-1 text-[10px] text-orange-500">
-                            * ใช้บัญชีอีเมลเดิมของผู้เช่า ไม่สามารถแก้ไขได้
+                          <p className="mt-1 text-[10px] text-blue-500">
+                            * สามารถแก้ไขอีเมลได้
+                            หากผู้เช่าไม่ได้ใช้อีเมลเดิมแล้ว
                           </p>
                         )}
                       </div>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                      <label className="text-foreground mb-1.5 block text-xs font-semibold">
                         รหัสผ่าน{" "}
-                        <span className="font-normal text-gray-400">
+                        <span className="text-muted font-normal">
                           (เว้นว่างเพื่อใช้เบอร์โทร)
                         </span>
                       </label>
@@ -711,11 +711,11 @@ export default function AddTenantDialog({
             </div>
           </form>
         </div>
-        <div className="flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
+        <div className="border-border bg-background flex items-center justify-end gap-3 border-t px-6 py-4">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:text-gray-900 active:scale-95"
+            className="border-border bg-surface text-foreground hover:bg-background cursor-pointer rounded-lg border px-5 py-2 text-sm font-medium transition-all active:scale-95"
           >
             ยกเลิก
           </button>

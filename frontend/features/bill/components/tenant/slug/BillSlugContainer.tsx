@@ -81,18 +81,18 @@ export default function BillSlugContainer() {
     return (
       <div className="animate-in fade-in zoom-in flex min-h-[80vh] flex-col items-center justify-center p-6 text-center duration-300">
         <div className="relative mb-6">
-          <div className="absolute inset-0 scale-150 rounded-full bg-slate-100/50 blur-3xl" />
-          <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-xl ring-1 ring-slate-100">
-            <Receipt className="h-10 w-10 text-slate-300" />
-            <div className="absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-500 shadow-sm ring-4 ring-white">
+          <div className="bg-background absolute inset-0 scale-150 rounded-full blur-3xl" />
+          <div className="bg-surface ring-border relative flex h-24 w-24 items-center justify-center rounded-3xl shadow-xl ring-1">
+            <Receipt className="text-muted h-10 w-10" />
+            <div className="ring-surface absolute -top-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-red-500 shadow-sm ring-4">
               <XCircle size={20} />
             </div>
           </div>
         </div>
-        <h2 className="mb-2 text-2xl font-bold text-slate-800">
+        <h2 className="text-foreground mb-2 text-2xl font-bold">
           {error?.includes("สิทธิ์") ? "ไม่มีสิทธิ์เข้าถึง" : "ไม่พบข้อมูลบิล"}
         </h2>
-        <p className="mx-auto mb-8 max-w-75 leading-relaxed text-slate-500">
+        <p className="text-muted mx-auto mb-8 max-w-75 leading-relaxed">
           {error ||
             "บิลนี้อาจถูกลบไปแล้ว หรือคุณอาจเข้าใช้งานด้วยลิงก์ที่ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง"}
         </p>
@@ -106,12 +106,12 @@ export default function BillSlugContainer() {
           </button>
           <button
             onClick={() => window.location.reload()}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-600 ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95"
+            className="bg-surface text-muted ring-border hover:bg-background flex cursor-pointer items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-bold ring-1 transition-all active:scale-95"
           >
             ลองโหลดใหม่อีกครั้ง
           </button>
         </div>
-        <p className="mt-12 text-xs text-slate-400">
+        <p className="text-muted mt-12 text-xs">
           หากคิดว่าเป็นข้อผิดพลาด กรุณาติดต่อผู้ดูแลหอพักของคุณ
         </p>
       </div>
@@ -220,9 +220,9 @@ export default function BillSlugContainer() {
       <div className="mb-8 flex flex-col gap-5 px-4 sm:flex-row sm:items-center sm:justify-between">
         <button
           onClick={() => router.push("/tenant/bills")}
-          className="group flex w-max cursor-pointer items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+          className="text-muted hover:text-foreground group flex w-max cursor-pointer items-center gap-2 text-sm font-medium transition-colors"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm transition-all group-hover:bg-slate-200 group-hover:text-slate-700">
+          <div className="bg-surface text-muted group-hover:bg-background group-hover:text-foreground flex h-8 w-8 items-center justify-center rounded-full shadow-sm transition-all">
             <ChevronLeft size={18} />
           </div>
           ย้อนกลับ
@@ -241,7 +241,7 @@ export default function BillSlugContainer() {
             <button
               disabled={printLoading || isCancelled}
               onClick={() => handlePrint(bill.id)}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-surface text-foreground ring-border hover:bg-background flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold shadow-sm ring-1 transition-all hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Printer size={18} />
               <span className="truncate">พิมพ์ / PDF</span>

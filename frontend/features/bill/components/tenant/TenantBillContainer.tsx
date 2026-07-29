@@ -21,7 +21,15 @@ export default function BillContainer() {
   });
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["tenant-bills", { page, limit, ...filters }],
+    queryKey: [
+      "tenant-bills",
+      {
+        page,
+        limit,
+        ...filters,
+      },
+    ],
+
     queryFn: () =>
       TenantService.getMyBills({
         page,
@@ -30,6 +38,7 @@ export default function BillContainer() {
         status: filters.status,
         month: filters.month,
       }),
+
     placeholderData: keepPreviousData,
   });
 
@@ -37,7 +46,9 @@ export default function BillContainer() {
   const totalPages = data?.totalPages ?? 1;
   const totalPending = data?.summary.totalPending ?? 0;
   const loading = isLoading;
-  const error = isError ? "ไม่สามารถดึงข้อมูลบิลได้ กรุณาลองใหม่อีกครั้ง" : null;
+  const error = isError
+    ? "ไม่สามารถดึงข้อมูลบิลได้ กรุณาลองใหม่อีกครั้ง"
+    : null;
 
   const handleFilterChange = (key: keyof BillFilterState, value: string) => {
     setFilters((prev) => ({
@@ -75,7 +86,7 @@ export default function BillContainer() {
         <p className="text-lg font-medium">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-2 rounded-full bg-white px-8 py-3 text-sm font-bold text-rose-600 ring-1 ring-rose-200 transition-all hover:bg-rose-50 hover:ring-rose-300 active:scale-95"
+          className="bg-surface mt-2 rounded-full px-8 py-3 text-sm font-bold text-rose-600 ring-1 ring-rose-200 transition-all hover:bg-rose-50 hover:ring-rose-300 active:scale-95"
         >
           ลองใหม่อีกครั้ง
         </button>
@@ -87,10 +98,10 @@ export default function BillContainer() {
     <div className="space-y-6 pb-10 md:space-y-8">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+          <h1 className="text-foreground text-2xl font-bold tracking-tight md:text-3xl">
             ประวัติบิลค่าเช่า
           </h1>
-          <p className="mt-2 text-sm text-slate-500 md:text-base">
+          <p className="text-muted mt-2 text-sm md:text-base">
             ตรวจสอบรายการชำระเงินและประวัติย้อนหลังทั้งหมด
           </p>
         </div>
@@ -98,22 +109,20 @@ export default function BillContainer() {
           <BillFilters filters={filters} onChange={handleFilterChange} />
         </div>
       </div>
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 md:p-8">
+      <div className="border-border bg-surface relative overflow-hidden rounded-3xl border p-6 md:p-8">
         <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-semibold tracking-wider text-slate-400 uppercase md:text-sm">
+            <div className="text-muted flex items-center gap-2 text-xs font-semibold tracking-wider uppercase md:text-sm">
               <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-indigo-500"></span>
               ยอดที่ต้องชำระ (Pending Total)
             </div>
-            <h2 className="text-4xl font-bold tracking-tighter break-all text-slate-900 md:text-5xl">
-              <span className="mr-1 text-2xl text-slate-400 md:text-3xl">
-                ฿
-              </span>
+            <h2 className="text-foreground text-4xl font-bold tracking-tighter break-all md:text-5xl">
+              <span className="text-muted mr-1 text-2xl md:text-3xl">฿</span>
               {totalPending.toLocaleString("th-TH", {
                 minimumFractionDigits: 2,
               })}
             </h2>
-            <p className="text-xs text-slate-400 md:text-sm">
+            <p className="text-muted text-xs md:text-sm">
               รวมบิลที่รอชำระและเกินกำหนดทั้งหมด
             </p>
           </div>
@@ -121,7 +130,7 @@ export default function BillContainer() {
             <Wallet size={32} strokeWidth={1.5} className="md:h-10 md:w-10" />
           </div>
         </div>
-        <div className="absolute top-0 right-0 z-0 h-full w-1/2 bg-linear-to-l from-slate-50 to-transparent opacity-60"></div>
+        <div className="from-background absolute top-0 right-0 z-0 h-full w-1/2 bg-linear-to-l to-transparent opacity-60"></div>
       </div>
       <div className="space-y-6">
         <div
@@ -130,16 +139,16 @@ export default function BillContainer() {
           <BillList bills={bills} onSelectBill={handleBillClick} />
         </div>
         {totalPages > 1 && (
-          <div className="flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-6 sm:flex-row">
-            <p className="text-sm text-slate-500">
-              หน้า <span className="font-bold text-slate-800">{page}</span>จาก{" "}
-              <span className="font-bold text-slate-800">{totalPages}</span>
+          <div className="border-border flex flex-col items-center justify-between gap-4 border-t pt-6 sm:flex-row">
+            <p className="text-muted text-sm">
+              หน้า <span className="text-foreground font-bold">{page}</span>จาก{" "}
+              <span className="text-foreground font-bold">{totalPages}</span>
             </p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 1}
-                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-border bg-surface text-muted hover:bg-background flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border transition-all hover:text-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <ChevronLeft size={20} />
               </button>
@@ -153,7 +162,7 @@ export default function BillContainer() {
                   <button
                     key={p}
                     onClick={() => handlePageChange(p)}
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold transition-all active:scale-95 ${page === p ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"}`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold transition-all active:scale-95 ${page === p ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" : "text-muted hover:bg-background hover:text-foreground"}`}
                   >
                     {p}
                   </button>
@@ -162,7 +171,7 @@ export default function BillContainer() {
               <button
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page === totalPages}
-                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-border bg-surface text-muted hover:bg-background flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border transition-all hover:text-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <ChevronRight size={20} />
               </button>

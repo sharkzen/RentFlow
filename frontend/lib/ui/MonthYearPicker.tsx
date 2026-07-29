@@ -83,12 +83,15 @@ export default function MonthYearPicker({
 
   return (
     <div className="flex w-full items-center gap-2 sm:w-auto">
-      <div className="relative h-10 w-full sm:w-36" ref={monthRef}>
+      <div
+        className="dark:bg-surface relative h-10 w-full sm:w-36"
+        ref={monthRef}
+      >
         <button
           type="button"
           disabled={disabled}
           onClick={() => setIsMonthOpen(!isMonthOpen)}
-          className={`flex h-full w-full items-center justify-between rounded-lg border px-3 text-sm font-medium transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${isMonthOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"} ${disabled ? "" : "cursor-pointer"}`}
+          className={`flex h-full w-full items-center justify-between rounded-lg border px-3 text-sm font-medium transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${isMonthOpen ? "border-indigo-500 text-indigo-600" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"} ${disabled ? "" : "cursor-pointer"}`}
         >
           <div className="flex items-center gap-2 overflow-hidden">
             <Calendar
@@ -103,12 +106,12 @@ export default function MonthYearPicker({
           />
         </button>
         {isMonthOpen && (
-          <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-50 max-h-60 w-full min-w-35 overflow-y-auto rounded-lg border border-gray-100 bg-white p-1 shadow-xl ring-1 ring-black/5">
+          <div className="animate-in bg-surface fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-50 max-h-60 w-full min-w-35 space-y-1 overflow-y-auto rounded-lg border border-gray-100 p-1 dark:border-gray-800">
             {THAI_MONTHS.map((month, index) => (
               <button
                 key={month}
                 onClick={() => handleMonthChange(index)}
-                className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${currentMonth === index ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors dark:text-white ${currentMonth === index ? "bg-indigo-50 font-medium text-indigo-700 dark:bg-gray-800" : "text-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"}`}
               >
                 <span>{month}</span>
                 {currentMonth === index && (
@@ -124,7 +127,7 @@ export default function MonthYearPicker({
           type="button"
           disabled={disabled}
           onClick={() => setIsYearOpen(!isYearOpen)}
-          className={`flex h-full w-full items-center justify-between rounded-lg border px-3 text-sm font-medium transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${isYearOpen ? "border-indigo-500 text-indigo-600 ring-2 ring-indigo-500/20" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"} ${disabled ? "" : "cursor-pointer"}`}
+          className={`flex h-full w-full items-center justify-between rounded-lg border px-3 text-sm font-medium transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${isYearOpen ? "border-indigo-500 text-indigo-600" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"} ${disabled ? "" : "cursor-pointer"}`}
         >
           <span>{currentYear + 543}</span>
           <ChevronDown
@@ -133,12 +136,12 @@ export default function MonthYearPicker({
           />
         </button>
         {isYearOpen && (
-          <div className="animate-in fade-in zoom-in-95 absolute top-[calc(100%+4px)] left-0 z-50 max-h-60 w-full min-w-25 overflow-y-auto rounded-lg border border-gray-100 bg-white p-1 shadow-xl ring-1 ring-black/5">
+          <div className="animate-in fade-in zoom-in-95 bg-surface absolute top-[calc(100%+4px)] left-0 z-50 max-h-60 w-full min-w-25 space-y-1 overflow-y-auto rounded-lg border border-gray-100 p-1 dark:border-gray-800">
             {years.map((year) => (
               <button
                 key={year}
                 onClick={() => handleYearChange(year)}
-                className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${currentYear === year ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors dark:text-white ${currentYear === year ? "bg-indigo-50 font-medium text-indigo-700 dark:bg-gray-800" : "text-gray-700 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"}`}
               >
                 <span>{year + 543}</span>
                 {currentYear === year && (

@@ -10,7 +10,6 @@ import {
   X,
 } from "lucide-react";
 import { formatThaiDate } from "@/lib/dateFormatter";
-
 const SESSION_DISMISSED_KEY = "dismissedAnnouncementIds";
 
 const getSessionDismissedIds = (): string[] => {
@@ -66,7 +65,6 @@ export default function TenantAnnouncementModal() {
 
         const data: Announcement[] = res.data;
         const sessionDismissedIds = getSessionDismissedIds();
-
         let unread = data.filter(
           (a) => !a.isRead && !sessionDismissedIds.includes(a.id),
         );
@@ -166,7 +164,6 @@ export default function TenantAnnouncementModal() {
       const tomorrow = new Date().getTime() + 24 * 60 * 60 * 1000;
       localStorage.setItem("hideAnnouncementsUntil", tomorrow.toString());
     } else {
-      // ไม่ได้ติ๊กอะไรเลย - อย่างน้อยกันไม่ให้ popup ผุดขึ้นซ้ำในเซสชันนี้
       addSessionDismissedIds(announcements.map((a) => a.id));
     }
 

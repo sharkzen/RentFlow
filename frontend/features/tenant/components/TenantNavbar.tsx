@@ -62,7 +62,7 @@ export default function TenantNavbar() {
     <>
       {!sidebarOpen && (
         <button
-          className="fixed top-3 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 min-[960px]:hidden"
+          className="border-border bg-surface text-muted hover:bg-background fixed top-3 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border transition-all hover:text-indigo-600 min-[960px]:hidden"
           onClick={() => setSidebarOpen(true)}
           aria-label="Open Menu"
         >
@@ -71,7 +71,7 @@ export default function TenantNavbar() {
       )}
       {sidebarOpen && (
         <button
-          className="fixed top-3 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 min-[960px]:hidden"
+          className="border-border bg-surface text-muted hover:bg-background fixed top-3 left-4 z-50 flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border transition-all hover:text-indigo-600 min-[960px]:hidden"
           onClick={() => setSidebarOpen(false)}
           aria-label="Close Menu"
         >
@@ -79,23 +79,23 @@ export default function TenantNavbar() {
         </button>
       )}
       <aside
-        className={`fixed top-16.25 z-50 h-[calc(100vh-65px)] w-72 -translate-x-full overflow-hidden border-r border-gray-100 bg-white transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} /* Desktop (>960px): Sticky */ min-[960px]:sticky min-[960px]:translate-x-0`}
+        className={`border-border bg-surface fixed top-16.25 z-50 h-[calc(100vh-65px)] w-72 -translate-x-full overflow-hidden border-r transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} /* Desktop (>960px): Sticky */ min-[960px]:sticky min-[960px]:translate-x-0`}
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-center gap-3 border-b border-gray-50 px-6 py-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-200">
+          <div className="border-border flex items-center gap-3 border-b px-6 py-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
               <Building2 size={20} />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-slate-800">
+              <h1 className="text-foreground text-lg font-bold tracking-tight">
                 Menu
               </h1>
-              <p className="text-xs font-medium text-slate-400">Tenant Panel</p>
+              <p className="text-muted text-xs font-medium">Tenant Panel</p>
             </div>
           </div>
-          <div className="scrollbar-thin scrollbar-thumb-gray-200 flex-1 overflow-y-auto px-4 py-4">
+          <div className="scrollbar-thin scrollbar-thumb-border flex-1 overflow-y-auto px-4 py-4">
             <nav className="mb-6 space-y-1">
-              <p className="mb-3 px-4 text-xs font-bold tracking-wider text-slate-400 uppercase">
+              <p className="text-muted mb-3 px-4 text-xs font-bold tracking-wider uppercase">
                 Menu
               </p>
               {mainMenuItems.map((item) => (
@@ -103,10 +103,10 @@ export default function TenantNavbar() {
                   key={item.name}
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`${pathname === item.href ? "bg-indigo-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"} group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all active:scale-[0.98]`}
+                  className={`${pathname === item.href ? "bg-indigo-50 text-indigo-600" : "text-muted hover:bg-background hover:text-foreground"} group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all active:scale-[0.98]`}
                 >
                   <span
-                    className={`${pathname === item.href ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600"}`}
+                    className={`${pathname === item.href ? "text-indigo-600" : "text-muted group-hover:text-foreground"}`}
                   >
                     {item.icon}
                   </span>
@@ -117,7 +117,7 @@ export default function TenantNavbar() {
               ))}
             </nav>
             <nav className="space-y-1">
-              <p className="mb-3 px-4 text-xs font-bold tracking-wider text-slate-400 uppercase">
+              <p className="text-muted mb-3 px-4 text-xs font-bold tracking-wider uppercase">
                 Account
               </p>
               {accountMenuItems.map((item) => (
@@ -125,10 +125,10 @@ export default function TenantNavbar() {
                   key={item.name}
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`${pathname === item.href ? "bg-indigo-50 text-indigo-600" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"} group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all active:scale-[0.98]`}
+                  className={`${pathname === item.href ? "bg-indigo-50 text-indigo-600" : "text-muted hover:bg-background hover:text-foreground"} group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all active:scale-[0.98]`}
                 >
                   <span
-                    className={`${pathname === item.href ? "text-indigo-600" : "text-slate-400 group-hover:text-slate-600"}`}
+                    className={`${pathname === item.href ? "text-indigo-600" : "text-muted group-hover:text-foreground"}`}
                   >
                     {item.icon}
                   </span>

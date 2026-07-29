@@ -16,7 +16,10 @@ import path from "path";
 import { AppError } from "@/lib/errors";
 import { ZodError } from "zod";
 import { registerSwagger } from "@/config/swagger";
-import { authMiddleware, authRoleMiddleware } from "@/middleware/auth.middleware";
+import {
+  authMiddleware,
+  authRoleMiddleware,
+} from "@/middleware/auth.middleware";
 import { Role } from "@/types/role.type";
 
 export async function buildApp() {
@@ -70,98 +73,101 @@ export async function buildApp() {
     prefix: "/public/",
   });
 
-  app.get("/api/status", {
-    preHandler: [authMiddleware, authRoleMiddleware([Role.ADMIN])],
-  }, async (request, reply) => {
-    const uptime = process.uptime();
-    const uptimeString = new Date(uptime * 1000).toISOString().substr(11, 8);
-    const memoryUsage = process.memoryUsage();
-    const appMemory = (memoryUsage.rss / 1024 / 1024).toFixed(2);
-    const totalMem = (os.totalmem() / 1024 / 1024 / 1024).toFixed(2);
-    const freeMem = (os.freemem() / 1024 / 1024 / 1024).toFixed(2);
-    const usedSystemMem = (os.totalmem() - os.freemem()) / 1024 / 1024 / 1024;
-    const cpuLoad = os.loadavg()[0].toFixed(2);
-    const platform = `${os.type()} ${os.release()} (${os.arch()})`;
+  app.get(
+    "/api/status",
+    {
+      preHandler: [authMiddleware, authRoleMiddleware([Role.ADMIN])],
+    },
+    async (request, reply) => {
+      const uptime = process.uptime();
+      const uptimeString = new Date(uptime * 1000).toISOString().substr(11, 8);
+      const memoryUsage = process.memoryUsage();
+      const appMemory = (memoryUsage.rss / 1024 / 1024).toFixed(2);
+      const totalMem = (os.totalmem() / 1024 / 1024 / 1024).toFixed(2);
+      const freeMem = (os.freemem() / 1024 / 1024 / 1024).toFixed(2);
+      const usedSystemMem = (os.totalmem() - os.freemem()) / 1024 / 1024 / 1024;
+      const cpuLoad = os.loadavg()[0].toFixed(2);
+      const platform = `${os.type()} ${os.release()} (${os.arch()})`;
 
-    const logo = await new Promise<string>((resolve) => {
-      figlet(
-        "RentFlow",
-        {
-          font: "Standard",
-        },
-        (err, data) => {
-          resolve(data || "RentFlow System");
-        },
-      );
-    });
+      const logo = await new Promise<string>((resolve) => {
+        figlet(
+          "RentFlow",
+          {
+            font: "Standard",
+          },
+          (err, data) => {
+            resolve(data || "RentFlow System");
+          },
+        );
+      });
 
-    const services = [];
-
-    services.push({
-      name: "API Server",
-      status: "ONLINE",
-      latency: "0ms",
-    });
-
-    const dbStart = performance.now();
-
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      const dbLatency = (performance.now() - dbStart).toFixed(2);
+      const services = [];
 
       services.push({
-        name: "Database (Postgres)",
+        name: "API Server",
         status: "ONLINE",
-        latency: `${dbLatency}ms`,
-      });
-    } catch (error) {
-      services.push({
-        name: "Database (Postgres)",
-        status: "OFFLINE",
-        latency: "ERROR",
+        latency: "0ms",
       });
 
-      app.log.error(error);
-    }
+      const dbStart = performance.now();
 
-    const redisStart = performance.now();
+      try {
+        await prisma.$queryRaw`SELECT 1`;
+        const dbLatency = (performance.now() - dbStart).toFixed(2);
 
-    try {
-      const client = await emailQueue.client;
-      await client.ping();
-      const redisLatency = (performance.now() - redisStart).toFixed(2);
+        services.push({
+          name: "Database (Postgres)",
+          status: "ONLINE",
+          latency: `${dbLatency}ms`,
+        });
+      } catch (error) {
+        services.push({
+          name: "Database (Postgres)",
+          status: "OFFLINE",
+          latency: "ERROR",
+        });
 
-      services.push({
-        name: "Redis Cache",
-        status: "ONLINE",
-        latency: `${redisLatency}ms`,
-      });
-    } catch (error) {
-      services.push({
-        name: "Redis Cache",
-        status: "OFFLINE",
-        latency: "ERROR",
-      });
-    }
+        app.log.error(error);
+      }
 
-    try {
-      const counts = await emailQueue.getJobCounts();
-      const waitingJobs = counts.waiting + counts.active;
+      const redisStart = performance.now();
 
-      services.push({
-        name: "Worker Queue",
-        status: "ONLINE",
-        latency: `Jobs: ${waitingJobs}`,
-      });
-    } catch (error) {
-      services.push({
-        name: "Worker Queue",
-        status: "OFFLINE",
-        latency: "ERROR",
-      });
-    }
+      try {
+        const client = await emailQueue.client;
+        await client.ping();
+        const redisLatency = (performance.now() - redisStart).toFixed(2);
 
-    const html = `
+        services.push({
+          name: "Redis Cache",
+          status: "ONLINE",
+          latency: `${redisLatency}ms`,
+        });
+      } catch (error) {
+        services.push({
+          name: "Redis Cache",
+          status: "OFFLINE",
+          latency: "ERROR",
+        });
+      }
+
+      try {
+        const counts = await emailQueue.getJobCounts();
+        const waitingJobs = counts.waiting + counts.active;
+
+        services.push({
+          name: "Worker Queue",
+          status: "ONLINE",
+          latency: `Jobs: ${waitingJobs}`,
+        });
+      } catch (error) {
+        services.push({
+          name: "Worker Queue",
+          status: "OFFLINE",
+          latency: "ERROR",
+        });
+      }
+
+      const html = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -296,8 +302,9 @@ export async function buildApp() {
     </html>
     `;
 
-    reply.type("text/html").send(html);
-  });
+      reply.type("text/html").send(html);
+    },
+  );
 
   await app.register(import("@fastify/cors"), {
     origin: env.FRONTEND_URL,
@@ -311,7 +318,6 @@ export async function buildApp() {
   });
 
   await app.register(cookie, {});
-
   await registerSwagger(app);
 
   await app.register(indexRoute, {

@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import Skeleton from "@/lib/ui/Skeleton";
 import ConfirmDialog, { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
 import { Dormitory } from "@/features/dormitory";
+import LoadingPage from "../loading";
 
 const formatDateTime = (dateString?: string) => {
   if (!dateString) return "-";
@@ -263,89 +264,105 @@ export default function QrCodeManager() {
     }
   };
 
+  if (isLoading || isBulkLoading) return <LoadingPage />;
+
   return (
-    <div className="my-5 w-full rounded-xl border border-gray-200">
-      <QrCodeFilters
-        dorms={dorms}
-        selectedDormId={selectedDormId}
-        setSelectedDormId={setSelectedDormId}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        selectedCount={selectedRooms.length}
-        onBulkCreate={handleBulkCreate}
-        isBulkLoading={isBulkLoading}
-      />
-      <div className="flex items-start gap-2.5 border-b border-amber-100 bg-amber-50/60 px-4 py-3 text-xs text-amber-800 sm:px-5 sm:text-sm">
-        <Info className="mt-0.5 h-4 w-4 shrink-0" />
-        <span>
-          ห้องที่ยังไม่มีผู้เช่าจะยังสร้าง QR Code ไม่ได้
-          ต้องมีผู้เช่าเข้าพักก่อนจึงจะสร้างได้
-        </span>
+    <div className="w-full flex-1">
+      <div className="mx-auto max-w-[1600px]">
+        <div>
+          <h1 className="text-foreground text-3xl font-bold tracking-tight">
+            เข้าระบบด้วย QR Code
+          </h1>
+          <p className="text-muted text-sm sm:text-base">
+            จัดการสิทธิ์และสร้าง PDF QR Code สำหรับสแกนเข้าระบบของแต่ละห้องพัก
+          </p>
+        </div>
+        <div className="border-border my-5 w-full rounded-xl border">
+          <QrCodeFilters
+            dorms={dorms}
+            selectedDormId={selectedDormId}
+            setSelectedDormId={setSelectedDormId}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedCount={selectedRooms.length}
+            onBulkCreate={handleBulkCreate}
+            isBulkLoading={isBulkLoading}
+          />
+          <div className="flex items-start gap-2.5 border-b border-amber-100 bg-amber-50/60 px-4 py-3 text-xs text-amber-800 sm:px-5 sm:text-sm">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              ห้องที่ยังไม่มีผู้เช่าจะยังสร้าง QR Code ไม่ได้
+              ต้องมีผู้เช่าเข้าพักก่อนจึงจะสร้างได้
+            </span>
+          </div>
+          <div className="w-full overflow-x-auto">
+            <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead>
+                <tr className="border-border bg-background/50 text-muted border-b">
+                  <th className="w-12 px-4 py-4 text-center font-medium sm:px-6">
+                    <input
+                      type="checkbox"
+                      className="border-border h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                      onChange={handleSelectAll}
+                      checked={
+                        creatableRoomIds.length > 0 &&
+                        creatableRoomIds.every((id) =>
+                          selectedRooms.includes(id),
+                        )
+                      }
+                      disabled={creatableRoomIds.length === 0}
+                      title="เลือกทั้งหมด (เฉพาะห้องที่มีผู้เช่า)"
+                    />
+                  </th>
+                  <th className="px-4 py-4 font-medium sm:px-6">ห้อง</th>
+                  <th className="px-4 py-4 font-medium sm:px-6">
+                    สิทธิ์เข้าด้วย QR
+                  </th>
+                  <th className="px-4 py-4 font-medium sm:px-6">สถานะห้อง</th>
+                  <th className="px-4 py-4 font-medium sm:px-6">
+                    วันที่สร้าง(ล่าสุด)
+                  </th>
+                  <th className="px-4 py-4 text-right font-medium sm:px-6">
+                    จัดการ
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-border divide-y">
+                {isLoading ? (
+                  <TableSkeleton />
+                ) : filteredRooms.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-muted py-10 text-center">
+                      ไม่พบข้อมูลห้องพัก
+                    </td>
+                  </tr>
+                ) : (
+                  filteredRooms.map((room) => (
+                    <RoomTableRow
+                      key={room.id}
+                      room={room}
+                      isSelected={selectedRooms.includes(room.id)}
+                      onSelect={() => handleSelectRoom(room.id)}
+                      onToggleStatus={handleToggleQrStatus}
+                      onCreateOrRenew={handleCreateOrRenewQr}
+                    />
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <ConfirmDialog
+            isOpen={confirmDialog.isOpen}
+            onClose={closeConfirm}
+            onConfirm={confirmDialog.onConfirm}
+            title={confirmDialog.title}
+            description={confirmDialog.description}
+            type={confirmDialog.type}
+          />
+        </div>
       </div>
-      <div className="w-full overflow-x-auto">
-        <table className="w-full text-left text-sm whitespace-nowrap">
-          <thead>
-            <tr className="border-b border-gray-200 bg-gray-50/50 text-gray-500">
-              <th className="w-12 px-4 py-4 text-center font-medium sm:px-6">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-                  onChange={handleSelectAll}
-                  checked={
-                    creatableRoomIds.length > 0 &&
-                    creatableRoomIds.every((id) => selectedRooms.includes(id))
-                  }
-                  disabled={creatableRoomIds.length === 0}
-                  title="เลือกทั้งหมด (เฉพาะห้องที่มีผู้เช่า)"
-                />
-              </th>
-              <th className="px-4 py-4 font-medium sm:px-6">ห้อง</th>
-              <th className="px-4 py-4 font-medium sm:px-6">
-                สิทธิ์เข้าด้วย QR
-              </th>
-              <th className="px-4 py-4 font-medium sm:px-6">สถานะห้อง</th>
-              <th className="px-4 py-4 font-medium sm:px-6">
-                วันที่สร้าง(ล่าสุด)
-              </th>
-              <th className="px-4 py-4 text-right font-medium sm:px-6">
-                จัดการ
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {isLoading ? (
-              <TableSkeleton />
-            ) : filteredRooms.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-10 text-center text-gray-500">
-                  ไม่พบข้อมูลห้องพัก
-                </td>
-              </tr>
-            ) : (
-              filteredRooms.map((room) => (
-                <RoomTableRow
-                  key={room.id}
-                  room={room}
-                  isSelected={selectedRooms.includes(room.id)}
-                  onSelect={() => handleSelectRoom(room.id)}
-                  onToggleStatus={handleToggleQrStatus}
-                  onCreateOrRenew={handleCreateOrRenewQr}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        onClose={closeConfirm}
-        onConfirm={confirmDialog.onConfirm}
-        title={confirmDialog.title}
-        description={confirmDialog.description}
-        type={confirmDialog.type}
-      />
     </div>
   );
 }
@@ -355,7 +372,7 @@ const TableSkeleton = () => (
     {Array.from({
       length: 5,
     }).map((_, idx) => (
-      <tr key={idx} className="bg-white">
+      <tr key={idx} className="bg-surface">
         <td className="px-4 py-4 text-center sm:px-6">
           <Skeleton className="mx-auto h-4 w-4 rounded" />
         </td>
@@ -399,11 +416,11 @@ const RoomTableRow = ({
     : null;
 
   return (
-    <tr className="transition-colors hover:bg-gray-50/50">
+    <tr className="hover:bg-background/50 transition-colors">
       <td className="px-4 py-4 text-center sm:px-6">
         <input
           type="checkbox"
-          className="h-4 w-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+          className="border-border disabled:bg-background h-4 w-4 cursor-pointer rounded text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
           checked={isSelected}
           onChange={onSelect}
           disabled={isVacant}
@@ -420,14 +437,14 @@ const RoomTableRow = ({
           <button
             onClick={() => onToggleStatus(room.id, isQrActive)}
             disabled={!isQrGenerated}
-            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none disabled:cursor-not-allowed ${!isQrGenerated ? "bg-gray-100" : isQrActive ? "bg-green-500" : "bg-gray-300"}`}
+            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors focus:outline-none disabled:cursor-not-allowed ${!isQrGenerated ? "bg-background" : isQrActive ? "bg-green-500" : "bg-border"}`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isQrActive ? "translate-x-4" : "translate-x-1"}`}
             />
           </button>
           <span
-            className={`text-sm ${!isQrGenerated ? "text-gray-400" : isQrActive ? "text-gray-900" : "text-gray-500"}`}
+            className={`text-sm ${!isQrGenerated ? "text-muted" : isQrActive ? "text-foreground" : "text-muted"}`}
           >
             {!isQrGenerated
               ? "ยังไม่สร้าง QR"
@@ -448,7 +465,7 @@ const RoomTableRow = ({
           </span>
         )}
       </td>
-      <td className="px-4 py-4 text-gray-600 sm:px-6">
+      <td className="text-muted px-4 py-4 sm:px-6">
         {createdDateStr ? formatDateTime(createdDateStr) : "-"}
       </td>
       <td className="px-4 py-4 text-right sm:px-6">
@@ -461,7 +478,7 @@ const RoomTableRow = ({
             title={
               isVacant && !isQrGenerated ? "ต้องมีผู้เช่าก่อนถึงจะสร้างได้" : ""
             }
-            className={`flex cursor-pointer items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed ${isVacant && !isQrGenerated ? "bg-gray-50 text-gray-300" : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"}`}
+            className={`border-border bg-surface flex cursor-pointer items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed ${isVacant && !isQrGenerated ? "bg-background text-muted" : "text-muted hover:bg-background hover:text-foreground"}`}
           >
             {isQrGenerated ? (
               <RefreshCw className="h-3.5 w-3.5 shrink-0" />

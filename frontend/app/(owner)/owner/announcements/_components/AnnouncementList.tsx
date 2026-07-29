@@ -151,7 +151,7 @@ export default function AnnouncementList({
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-24 w-full animate-pulse rounded-xl bg-slate-100"
+            className="bg-skeleton h-24 w-full animate-pulse rounded-xl"
           ></div>
         ))}
       </div>
@@ -164,7 +164,7 @@ export default function AnnouncementList({
         <div className="space-y-8">
           {pinnedItems.length > 0 && (
             <div>
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-wide text-slate-500 uppercase">
+              <h3 className="text-muted mb-3 flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
                 📌 ประกาศปักหมุด
               </h3>
               <Droppable droppableId="pinned-list" type="PINNED">
@@ -193,7 +193,7 @@ export default function AnnouncementList({
           )}
           {normalItems.length > 0 && (
             <div>
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-wide text-slate-500 uppercase">
+              <h3 className="text-muted mb-3 flex items-center gap-2 text-sm font-semibold tracking-wide uppercase">
                 📄 ประกาศ
               </h3>
               <Droppable droppableId="normal-list" type="NORMAL">

@@ -21,12 +21,14 @@ interface PopoverPosition {
 
 export default function InfoTooltip({ children }: InfoTooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
+
   const [position, setPosition] = useState<PopoverPosition>({
     top: 0,
     left: 0,
     width: POPOVER_WIDTH,
     maxHeight: 400,
   });
+
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -35,6 +37,7 @@ export default function InfoTooltip({ children }: InfoTooltipProps) {
 
     const updatePosition = () => {
       const rect = buttonRef.current?.getBoundingClientRect();
+
       if (!rect) return;
 
       const width = Math.min(
@@ -45,7 +48,6 @@ export default function InfoTooltip({ children }: InfoTooltipProps) {
         rect.left,
         window.innerWidth - width - VIEWPORT_MARGIN,
       );
-
       const spaceBelow = window.innerHeight - rect.bottom - VIEWPORT_MARGIN;
       const spaceAbove = rect.top - VIEWPORT_MARGIN;
       const openAbove = spaceBelow < MIN_SPACE_BELOW && spaceAbove > spaceBelow;
@@ -62,6 +64,7 @@ export default function InfoTooltip({ children }: InfoTooltipProps) {
     updatePosition();
     window.addEventListener("scroll", updatePosition, true);
     window.addEventListener("resize", updatePosition);
+
     return () => {
       window.removeEventListener("scroll", updatePosition, true);
       window.removeEventListener("resize", updatePosition);
@@ -90,9 +93,7 @@ export default function InfoTooltip({ children }: InfoTooltipProps) {
         ref={buttonRef}
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-gray-200 text-gray-600 transition-colors hover:bg-gray-300 ${
-          !isOpen ? "animate-pulse hover:animate-none" : ""
-        }`}
+        className={`bg-background text-muted hover:bg-border flex h-4 w-4 cursor-pointer items-center justify-center rounded-full transition-colors ${!isOpen ? "animate-pulse hover:animate-none" : ""}`}
       >
         <Info size={11} strokeWidth={2.5} />
       </button>
@@ -107,7 +108,7 @@ export default function InfoTooltip({ children }: InfoTooltipProps) {
               width: position.width,
               maxHeight: position.maxHeight,
             }}
-            className="fixed z-9999 overflow-y-auto rounded-xl border border-gray-200 bg-white p-3 text-xs leading-relaxed text-gray-600 shadow-lg"
+            className="border-border bg-surface text-muted fixed z-9999 overflow-y-auto rounded-xl border p-3 text-xs leading-relaxed shadow-lg"
           >
             {children}
           </div>,

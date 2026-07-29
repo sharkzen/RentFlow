@@ -10,51 +10,53 @@ import { StatCard } from "./StatCard";
 import Link from "next/link";
 
 export const FinancialSection = ({ overview, monthLabel, year }: any) => {
-  if (!overview || !overview.bills) return null;
-
   return (
     <div>
-      <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-800">
+      <h2 className="text-foreground mb-4 flex items-center gap-2 text-lg font-bold">
         <DollarSign className="text-green-500" size={20} />
         สถานะการเงิน & ห้องพัก ({monthLabel} {year})
       </h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Link href={`/owner/bills?filter=PAID&dormId=${overview.dormId}`}>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(228px,1fr))] gap-4">
+        <Link href={`/owner/bills?filter=PAID&dormId=${overview?.dormId}`}>
           <StatCard
             title="ชำระแล้ว (รายได้)"
-            value={`฿${(overview.bills.paid?.amount ?? 0).toLocaleString()}`}
-            subValue={`${overview.bills.paid?.count ?? 0} บิล`}
-            icon={<CheckCircle2 size={24} />}
-            colorClass="bg-green-100 text-green-600"
+            value={overview?.bills.paid?.amount ?? 0}
+            subValue={overview?.bills.paid?.count ?? 0}
+            icon={<CheckCircle2 size={20} />}
+            colorClass="text-green-600"
+            prefix="฿"
           />
         </Link>
-        <Link href={`/owner/bills?filter=PENDING&dormId=${overview.dormId}`}>
+        <Link href={`/owner/bills?filter=PENDING&dormId=${overview?.dormId}`}>
           <StatCard
-            title="รอชำระ (ยังไม่จ่าย)"
-            value={`฿${(overview.bills.pending?.amount ?? 0).toLocaleString()}`}
-            subValue={`${overview.bills.pending?.count ?? 0} บิล`}
-            icon={<Clock size={24} />}
-            colorClass="bg-yellow-100 text-yellow-600"
+            title="รอชำระ"
+            value={overview?.bills.pending?.amount ?? 0}
+            subValue={overview?.bills.pending?.count ?? 0}
+            icon={<Clock size={20} />}
+            colorClass="text-yellow-600"
+            prefix="฿"
           />
         </Link>
         <Link
-          href={`/owner/bills?filter=WAITING_FOR_VERIFICATION&dormId=${overview.dormId}`}
+          href={`/owner/bills?filter=WAITING_FOR_VERIFICATION&dormId=${overview?.dormId}`}
         >
           <StatCard
             title="รอตรวจสอบ"
-            value={`฿${(overview.bills.waiting?.amount ?? 0).toLocaleString()}`}
-            subValue={`${overview.bills.waiting?.count ?? 0} บิล`}
-            icon={<Search size={24} />}
-            colorClass="bg-blue-100 text-blue-600"
+            value={overview?.bills.waiting?.amount ?? 0}
+            subValue={overview?.bills.waiting?.count ?? 0}
+            icon={<Search size={20} />}
+            colorClass="text-blue-600"
+            prefix="฿"
           />
         </Link>
-        <Link href={`/owner/bills?filter=OVERDUE&dormId=${overview.dormId}`}>
+        <Link href={`/owner/bills?filter=OVERDUE&dormId=${overview?.dormId}`}>
           <StatCard
-            title="เกินกำหนด (ค้างจ่าย)"
-            value={`฿${(overview.bills.overdue?.amount ?? 0).toLocaleString()}`}
-            subValue={`${overview.bills.overdue?.count ?? 0} บิล`}
-            icon={<AlertCircle size={24} />}
-            colorClass="bg-red-100 text-red-600"
+            title="เกินกำหนด"
+            value={overview?.bills.overdue?.amount ?? 0}
+            subValue={overview?.bills.overdue?.count ?? 0}
+            icon={<AlertCircle size={20} />}
+            colorClass="text-red-600"
+            prefix="฿"
           />
         </Link>
       </div>

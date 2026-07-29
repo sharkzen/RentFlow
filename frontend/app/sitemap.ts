@@ -1,5 +1,4 @@
 import type { MetadataRoute } from "next";
-
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 const API_URL = process.env.API_URL || "http://localhost:3001";
 
@@ -14,8 +13,8 @@ async function getDormSlugs(): Promise<string[]> {
     if (!res.ok) return [];
 
     const { data, meta } = await res.json();
-    const slugs: string[] = data.map((d: any) => d.slug);
 
+    const slugs: string[] = data.map((d: any) => d.slug);
     const totalPages = Math.min(meta?.totalPages ?? 1, 10);
 
     for (let page = 2; page <= totalPages; page++) {

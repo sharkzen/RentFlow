@@ -17,6 +17,7 @@ import { toast } from "react-toastify";
 import { OwnerService } from "@/features/owner/services/owner.service";
 import log from "@/lib/logger";
 import { OwnerProfile } from "@/features/owner/types";
+import LoadingPage from "@/app/(owner)/owner/profile/loading";
 
 export default function FormProfile() {
   const [isEditing, setIsEditing] = useState(false);
@@ -32,7 +33,6 @@ export default function FormProfile() {
 
   const [errors, setErrors] = useState<Partial<OwnerProfile>>({});
   const [originalData, setOriginalData] = useState(formData);
-
   const isMountedRef = useRef(true);
 
   const fetchProfile = async () => {
@@ -53,6 +53,7 @@ export default function FormProfile() {
       }
     } catch (error) {
       if (isMountedRef.current) toast.error("ไม่สามารถโหลดข้อมูลโปรไฟล์ได้");
+
       log.error("Error fetching profile:", error);
     } finally {
       if (isMountedRef.current) setIsLoading(false);
@@ -199,164 +200,167 @@ export default function FormProfile() {
   };
 
   const inputBaseClass =
-    "w-full h-10 rounded-lg border px-3 pl-10 text-sm outline-none transition-all placeholder:text-gray-400";
+    "w-full h-10 rounded-lg border px-3 pl-10 text-sm outline-none transition-all placeholder:text-muted";
   const editClass =
-    "border-gray-300 bg-white text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200";
-  const viewClass = "border-gray-200 bg-gray-50 text-gray-500 cursor-default";
-  const iconClass = `absolute top-3 left-3 h-4 w-4 ${isEditing ? "text-gray-500" : "text-gray-400"} pointer-events-none transition-colors`;
+    "border-border bg-surface text-foreground focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200";
+  const viewClass = "border-border bg-background text-muted cursor-default";
+  const iconClass = `absolute top-3 left-3 h-4 w-4 text-muted pointer-events-none transition-colors`;
 
-  if (isLoading) {
-    return (
-      <div className="flex h-64 w-full flex-col items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white shadow-sm">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-        <span className="text-sm text-gray-500">กำลังโหลดข้อมูล...</span>
-      </div>
-    );
-  }
+  if (isLoading) return <LoadingPage />;
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-xl border border-gray-100 bg-white">
-      <div className="flex items-center justify-between border-b border-gray-100 bg-white p-4">
-        <div>
-          <h3 className="text-base font-semibold text-gray-800">
-            ข้อมูลส่วนตัว
-          </h3>
-          <p className="text-xs text-gray-500">
-            ข้อมูลนี้เพื่อการตรวจสอบและติดต่อกับแอดมิน
-          </p>
-        </div>
-        {!isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="group flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95"
-          >
-            <Edit2
-              size={16}
-              className="transition-transform group-hover:-rotate-12"
-            />
-            แก้ไข
-          </button>
-        )}
+    <div className="flex w-full flex-col gap-6">
+      <div>
+        <h1 className="text-foreground text-3xl font-bold tracking-tight">
+          ตั้งค่าโปรไฟล์
+        </h1>
+        <p className="text-muted mt-1 text-sm">
+          จัดการข้อมูลส่วนตัวและช่องทางการติดต่อของคุณ
+        </p>
       </div>
-      <div className="p-6 md:p-8">
-        <div className="grid grid-cols-1 gap-x-8 gap-y-6 lg:grid-cols-2">
-          <div className="group">
-            <label className="mb-1.5 block text-xs font-semibold text-gray-700">
-              ชื่อ-นามสกุล{" "}
-              {isEditing && <span className="text-red-500">*</span>}
-            </label>
-            <div className="relative">
-              <User className={iconClass} />
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                disabled={!isEditing}
-                placeholder="ระบุชื่อ-นามสกุล"
-                className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.fullName ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
-              />
-            </div>
-            {errors.fullName && (
-              <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>
-            )}
+      <div className="border-border bg-surface relative h-full w-full overflow-hidden rounded-xl border">
+        <div className="border-border bg-surface flex items-center justify-between border-b p-4">
+          <div>
+            <h3 className="text-foreground text-base font-semibold">
+              ข้อมูลส่วนตัว
+            </h3>
+            <p className="text-muted text-xs">
+              ข้อมูลนี้เพื่อการตรวจสอบและติดต่อกับแอดมิน
+            </p>
           </div>
-          <div className="group">
-            <label className="mb-1.5 block text-xs font-semibold text-gray-700">
-              เบอร์โทรศัพท์{" "}
-              {isEditing && <span className="text-red-500">*</span>}
-            </label>
-            <div className="relative">
-              <Phone className={iconClass} />
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone || ""}
-                onChange={handleChange}
-                disabled={!isEditing}
-                maxLength={10}
-                placeholder="0xxxxxxxxx"
-                className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.phone ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
+          {!isEditing && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="group border-border bg-surface text-muted flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium shadow-sm transition-all hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95"
+            >
+              <Edit2
+                size={16}
+                className="transition-transform group-hover:-rotate-12"
               />
-            </div>
-            {errors.phone && (
-              <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
-            )}
-          </div>
-          <div className="group">
-            <label className="mb-1.5 block text-xs font-semibold text-gray-700">
-              Line ID
-            </label>
-            <div className="relative">
-              <MessageCircle className={iconClass} />
-              <input
-                type="text"
-                name="lineId"
-                value={formData.lineId || ""}
-                onChange={handleChange}
-                disabled={!isEditing}
-                placeholder="ระบุ Line ID"
-                className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.lineId ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
-              />
-            </div>
-            {errors.lineId && (
-              <p className="mt-1 text-xs text-red-500">{errors.lineId}</p>
-            )}
-          </div>
-          <div className="group">
-            <label className="mb-1.5 flex justify-between text-xs font-semibold text-gray-700">
-              <span>Facebook Link</span>
-              {!isEditing && formData.facebook && (
-                <a
-                  href={formData.facebook}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex cursor-pointer items-center text-blue-600 hover:underline"
-                >
-                  เปิดลิงก์ <ExternalLink size={10} className="ml-1" />
-                </a>
-              )}
-            </label>
-            <div className="relative">
-              <Facebook className={iconClass} />
-              <input
-                type="text"
-                name="facebook"
-                value={formData.facebook || ""}
-                onChange={handleChange}
-                disabled={!isEditing}
-                placeholder="https://facebook.com/..."
-                className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.facebook ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
-              />
-            </div>
-            {errors.facebook && (
-              <p className="mt-1 text-xs text-red-500">{errors.facebook}</p>
-            )}
-          </div>
+              แก้ไข
+            </button>
+          )}
         </div>
-        {isEditing && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 mt-10 flex items-center justify-end gap-3 border-t border-gray-50 pt-6 duration-300">
-            <button
-              onClick={handleCancel}
-              disabled={isSaving}
-              className="cursor-pointer rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 active:scale-95 disabled:opacity-50"
-            >
-              ยกเลิก
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={isSaving}
-              className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-indigo-400"
-            >
-              {isSaving ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : (
-                <Save size={18} />
+        <div className="p-6 md:p-8">
+          <div className="grid grid-cols-1 gap-x-8 gap-y-6 lg:grid-cols-2">
+            <div className="group">
+              <label className="text-foreground mb-1.5 block text-xs font-semibold">
+                ชื่อ-นามสกุล{" "}
+                {isEditing && <span className="text-red-500">*</span>}
+              </label>
+              <div className="relative">
+                <User className={iconClass} />
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  placeholder="ระบุชื่อ-นามสกุล"
+                  className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.fullName ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
+                />
+              </div>
+              {errors.fullName && (
+                <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>
               )}
-              {isSaving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
-            </button>
+            </div>
+            <div className="group">
+              <label className="text-foreground mb-1.5 block text-xs font-semibold">
+                เบอร์โทรศัพท์{" "}
+                {isEditing && <span className="text-red-500">*</span>}
+              </label>
+              <div className="relative">
+                <Phone className={iconClass} />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone || ""}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  maxLength={10}
+                  placeholder="0xxxxxxxxx"
+                  className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.phone ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
+                />
+              </div>
+              {errors.phone && (
+                <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
+              )}
+            </div>
+            <div className="group">
+              <label className="text-foreground mb-1.5 block text-xs font-semibold">
+                Line ID
+              </label>
+              <div className="relative">
+                <MessageCircle className={iconClass} />
+                <input
+                  type="text"
+                  name="lineId"
+                  value={formData.lineId || ""}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  placeholder="ระบุ Line ID"
+                  className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.lineId ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
+                />
+              </div>
+              {errors.lineId && (
+                <p className="mt-1 text-xs text-red-500">{errors.lineId}</p>
+              )}
+            </div>
+            <div className="group">
+              <label className="text-foreground mb-1.5 flex justify-between text-xs font-semibold">
+                <span>Facebook Link</span>
+                {!isEditing && formData.facebook && (
+                  <a
+                    href={formData.facebook}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex cursor-pointer items-center text-blue-600 hover:underline"
+                  >
+                    เปิดลิงก์ <ExternalLink size={10} className="ml-1" />
+                  </a>
+                )}
+              </label>
+              <div className="relative">
+                <Facebook className={iconClass} />
+                <input
+                  type="text"
+                  name="facebook"
+                  value={formData.facebook || ""}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  placeholder="https://facebook.com/..."
+                  className={`${inputBaseClass} ${isEditing ? editClass : viewClass} ${errors.facebook ? "border-red-300 focus:border-red-500 focus:ring-red-100" : ""}`}
+                />
+              </div>
+              {errors.facebook && (
+                <p className="mt-1 text-xs text-red-500">{errors.facebook}</p>
+              )}
+            </div>
           </div>
-        )}
+          {isEditing && (
+            <div className="animate-in fade-in slide-in-from-bottom-2 border-border mt-10 flex items-center justify-end gap-3 border-t pt-6 duration-300">
+              <button
+                onClick={handleCancel}
+                disabled={isSaving}
+                className="border-border bg-surface text-foreground hover:bg-background cursor-pointer rounded-lg border px-5 py-2.5 text-sm font-medium transition-all active:scale-95 disabled:opacity-50"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSaving}
+                className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-indigo-400"
+              >
+                {isSaving ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Save size={18} />
+                )}
+                {isSaving ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

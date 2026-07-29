@@ -311,12 +311,12 @@ export default function EditTenantDialog({
 
   useScrollLock();
   const inputBaseClass =
-    "w-full h-10 rounded-lg border border-gray-300 bg-white text-sm text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all placeholder:text-gray-400";
+    "w-full h-10 rounded-lg border border-border bg-surface text-sm text-foreground focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all placeholder:text-muted";
   const inputClass = `${inputBaseClass} px-3`;
   const inputWithIconClass = `${inputBaseClass} pl-10 pr-3`;
   const iconClass =
-    "absolute top-3 left-3 h-4 w-4 text-gray-400 pointer-events-none";
-  const readOnlyClass = `${inputClass} bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200`;
+    "absolute top-3 left-3 h-4 w-4 text-muted pointer-events-none";
+  const readOnlyClass = `${inputClass} bg-background text-muted cursor-not-allowed border-border`;
 
   const isFutureMoveOutScheduled = () => {
     if (!formData.isActive || !formData.moveOutDate) return false;
@@ -374,13 +374,13 @@ export default function EditTenantDialog({
         type="warning"
         isLoading={isCancelingMoveOut}
       />
-      <div className="flex h-full max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-gray-200">
-        <div className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
+      <div className="bg-surface ring-border flex h-full max-h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl shadow-xl ring-1">
+        <div className="border-border bg-surface flex items-center justify-between border-b px-6 py-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-800">
+            <h2 className="text-foreground text-lg font-bold">
               แก้ไขข้อมูลผู้เช่า
             </h2>
-            <p className="mt-0.5 text-xs text-gray-500">
+            <p className="text-muted mt-0.5 text-xs">
               {isFetching
                 ? "กำลังโหลดข้อมูล..."
                 : `กำลังแก้ไขข้อมูลของ: ${formData.firstName} ${formData.lastName}`}
@@ -389,13 +389,13 @@ export default function EditTenantDialog({
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="group cursor-pointer rounded-full bg-gray-50 p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 active:scale-95"
+              className="group bg-background text-muted hover:bg-border hover:text-foreground cursor-pointer rounded-full p-2 transition-colors active:scale-95"
             >
               <X size={20} />
             </button>
           </div>
         </div>
-        <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto bg-gray-50/30 p-2">
+        <div className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent bg-background/30 flex-1 overflow-y-auto p-2">
           {isFetching ? (
             <div className="flex h-64 w-full flex-col items-center justify-center gap-3">
               <div className="flex space-x-2">
@@ -403,7 +403,7 @@ export default function EditTenantDialog({
                 <div className="h-3 w-3 animate-bounce rounded-full bg-indigo-500 delay-150"></div>
                 <div className="h-3 w-3 animate-bounce rounded-full bg-indigo-500 delay-300"></div>
               </div>
-              <span className="text-sm font-medium text-gray-500">
+              <span className="text-muted text-sm font-medium">
                 กำลังดึงข้อมูล...
               </span>
             </div>
@@ -450,27 +450,27 @@ export default function EditTenantDialog({
               )}
               <div className="grid grid-cols-1 gap-6 px-2 lg:grid-cols-2">
                 <div className="space-y-6">
-                  <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-87.5">
+                  <div className="border-border bg-surface rounded-xl border p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-87.5">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                       <Home size={16} />
                       ข้อมูลห้องพัก (แก้ไขไม่ได้)
                     </h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-500">
+                        <label className="text-muted mb-1.5 block text-xs font-semibold">
                           ห้องพักปัจจุบัน
                         </label>
                         <div className="relative">
                           <div className={`${readOnlyClass} flex items-center`}>
-                            <span className="font-semibold text-gray-700">
+                            <span className="text-foreground font-semibold">
                               ห้อง {formData.roomNumber}
                             </span>
-                            <span className="mx-2 text-gray-300">|</span>
+                            <span className="text-muted mx-2">|</span>
                             <span className="truncate text-xs">
                               {formData.dormName}
                             </span>
                           </div>
-                          <Lock className="absolute top-3 right-3 h-4 w-4 text-gray-400" />
+                          <Lock className="text-muted absolute top-3 right-3 h-4 w-4" />
                         </div>
                       </div>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -504,7 +504,7 @@ export default function EditTenantDialog({
                           />
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                          <label className="text-foreground mb-1.5 block text-xs font-semibold">
                             จำนวนผู้พัก (คน)
                           </label>
                           <div className="relative">
@@ -522,18 +522,18 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-55">
+                  <div className="border-border bg-surface rounded-xl border p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-55">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-emerald-600 uppercase">
                       <Coins size={16} />
                       ข้อมูลการเงิน
                     </h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           เงินประกันความเสียหาย
                         </label>
                         <div className="relative">
-                          <span className="absolute top-2.5 left-3 font-sans text-sm text-gray-400">
+                          <span className="text-muted absolute top-2.5 left-3 font-sans text-sm">
                             ฿
                           </span>
                           <input
@@ -548,11 +548,11 @@ export default function EditTenantDialog({
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                          <label className="text-foreground mb-1.5 block text-xs font-semibold">
                             ค่าเช่าล่วงหน้า
                           </label>
                           <div className="relative">
-                            <span className="absolute top-2.5 left-3 font-sans text-sm text-gray-400">
+                            <span className="text-muted absolute top-2.5 left-3 font-sans text-sm">
                               ฿
                             </span>
                             <input
@@ -566,11 +566,11 @@ export default function EditTenantDialog({
                           </div>
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                          <label className="text-foreground mb-1.5 block text-xs font-semibold">
                             ค่าแรกเข้า
                           </label>
                           <div className="relative">
-                            <span className="absolute top-2.5 left-3 font-sans text-sm text-gray-400">
+                            <span className="text-muted absolute top-2.5 left-3 font-sans text-sm">
                               ฿
                             </span>
                             <input
@@ -586,14 +586,14 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
-                    <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-gray-600 uppercase">
+                  <div className="border-border bg-surface rounded-xl border p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)]">
+                    <h3 className="text-muted mb-4 flex items-center gap-2 text-sm font-bold tracking-wider uppercase">
                       <Contact size={16} />
                       ข้อมูลผู้ติดต่อฉุกเฉิน
                     </h3>
                     <div className="mb-4 grid grid-cols-2 gap-4">
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           ชื่อผู้ติดต่อ
                         </label>
                         <input
@@ -605,7 +605,7 @@ export default function EditTenantDialog({
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           เบอร์โทร
                         </label>
                         <input
@@ -628,7 +628,7 @@ export default function EditTenantDialog({
                       </div>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                      <label className="text-foreground mb-1.5 block text-xs font-semibold">
                         หมายเหตุเพิ่มเติม
                       </label>
                       <textarea
@@ -636,14 +636,14 @@ export default function EditTenantDialog({
                         value={formData.notes}
                         onChange={handleChange}
                         rows={2}
-                        className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                        className="border-border placeholder:text-muted w-full resize-none rounded-lg border px-3 py-2 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
                         placeholder="บันทึกข้อความ..."
                       />
                     </div>
                   </div>
                 </div>
                 <div className="space-y-6">
-                  <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-87.5">
+                  <div className="border-border bg-surface rounded-xl border p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-87.5">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                       <User size={16} />
                       ข้อมูลส่วนตัวผู้เช่า
@@ -651,7 +651,7 @@ export default function EditTenantDialog({
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                          <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                          <label className="text-foreground mb-1.5 block text-xs font-semibold">
                             ชื่อจริง
                           </label>
                           <input
@@ -663,7 +663,7 @@ export default function EditTenantDialog({
                           />
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                          <label className="text-foreground mb-1.5 block text-xs font-semibold">
                             นามสกุล
                           </label>
                           <input
@@ -677,7 +677,7 @@ export default function EditTenantDialog({
                       </div>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                          <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                          <label className="text-foreground mb-1.5 block text-xs font-semibold">
                             เบอร์โทรศัพท์
                           </label>
                           <div className="relative">
@@ -705,7 +705,7 @@ export default function EditTenantDialog({
                           </div>
                         </div>
                         <div>
-                          <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                          <label className="text-foreground mb-1.5 block text-xs font-semibold">
                             เลขบัตรประชาชน
                           </label>
                           <div className="relative">
@@ -734,30 +734,30 @@ export default function EditTenantDialog({
                         </div>
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           ที่อยู่ตามทะเบียนบ้านตามบัตร ปชช
                         </label>
                         <div className="relative">
-                          <MapPin className="pointer-events-none absolute top-3 left-3 h-4 w-4 text-gray-400" />
+                          <MapPin className="text-muted pointer-events-none absolute top-3 left-3 h-4 w-4" />
                           <textarea
                             name="address"
                             value={formData.address}
                             onChange={handleChange}
                             rows={3}
-                            className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 pl-10 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                            className="border-border placeholder:text-muted w-full resize-none rounded-lg border px-3 py-2 pl-10 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
                             placeholder="บ้านเลขที่, ถนน, ตำบล/แขวง..."
                           />
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-55">
+                  <div className="border-border bg-surface rounded-xl border p-5 shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] lg:min-h-55">
                     <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
                       <Lock size={16} />
                       บัญชีเข้าใช้งาน (App Login)
                     </h3>
                     <div className="space-y-5">
-                      <div className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/50 p-3">
+                      <div className="border-border bg-background/50 flex items-center justify-between rounded-lg border p-3">
                         <div className="flex items-center gap-3">
                           <div
                             className={`flex h-10 w-10 items-center justify-center rounded-full ${formData.isActive ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
@@ -765,7 +765,7 @@ export default function EditTenantDialog({
                             <Power size={20} />
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-gray-700">
+                            <p className="text-foreground text-sm font-semibold">
                               สถานะบัญชี
                             </p>
                             <p
@@ -784,11 +784,11 @@ export default function EditTenantDialog({
                             checked={formData.isActive}
                             onChange={handleToggleStatus}
                           />
-                          <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-green-500 peer-focus:ring-4 peer-focus:ring-green-300 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+                          <div className="peer border-border bg-border after:border-border h-6 w-11 rounded-full peer-checked:bg-green-500 peer-focus:ring-4 peer-focus:ring-green-300 peer-focus:outline-none after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
                         </label>
                       </div>
-                      <div className="border-t border-gray-100 pt-4">
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                      <div className="border-border border-t pt-4">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           อีเมล (Login) <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
@@ -804,7 +804,7 @@ export default function EditTenantDialog({
                         </div>
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                        <label className="text-foreground mb-1.5 block text-xs font-semibold">
                           เปลี่ยนรหัสผ่านใหม่
                         </label>
                         <div className="relative">
@@ -820,7 +820,7 @@ export default function EditTenantDialog({
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                            className="text-muted hover:text-foreground absolute top-3 right-3 focus:outline-none"
                           >
                             {showPassword ? (
                               <EyeOff size={16} />
@@ -829,7 +829,7 @@ export default function EditTenantDialog({
                             )}
                           </button>
                         </div>
-                        <p className="mt-1.5 text-[10px] text-gray-500">
+                        <p className="text-muted mt-1.5 text-[10px]">
                           * รหัสผ่านต้องมีอย่างน้อย{" "}
                           <span className="font-semibold text-indigo-600">
                             6 ตัวอักษร
@@ -850,30 +850,32 @@ export default function EditTenantDialog({
             </form>
           )}
         </div>
-        <div className="flex items-center justify-between gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
+        <div className="border-border bg-background flex items-center justify-between gap-3 border-t px-6 py-4">
           <div>
             {!isFetching && (
               <>
-                {formData.isActive ? (
-                  !formData.moveOutDate && (
-                    <button
-                      type="button"
-                      onClick={() => setIsMoveOutOpen(true)}
-                      className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition-all hover:bg-red-100 active:scale-95"
-                    >
-                      <LogOut size={16} />
-                      <span>แจ้งย้ายออก</span>
-                    </button>
-                  )
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleReEntryClick}
-                    className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-600 shadow-sm transition-all hover:bg-indigo-100 active:scale-95"
-                  >
-                    <UserPlus size={18} />
-                    <span>กลับมาพักใหม่ / ทำสัญญาใหม่</span>
-                  </button>
+                {!isFetching && (
+                  <>
+                    {!formData.moveOutDate ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsMoveOutOpen(true)}
+                        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 transition-all hover:bg-red-100 active:scale-95"
+                      >
+                        <LogOut size={16} />
+                        <span>แจ้งย้ายออก</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleReEntryClick}
+                        className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-600 shadow-sm transition-all hover:bg-indigo-100 active:scale-95"
+                      >
+                        <UserPlus size={18} />
+                        <span>กลับมาพักใหม่ / ทำสัญญาใหม่</span>
+                      </button>
+                    )}
+                  </>
                 )}
               </>
             )}
@@ -882,7 +884,7 @@ export default function EditTenantDialog({
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 max-sm:text-xs"
+              className="border-border bg-surface text-foreground hover:bg-background cursor-pointer rounded-lg border px-5 py-2 text-sm font-medium max-sm:text-xs"
             >
               ยกเลิก
             </button>

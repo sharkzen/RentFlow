@@ -157,12 +157,12 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
   return (
     <div className="relative space-y-4 p-4">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-bold text-gray-700">
+        <label className="text-foreground text-xs font-bold">
           รูปภาพ ({images.length}/5){" "}
           <span className="text-xs text-red-500">* ขนาดไม่เกิน 5MB/รูป</span>
         </label>
         <label
-          className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${images.length >= 5 ? "cursor-not-allowed bg-gray-100 text-gray-400" : "bg-blue-50 text-blue-600 hover:bg-blue-100"}`}
+          className={`inline-flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${images.length >= 5 ? "bg-background text-muted cursor-not-allowed" : "bg-blue-50 text-blue-600 hover:bg-blue-100"}`}
         >
           <ImagePlus size={16} />
           <span>เพิ่มรูปภาพ</span>
@@ -234,7 +234,7 @@ function SortableImage({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative aspect-square overflow-hidden rounded-xl border-2 bg-white shadow-sm transition-colors ${isCover ? "border-blue-500 ring-2 ring-blue-100" : "border-gray-200 hover:border-blue-300"}`}
+      className={`group bg-surface relative aspect-square overflow-hidden rounded-xl border-2 shadow-sm transition-colors ${isCover ? "border-blue-500 ring-2 ring-blue-100" : "border-border hover:border-blue-300"}`}
     >
       <img
         src={img.url}
@@ -242,7 +242,7 @@ function SortableImage({
         className="pointer-events-none h-full w-full object-cover select-none"
       />
       <div
-        className={`absolute top-1 left-1 z-10 rounded-full px-2 py-1 text-xs font-bold ${isCover ? "flex items-center gap-1 bg-blue-600 text-white" : "bg-gray-700 text-white"}`}
+        className={`absolute top-1 left-1 z-10 rounded-full px-2 py-1 text-xs font-bold ${isCover ? "flex items-center gap-1 bg-blue-600 text-white" : "bg-muted text-white"}`}
       >
         {isCover ? (
           <>
@@ -259,7 +259,7 @@ function SortableImage({
           e.stopPropagation();
           onRemove(id);
         }}
-        className="absolute top-2 right-2 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-gray-100 bg-white text-red-500 shadow-md transition-all hover:cursor-pointer active:scale-90"
+        className="border-border bg-surface absolute top-2 right-2 z-20 flex h-6 w-6 items-center justify-center rounded-full border text-red-500 shadow-md transition-all hover:cursor-pointer active:scale-90"
       >
         <X size={14} />
       </button>

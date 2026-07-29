@@ -23,7 +23,6 @@ export default function DashboardContainer() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -32,9 +31,11 @@ export default function DashboardContainer() {
     const fetchData = async () => {
       try {
         const result = await AdminService.getDashboard();
+
         if (isMountedRef.current) setData(result);
       } catch (err) {
         console.error("Failed to fetch dashboard data", err);
+
         if (isMountedRef.current) setError(true);
       } finally {
         if (isMountedRef.current) setLoading(false);
@@ -76,11 +77,11 @@ export default function DashboardContainer() {
     <div className="space-y-8 pb-10">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="flex items-center gap-3 text-2xl font-bold text-gray-900">
+          <h2 className="text-foreground flex items-center gap-3 text-2xl font-bold">
             <LayoutDashboard className="h-7 w-7 text-blue-600" />
             ภาพรวมระบบ
           </h2>
-          <p className="mt-1 pl-10 text-sm text-gray-500">
+          <p className="text-muted mt-1 pl-10 text-sm">
             สวัสดี Admin, นี่คือสรุปสถานะล่าสุดของระบบหอพัก
           </p>
         </div>

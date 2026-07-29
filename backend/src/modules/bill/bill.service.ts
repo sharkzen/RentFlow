@@ -96,6 +96,7 @@ export const billService = {
               dormitory: {
                 select: {
                   name: true,
+
                   settings: {
                     select: {
                       lateFee: true,
@@ -613,8 +614,6 @@ export const billService = {
       const dueDate = new Date(saveDate);
       dueDate.setDate(dormSettings.dueDay);
       dueDate.setMonth(dueDate.getMonth() + dormSettings.dueMonthOffset);
-
-      // บิลย้อนหลังที่ครบกำหนดชำระไปแล้วตั้งแต่ตอนสร้าง ให้คิดค่าปรับสะสมตามจำนวนวันทันที แทนที่จะรอรอบถัดไปที่มีคนเปิดดูรายการบิล
       const now = new Date();
       const isImmediatelyOverdue = dueDate < now;
       let lateFeeAmount = 0;
@@ -653,9 +652,7 @@ export const billService = {
           roomNumberSnapshot: room.roomNumber,
           roomPriceSnapshot: room.basePrice,
           waterBillingTypeSnapshot: dormSettings.waterBillingType,
-          prevWaterUnitSnapshot: isWaterFlatRate
-            ? 0
-            : Number(item.prevWater),
+          prevWaterUnitSnapshot: isWaterFlatRate ? 0 : Number(item.prevWater),
           currentWaterUnitSnapshot: isWaterFlatRate
             ? 0
             : Number(item.currentWater),
@@ -870,11 +867,14 @@ export const billService = {
       }
     }
 
-    // Endpoint นี้ตั้งใจให้ owner บันทึกสลิปแทน (เช่นรับเงินสด) เท่านั้น
-    // กันไว้อีกชั้นในกรณี route guard ถูกแก้ให้หลวมขึ้นในอนาคต
     if (!isOwner) throw new Error("FORBIDDEN_ACCESS");
 
-    const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
 
     if (!allowedMimeTypes.includes(mimeType)) {
       throw new Error("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
@@ -1332,6 +1332,7 @@ export const billService = {
       action: "REJECT_BILL_SLIP",
       entityType: "Bill",
       entityId: billId,
+
       metadata: {
         reason,
       },
@@ -1606,6 +1607,7 @@ export const billService = {
                   orderBy: {
                     order: "asc",
                   },
+
                   take: 1,
                 },
               },
@@ -1725,6 +1727,7 @@ export const billService = {
       userId: sub,
       action: "SEND_BILL_EMAILS",
       entityType: "Bill",
+
       metadata: {
         requestedCount: billIds.length,
         queuedCount,
@@ -1828,8 +1831,13 @@ export const billService = {
 
       if (!Number.isNaN(currentValue)) {
         const lastBill = await prisma.bill.findFirst({
-          where: { roomId },
-          orderBy: { billingMonth: "desc" },
+          where: {
+            roomId,
+          },
+
+          orderBy: {
+            billingMonth: "desc",
+          },
         });
 
         if (lastBill) {
@@ -1837,8 +1845,6 @@ export const billService = {
             scanType === "WATER"
               ? lastBill.currentWaterUnitSnapshot
               : lastBill.currentElectricUnitSnapshot;
-
-          // เกณฑ์การใช้สูงสุดที่ยังถือว่าปกติต่อเดือน (ปรับได้ตามลักษณะหอพัก)
           const MAX_NORMAL_USAGE = scanType === "WATER" ? 100 : 2000;
 
           if (currentValue < prevValue) {
@@ -1895,6 +1901,7 @@ export const billService = {
                   orderBy: {
                     order: "asc",
                   },
+
                   take: 1,
                 },
               },

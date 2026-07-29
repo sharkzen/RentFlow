@@ -8,7 +8,7 @@ export default function Loading() {
         <PageHeaderSkeleton withSubtitle />
         <Skeleton className="h-10 w-32" rounded="lg" />
       </div>
-      <div className="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 md:grid-cols-4">
+      <div className="border-border bg-surface grid grid-cols-1 gap-4 rounded-xl border p-4 md:grid-cols-4">
         <Skeleton className="h-10 w-full md:col-span-2" rounded="lg" />
         <Skeleton className="h-10 w-full" rounded="lg" />
         <Skeleton className="h-10 w-full" rounded="lg" />

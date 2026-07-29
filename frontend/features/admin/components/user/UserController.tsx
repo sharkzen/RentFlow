@@ -19,7 +19,6 @@ export default function UserController() {
   const [selectedUser, setSelectedUser] = useState<OwnerUser | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -40,12 +39,14 @@ export default function UserController() {
         debouncedSearch,
         status,
       );
+
       if (isMountedRef.current) {
         setData(res.data);
         setMeta(res.meta);
       }
     } catch (error) {
       console.error("Failed to fetch users", error);
+
       if (isMountedRef.current) toast.error("ไม่สามารถดึงข้อมูลผู้ใช้งานได้");
     } finally {
       if (isMountedRef.current) setLoading(false);
@@ -94,16 +95,16 @@ export default function UserController() {
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white shadow-sm">
               <Users className="h-6 w-6" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-foreground text-2xl font-bold">
               จัดการผู้ประกอบการ (Owners)
             </h1>
           </div>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="text-muted mt-1 text-sm">
             ตรวจสอบสถานะ อนุมัติ และจัดการบัญชีผู้ประกอบการหอพักทั้งหมดในระบบ
           </p>
         </div>
       </div>
-      <div className="rounded-xl border border-gray-100 bg-white p-4">
+      <div className="border-border bg-surface rounded-xl border p-4">
         <UserFilter
           search={search}
           onSearchChange={setSearch}
@@ -120,26 +121,26 @@ export default function UserController() {
         onViewDetail={handleViewDetail}
       />
       {meta && meta.totalPages > 1 && (
-        <div className="flex items-center justify-between rounded-lg border-t border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-6">
+        <div className="border-border bg-surface flex items-center justify-between rounded-lg border-t px-4 py-3 shadow-sm sm:px-6">
           <div className="flex flex-1 justify-between sm:hidden">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="border-border bg-surface text-foreground hover:bg-background relative inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               Previous
             </button>
             <button
               onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
               disabled={page === meta.totalPages}
-              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              className="border-border bg-surface text-foreground hover:bg-background relative ml-3 inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50"
             >
               Next
             </button>
           </div>
           <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm text-gray-700">
+              <p className="text-foreground text-sm">
                 แสดง <span className="font-medium">{(page - 1) * 10 + 1}</span>{" "}
                 ถึง{" "}
                 <span className="font-medium">
@@ -157,12 +158,12 @@ export default function UserController() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                  className="text-muted ring-border hover:bg-background relative inline-flex items-center rounded-l-md px-2 py-2 ring-1 ring-inset focus:z-20 focus:outline-offset-0 disabled:opacity-50"
                 >
                   <span className="sr-only">Previous</span>
                   <ChevronLeft className="h-5 w-5" aria-hidden="true" />
                 </button>
-                <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 ring-inset focus:outline-offset-0">
+                <span className="text-foreground ring-border relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset focus:outline-offset-0">
                   {page}/ {meta.totalPages}
                 </span>
                 <button
@@ -170,7 +171,7 @@ export default function UserController() {
                     setPage((p) => Math.min(meta.totalPages, p + 1))
                   }
                   disabled={page === meta.totalPages}
-                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 ring-inset hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                  className="text-muted ring-border hover:bg-background relative inline-flex items-center rounded-r-md px-2 py-2 ring-1 ring-inset focus:z-20 focus:outline-offset-0 disabled:opacity-50"
                 >
                   <span className="sr-only">Next</span>
                   <ChevronRight className="h-5 w-5" aria-hidden="true" />

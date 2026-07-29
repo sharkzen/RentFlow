@@ -36,9 +36,6 @@ export function AuthProvider({
   const pathname = usePathname();
 
   useEffect(() => {
-    // Already resolved server-side (even if null) — trust it, skip the
-    // client round-trip so anonymous visitors don't fire a failing
-    // /api/auth/me request (and console error) on every page load.
     if (initialUser !== undefined) {
       setLoading(false);
       return;

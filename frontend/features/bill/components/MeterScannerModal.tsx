@@ -133,8 +133,6 @@ export default function MeterScannerModal({
           log.error("Failed to clean up discarded upload", err),
         );
       } else if (uploadPromiseRef.current) {
-        // Upload ยังไม่เสร็จตอนนี้ (เช่น auto-retry ยิงเร็วกว่า background upload)
-        // แนบ cleanup ต่อท้าย promise เดิม ลบทันทีที่ upload เสร็จแทนที่จะปล่อยค้าง
         uploadPromiseRef.current
           .then((result) => BillService.deleteTempImage(result.objectKey))
           .catch((err) =>
@@ -200,11 +198,8 @@ export default function MeterScannerModal({
     }
   };
 
-  // เรียกเมื่ออ่านเลขไม่ได้ (ภาพเบลอ / หาตัวเลขไม่เจอ) — ถ่ายใหม่อัตโนมัติสูงสุด MAX_AUTO_RETRY
-  // ครั้ง ก่อนจะเปิดให้พิมพ์เอง กันกรณีมุมกล้อง/แสงแย่จนวนถ่ายซ้ำไม่มีที่สิ้นสุด
   const handleUnreadableImage = (rawMessage?: string) => {
     failedAttemptsRef.current += 1;
-
     const isBlurry = rawMessage?.toLowerCase().includes("blurry");
     const reasonText = isBlurry
       ? "ภาพเบลอเกินไป"
@@ -214,6 +209,7 @@ export default function MeterScannerModal({
       toast.warning(
         `${reasonText} กำลังเปิดกล้องให้ถ่ายใหม่ (ครั้งที่ ${failedAttemptsRef.current}/${MAX_AUTO_RETRY})`,
       );
+
       resetUploadState(true);
       setPreview(null);
       setOcrValue("");
@@ -328,6 +324,7 @@ export default function MeterScannerModal({
             data.warningMessage ??
               "ตัวเลขที่อ่านได้อาจไม่แม่นยำ กรุณาตรวจสอบก่อนยืนยัน",
           );
+
           toast.warning("กรุณาตรวจสอบตัวเลขก่อนยืนยัน");
         } else {
           setOcrWarning(null);
@@ -391,14 +388,14 @@ export default function MeterScannerModal({
 
   return (
     <div className="fixed inset-0 z-60 flex justify-center bg-black/80">
-      <div className="animate-in fade-in zoom-in-95 flex w-full max-w-4xl flex-col overflow-hidden bg-white shadow-2xl duration-200 sm:rounded-3xl">
-        <div className="flex shrink-0 items-center justify-between bg-white px-5 py-4 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-800">
+      <div className="bg-surface animate-in fade-in zoom-in-95 flex w-full max-w-4xl flex-col overflow-hidden shadow-2xl duration-200 sm:rounded-3xl">
+        <div className="bg-surface flex shrink-0 items-center justify-between px-5 py-4 shadow-sm">
+          <h3 className="text-foreground text-lg font-bold">
             {scanType === "WATER" ? "💧 สแกนมิเตอร์น้ำ" : "⚡ สแกนมิเตอร์ไฟ"}
           </h3>
           <button
             onClick={onClose}
-            className="cursor-pointer rounded-full bg-slate-100 p-2 text-slate-500 transition-colors hover:bg-red-100 hover:text-red-600"
+            className="bg-background text-muted cursor-pointer rounded-full p-2 transition-colors hover:bg-red-100 hover:text-red-600"
           >
             <X size={20} />
           </button>
@@ -408,7 +405,7 @@ export default function MeterScannerModal({
             <h2 className="text-2xl font-black text-indigo-700">
               ห้อง {roomNumber}
             </h2>
-            <p className="font-medium text-slate-600">{tenantName}</p>
+            <p className="text-muted font-medium">{tenantName}</p>
           </div>
           {step === "setup" ? (
             <div className="mx-auto max-w-md rounded-2xl border-2 border-indigo-100 bg-indigo-50/50 p-6 text-left">
@@ -510,7 +507,9 @@ export default function MeterScannerModal({
                   <p
                     className={`mb-3 text-sm font-bold ${ocrWarning ? "text-amber-400" : "text-emerald-400"}`}
                   >
-                    {ocrWarning ? "⚠️ กรุณาตรวจสอบตัวเลข" : "✅ ตรวจสอบความถูกต้อง"}
+                    {ocrWarning
+                      ? "⚠️ กรุณาตรวจสอบตัวเลข"
+                      : "✅ ตรวจสอบความถูกต้อง"}
                   </p>
                   <div className="relative w-full">
                     <input
@@ -540,7 +539,7 @@ export default function MeterScannerModal({
             </div>
           )}
         </div>
-        <div className="border-t border-slate-100 bg-white p-6 pt-0">
+        <div className="border-border bg-surface border-t p-6 pt-0">
           {step === "setup" ? (
             <div className="mt-6 flex gap-4">
               <button

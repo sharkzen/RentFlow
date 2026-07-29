@@ -74,18 +74,18 @@ const RoomTypeDropdown = ({ value, onChange }: RoomTypeDropdownProps) => {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm transition-all focus:ring-2 focus:ring-blue-100 focus:outline-none ${isOpen ? "border-blue-500 ring-2 ring-blue-100" : "border-slate-200"}`}
+        className={`bg-surface flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm transition-all focus:ring-2 focus:ring-blue-100 focus:outline-none ${isOpen ? "border-blue-500 ring-2 ring-blue-100" : "border-border"}`}
       >
         <div className="flex items-center gap-2">
           {selected.icon}
-          <span className="font-medium text-slate-700">{selected.label}</span>
+          <span className="text-foreground font-medium">{selected.label}</span>
         </div>
         <ChevronDown
-          className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute z-10 mt-1 w-full rounded-lg border border-slate-100 bg-white p-1 shadow-lg">
+        <div className="border-border bg-surface animate-in fade-in zoom-in-95 absolute z-10 mt-1 w-full rounded-lg border p-1 shadow-lg">
           {options.map((option) => (
             <button
               key={option.value}
@@ -94,7 +94,7 @@ const RoomTypeDropdown = ({ value, onChange }: RoomTypeDropdownProps) => {
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              className={`flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-2 text-sm transition-colors ${value === option.value ? "bg-slate-100 font-semibold text-slate-800" : "text-slate-600 hover:bg-slate-50"}`}
+              className={`flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-2 text-sm transition-colors ${value === option.value ? "bg-background text-foreground font-semibold" : "text-muted hover:bg-background"}`}
             >
               <div className="flex items-center gap-2">
                 {option.icon}
@@ -150,35 +150,35 @@ const DormSelector = ({ dorms, value, onChange, error }: DormSelectorProps) => {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none ${error ? "border-red-300 ring-red-100 focus:border-red-500" : isOpen ? "border-blue-500 ring-2 ring-blue-100" : "border-gray-200 hover:bg-gray-50"}`}
+        className={`bg-surface flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none ${error ? "border-red-300 ring-red-100 focus:border-red-500" : isOpen ? "border-blue-500 ring-2 ring-blue-100" : "border-border hover:bg-background"}`}
       >
         <span
-          className={`truncate ${selectedDorm ? "font-medium text-slate-800" : "text-slate-500"}`}
+          className={`truncate ${selectedDorm ? "text-foreground font-medium" : "text-muted"}`}
         >
           {selectedDorm ? selectedDorm.name : "-- เลือกหอพัก --"}
         </span>
         <ChevronDown
-          className={`ml-2 h-4 w-4 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted ml-2 h-4 w-4 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-1 w-full min-w-[200px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5">
-          <div className="border-b border-gray-100 p-2">
+        <div className="border-border bg-surface animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-1 w-full min-w-[200px] overflow-hidden rounded-xl border shadow-xl ring-1 ring-black/5">
+          <div className="border-border border-b p-2">
             <div className="relative">
-              <Search className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+              <Search className="text-muted absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="ค้นหาชื่อหอ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-md border border-gray-200 bg-gray-50 py-1.5 pr-3 pl-8 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="border-border bg-background w-full rounded-md border py-1.5 pr-3 pl-8 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 autoFocus
               />
             </div>
           </div>
           <div className="custom-scrollbar max-h-60 overflow-y-auto p-1">
             {filteredDorms.length === 0 ? (
-              <div className="py-3 text-center text-xs text-gray-400">
+              <div className="text-muted py-3 text-center text-xs">
                 ไม่พบข้อมูล
               </div>
             ) : (
@@ -194,7 +194,7 @@ const DormSelector = ({ dorms, value, onChange, error }: DormSelectorProps) => {
                       setIsOpen(false);
                       setSearchTerm("");
                     }}
-                    className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${isSelected ? "bg-blue-50 font-medium text-blue-700" : "text-slate-700 hover:bg-slate-50"}`}
+                    className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${isSelected ? "bg-blue-50 font-medium text-blue-700" : "text-foreground hover:bg-background"}`}
                   >
                     <span className="truncate">{dorm.name}</span>
                     {isSelected && <Check className="h-4 w-4 text-blue-600" />}
@@ -395,7 +395,7 @@ export default function CreateRoomWithDialog({
       <div className="my-2 flex justify-end">
         <button
           onClick={toggleModal}
-          className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-5 py-2.5 text-sm font-semibold text-white shadow-blue-200 transition-all hover:from-blue-700 hover:to-blue-600 hover:shadow-lg active:scale-95 max-sm:w-full`}
+          className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-5 py-2.5 text-sm font-semibold text-white transition-all active:scale-95 max-sm:w-full`}
         >
           <Plus className="h-5 w-5" />
           <span>สร้างห้องพัก</span>
@@ -405,14 +405,14 @@ export default function CreateRoomWithDialog({
         <div className="fixed inset-0 z-999 flex overflow-hidden bg-black/60 transition-all sm:items-center sm:justify-center sm:p-4">
           <div
             ref={modalRef}
-            className="relative flex w-full flex-col bg-white sm:h-[85vh] sm:max-w-5xl sm:rounded-xl sm:shadow-2xl"
+            className="bg-surface relative flex w-full flex-col sm:h-[85vh] sm:max-w-5xl sm:rounded-xl sm:shadow-2xl"
           >
-            <div className="flex flex-col gap-4 border-b border-slate-100 p-6 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="border-border flex flex-col gap-4 border-b p-6 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h3 className="text-xl font-bold text-slate-800">
+                <h3 className="text-foreground text-xl font-bold">
                   จัดการห้องพัก
                 </h3>
-                <div className="mt-2 flex flex-col gap-2 text-sm text-slate-500 sm:mt-1 sm:flex-row sm:items-center">
+                <div className="text-muted mt-2 flex flex-col gap-2 text-sm sm:mt-1 sm:flex-row sm:items-center">
                   <div className="flex items-center gap-1">
                     <Home className="h-3.5 w-3.5" />
                     <span className="whitespace-nowrap">หอพัก:</span>
@@ -449,7 +449,7 @@ export default function CreateRoomWithDialog({
               </div>
               <button
                 onClick={toggleModal}
-                className="absolute top-4 right-4 cursor-pointer rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 sm:static"
+                className="text-muted hover:bg-background hover:text-foreground absolute top-4 right-4 cursor-pointer rounded-full p-2 sm:static"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -458,19 +458,19 @@ export default function CreateRoomWithDialog({
               onSubmit={handleSubmit(onSubmit)}
               className="flex flex-1 flex-col overflow-hidden"
             >
-              <div className="flex-1 overflow-y-auto bg-slate-50 p-6">
+              <div className="bg-background flex-1 overflow-y-auto p-6">
                 <div className="space-y-4">
                   {fields.map((field, index) => (
                     <div
                       key={field.id}
-                      className="relative rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md"
+                      className="border-border bg-surface relative rounded-xl border p-5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md"
                     >
                       <div className="mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-600">
                             {index + 1}
                           </span>
-                          <span className="text-sm font-semibold text-slate-700">
+                          <span className="text-foreground text-sm font-semibold">
                             ข้อมูลห้องพัก
                           </span>
                         </div>
@@ -478,7 +478,7 @@ export default function CreateRoomWithDialog({
                           <button
                             type="button"
                             onClick={() => remove(index)}
-                            className="cursor-pointer text-slate-400 transition-colors hover:text-red-500"
+                            className="text-muted cursor-pointer transition-colors hover:text-red-500"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -486,11 +486,11 @@ export default function CreateRoomWithDialog({
                       </div>
                       <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                         <div className="md:col-span-2">
-                          <label className="mb-1 block text-xs font-medium text-slate-600">
+                          <label className="text-muted mb-1 block text-xs font-medium">
                             ชั้น <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
-                            <Layers className="absolute top-2.5 left-2.5 h-4 w-4 text-slate-400" />
+                            <Layers className="text-muted absolute top-2.5 left-2.5 h-4 w-4" />
                             <input
                               type="number"
                               step={1}
@@ -507,12 +507,12 @@ export default function CreateRoomWithDialog({
                                   return true;
                                 },
                               })}
-                              className={`w-full rounded-lg border py-2 pr-3 pl-8 text-sm transition-all outline-none focus:ring-2 ${errors.rooms?.[index]?.floor ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"}`}
+                              className={`w-full rounded-lg border py-2 pr-3 pl-8 text-sm transition-all outline-none focus:ring-2 ${errors.rooms?.[index]?.floor ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-border focus:border-blue-500 focus:ring-blue-100"}`}
                             />
                           </div>
                         </div>
                         <div className="md:col-span-3">
-                          <label className="mb-1 block text-xs font-medium text-slate-600">
+                          <label className="text-muted mb-1 block text-xs font-medium">
                             เลขห้อง <span className="text-red-500">*</span>
                           </label>
                           <input
@@ -520,11 +520,11 @@ export default function CreateRoomWithDialog({
                               required: true,
                             })}
                             placeholder="เช่น 101"
-                            className={`w-full rounded-lg border px-3 py-2 text-sm transition-all outline-none focus:ring-2 ${errors.rooms?.[index]?.roomNumber ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-slate-200 focus:border-blue-500 focus:ring-blue-100"}`}
+                            className={`w-full rounded-lg border px-3 py-2 text-sm transition-all outline-none focus:ring-2 ${errors.rooms?.[index]?.roomNumber ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-border focus:border-blue-500 focus:ring-blue-100"}`}
                           />
                         </div>
                         <div className="md:col-span-3">
-                          <label className="mb-1 block text-xs font-medium text-slate-600">
+                          <label className="text-muted mb-1 block text-xs font-medium">
                             ประเภท
                           </label>
                           <RoomTypeDropdown
@@ -535,11 +535,11 @@ export default function CreateRoomWithDialog({
                           />
                         </div>
                         <div className="md:col-span-2">
-                          <label className="mb-1 block text-xs font-medium text-slate-600">
+                          <label className="text-muted mb-1 block text-xs font-medium">
                             ราคา <span className="text-red-500">*</span>
                           </label>
                           <div className="relative">
-                            <DollarSign className="absolute top-2.5 left-2 h-4 w-4 text-slate-400" />
+                            <DollarSign className="text-muted absolute top-2.5 left-2 h-4 w-4" />
                             <input
                               type="number"
                               {...register(`rooms.${index}.basePrice`, {
@@ -558,18 +558,18 @@ export default function CreateRoomWithDialog({
                                   return true;
                                 },
                               })}
-                              className="w-full rounded-lg border border-slate-200 py-2 pr-2 pl-7 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                              className="border-border w-full rounded-lg border py-2 pr-2 pl-7 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                           </div>
                         </div>
                         <div className="md:col-span-2">
-                          <label className="mb-1 block text-xs font-medium text-slate-600">
+                          <label className="text-muted mb-1 block text-xs font-medium">
                             รายละเอียด(ถ้ามี)
                           </label>
                           <input
                             {...register(`rooms.${index}.description`)}
                             placeholder="Optional"
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            className="border-border w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                           />
                         </div>
                       </div>
@@ -578,18 +578,18 @@ export default function CreateRoomWithDialog({
                   <button
                     type="button"
                     onClick={handleAddRoom}
-                    className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 bg-white py-4 text-sm font-semibold text-slate-500 transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                    className="border-border bg-surface text-muted flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed py-4 text-sm font-semibold transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
                   >
                     <Plus className="h-5 w-5" />
                     เพิ่มห้อง
                   </button>
                 </div>
               </div>
-              <div className="border-t border-slate-100 bg-white p-6">
+              <div className="border-border bg-surface border-t p-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">
+                  <span className="text-muted text-sm">
                     กำลังสร้าง{" "}
-                    <span className="font-bold text-slate-800">
+                    <span className="text-foreground font-bold">
                       {fields.length}
                     </span>{" "}
                     ห้อง
@@ -599,7 +599,7 @@ export default function CreateRoomWithDialog({
                       type="button"
                       onClick={toggleModal}
                       disabled={isSubmitting}
-                      className="cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                      className="text-muted hover:bg-background cursor-pointer rounded-lg px-4 py-2 text-sm font-medium"
                     >
                       ยกเลิก
                     </button>

@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { authService } from "@/features/auth/services/auth.service";
 import OtpBoxInput from "@/features/auth/components/OtpBoxInput";
+
 import {
   KeyRound,
   ShieldCheck,
@@ -18,7 +19,7 @@ import {
 } from "lucide-react";
 
 const CardContainer = ({ children }: { children: React.ReactNode }) => (
-  <div className="w-full max-w-110 space-y-8 rounded-2xl border border-slate-100 bg-white p-10 transition-all">
+  <div className="border-border bg-surface w-full max-w-110 space-y-8 rounded-2xl border p-10 transition-all">
     {children}
   </div>
 );
@@ -28,7 +29,9 @@ const HeaderIcon = ({
   bgClass,
   colorClass,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{
+    className?: string;
+  }>;
   bgClass: string;
   colorClass: string;
 }) => (
@@ -41,7 +44,6 @@ const HeaderIcon = ({
 
 const OTP_LENGTH = 6;
 const OTP_TTL_SECONDS = 5 * 60;
-
 type Step = "email" | "otp" | "password" | "done";
 
 export default function ResetPasswordFlow() {
@@ -49,15 +51,12 @@ export default function ResetPasswordFlow() {
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [resetToken, setResetToken] = useState("");
-
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "locked">(
     "idle",
   );
-
   const [errorMessage, setErrorMessage] = useState("");
   const [secondsLeft, setSecondsLeft] = useState(OTP_TTL_SECONDS);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -65,6 +64,7 @@ export default function ResetPasswordFlow() {
   useEffect(() => {
     if (step !== "otp") {
       if (timerRef.current) clearInterval(timerRef.current);
+
       return;
     }
 
@@ -90,9 +90,7 @@ export default function ResetPasswordFlow() {
 
     try {
       await authService.forgotPassword(email);
-    } catch {
-      // Intentionally ignored: anti-enumeration — always advance regardless of result.
-    }
+    } catch {}
 
     setStatus("idle");
     setOtp("");
@@ -106,9 +104,7 @@ export default function ResetPasswordFlow() {
 
     try {
       await authService.forgotPassword(email);
-    } catch {
-      // ignored, see handleEmailSubmit
-    }
+    } catch {}
 
     setOtp("");
     setSecondsLeft(OTP_TTL_SECONDS);
@@ -126,8 +122,15 @@ export default function ResetPasswordFlow() {
       setStep("password");
       setStatus("idle");
     } catch (err) {
-      const code = (err as { response?: { data?: { message?: string } } })
-        .response?.data?.message;
+      const code = (
+        err as {
+          response?: {
+            data?: {
+              message?: string;
+            };
+          };
+        }
+      ).response?.data?.message;
 
       if (code === "TOO_MANY_ATTEMPTS") {
         setStatus("locked");
@@ -179,8 +182,16 @@ export default function ResetPasswordFlow() {
       setStep("done");
       setStatus("idle");
     } catch (err) {
-      const code = (err as { response?: { data?: { message?: string } } })
-        .response?.data?.message;
+      const code = (
+        err as {
+          response?: {
+            data?: {
+              message?: string;
+            };
+          };
+        }
+      ).response?.data?.message;
+
       setStatus("error");
 
       if (code === "INVALID_OR_EXPIRED_TOKEN") {
@@ -194,7 +205,7 @@ export default function ResetPasswordFlow() {
 
   if (step === "done") {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
+      <div className="bg-background flex min-h-screen w-full items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <CardContainer>
           <HeaderIcon
             icon={CheckCircle2}
@@ -202,10 +213,10 @@ export default function ResetPasswordFlow() {
             colorClass="text-green-600"
           />
           <div className="text-center">
-            <h2 className="mb-2 text-2xl font-bold text-slate-900">
+            <h2 className="text-foreground mb-2 text-2xl font-bold">
               เปลี่ยนรหัสผ่านสำเร็จ!
             </h2>
-            <p className="mb-8 leading-relaxed text-slate-500">
+            <p className="text-muted mb-8 leading-relaxed">
               รหัสผ่านของคุณได้รับการเปลี่ยนแปลงเรียบร้อยแล้ว
             </p>
             <Link
@@ -221,7 +232,7 @@ export default function ResetPasswordFlow() {
   }
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-slate-50 px-4 py-12 font-sans sm:px-6 lg:px-8">
+    <div className="bg-background flex min-h-screen w-full items-center justify-center px-4 py-12 font-sans sm:px-6 lg:px-8">
       <CardContainer>
         {step === "email" && (
           <>
@@ -231,10 +242,10 @@ export default function ResetPasswordFlow() {
                 bgClass="bg-blue-50"
                 colorClass="text-blue-600"
               />
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+              <h2 className="text-foreground text-3xl font-bold tracking-tight">
                 ลืมรหัสผ่าน?
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+              <p className="text-muted mt-3 text-sm leading-relaxed">
                 กรอกอีเมลที่ลงทะเบียนไว้ เราจะส่งรหัส OTP{" "}
                 <br className="hidden sm:block" />
                 เพื่อยืนยันและตั้งรหัสผ่านใหม่ให้คุณ
@@ -244,13 +255,13 @@ export default function ResetPasswordFlow() {
               <div>
                 <label
                   htmlFor="email-address"
-                  className="mb-1.5 block text-sm font-medium text-slate-700"
+                  className="text-foreground mb-1.5 block text-sm font-medium"
                 >
                   อีเมลของคุณ
                 </label>
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <Mail className="h-5 w-5 text-slate-400" />
+                    <Mail className="text-muted h-5 w-5" />
                   </div>
                   <input
                     id="email-address"
@@ -258,8 +269,8 @@ export default function ResetPasswordFlow() {
                     type="email"
                     autoComplete="email"
                     required
-                    className="block w-full rounded-lg border border-slate-300 py-3 pr-3 pl-10 text-slate-900 placeholder-slate-400 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:text-sm"
-                    placeholder="name@company.com"
+                    className="border-border text-foreground placeholder-muted block w-full rounded-lg border py-3 pr-3 pl-10 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:text-sm"
+                    placeholder="your_email@gmail.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -282,7 +293,6 @@ export default function ResetPasswordFlow() {
             </form>
           </>
         )}
-
         {step === "otp" && (
           <>
             <div className="text-center">
@@ -291,18 +301,18 @@ export default function ResetPasswordFlow() {
                 bgClass="bg-blue-50"
                 colorClass="text-blue-600"
               />
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+              <h2 className="text-foreground text-3xl font-bold tracking-tight">
                 กรอกรหัส OTP
               </h2>
-              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+              <p className="text-muted mt-3 text-sm leading-relaxed">
                 เราได้ส่งรหัส 6 หลักไปที่
                 <br />
-                <span className="font-medium text-slate-900">{email}</span>
+                <span className="text-foreground font-medium">{email}</span>
               </p>
             </div>
             <form className="mt-8 space-y-6" onSubmit={handleOtpSubmit}>
               <div>
-                <label className="mb-3 block text-center text-sm font-medium text-slate-700">
+                <label className="text-foreground mb-3 block text-center text-sm font-medium">
                   รหัส OTP (6 หลัก)
                 </label>
                 <OtpBoxInput
@@ -312,7 +322,7 @@ export default function ResetPasswordFlow() {
                   disabled={status === "locked"}
                   autoFocus
                 />
-                <p className="mt-3 text-center text-xs text-slate-400">
+                <p className="text-muted mt-3 text-center text-xs">
                   {secondsLeft > 0
                     ? `รหัสจะหมดอายุใน ${formatTime(secondsLeft)}`
                     : "รหัสอาจหมดอายุแล้ว กรุณาขอรหัสใหม่"}
@@ -357,14 +367,13 @@ export default function ResetPasswordFlow() {
                 type="button"
                 onClick={handleResend}
                 disabled={status === "loading"}
-                className="w-full text-center text-sm font-medium text-slate-500 transition-colors hover:text-blue-600 disabled:cursor-wait"
+                className="text-muted w-full text-center text-sm font-medium transition-colors hover:text-blue-600 disabled:cursor-wait"
               >
                 ไม่ได้รับรหัส? ส่งรหัส OTP ใหม่อีกครั้ง
               </button>
             </form>
           </>
         )}
-
         {step === "password" && (
           <>
             <div className="mb-8 text-center">
@@ -373,27 +382,27 @@ export default function ResetPasswordFlow() {
                 bgClass="bg-blue-50"
                 colorClass="text-blue-600"
               />
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+              <h2 className="text-foreground text-2xl font-bold tracking-tight sm:text-3xl">
                 ตั้งรหัสผ่านใหม่
               </h2>
-              <p className="mt-3 text-sm text-slate-500">
+              <p className="text-muted mt-3 text-sm">
                 กรุณากรอกรหัสผ่านใหม่ที่ปลอดภัยและจดจำได้ง่าย
               </p>
             </div>
             <form onSubmit={handlePasswordSubmit} className="space-y-6">
               <div className="space-y-5">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  <label className="text-foreground mb-1.5 block text-sm font-medium">
                     รหัสผ่านใหม่
                   </label>
                   <div className="group relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
-                      <Lock className="h-5 w-5 text-slate-400 transition-colors group-focus-within:text-blue-500" />
+                      <Lock className="text-muted h-5 w-5 transition-colors group-focus-within:text-blue-500" />
                     </div>
                     <input
                       type={showPassword ? "text" : "password"}
                       required
-                      className="block w-full rounded-xl border border-slate-200 bg-slate-50/50 py-3.5 pr-12 pl-11 text-slate-900 placeholder-slate-400 shadow-sm transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:text-sm"
+                      className="border-border bg-background text-foreground placeholder-muted focus:bg-surface block w-full rounded-xl border py-3.5 pr-12 pl-11 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:text-sm"
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -401,7 +410,7 @@ export default function ResetPasswordFlow() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none"
+                      className="text-muted hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3.5 transition-colors focus:outline-none"
                     >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5" />
@@ -412,17 +421,17 @@ export default function ResetPasswordFlow() {
                   </div>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-slate-700">
+                  <label className="text-foreground mb-1.5 block text-sm font-medium">
                     ยืนยันรหัสผ่านใหม่
                   </label>
                   <div className="group relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
-                      <LockKeyhole className="h-5 w-5 text-slate-400 transition-colors group-focus-within:text-blue-500" />
+                      <LockKeyhole className="text-muted h-5 w-5 transition-colors group-focus-within:text-blue-500" />
                     </div>
                     <input
                       type={showPassword ? "text" : "password"}
                       required
-                      className="block w-full rounded-xl border border-slate-200 bg-slate-50/50 py-3.5 pr-10 pl-11 text-slate-900 placeholder-slate-400 shadow-sm transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:text-sm"
+                      className="border-border bg-background text-foreground placeholder-muted focus:bg-surface block w-full rounded-xl border py-3.5 pr-10 pl-11 shadow-sm transition-all duration-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none sm:text-sm"
                       placeholder="••••••••"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -462,11 +471,10 @@ export default function ResetPasswordFlow() {
             </form>
           </>
         )}
-
         <div className="mt-6 text-center">
           <Link
             href="/auth/login"
-            className="inline-flex items-center text-sm font-medium text-slate-500 transition-colors hover:text-blue-600"
+            className="text-muted inline-flex items-center text-sm font-medium transition-colors hover:text-blue-600"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             <span>กลับไปหน้าเข้าสู่ระบบ</span>

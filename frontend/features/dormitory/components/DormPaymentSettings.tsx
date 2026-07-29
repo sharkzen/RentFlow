@@ -90,15 +90,15 @@ export const THAI_BANKS = [
 ];
 
 const Label = ({ icon: Icon, children }: any) => (
-  <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
-    {Icon && <Icon size={16} className="text-slate-400" />}
+  <label className="text-foreground mb-1.5 flex items-center gap-2 text-sm font-semibold">
+    {Icon && <Icon size={16} className="text-muted" />}
     {children}
   </label>
 );
 
 const Input = ({ className, ...props }: any) => (
   <input
-    className={`w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none ${className}`}
+    className={`border-border bg-background text-foreground placeholder:text-muted focus:bg-surface w-full rounded-lg border px-4 py-2.5 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 focus:outline-none ${className}`}
     {...props}
   />
 );
@@ -132,7 +132,7 @@ const BankSelect = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <div
-        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "border-indigo-500 bg-white ring-2 ring-indigo-100" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
+        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "bg-surface border-indigo-500 ring-2 ring-indigo-100" : "border-border bg-background hover:bg-border/40"}`}
         onClick={() => setIsOpen(!isOpen)}
       >
         {selectedBank ? (
@@ -140,28 +140,28 @@ const BankSelect = ({
             <img
               src={selectedBank.logo}
               alt={selectedBank.id}
-              className="h-6 w-6 rounded-full border border-slate-100 bg-white object-cover"
+              className="border-border bg-surface h-6 w-6 rounded-full border object-cover"
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = "/banks/default.png";
               }}
             />
-            <span className="text-slate-900">{selectedBank.name}</span>
+            <span className="text-foreground">{selectedBank.name}</span>
           </div>
         ) : (
-          <span className="text-slate-400">เลือกธนาคาร...</span>
+          <span className="text-muted">เลือกธนาคาร...</span>
         )}
         <ChevronDown
           size={16}
-          className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </div>
       {isOpen && (
-        <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+        <div className="border-border bg-surface absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg border py-1 shadow-lg">
           {THAI_BANKS.map((bank) => (
             <div
               key={bank.id}
-              className={`flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-indigo-50 ${value === bank.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-slate-700"}`}
+              className={`flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-indigo-50 dark:hover:bg-red-50/20 ${value === bank.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-foreground"}`}
               onClick={() => {
                 onChange(bank.id);
                 setIsOpen(false);
@@ -170,7 +170,7 @@ const BankSelect = ({
               <img
                 src={bank.logo}
                 alt={bank.id}
-                className="h-6 w-6 rounded-full border border-slate-100 bg-white object-cover"
+                className="border-border bg-surface h-6 w-6 rounded-full border object-cover"
                 onError={(e) =>
                   ((e.target as HTMLImageElement).src = "/banks/default.png")
                 }
@@ -185,10 +185,26 @@ const BankSelect = ({
 };
 
 const PROMPTPAY_TYPES = [
-  { id: "", name: "-- ไม่ระบุ --", icon: Wallet },
-  { id: "PHONE", name: "เบอร์โทรศัพท์", icon: Smartphone },
-  { id: "ID_CARD", name: "บัตรประชาชน", icon: IdCard },
-  { id: "E_WALLET", name: "E-Wallet ID", icon: Landmark },
+  {
+    id: "",
+    name: "-- ไม่ระบุ --",
+    icon: Wallet,
+  },
+  {
+    id: "PHONE",
+    name: "เบอร์โทรศัพท์",
+    icon: Smartphone,
+  },
+  {
+    id: "ID_CARD",
+    name: "บัตรประชาชน",
+    icon: IdCard,
+  },
+  {
+    id: "E_WALLET",
+    name: "E-Wallet ID",
+    icon: Landmark,
+  },
 ];
 
 const PromptPayTypeSelect = ({
@@ -222,34 +238,35 @@ const PromptPayTypeSelect = ({
   return (
     <div className="relative" ref={dropdownRef}>
       <div
-        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "border-indigo-500 bg-white ring-2 ring-indigo-100" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
+        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "bg-surface border-indigo-500 ring-2 ring-indigo-100" : "border-border bg-background hover:bg-border/40"}`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="flex items-center gap-3">
-          <SelectedIcon size={16} className="text-slate-400" />
-          <span className={value ? "text-slate-900" : "text-slate-400"}>
+          <SelectedIcon size={16} className="text-muted" />
+          <span className={value ? "text-foreground" : "text-muted"}>
             {selected.name}
           </span>
         </div>
         <ChevronDown
           size={16}
-          className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </div>
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+        <div className="border-border bg-surface absolute z-10 mt-1 w-full overflow-auto rounded-lg border py-1 shadow-lg">
           {PROMPTPAY_TYPES.map((type) => {
             const TypeIcon = type.icon;
+
             return (
               <div
                 key={type.id}
-                className={`flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-indigo-50 ${value === type.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-slate-700"}`}
+                className={`flex cursor-pointer items-center gap-3 px-4 py-2 hover:bg-indigo-50 dark:hover:bg-indigo-50/20 ${value === type.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-foreground"}`}
                 onClick={() => {
                   onChange(type.id);
                   setIsOpen(false);
                 }}
               >
-                <TypeIcon size={16} className="text-slate-400" />
+                <TypeIcon size={16} className="text-muted" />
                 <span className="text-sm">{type.name}</span>
               </div>
             );
@@ -265,14 +282,14 @@ export default function DormPaymentSettings({
   updateField,
 }: PaymentSettingsProps) {
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-5">
+    <div className="border-border bg-surface rounded-xl border p-5">
       <h3 className="mb-4 flex items-center gap-2 text-sm font-bold tracking-wider text-indigo-600 uppercase">
         <CreditCard size={16} />
         ตั้งค่าบัญชีรับเงิน
       </h3>
       <div className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-2">
         <div className="md:col-span-2">
-          <h4 className="mb-2 text-xs font-bold text-slate-400">บัญชีธนาคาร</h4>
+          <h4 className="text-muted mb-2 text-xs font-bold">บัญชีธนาคาร</h4>
         </div>
         <div className="relative z-20">
           <Label icon={Building2}>
@@ -307,10 +324,10 @@ export default function DormPaymentSettings({
           />
         </div>
       </div>
-      <div className="border-t border-slate-100 pt-5"></div>
+      <div className="border-border border-t pt-5"></div>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div className="md:col-span-2">
-          <h4 className="mb-2 text-xs font-bold text-slate-400">
+          <h4 className="text-muted mb-2 text-xs font-bold">
             พร้อมเพย์ (PromptPay)
           </h4>
         </div>

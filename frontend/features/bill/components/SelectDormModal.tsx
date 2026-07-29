@@ -30,7 +30,6 @@ export default function SelectDormModal({
   onSelect,
 }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
-
   const selectableDorms = useMemo(
     () => dorms.filter((d) => d.id !== "ALL"),
     [dorms],
@@ -52,7 +51,7 @@ export default function SelectDormModal({
       onClick={onClose}
     >
       <div
-        className="animate-in fade-in zoom-in-95 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 duration-150 sm:max-h-[80vh] sm:rounded-3xl"
+        className="bg-surface animate-in fade-in zoom-in-95 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl shadow-2xl ring-1 ring-black/5 duration-150 sm:max-h-[80vh] sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative shrink-0 overflow-hidden bg-linear-to-br from-blue-600 via-blue-500 to-indigo-500 px-5 py-6 sm:px-8 sm:py-8">
@@ -79,7 +78,6 @@ export default function SelectDormModal({
               <X size={18} />
             </button>
           </div>
-
           <div className="relative mt-5">
             <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
@@ -92,19 +90,18 @@ export default function SelectDormModal({
             />
           </div>
         </div>
-
-        <div className="scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+        <div className="scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
           {filteredDorms.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gray-50">
-                <Home size={24} className="text-gray-300" />
+              <div className="bg-background flex h-14 w-14 items-center justify-center rounded-full">
+                <Home size={24} className="text-muted" />
               </div>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="text-muted text-sm font-medium">
                 {selectableDorms.length === 0
                   ? "ยังไม่มีหอพักในระบบ"
                   : "ไม่พบหอพักที่ค้นหา"}
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-muted text-xs">
                 {selectableDorms.length === 0
                   ? "กรุณาเพิ่มหอพักก่อนเริ่มสร้างบิล"
                   : "ลองค้นหาด้วยคำอื่น"}
@@ -119,7 +116,7 @@ export default function SelectDormModal({
                     onSelect(dorm.id);
                     onClose();
                   }}
-                  className="group relative flex cursor-pointer items-center gap-3.5 overflow-hidden rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-xs transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg active:scale-[0.98] sm:p-5"
+                  className="group border-border bg-surface relative flex cursor-pointer items-center gap-3.5 overflow-hidden rounded-2xl border p-4 text-left shadow-xs transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg active:scale-[0.98] sm:p-5"
                 >
                   <div
                     className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-br sm:h-14 sm:w-14 ${CARD_ACCENTS[idx % CARD_ACCENTS.length]}`}
@@ -127,25 +124,24 @@ export default function SelectDormModal({
                     <Building2 size={22} className="text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-gray-900 sm:text-base">
+                    <p className="text-foreground truncate text-sm font-semibold sm:text-base">
                       {dorm.name}
                     </p>
-                    <p className="mt-0.5 text-xs text-gray-400">
+                    <p className="text-muted mt-0.5 text-xs">
                       แตะเพื่อสร้างบิลของหอพักนี้
                     </p>
                   </div>
                   <ChevronRight
                     size={20}
-                    className="shrink-0 text-gray-300 transition-all group-hover:translate-x-1 group-hover:text-blue-500"
+                    className="text-muted shrink-0 transition-all group-hover:translate-x-1 group-hover:text-blue-500"
                   />
                 </button>
               ))}
             </div>
           )}
         </div>
-
-        <div className="shrink-0 border-t border-gray-100 bg-gray-50/70 px-5 py-3 text-center text-xs text-gray-400 sm:px-8">
-          แสดง {filteredDorms.length} จากทั้งหมด {selectableDorms.length} หอพัก
+        <div className="border-border bg-background/70 text-muted shrink-0 border-t px-5 py-3 text-center text-xs sm:px-8">
+          แสดง {filteredDorms.length}จากทั้งหมด {selectableDorms.length}หอพัก
         </div>
       </div>
     </div>

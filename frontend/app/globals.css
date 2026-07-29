@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 input,
 textarea,
@@ -27,8 +28,70 @@ select {
   display: none;
 }
 
+@layer base {
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px hsl(var(--background)) inset !important;
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+    caret-color: hsl(var(--foreground));
+    transition: background-color 9999s ease-in-out 0s;
+  }
+}
+
 :root {
   --font-sans: var(--font-ibm-plex-thai);
+
+  --background: #f3f4f6;
+  --foreground: #111827;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --muted: #64748b;
+  --grid-line: rgba(15, 23, 42, 0.06);
+  --glow-primary: rgba(96, 165, 250, 0.2);
+  --glow-secondary: rgba(103, 232, 249, 0.2);
+  --skeleton: #e5e7eb;
+}
+
+.dark {
+  --background: #0a0e17;
+  --foreground: #e2e8f0;
+  --surface: #111827;
+  --border: #1f2937;
+  --muted: #94a3b8;
+  --grid-line: rgba(255, 255, 255, 0.06);
+  --glow-primary: rgba(96, 165, 250, 0.15);
+  --glow-secondary: rgba(103, 232, 249, 0.15);
+  --skeleton: #1f2937;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-skeleton: var(--skeleton);
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.bg-grid-fade {
+  -webkit-mask-image: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    black 40%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    black 40%,
+    transparent 100%
+  );
 }
 
 body {
@@ -83,4 +146,20 @@ input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px white inset !important;
   -webkit-text-fill-color: #000 !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none; /* ปิดการ Fade เริ่มต้น */
+  mix-blend-mode: normal;
+}
+
+/* ให้หน้าจอเก่า (ก่อนเปลี่ยน) อยู่ด้านล่าง */
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+/* ให้หน้าจอใหม่ (หลังเปลี่ยน) อยู่ด้านบนเสมอ เพื่อให้ Clip-path วงกลมขยายทับลงมา */
+::view-transition-new(root) {
+  z-index: 2;
 }

@@ -45,12 +45,13 @@ export default async function RootLayout({
   const initialUser = await getCurrentUser();
 
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body
-        className={`${ibmPlexThai.className} bg-[#F3F4F6] text-[#111827] antialiased`}
+        className={`${ibmPlexThai.className} bg-background text-foreground antialiased`}
+        suppressHydrationWarning
       >
         <SessionKeepAlive />
         <AuthProvider initialUser={initialUser}>

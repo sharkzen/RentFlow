@@ -1,5 +1,7 @@
 
 minio-data/
+.claude/
+backups/
 
 # build output
 dist/

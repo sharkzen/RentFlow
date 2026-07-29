@@ -14,13 +14,13 @@ export default function ContractContainer() {
     null,
   );
   const [loading, setLoading] = useState(true);
-
   const isMountedRef = useRef(true);
 
   const loadContractDetail = useCallback(async () => {
     try {
       setLoading(true);
       const data = await TenantService.getContractDetail();
+
       if (isMountedRef.current) setTenantData(data);
     } catch (error) {
       console.error("Failed to load contract:", error);
@@ -47,7 +47,7 @@ export default function ContractContainer() {
 
   if (!tenantData)
     return (
-      <div className="flex h-[80vh] flex-col items-center justify-center text-slate-400">
+      <div className="text-muted flex h-[80vh] flex-col items-center justify-center">
         <ShieldCheck size={64} strokeWidth={1} className="mb-4 opacity-30" />
         <p className="text-lg font-medium">
           ไม่พบข้อมูลสัญญาเช่าที่เปิดใช้งานอยู่
@@ -60,15 +60,13 @@ export default function ContractContainer() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="mb-6 flex items-center gap-2 text-blue-600">
           <FileText size={18} />
-          <h1 className="text-xl font-bold text-slate-900">สัญญาเช่าของฉัน</h1>
+          <h1 className="text-foreground text-xl font-bold">สัญญาเช่าของฉัน</h1>
           <span className="ml-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-600 ring-1 ring-emerald-200">
             ใช้งานอยู่
           </span>
         </div>
-
         <div className="space-y-5">
           <DormitoryCard tenant={tenantData} />
-
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <div className="space-y-5 lg:col-span-2">
               <FinancialCard tenant={tenantData} />

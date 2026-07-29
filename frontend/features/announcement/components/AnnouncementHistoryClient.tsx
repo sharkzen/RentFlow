@@ -112,7 +112,7 @@ function AnnouncementHistoryCard({
 
   return (
     <div
-      className={`group relative flex flex-col overflow-hidden rounded-2xl border transition-all duration-300 ${announcement.isRead ? "border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:shadow-sm" : "border-slate-200 bg-white shadow-sm hover:shadow-md"}`}
+      className={`group border-border relative flex flex-col overflow-hidden rounded-2xl border transition-all duration-300 ${announcement.isRead ? "bg-background hover:bg-surface hover:shadow-sm" : "bg-surface shadow-sm hover:shadow-md"}`}
     >
       <div
         className={`absolute top-0 bottom-0 left-0 w-1.5 ${config.bg} ${config.color.replace("text-", "bg-")}`}
@@ -133,7 +133,7 @@ function AnnouncementHistoryCard({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-slate-500">
+          <div className="text-muted flex items-center gap-1.5 text-xs">
             <Calendar size={14} />
             {formatThaiDate(announcement.createdAt)}
             {announcement.isRead && (
@@ -146,7 +146,7 @@ function AnnouncementHistoryCard({
             <button
               type="button"
               onClick={() => onImageClick(image.url!)}
-              className="group/img relative aspect-video w-full shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-100 sm:w-40 sm:aspect-square"
+              className="group/img border-border bg-background relative aspect-video w-full shrink-0 overflow-hidden rounded-xl border sm:aspect-square sm:w-40"
             >
               <img
                 src={image.url}
@@ -160,12 +160,12 @@ function AnnouncementHistoryCard({
           )}
           <div className="min-w-0 flex-1">
             <h3
-              className={`text-base leading-snug font-bold sm:text-lg ${announcement.isRead ? "text-slate-700" : "text-slate-900"}`}
+              className={`text-base leading-snug font-bold sm:text-lg ${announcement.isRead ? "text-muted" : "text-foreground"}`}
             >
               {announcement.title}
             </h3>
             <div
-              className={`mt-2 text-sm leading-relaxed whitespace-pre-line ${announcement.isRead ? "text-slate-500" : "text-slate-600"}`}
+              className={`mt-2 text-sm leading-relaxed whitespace-pre-line ${announcement.isRead ? "text-muted" : "text-foreground opacity-80"}`}
             >
               {displayContent}
             </div>
@@ -218,17 +218,17 @@ export default function AnnouncementHistoryClient() {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5">
       {!isLoading && meta && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm font-medium text-slate-600">
+        <div className="border-border bg-surface flex flex-col gap-3 rounded-2xl border p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-foreground text-sm font-medium">
             พบประกาศทั้งหมด{" "}
             <span className="text-base font-bold text-blue-600">
               {meta.total}
             </span>{" "}
             รายการ
           </p>
-          <div className="flex items-center gap-4 text-xs font-medium text-slate-500">
+          <div className="text-muted flex items-center gap-4 text-xs font-medium">
             <span className="flex items-center gap-1.5">
-              <Pin size={14} className="text-slate-700" />
+              <Pin size={14} className="text-foreground" />
               ปักหมุด
             </span>
             <span className="flex items-center gap-1.5">
@@ -243,26 +243,28 @@ export default function AnnouncementHistoryClient() {
           [...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:p-5"
+              className="border-border bg-surface rounded-2xl border p-4 shadow-sm sm:p-5"
             >
               <div className="mb-4 flex items-center gap-3">
-                <div className="h-6 w-20 animate-pulse rounded-full bg-slate-200"></div>
-                <div className="h-4 w-32 animate-pulse rounded bg-slate-200"></div>
+                <div className="bg-skeleton h-6 w-20 animate-pulse rounded-full"></div>
+                <div className="bg-skeleton h-4 w-32 animate-pulse rounded"></div>
               </div>
               <div className="space-y-3">
-                <div className="h-5 w-3/4 animate-pulse rounded bg-slate-200"></div>
-                <div className="h-4 w-full animate-pulse rounded bg-slate-100"></div>
-                <div className="h-4 w-2/3 animate-pulse rounded bg-slate-100"></div>
+                <div className="bg-skeleton h-5 w-3/4 animate-pulse rounded"></div>
+                <div className="bg-skeleton h-4 w-full animate-pulse rounded opacity-70"></div>
+                <div className="bg-skeleton h-4 w-2/3 animate-pulse rounded opacity-70"></div>
               </div>
             </div>
           ))
         ) : announcements.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50 py-16 text-center">
-            <div className="mb-4 rounded-full bg-white p-4 shadow-sm">
-              <Bell size={32} className="text-slate-300" />
+          <div className="border-border bg-background flex flex-col items-center justify-center rounded-3xl border border-dashed py-16 text-center">
+            <div className="bg-surface mb-4 rounded-full p-4 shadow-sm">
+              <Bell size={32} className="text-muted" />
             </div>
-            <h3 className="text-lg font-bold text-slate-700">ยังไม่มีประกาศ</h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <h3 className="text-foreground text-lg font-bold">
+              ยังไม่มีประกาศ
+            </h3>
+            <p className="text-muted mt-1 text-sm">
               หอพักของคุณยังไม่ได้สร้างประกาศใดๆ ในขณะนี้
             </p>
           </div>
@@ -277,16 +279,16 @@ export default function AnnouncementHistoryClient() {
         )}
       </div>
       {!isLoading && meta && meta.totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-slate-200 pt-6">
+        <div className="border-border flex items-center justify-between border-t pt-6">
           <button
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
+            className="border-border bg-surface text-muted hover:bg-background flex items-center gap-1 rounded-xl border px-4 py-2 text-sm font-medium transition-colors active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
           >
             <ChevronLeft size={16} />
             ก่อนหน้า
           </button>
-          <span className="text-sm font-medium text-slate-500">
+          <span className="text-muted text-sm font-medium">
             หน้า {currentPage}จาก {meta.totalPages}
           </span>
           <button
@@ -294,7 +296,7 @@ export default function AnnouncementHistoryClient() {
               setCurrentPage((prev) => Math.min(prev + 1, meta.totalPages))
             }
             disabled={currentPage === meta.totalPages}
-            className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
+            className="border-border bg-surface text-muted hover:bg-background flex items-center gap-1 rounded-xl border px-4 py-2 text-sm font-medium transition-colors active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
           >
             ถัดไป
             <ChevronRight size={16} />

@@ -17,11 +17,9 @@ export const startBillDueReminderWorker = () => {
     async (job) => {
       if (job.name === "daily-bill-due-reminder") {
         logger.info("[Worker] Running daily bill due-date reminder check...");
-
         const startOfTomorrow = new Date();
         startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
         startOfTomorrow.setHours(0, 0, 0, 0);
-
         const endOfTomorrow = new Date(startOfTomorrow);
         endOfTomorrow.setHours(23, 59, 59, 999);
 
@@ -53,6 +51,7 @@ export const startBillDueReminderWorker = () => {
                         orderBy: {
                           order: "asc",
                         },
+
                         take: 1,
                       },
                     },

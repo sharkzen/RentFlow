@@ -137,14 +137,14 @@ export default function RequestHistory({
 
   if (!loading && requests.length === 0) {
     return (
-      <div className="flex min-h-75 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 text-center md:p-12">
-        <div className="mb-4 rounded-full bg-white p-5 text-slate-400 ring-1 ring-slate-100">
+      <div className="border-border bg-background flex min-h-75 flex-col items-center justify-center rounded-3xl border-2 border-dashed p-8 text-center md:p-12">
+        <div className="bg-surface text-muted ring-border mb-4 rounded-full p-5 ring-1">
           <Wrench size={40} strokeWidth={1.5} />
         </div>
-        <h3 className="text-lg font-bold text-slate-700">
+        <h3 className="text-foreground text-lg font-bold">
           ยังไม่มีประวัติการแจ้งซ่อม
         </h3>
-        <p className="mt-1 max-w-sm text-sm text-slate-500">
+        <p className="text-muted mt-1 max-w-sm text-sm">
           เมื่อคุณแจ้งปัญหาการใช้งานหรือแจ้งซ่อม รายการทั้งหมดจะมาแสดงอยู่ที่นี่
         </p>
       </div>
@@ -153,7 +153,7 @@ export default function RequestHistory({
 
   return (
     <>
-      <div className="flex flex-col divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      <div className="divide-border border-border bg-surface flex flex-col divide-y overflow-hidden rounded-2xl border">
         {requests.map((req) => {
           const StatusIcon = statusConfig[req.status].icon;
 
@@ -161,15 +161,15 @@ export default function RequestHistory({
             <div
               key={req.id}
               onClick={() => setSelectedRequest(req)}
-              className="group flex w-full cursor-pointer items-center gap-3 p-4 transition-all duration-200 hover:bg-slate-50 active:bg-slate-100 sm:p-5"
+              className="hover:bg-background active:bg-background group flex w-full cursor-pointer items-center gap-3 p-4 transition-all duration-200 sm:p-5"
               role="button"
               tabIndex={0}
             >
               <div className="flex flex-1 flex-col gap-1.5">
-                <h4 className="line-clamp-1 text-base font-bold text-slate-800 transition-colors group-hover:text-indigo-600">
+                <h4 className="text-foreground line-clamp-1 text-base font-bold transition-colors group-hover:text-indigo-600">
                   {req.title}
                 </h4>
-                <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                <div className="text-muted flex items-center gap-1.5 text-xs">
                   <Calendar size={12} className="shrink-0" />
                   <span className="truncate">
                     {format(new Date(req.createdAt), "d MMM yyyy • HH:mm", {
@@ -188,7 +188,7 @@ export default function RequestHistory({
                 </span>
               </div>
               <div className="ml-1 flex shrink-0 items-center justify-center sm:ml-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 transition-all duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-active:scale-95">
+                <div className="text-muted flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 group-active:scale-95">
                   <ChevronRight size={20} />
                 </div>
               </div>
@@ -201,11 +201,11 @@ export default function RequestHistory({
           <button
             onClick={() => onPageChange(Math.max(1, meta.page - 1))}
             disabled={meta.page === 1 || loading}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-border bg-surface text-muted hover:bg-background flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border transition-all hover:text-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ChevronLeft size={20} />
           </button>
-          <span className="text-sm font-medium text-slate-600">
+          <span className="text-muted text-sm font-medium">
             หน้า {meta.page}จาก {meta.totalPages}
           </span>
           <button
@@ -213,7 +213,7 @@ export default function RequestHistory({
               onPageChange(Math.min(meta.totalPages, meta.page + 1))
             }
             disabled={meta.page === meta.totalPages || loading}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-border bg-surface text-muted hover:bg-background flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl border transition-all hover:text-indigo-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <ChevronRight size={20} />
           </button>

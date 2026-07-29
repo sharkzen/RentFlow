@@ -4,7 +4,7 @@ import { CardSkeleton } from "@/lib/ui/skeletons";
 export default function Loading() {
   return (
     <div className="min-h-screen w-full">
-      <div className="mb-10 flex flex-col justify-between gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-end">
+      <div className="border-border mb-10 flex flex-col justify-between gap-4 border-b pb-6 md:flex-row md:items-end">
         <div className="space-y-3">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-6 w-48" rounded="full" />

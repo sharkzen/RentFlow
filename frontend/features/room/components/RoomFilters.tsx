@@ -63,18 +63,18 @@ function FilterDropdown({
     <div className="relative w-full" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-10 w-full min-w-35 cursor-pointer items-center justify-between gap-2 rounded-lg border bg-white px-3 text-sm font-medium transition-all hover:bg-gray-50 focus:outline-none ${isOpen ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-200"} ${value !== "ALL" ? "text-blue-600" : "text-gray-700"}`}
+        className={`bg-surface hover:bg-background flex h-10 w-full min-w-35 cursor-pointer items-center justify-between gap-2 rounded-lg border px-3 text-sm font-medium transition-all focus:outline-none ${isOpen ? "border-blue-500 ring-1 ring-blue-500" : "border-border"} ${value !== "ALL" ? "text-blue-600" : "text-foreground"}`}
       >
         <div className="flex items-center gap-2">
-          {icon && <span className="text-gray-400">{icon}</span>}
+          {icon && <span className="text-muted">{icon}</span>}
           <span>{selectedOption ? selectedOption.label : placeholder}</span>
         </div>
         <ChevronDown
-          className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-[160px] rounded-xl border border-gray-100 bg-white p-1 shadow-lg duration-100">
+        <div className="border-border bg-surface animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-full min-w-[160px] space-y-1 rounded-xl border p-1 duration-100">
           {options.map((option) => (
             <button
               key={option.value}
@@ -82,13 +82,13 @@ function FilterDropdown({
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${value === option.value ? "bg-blue-50 font-medium text-blue-600" : "text-gray-700 hover:bg-gray-50"}`}
+              className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${value === option.value ? "bg-blue-50 font-medium text-blue-600 dark:bg-gray-800" : "text-foreground hover:bg-background"}`}
             >
               <div className="flex items-center gap-2">
                 {option.icon && (
                   <span
                     className={
-                      value === option.value ? "text-blue-500" : "text-gray-400"
+                      value === option.value ? "text-blue-500" : "text-muted"
                     }
                   >
                     {option.icon}
@@ -152,35 +152,35 @@ export default function RoomFilters({
   ];
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-gray-100 bg-white p-3 sm:flex-row sm:items-center">
+    <div className="border-border bg-surface flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center">
       <div className="relative flex-1">
-        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <Search className="text-muted absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="ค้นหาเลขห้อง..."
-          className="w-full rounded-lg border border-gray-200 py-2.5 pr-4 pl-9 text-sm transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          className="border-border w-full rounded-lg border py-2.5 pr-4 pl-9 text-sm transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
         />
         {search && (
           <button
             onClick={() => setSearch("")}
-            className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600"
+            className="text-muted hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
         )}
       </div>
-      <div className="hidden h-8 w-px bg-gray-200 sm:block"></div>
+      <div className="bg-border hidden h-8 w-px sm:block"></div>
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-nowrap">
         <div className="relative w-full sm:w-28">
-          <Layers className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Layers className="text-muted absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <input
             type="text"
             value={floorFilter}
             onChange={(e) => setFloorFilter(e.target.value)}
             placeholder="ชั้น"
-            className="h-10 w-full rounded-lg border border-gray-200 pr-3 pl-9 text-sm transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="border-border h-10 w-full rounded-lg border pr-3 pl-9 text-sm transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           />
         </div>
         <div className="w-full sm:w-auto">

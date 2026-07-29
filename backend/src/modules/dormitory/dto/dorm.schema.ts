@@ -44,20 +44,14 @@ export const updateDormSchema = z
     promptPayType: z.string().optional(),
     promptPayValue: z.string().optional(),
   })
-  .refine(
-    (data) => (data.contacts ?? []).some((c) => c.phone.trim() !== ""),
-    {
-      message: "กรุณากรอกเบอร์โทรผู้ติดต่ออย่างน้อย 1 เบอร์",
-      path: ["contacts"],
-    },
-  )
-  .refine(
-    (data) => !!data.lineId?.trim() || !!data.facebook?.trim(),
-    {
-      message: "กรุณากรอก Line ID หรือ Facebook อย่างน้อย 1 ช่องทาง",
-      path: ["lineId"],
-    },
-  );
+  .refine((data) => (data.contacts ?? []).some((c) => c.phone.trim() !== ""), {
+    message: "กรุณากรอกเบอร์โทรผู้ติดต่ออย่างน้อย 1 เบอร์",
+    path: ["contacts"],
+  })
+  .refine((data) => !!data.lineId?.trim() || !!data.facebook?.trim(), {
+    message: "กรุณากรอก Line ID หรือ Facebook อย่างน้อย 1 ช่องทาง",
+    path: ["lineId"],
+  });
 
 export const updateDormStatusSchema = z.object({
   isPublished: z.boolean(),

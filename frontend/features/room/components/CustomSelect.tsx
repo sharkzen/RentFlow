@@ -62,9 +62,7 @@ export const CustomSelect = ({
 
   return (
     <div ref={containerRef} className="relative w-full">
-      {icon && (
-        <div className="absolute top-2.5 left-3 text-gray-400">{icon}</div>
-      )}
+      {icon && <div className="text-muted absolute top-2.5 left-3">{icon}</div>}
       <button
         ref={triggerRef}
         type="button"
@@ -77,21 +75,21 @@ export const CustomSelect = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={listboxId}
-        className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm transition-all outline-none ${icon ? "pl-10" : ""} ${disabled ? "cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400" : isOpen ? "border-blue-500 bg-white ring-2 ring-blue-100" : "border-gray-200 bg-white hover:border-gray-300"}`}
+        className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm transition-all outline-none ${icon ? "pl-10" : ""} ${disabled ? "border-border bg-background text-muted cursor-not-allowed" : isOpen ? "bg-surface border-blue-500 ring-2 ring-blue-100" : "border-border bg-surface hover:border-muted"}`}
       >
         <span className="flex items-center gap-2 truncate">
           {selectedOption?.icon}
           {selectedOption?.label || "เลือกข้อมูล"}
         </span>
         <ChevronDown
-          className={`h-4 w-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (
         <div
           id={listboxId}
           role="listbox"
-          className="animate-in fade-in zoom-in-95 absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-gray-100 bg-white shadow-xl ring-1 ring-black/5 duration-100"
+          className="border-border bg-surface animate-in fade-in zoom-in-95 absolute z-50 mt-1 w-full overflow-hidden rounded-lg border shadow-xl ring-1 ring-black/5 duration-100"
         >
           <ul className="max-h-60 overflow-auto py-1">
             {options.map((option, index) => (
@@ -111,7 +109,7 @@ export const CustomSelect = ({
                     triggerRef.current?.focus();
                   }}
                   onKeyDown={(e) => handleOptionKeyDown(e, index)}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-colors ${option.value === value ? "bg-blue-50 font-medium text-blue-600" : "text-gray-700 hover:bg-gray-50"} ${option.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+                  className={`flex w-full items-center justify-between px-3 py-2 text-sm transition-colors ${option.value === value ? "bg-blue-50 font-medium text-blue-600" : "text-foreground hover:bg-background"} ${option.disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
                 >
                   <span className="flex items-center gap-2">
                     {option.icon}

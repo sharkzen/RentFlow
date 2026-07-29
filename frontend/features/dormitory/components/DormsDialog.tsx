@@ -62,12 +62,12 @@ interface DormsDialogProps {
 }
 
 const Label = ({ icon: Icon, children, required, optional }: any) => (
-  <label className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-slate-700">
-    {Icon && <Icon size={16} className="text-slate-400" />}
+  <label className="text-foreground mb-1.5 flex items-center gap-2 text-sm font-semibold">
+    {Icon && <Icon size={16} className="text-muted" />}
     {children}
     {required && <span className="text-red-500">*</span>}
     {optional && (
-      <span className="text-xs font-normal text-slate-400">(ไม่บังคับ)</span>
+      <span className="text-muted text-xs font-normal">(ไม่บังคับ)</span>
     )}
   </label>
 );
@@ -76,13 +76,11 @@ const Input = ({
   className,
   error,
   ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & { error?: boolean }) => (
+}: React.InputHTMLAttributes<HTMLInputElement> & {
+  error?: boolean;
+}) => (
   <input
-    className={`w-full rounded-lg border bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:outline-none ${
-      error
-        ? "border-red-300 bg-red-50/60 focus:border-red-500 focus:ring-red-100"
-        : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-100"
-    } ${className}`}
+    className={`bg-background text-foreground placeholder:text-muted focus:bg-surface w-full rounded-lg border px-4 py-2.5 text-sm transition-all focus:ring-2 focus:outline-none ${error ? "border-red-300 bg-red-50/60 focus:border-red-500 focus:ring-red-100" : "border-border focus:border-indigo-500 focus:ring-indigo-100"} ${className}`}
     {...props}
   />
 );
@@ -92,24 +90,86 @@ type StepId = "general" | "contact" | "pricing" | "billing" | "images";
 const FIELD_META: Partial<
   Record<
     keyof DormFormData,
-    { step: StepId; label: string; type: "text" | "number" }
+    {
+      step: StepId;
+      label: string;
+      type: "text" | "number";
+    }
   >
 > = {
-  name: { step: "general", label: "ชื่อหอพัก", type: "text" },
-  address: { step: "general", label: "ที่อยู่", type: "text" },
-  mapUrl: { step: "general", label: "ลิงก์ Google Maps", type: "text" },
-  description: { step: "general", label: "คำอธิบาย", type: "text" },
-  roomPrice: { step: "pricing", label: "ราคาห้องเช่า", type: "number" },
-  waterRate: { step: "pricing", label: "ค่าน้ำ", type: "number" },
-  electricRate: { step: "pricing", label: "ค่าไฟ", type: "number" },
+  name: {
+    step: "general",
+    label: "ชื่อหอพัก",
+    type: "text",
+  },
+
+  address: {
+    step: "general",
+    label: "ที่อยู่",
+    type: "text",
+  },
+
+  mapUrl: {
+    step: "general",
+    label: "ลิงก์ Google Maps",
+    type: "text",
+  },
+
+  description: {
+    step: "general",
+    label: "คำอธิบาย",
+    type: "text",
+  },
+
+  roomPrice: {
+    step: "pricing",
+    label: "ราคาห้องเช่า",
+    type: "number",
+  },
+
+  waterRate: {
+    step: "pricing",
+    label: "ค่าน้ำ",
+    type: "number",
+  },
+
+  electricRate: {
+    step: "pricing",
+    label: "ค่าไฟ",
+    type: "number",
+  },
 };
 
-const STEPS: { id: StepId; label: string; icon: any }[] = [
-  { id: "general", label: "ข้อมูลทั่วไป", icon: Home },
-  { id: "contact", label: "ข้อมูลติดต่อ", icon: Phone },
-  { id: "pricing", label: "ราคา & ค่าใช้จ่าย", icon: DollarSign },
-  { id: "billing", label: "รอบบิล & ชำระเงิน", icon: CreditCard },
-  { id: "images", label: "รูปภาพ", icon: ImageIcon },
+const STEPS: {
+  id: StepId;
+  label: string;
+  icon: any;
+}[] = [
+  {
+    id: "general",
+    label: "ข้อมูลทั่วไป",
+    icon: Home,
+  },
+  {
+    id: "contact",
+    label: "ข้อมูลติดต่อ",
+    icon: Phone,
+  },
+  {
+    id: "pricing",
+    label: "ราคา & ค่าใช้จ่าย",
+    icon: DollarSign,
+  },
+  {
+    id: "billing",
+    label: "รอบบิล & ชำระเงิน",
+    icon: CreditCard,
+  },
+  {
+    id: "images",
+    label: "รูปภาพ",
+    icon: ImageIcon,
+  },
 ];
 
 const THAI_MONTHS_SHORT = [
@@ -128,8 +188,14 @@ const THAI_MONTHS_SHORT = [
 ];
 
 const DUE_MONTH_OFFSETS = [
-  { value: 0, label: "ชำระภายในเดือนที่ออกบิล" },
-  { value: 1, label: "ชำระเดือนถัดไป" },
+  {
+    value: 0,
+    label: "ชำระภายในเดือนที่ออกบิล",
+  },
+  {
+    value: 1,
+    label: "ชำระเดือนถัดไป",
+  },
 ];
 
 const DueMonthOffsetSelect = ({
@@ -200,21 +266,21 @@ const DueMonthOffsetSelect = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={listboxId}
-        className={`flex h-10.5 w-full cursor-pointer items-center justify-between rounded-lg border px-4 text-sm transition-all focus:outline-none ${isOpen ? "border-indigo-500 bg-white ring-2 ring-indigo-100" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
+        className={`flex h-10.5 w-full cursor-pointer items-center justify-between rounded-lg border px-4 text-sm transition-all focus:outline-none ${isOpen ? "bg-surface border-indigo-500 ring-2 ring-indigo-100" : "border-border bg-background hover:bg-border/40"}`}
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleTriggerKeyDown}
       >
-        <span className="text-slate-900">{selected.label}</span>
+        <span className="text-foreground">{selected.label}</span>
         <ChevronDown
           size={16}
-          className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (
         <div
           id={listboxId}
           role="listbox"
-          className="absolute z-10 mt-1 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1"
+          className="border-border bg-surface absolute z-10 mt-1 w-full overflow-auto rounded-lg border py-1"
         >
           {DUE_MONTH_OFFSETS.map((option, index) => (
             <button
@@ -225,7 +291,7 @@ const DueMonthOffsetSelect = ({
               type="button"
               role="option"
               aria-selected={value === option.value}
-              className={`w-full cursor-pointer px-4 py-2 text-left text-sm hover:bg-indigo-50 ${value === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-slate-700"}`}
+              className={`w-full cursor-pointer px-4 py-2 text-left text-sm hover:bg-indigo-50 ${value === option.value ? "bg-indigo-50 font-medium text-indigo-700" : "text-foreground"}`}
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
@@ -312,7 +378,7 @@ const StepDropdown = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={listboxId}
-        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "border-indigo-500 bg-white ring-2 ring-indigo-100" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
+        className={`flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 text-sm transition-all focus:outline-none ${isOpen ? "bg-surface border-indigo-500 ring-2 ring-indigo-100" : "border-border bg-background hover:bg-border/40"}`}
         onClick={() => setIsOpen(!isOpen)}
         onKeyDown={handleTriggerKeyDown}
       >
@@ -320,24 +386,25 @@ const StepDropdown = ({
           <span className="flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[11px] font-bold text-white">
             {activeIndex + 1}
           </span>
-          <ActiveIcon size={15} className="text-slate-400" />
-          <span className="font-semibold text-slate-700">{active.label}</span>
+          <ActiveIcon size={15} className="text-muted" />
+          <span className="text-foreground font-semibold">{active.label}</span>
         </div>
         <ChevronDown
           size={16}
-          className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (
         <div
           id={listboxId}
           role="listbox"
-          className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-200 bg-white py-1"
+          className="border-border bg-surface absolute z-10 mt-1 w-full overflow-hidden rounded-lg border py-1"
         >
           {STEPS.map((step, idx) => {
             const StepIcon = step.icon;
             const isDone = completion[step.id];
             const isActive = step.id === value;
+
             return (
               <button
                 key={step.id}
@@ -347,7 +414,7 @@ const StepDropdown = ({
                 type="button"
                 role="option"
                 aria-selected={isActive}
-                className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left ${isActive ? "bg-indigo-50 font-semibold text-indigo-700" : "text-slate-700 hover:bg-slate-50"}`}
+                className={`flex w-full cursor-pointer items-center gap-2.5 px-3 py-2.5 text-left ${isActive ? "bg-indigo-50 font-semibold text-indigo-700" : "text-foreground hover:bg-background"}`}
                 onClick={() => {
                   onChange(step.id);
                   setIsOpen(false);
@@ -356,17 +423,11 @@ const StepDropdown = ({
                 onKeyDown={(e) => handleOptionKeyDown(e, idx)}
               >
                 <span
-                  className={`flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
-                    isActive
-                      ? "bg-indigo-600 text-white"
-                      : isDone
-                        ? "bg-emerald-50 text-emerald-600"
-                        : "border border-slate-200 bg-white text-slate-400"
-                  }`}
+                  className={`flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${isActive ? "bg-indigo-600 text-white" : isDone ? "bg-emerald-50 text-emerald-600" : "border-border bg-surface text-muted border"}`}
                 >
                   {isDone && !isActive ? <Check size={12} /> : idx + 1}
                 </span>
-                <StepIcon size={15} className="text-slate-400" />
+                <StepIcon size={15} className="text-muted" />
                 <span className="text-sm">{step.label}</span>
               </button>
             );
@@ -410,11 +471,13 @@ export default function DormsDialog({
     name: dorm.name ?? "",
     description: descriptionJsonToText(dorm.description),
     address: dorm.address ?? "",
+
     contacts: (dorm.contacts ?? []).map((c) => ({
       id: c.id,
       name: c.name ?? "",
       phone: c.phone,
     })),
+
     lineId: dorm.lineId ?? "",
     lineType: dorm.lineType ?? "PERSONAL",
     facebook: dorm.facebook ?? "",
@@ -435,7 +498,6 @@ export default function DormsDialog({
   });
 
   useEffect(() => {
-    // เปิดส่วน "เพิ่มเติม" อัตโนมัติถ้ามีค่าติดมาจากเดิมอยู่แล้ว
     if (
       (dorm.settings?.commonFee ?? 0) > 0 ||
       (dorm.settings?.lateFee ?? 0) > 0
@@ -449,22 +511,25 @@ export default function DormsDialog({
       ...prev,
       [field]: value,
     }));
+
     setFieldErrors((prev) => {
       if (!prev.has(field)) return prev;
+
       const next = new Set(prev);
       next.delete(field);
       return next;
     });
   }, []);
 
-  // ฟังก์ชันตัวช่วยสำหรับจัดการ Number Input ให้รับค่าว่างได้ และไม่ติดลบ
   const handleNumberChange = useCallback(
     (field: keyof DormFormData, value: string) => {
       if (value === "") {
-        updateField(field, ""); // ยอมให้ช่องว่างเปล่าได้
+        updateField(field, "");
         return;
       }
+
       const num = Number(value);
+
       if (!isNaN(num) && num >= 0) {
         updateField(field, num);
       }
@@ -472,7 +537,6 @@ export default function DormsDialog({
     [updateField],
   );
 
-  // ฟังก์ชันบล็อคไม่ให้พิมพ์เครื่องหมาย -, +, e, E เข้าไปได้เลย
   const preventInvalidNumberKeys = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (["-", "+", "e", "E"].includes(e.key)) {
@@ -482,7 +546,6 @@ export default function DormsDialog({
     [],
   );
 
-  // เช็คว่าแต่ละ step กรอกข้อมูลจำเป็นครบหรือยัง เพื่อโชว์ติ๊กถูกที่แถบด้านซ้าย
   const stepCompletion = useMemo<Record<StepId, boolean>>(
     () => ({
       general:
@@ -507,9 +570,9 @@ export default function DormsDialog({
     [formData],
   );
 
-  // ตัวอย่างวันครบกำหนดชำระ อ้างอิงเดือนปัจจุบัน เพื่อให้เข้าใจ dueDay + dueMonthOffset ได้ง่ายขึ้น
   const dueDateExample = useMemo(() => {
     const day = Number(formData.dueDay);
+
     if (!day || day < 1 || day > 31) {
       return "กรอกวันที่ครบกำหนดชำระ เพื่อดูตัวอย่างรอบบิล";
     }
@@ -529,7 +592,6 @@ export default function DormsDialog({
   }, [formData.dueDay, formData.dueMonthOffset]);
 
   const proceedSave = async () => {
-    // จัดระเบียบตัวเลขก่อนส่งเข้า Backend เพื่อป้องกันบัค (กรณีตั้งทิ้งไว้เป็น "")
     const payload: DormFormData = {
       ...formData,
       roomPrice: Number(formData.roomPrice) || 0,
@@ -561,7 +623,6 @@ export default function DormsDialog({
       onClose();
     } catch (error: any) {
       log.error(error);
-      // แจ้งเตือนผู้ใช้ชัดเจนว่าบันทึกไม่สำเร็จ ข้อมูลที่กรอกยังอยู่ในฟอร์ม ไม่หายไปไหน
       toast.error(showBackendError(error?.response?.data?.message));
     } finally {
       setIsSaving(false);
@@ -569,7 +630,6 @@ export default function DormsDialog({
   };
 
   const handleSave = async () => {
-    // ตรวจสอบฟิลด์ที่บังคับกรอกทั้งหมด แล้วพากลับไปหน้าแรกที่ยังกรอกไม่ครบ
     const missing: {
       field: keyof DormFormData;
       step: StepId;
@@ -584,7 +644,12 @@ export default function DormsDialog({
           ? !value || Number(value) <= 0
           : !value || String(value).trim() === "";
 
-      if (isEmpty) missing.push({ field, step: meta.step, label: meta.label });
+      if (isEmpty)
+        missing.push({
+          field,
+          step: meta.step,
+          label: meta.label,
+        });
     });
 
     if (missing.length > 0) {
@@ -604,17 +669,17 @@ export default function DormsDialog({
 
     if (!hasContactPhone || !hasLineOrFacebook) {
       setActiveStep("contact");
+
       toast.error(
         !hasContactPhone
           ? "กรุณากรอกเบอร์โทรผู้ติดต่ออย่างน้อย 1 เบอร์"
           : "กรุณากรอก Line ID หรือ Facebook อย่างน้อย 1 ช่องทาง",
       );
+
       return;
     }
 
     setFieldErrors(new Set());
-
-    // ตั้งค่าบัญชีรับเงินไม่บังคับ แต่ถ้ายังไม่ได้กรอกเลยจะถามยืนยันก่อนบันทึก
     const hasPaymentSetting = !!(
       formData.bankName?.trim() ||
       formData.bankAccount?.trim() ||
@@ -669,11 +734,11 @@ export default function DormsDialog({
       <div className="fixed inset-0 z-50 flex justify-center bg-slate-900/40 sm:items-center sm:p-4">
         <div
           ref={closeRef}
-          className="flex h-full w-full flex-col overflow-hidden bg-white ring-1 ring-slate-900/5 sm:max-h-[90vh] sm:max-w-4xl sm:rounded-2xl"
+          className="bg-surface flex h-full w-full flex-col overflow-hidden ring-1 ring-slate-900/5 sm:max-h-[90vh] sm:max-w-4xl sm:rounded-2xl"
         >
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <div className="border-border flex items-center justify-between border-b px-6 py-4">
             <div className="flex flex-col">
-              <h2 className="text-xl font-bold text-slate-800">
+              <h2 className="text-foreground text-xl font-bold">
                 แก้ไขข้อมูลหอพัก
               </h2>
               <Link
@@ -686,37 +751,26 @@ export default function DormsDialog({
             </div>
             <button
               onClick={onClose}
-              className="cursor-pointer rounded-full bg-slate-100 p-2 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
+              className="bg-background text-muted hover:bg-border hover:text-foreground cursor-pointer rounded-full p-2 transition"
             >
               <X size={20} />
             </button>
           </div>
-
-          <div className="flex flex-1 overflow-hidden bg-slate-50/50">
-            {/* แถบขั้นตอนด้านซ้าย */}
-            <nav className="hidden w-52 shrink-0 space-y-1 overflow-y-auto border-r border-slate-100 bg-white p-3 sm:block">
+          <div className="bg-background/50 flex flex-1 overflow-hidden">
+            <nav className="border-border bg-surface hidden w-52 shrink-0 space-y-1 overflow-y-auto border-r p-3 sm:block">
               {STEPS.map((step, idx) => {
                 const isActive = activeStep === step.id;
                 const isDone = stepCompletion[step.id];
+
                 return (
                   <button
                     key={step.id}
                     type="button"
                     onClick={() => setActiveStep(step.id)}
-                    className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition ${
-                      isActive
-                        ? "bg-indigo-50 text-indigo-700"
-                        : "text-slate-500 hover:bg-slate-50"
-                    }`}
+                    className={`flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition ${isActive ? "bg-indigo-50 text-indigo-700" : "text-muted hover:bg-background"}`}
                   >
                     <span
-                      className={`flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
-                        isActive
-                          ? "bg-indigo-600 text-white"
-                          : isDone
-                            ? "bg-emerald-50 text-emerald-600"
-                            : "border border-slate-200 bg-white text-slate-400"
-                      }`}
+                      className={`flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${isActive ? "bg-indigo-600 text-white" : isDone ? "bg-emerald-50 text-emerald-600" : "border-border bg-surface text-muted border"}`}
                     >
                       {isDone && !isActive ? <Check size={12} /> : idx + 1}
                     </span>
@@ -725,17 +779,14 @@ export default function DormsDialog({
                 );
               })}
             </nav>
-
             <div className="flex flex-1 flex-col overflow-y-auto">
-              {/* แถบขั้นตอนแบบ dropdown สำหรับจอเล็ก */}
-              <div className="shrink-0 border-b border-slate-100 bg-white px-4 py-3 sm:hidden">
+              <div className="border-border bg-surface shrink-0 border-b px-4 py-3 sm:hidden">
                 <StepDropdown
                   value={activeStep}
                   onChange={setActiveStep}
                   completion={stepCompletion}
                 />
               </div>
-
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -746,10 +797,10 @@ export default function DormsDialog({
                 {activeStep === "general" && (
                   <div className="space-y-5">
                     <div>
-                      <h3 className="text-base font-bold text-slate-800">
+                      <h3 className="text-foreground text-base font-bold">
                         ข้อมูลทั่วไป
                       </h3>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-muted text-sm">
                         ชื่อ ที่อยู่ และรายละเอียดที่ผู้เช่าจะเห็นในหน้าประกาศ
                       </p>
                     </div>
@@ -780,39 +831,34 @@ export default function DormsDialog({
                         <Label required>
                           ลิงก์ Google Maps
                           <InfoTooltip>
-                            <p className="font-semibold text-gray-800">
+                            <p className="text-foreground font-semibold">
                               วิธีคัดลอกลิงก์ตำแหน่งที่ถูกต้อง
                             </p>
-
                             <ol className="mt-2 list-decimal space-y-1.5 pl-4">
                               <li>
                                 เปิด{" "}
                                 <strong>Google Maps ผ่านเว็บเบราว์เซอร์</strong>
                                 (เช่น Chrome, Edge หรือ Safari)
-                                <span className="block text-xs text-gray-500">
+                                <span className="text-muted block text-xs">
                                   ไม่แนะนำให้ทำผ่านแอป Google Maps
                                 </span>
                               </li>
-
                               <li>
                                 เลื่อนแผนที่ไปยังตำแหน่งของหอพักให้ตรงที่สุด
                               </li>
-
                               <li>
                                 คลิกหรือกดค้างบนตำแหน่งหอพักจริง เพื่อ
                                 <strong>ปักหมุด (Dropped Pin)</strong>
-                                <span className="block text-xs text-gray-500">
+                                <span className="text-muted block text-xs">
                                   อย่าค้นหาชื่อหอพักแล้วกดแชร์ทันที
                                 </span>
                               </li>
-
                               <li>
                                 เมื่อปักหมุดแล้ว ให้คัดลอกลิงก์จาก
                                 <strong>แถบ URL ด้านบนของเบราว์เซอร์</strong>
                                 แล้วนำมาวางในช่องนี้
                               </li>
                             </ol>
-
                             <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 p-2 text-amber-700">
                               <p className="font-medium">⚠️ ข้อควรระวัง</p>
                               <p className="mt-1 text-sm">
@@ -843,24 +889,19 @@ export default function DormsDialog({
                           updateField("description", e.target.value)
                         }
                         rows={5}
-                        className={`w-full resize-none rounded-lg border bg-slate-50 px-4 py-2.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:outline-none ${
-                          fieldErrors.has("description")
-                            ? "border-red-300 bg-red-50/60 focus:border-red-500 focus:ring-red-100"
-                            : "border-slate-200 focus:border-indigo-500 focus:ring-indigo-100"
-                        }`}
+                        className={`bg-background text-foreground placeholder:text-muted focus:bg-surface w-full resize-none rounded-lg border px-4 py-2.5 text-sm transition-all focus:ring-2 focus:outline-none ${fieldErrors.has("description") ? "border-red-300 bg-red-50/60 focus:border-red-500 focus:ring-red-100" : "border-border focus:border-indigo-500 focus:ring-indigo-100"}`}
                         placeholder="เช่น หอพักสะดวก มีที่จอดรถ ร่มรื่น ใกล้มหาวิทยาลัย..."
                       />
                     </div>
                   </div>
                 )}
-
                 {activeStep === "contact" && (
                   <div className="space-y-5">
                     <div>
-                      <h3 className="text-base font-bold text-slate-800">
+                      <h3 className="text-foreground text-base font-bold">
                         ข้อมูลติดต่อ
                       </h3>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-muted text-sm">
                         เบอร์โทร Line และ Facebook ที่ผู้เช่าจะใช้ติดต่อหอพักนี้
                       </p>
                     </div>
@@ -870,25 +911,22 @@ export default function DormsDialog({
                     />
                   </div>
                 )}
-
                 {activeStep === "pricing" && (
                   <div className="space-y-6">
-                    {/* ส่วนหัว */}
-                    <div className="border-b border-slate-100 pb-4">
-                      <h3 className="flex items-center gap-2.5 text-lg font-bold text-slate-800">
+                    <div className="border-border border-b pb-4">
+                      <h3 className="text-foreground flex items-center gap-2.5 text-lg font-bold">
                         <div className="flex rounded-lg bg-indigo-100 p-1.5 text-indigo-600">
                           <DollarSign size={20} />
                         </div>
                         ราคา & ค่าใช้จ่าย
                       </h3>
-                      <p className="mt-1.5 text-sm text-slate-500">
+                      <p className="text-muted mt-1.5 text-sm">
                         ตั้งราคาเริ่มต้นและอัตราค่าน้ำ-ไฟ
                         ระบบจะนำไปใช้คำนวณบิลอัตโนมัติ
                       </p>
                     </div>
 
-                    {/* 1. ราคาห้องเช่า (ดึงออกมาให้เด่น ไม่โดนบีบ) */}
-                    <div className="rounded-xl border border-slate-200 bg-white p-5">
+                    <div className="border-border bg-surface rounded-xl border p-5">
                       <div className="max-w-md">
                         <Label required icon={DollarSign}>
                           ราคาห้องเช่า (เริ่มต้น)
@@ -906,17 +944,15 @@ export default function DormsDialog({
                             placeholder="0"
                             error={fieldErrors.has("roomPrice")}
                           />
-                          <span className="absolute top-3.5 right-4 text-sm font-medium text-slate-400">
+                          <span className="text-muted absolute top-3.5 right-4 text-sm font-medium">
                             บาท/ด.
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* 2. ค่าน้ำ - ค่าไฟ (แบ่ง 2 คอลัมน์ให้มีพื้นที่) */}
                     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                      {/* ค่าไฟ */}
-                      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+                      <div className="border-border bg-background rounded-xl border p-5">
                         <Label required icon={Zap}>
                           ค่าไฟ
                         </Label>
@@ -933,30 +969,24 @@ export default function DormsDialog({
                             placeholder="0"
                             error={fieldErrors.has("electricRate")}
                           />
-                          <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                          <span className="text-muted absolute top-2.5 right-3 text-xs">
                             บาท/หน่วย
                           </span>
                         </div>
                       </div>
 
-                      {/* ค่าน้ำ */}
-                      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-5">
+                      <div className="border-border bg-background rounded-xl border p-5">
                         <Label required icon={Droplets}>
                           ค่าน้ำ
                         </Label>
-                        {/* ปรับปุ่ม Toggle ให้หน้าตาเหมือน iOS Segmented Control */}
-                        <div className="mt-2 mb-3 flex gap-1 rounded-lg bg-slate-200/60 p-1 text-xs font-medium">
+
+                        <div className="bg-border/60 mt-2 mb-3 flex gap-1 rounded-lg p-1 text-xs font-medium">
                           <button
                             type="button"
                             onClick={() =>
                               updateField("waterBillingType", "METERED")
                             }
-                            className={`flex-1 cursor-pointer rounded-md py-1.5 transition-all duration-200 ${
-                              (formData.waterBillingType ?? "METERED") ===
-                              "METERED"
-                                ? "bg-white text-indigo-700 ring-1 ring-slate-900/5"
-                                : "text-slate-500 hover:bg-slate-200/50 hover:text-slate-700"
-                            }`}
+                            className={`flex-1 cursor-pointer rounded-md py-1.5 transition-all duration-200 ${(formData.waterBillingType ?? "METERED") === "METERED" ? "bg-surface text-indigo-700 ring-1 ring-slate-900/5" : "text-muted hover:bg-border/50 hover:text-foreground"}`}
                           >
                             คิดตามหน่วย
                           </button>
@@ -965,16 +995,11 @@ export default function DormsDialog({
                             onClick={() =>
                               updateField("waterBillingType", "FLAT_RATE")
                             }
-                            className={`flex-1 cursor-pointer rounded-md py-1.5 transition-all duration-200 ${
-                              formData.waterBillingType === "FLAT_RATE"
-                                ? "bg-white text-indigo-700 ring-1 ring-slate-900/5"
-                                : "text-slate-500 hover:bg-slate-200/50 hover:text-slate-700"
-                            }`}
+                            className={`flex-1 cursor-pointer rounded-md py-1.5 transition-all duration-200 ${formData.waterBillingType === "FLAT_RATE" ? "bg-surface text-indigo-700 ring-1 ring-slate-900/5" : "text-muted hover:bg-border/50 hover:text-foreground"}`}
                           >
                             เหมาจ่าย
                           </button>
                         </div>
-
                         <div className="relative">
                           <Input
                             type="number"
@@ -988,13 +1013,13 @@ export default function DormsDialog({
                             placeholder="0"
                             error={fieldErrors.has("waterRate")}
                           />
-                          <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                          <span className="text-muted absolute top-2.5 right-3 text-xs">
                             {formData.waterBillingType === "FLAT_RATE"
                               ? "บาท/ด."
                               : "บาท/หน่วย"}
                           </span>
                         </div>
-                        <p className="mt-2.5 text-[11px] leading-relaxed text-slate-400">
+                        <p className="text-muted mt-2.5 text-[11px] leading-relaxed">
                           {formData.waterBillingType === "FLAT_RATE"
                             ? "ผู้เช่าจ่ายค่าน้ำเหมาจ่ายเท่ากันทุกเดือน ไม่ต้องจดมิเตอร์"
                             : "คำนวณบิลจาก: (หน่วยเดือนนี้ - หน่วยเดือนก่อน) × ราคา"}
@@ -1002,24 +1027,15 @@ export default function DormsDialog({
                       </div>
                     </div>
 
-                    {/* 3. ค่าใช้จ่ายเพิ่มเติม (ทำเป็นแท็บ Accordion ดูเนียนตา) */}
-                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white transition-all">
+                    <div className="border-border bg-surface overflow-hidden rounded-xl border transition-all">
                       <button
                         type="button"
                         onClick={() => setShowAdvancedFees((v) => !v)}
-                        className={`flex w-full cursor-pointer items-center justify-between p-4 text-sm font-semibold transition-colors ${
-                          showAdvancedFees
-                            ? "bg-slate-50 text-indigo-700"
-                            : "text-slate-600 hover:bg-slate-50"
-                        }`}
+                        className={`flex w-full cursor-pointer items-center justify-between p-4 text-sm font-semibold transition-colors ${showAdvancedFees ? "bg-background text-indigo-700" : "text-muted hover:bg-background"}`}
                       >
                         <div className="flex items-center gap-2.5">
                           <div
-                            className={`rounded-md p-1 transition-colors ${
-                              showAdvancedFees
-                                ? "bg-indigo-100 text-indigo-600"
-                                : "bg-slate-100 text-slate-500"
-                            }`}
+                            className={`rounded-md p-1 transition-colors ${showAdvancedFees ? "bg-indigo-100 text-indigo-600" : "bg-background text-muted"}`}
                           >
                             <Info size={16} />
                           </div>
@@ -1027,14 +1043,11 @@ export default function DormsDialog({
                         </div>
                         <ChevronRight
                           size={18}
-                          className={`text-slate-400 transition-transform duration-300 ${
-                            showAdvancedFees ? "rotate-90 text-indigo-500" : ""
-                          }`}
+                          className={`text-muted transition-transform duration-300 ${showAdvancedFees ? "rotate-90 text-indigo-500" : ""}`}
                         />
                       </button>
-
                       {showAdvancedFees && (
-                        <div className="grid grid-cols-1 gap-5 border-t border-slate-100 bg-slate-50 p-5 sm:grid-cols-2">
+                        <div className="border-border bg-background grid grid-cols-1 gap-5 border-t p-5 sm:grid-cols-2">
                           <div>
                             <Label icon={Info} optional>
                               ค่าส่วนกลาง
@@ -1051,10 +1064,10 @@ export default function DormsDialog({
                                   )
                                 }
                                 onKeyDown={preventInvalidNumberKeys}
-                                className="bg-white pr-16"
+                                className="bg-surface pr-16"
                                 placeholder="0"
                               />
-                              <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                              <span className="text-muted absolute top-2.5 right-3 text-xs">
                                 บาท/ด.
                               </span>
                             </div>
@@ -1072,10 +1085,10 @@ export default function DormsDialog({
                                   handleNumberChange("lateFee", e.target.value)
                                 }
                                 onKeyDown={preventInvalidNumberKeys}
-                                className="bg-white pr-16"
+                                className="bg-surface pr-16"
                                 placeholder="0"
                               />
-                              <span className="absolute top-2.5 right-3 text-xs text-slate-400">
+                              <span className="text-muted absolute top-2.5 right-3 text-xs">
                                 บาท/วัน
                               </span>
                             </div>
@@ -1085,14 +1098,13 @@ export default function DormsDialog({
                     </div>
                   </div>
                 )}
-
                 {activeStep === "billing" && (
                   <div className="space-y-5">
                     <div>
-                      <h3 className="text-base font-bold text-slate-800">
+                      <h3 className="text-foreground text-base font-bold">
                         รอบบิล & การชำระเงิน
                       </h3>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-muted text-sm">
                         กำหนดวันครบกำหนดและบัญชีที่ผู้เช่าโอนเข้า
                         (ตั้งค่าบัญชีรับเงินภายหลังได้)
                       </p>
@@ -1122,7 +1134,7 @@ export default function DormsDialog({
                         />
                       </div>
                     </div>
-                    <div className="flex items-start gap-2.5 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-slate-600">
+                    <div className="text-foreground flex items-start gap-2.5 rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm dark:bg-indigo-100/20">
                       <Info
                         size={16}
                         className="mt-0.5 shrink-0 text-indigo-500"
@@ -1135,19 +1147,18 @@ export default function DormsDialog({
                     />
                   </div>
                 )}
-
                 {activeStep === "images" && (
                   <div className="space-y-5">
                     <div>
-                      <h3 className="flex items-center gap-2 text-base font-bold text-slate-800">
+                      <h3 className="text-foreground flex items-center gap-2 text-base font-bold">
                         รูปภาพหอพัก
                         <span className="text-red-500">*</span>
                       </h3>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-muted text-sm">
                         รูปแรกจะถูกใช้เป็นภาพปกในหน้ารายการและหน้าประกาศ
                       </p>
                     </div>
-                    <div className="flex items-start gap-2.5 rounded-lg border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-slate-600">
+                    <div className="text-foreground flex items-start gap-2.5 rounded-lg border border-amber-100 bg-amber-50 px-4 py-3 text-sm dark:bg-amber-50/20">
                       <ImageIcon
                         size={16}
                         className="mt-0.5 shrink-0 text-amber-500"
@@ -1157,7 +1168,7 @@ export default function DormsDialog({
                         (Public) หอพักนี้ได้
                       </span>
                     </div>
-                    <div className="rounded-lg border border-dashed border-slate-300 bg-white">
+                    <div className="border-border bg-surface rounded-lg border border-dashed">
                       <ImageSection dormId={dorm.id} />
                     </div>
                   </div>
@@ -1165,8 +1176,7 @@ export default function DormsDialog({
               </form>
             </div>
           </div>
-
-          <div className="flex items-center justify-between border-t border-slate-100 bg-white px-6 py-4 text-xs sm:text-sm">
+          <div className="border-border bg-surface flex items-center justify-between border-t px-6 py-4 text-xs sm:text-sm">
             <button
               type="button"
               onClick={() => setIsDeleteDialogOpen(true)}
@@ -1179,7 +1189,7 @@ export default function DormsDialog({
               <button
                 type="button"
                 onClick={onClose}
-                className="cursor-pointer rounded-lg border border-slate-200 bg-white px-5 py-2.5 font-medium text-slate-700 hover:bg-slate-50"
+                className="border-border bg-surface text-foreground hover:bg-background cursor-pointer rounded-lg border px-5 py-2.5 font-medium"
               >
                 ยกเลิก
               </button>

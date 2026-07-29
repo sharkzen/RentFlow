@@ -1,7 +1,7 @@
 export default function TenantBanned() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-sm overflow-hidden rounded-xl bg-white p-6 text-center shadow-2xl">
+      <div className="bg-surface w-full max-w-sm overflow-hidden rounded-xl p-6 text-center shadow-2xl">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
           <svg
             className="h-8 w-8 text-red-600"
@@ -17,10 +17,10 @@ export default function TenantBanned() {
             />
           </svg>
         </div>
-        <h3 className="mb-2 text-xl font-bold text-gray-900">
+        <h3 className="text-foreground mb-2 text-xl font-bold">
           ไม่สามารถเข้าใช้งานได้
         </h3>
-        <p className="mb-8 text-gray-500">
+        <p className="text-muted mb-8">
           บัญชีของคุณถูกระงับ <br />
           กรุณาติดต่อเจ้าของหอพักเพื่อตรวจสอบข้อมูล
         </p>

@@ -1,8 +1,8 @@
 "use client";
-import { Spinner } from "@/lib/ui/Spinner";
+import Loader from "../Spinner";
 
 function LoadingPage() {
-  return <Spinner />;
+  return <Loader />;
 }
 
 export default LoadingPage;

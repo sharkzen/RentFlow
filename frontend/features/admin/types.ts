@@ -147,4 +147,3 @@ export interface CreateLandmarkPayload {
   type: LandmarkType;
   mapUrl: string;
 }
-

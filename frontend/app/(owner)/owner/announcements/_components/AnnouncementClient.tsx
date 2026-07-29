@@ -6,12 +6,26 @@ import { Plus, Megaphone, BellOff, Building2, Filter } from "lucide-react";
 import { AnnouncementService } from "@/features/announcement/services/announcement.service";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { CustomSelect } from "@/lib/ui/CustomSelect";
+import LoadingPage from "../loading";
+import { is } from "date-fns/locale";
 
 const TYPE_OPTIONS = [
-  { value: "ALL", label: "ทุกประเภท" },
-  { value: "NORMAL", label: "ทั่วไป (Normal)" },
-  { value: "IMPORTANT", label: "สำคัญ (Important)" },
-  { value: "URGENT", label: "ด่วน (Urgent)" },
+  {
+    value: "ALL",
+    label: "ทุกประเภท",
+  },
+  {
+    value: "NORMAL",
+    label: "ทั่วไป (Normal)",
+  },
+  {
+    value: "IMPORTANT",
+    label: "สำคัญ (Important)",
+  },
+  {
+    value: "URGENT",
+    label: "ด่วน (Urgent)",
+  },
 ];
 
 export default function AnnouncementClient() {
@@ -70,18 +84,20 @@ export default function AnnouncementClient() {
     selectedType === "ALL" ? true : a.type === selectedType,
   );
 
+  if (isLoading || isDormsLoading) return <LoadingPage />;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="border-border bg-surface flex flex-col gap-4 rounded-2xl border p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
             <Megaphone size={24} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-foreground text-2xl font-bold">
               ประกาศและข่าวสาร
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-muted mt-1 text-sm">
               จัดการประกาศ แจ้งเตือน และข่าวสารสำหรับลูกบ้าน
             </p>
           </div>
@@ -119,12 +135,12 @@ export default function AnnouncementClient() {
         </div>
       </div>
       {!isLoading && !isDormsLoading && filteredAnnouncements.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-gray-50 px-4 py-16 text-center">
-          <div className="mb-4 rounded-full bg-white p-4 shadow-sm">
-            <BellOff size={32} className="text-gray-300" />
+        <div className="border-border bg-background flex flex-col items-center justify-center rounded-3xl border border-dashed px-4 py-16 text-center">
+          <div className="bg-surface mb-4 rounded-full p-4 shadow-sm">
+            <BellOff size={32} className="text-muted" />
           </div>
-          <h3 className="text-lg font-bold text-gray-700">ยังไม่มีประกาศ</h3>
-          <p className="mt-1 max-w-sm text-sm text-gray-500">
+          <h3 className="text-foreground text-lg font-bold">ยังไม่มีประกาศ</h3>
+          <p className="text-muted mt-1 max-w-sm text-sm">
             คุณยังไม่ได้สร้างประกาศใดๆ สำหรับหอพักนี้
             หรืออาจจะไม่มีประกาศในประเภทที่คุณเลือก
           </p>

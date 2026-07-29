@@ -91,9 +91,7 @@ export const dormService = {
 
     const promoteFeaturedIds = (ids: string[]) => {
       const idSet = new Set(ids);
-      const featuredInResult = featuredIdsOrdered.filter((id) =>
-        idSet.has(id),
-      );
+      const featuredInResult = featuredIdsOrdered.filter((id) => idSet.has(id));
       const featuredSet = new Set(featuredInResult);
       const rest = ids.filter((id) => !featuredSet.has(id));
       return [...featuredInResult, ...rest];
@@ -178,14 +176,11 @@ export const dormService = {
         return a._distance - b._distance;
       });
 
-      const orderedIds = promoteFeaturedIds(
-        dormsWithDistance.map((d) => d.id),
-      );
+      const orderedIds = promoteFeaturedIds(dormsWithDistance.map((d) => d.id));
       const dormsById = new Map(dormsWithDistance.map((d) => [d.id, d]));
       const promotedDorms = orderedIds
         .map((id) => dormsById.get(id))
         .filter(Boolean) as typeof dormsWithDistance;
-
       totalItems = promotedDorms.length;
       resultDorms = promotedDorms.slice(skip, skip + limit);
     } else if (!hasSearch && !hasPriceFilter) {
@@ -496,7 +491,13 @@ export const dormService = {
 
         contacts: owner.phone
           ? {
-              create: [{ name: null, phone: owner.phone, order: 0 }],
+              create: [
+                {
+                  name: null,
+                  phone: owner.phone,
+                  order: 0,
+                },
+              ],
             }
           : undefined,
       },
@@ -565,12 +566,25 @@ export const dormService = {
 
     if (isPublished) {
       const readiness = await prisma.dormitory.findUnique({
-        where: { id: dormId },
+        where: {
+          id: dormId,
+        },
+
         select: {
           lineId: true,
           facebook: true,
-          contacts: { select: { id: true } },
-          images: { select: { id: true } },
+
+          contacts: {
+            select: {
+              id: true,
+            },
+          },
+
+          images: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
 
@@ -635,7 +649,11 @@ export const dormService = {
     }
 
     const slug = generateSlug(dorm.name);
-    let latLng: { lat: number; lng: number } | null = null;
+
+    let latLng: {
+      lat: number;
+      lng: number;
+    } | null = null;
 
     try {
       latLng = await getLatLngFromUrl(dorm.mapUrl ?? 0);
@@ -1103,6 +1121,7 @@ export const dormService = {
       action: "REORDER_DORM_IMAGES",
       entityType: "Dormitory",
       entityId: dormId,
+
       metadata: {
         count: images.length,
       },

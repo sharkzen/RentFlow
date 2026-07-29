@@ -93,7 +93,11 @@ export interface DormFormData {
   name: string;
   description: any;
   address: string;
-  contacts?: { id?: string; name?: string; phone: string }[];
+  contacts?: {
+    id?: string;
+    name?: string;
+    phone: string;
+  }[];
   lineId?: string;
   lineType?: "PERSONAL" | "OFFICIAL";
   facebook?: string;

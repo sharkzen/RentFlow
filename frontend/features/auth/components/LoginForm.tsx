@@ -153,12 +153,12 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="grid h-[calc(100vh-65px)] w-full bg-white md:grid-cols-2">
+    <div className="bg-background grid h-[calc(100vh-65px)] w-full md:grid-cols-2">
       <div className="relative hidden md:block">
         <img
           src="/images/bg-main.jpg"
           alt="Apartment management"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover dark:opacity-50"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
         <div className="relative z-10 flex h-full flex-col p-12 text-white">
@@ -180,7 +180,7 @@ export default function LoginForm() {
               </span>
             </h1>
             {qrState === "idle" && (
-              <h2 className="text-xl font-semibold text-gray-800">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
                 เข้าสู่ระบบ
               </h2>
             )}
@@ -217,18 +217,19 @@ export default function LoginForm() {
           {qrState === "idle" && (
             <form
               onSubmit={handleSubmit}
-              className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+              className="bg-surface rounded-2xl p-6"
             >
               <div className="space-y-5">
                 <div className="space-y-1">
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Mail className="h-4 w-4 text-gray-500" />
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-white">
+                    <Mail className="h-4 w-4" />
                     อีเมล
                   </label>
                   <input
                     id="email"
                     type="email"
                     value={email}
+                    placeholder="your_email@gmail.com"
                     onChange={(e) => {
                       setEmail(e.target.value);
 
@@ -238,21 +239,22 @@ export default function LoginForm() {
                           email: undefined,
                         }));
                     }}
-                    className={`w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                    className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-border"} focus:ring-blue-100`}
                   />
                   <p className="min-h-4 text-xs text-red-600">
                     {errors.email || ""}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Lock className="h-4 w-4 text-gray-500" />
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-white">
+                    <Lock className="h-4 w-4" />
                     รหัสผ่าน
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
+                      placeholder="******"
                       onChange={(e) => {
                         setPassword(e.target.value);
 
@@ -262,7 +264,7 @@ export default function LoginForm() {
                             password: undefined,
                           }));
                       }}
-                      className={`w-full rounded-xl border bg-gray-50 px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                      className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-border"} `}
                     />
                     <button
                       type="button"

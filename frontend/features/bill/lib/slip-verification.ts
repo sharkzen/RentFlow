@@ -144,12 +144,8 @@ export const extractSlipData = (text: string): ExtractedSlipData => {
     }
   }
 
-  // ลองหาตัวเลขที่อยู่ติดกับคำว่า "จำนวนเงิน/amount/บาท" ก่อน เพราะแม่นกว่าการเดา
-  // จาก magic number range (ของเดิม exclude 2500-2600, 2020-2030 แบบเดาสุ่ม ซึ่งจะกรอง
-  // ยอดที่บังเอิญตรงพอดี เช่น ค่าเช่าห้อง 2,550 บาท ทิ้งไปโดยไม่ตั้งใจ)
   const amountRegex = /(\d+)\s?[\.,]\s?(\d{2})\b/g;
   let amount: number | null = null;
-
   const anchoredAmountRegex =
     /(?:จำนวนเงิน|จำนวน|ยอดโอน|ยอดเงิน|amount)\s*[:.\-]?\s*(\d+)\s?[\.,]\s?(\d{2})\b|(\d+)\s?[\.,]\s?(\d{2})\s?(?:บาท|baht|thb)/i;
   const anchoredMatch = cleanText.match(anchoredAmountRegex);
@@ -177,6 +173,7 @@ export const extractSlipData = (text: string): ExtractedSlipData => {
 
     amount = amountsFound.length > 0 ? Math.max(...amountsFound) : null;
   }
+
   const lowerText = text.toLowerCase();
   const foundBank = BANK_NAMES.find((b) =>
     b.keywords.some((k) => lowerText.includes(k)),
