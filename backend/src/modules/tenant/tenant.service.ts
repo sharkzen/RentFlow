@@ -1343,7 +1343,10 @@ export const tenantService = {
       result: qrCodeDataUrl,
       total: amount,
       refNo: bill.id,
-      promptPayName: paymentSetting.bankHolder || "ไม่ระบุ",
+      promptPayName:
+        paymentSetting.promptPayHolder ||
+        paymentSetting.bankHolder ||
+        "ไม่ระบุ",
     };
   },
 

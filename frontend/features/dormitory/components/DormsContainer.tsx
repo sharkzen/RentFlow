@@ -51,7 +51,7 @@ export default function DormsContainer() {
         <div className="flex max-sm:w-full max-sm:justify-end">
           <button
             onClick={() => setOnCreate(true)}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-5 py-2.5 text-sm font-semibold text-white shadow-blue-200 transition-all hover:from-blue-700 hover:to-blue-600 hover:shadow-lg active:scale-95 max-sm:w-full"
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:from-blue-700 hover:to-blue-600 active:scale-95 max-sm:w-full"
           >
             <Plus size={18} strokeWidth={2.5} />
             <span>เพิ่มหอพักใหม่</span>

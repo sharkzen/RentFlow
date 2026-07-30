@@ -442,7 +442,7 @@ export default function EditTenantDialog({
                   <button
                     type="button"
                     onClick={() => setIsCancelMoveOutOpen(true)}
-                    className="shrink-0 cursor-pointer rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-700 shadow-sm transition-colors hover:bg-amber-100 active:scale-95"
+                    className="bg-surface shrink-0 cursor-pointer rounded-lg border border-amber-300 px-4 py-2 text-sm font-semibold text-amber-700 shadow-sm transition-colors hover:bg-amber-100 active:scale-95 dark:border-amber-500/30 dark:text-amber-400 dark:hover:bg-amber-500/10"
                   >
                     ยกเลิกคิวย้ายออก
                   </button>

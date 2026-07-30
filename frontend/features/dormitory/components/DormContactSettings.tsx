@@ -120,11 +120,14 @@ export default function DormContactSettings({
                 เบอร์โทรศัพท์
               </Label>
               <Input
+                maxLength={10}
                 value={contact.phone ?? ""}
-                onChange={(e: any) =>
-                  updateContact(index, "phone", e.target.value)
-                }
-                placeholder="08xxxxxxxx"
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const onlyNumbers = e.target.value.replace(/\D/g, "");
+                  updateContact(index, "phone", onlyNumbers);
+                }}
+                placeholder="ไม่ต้องมีขีด เช่น 0987654321"
+                inputMode="numeric"
               />
             </div>
             <button

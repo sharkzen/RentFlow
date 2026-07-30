@@ -197,7 +197,7 @@ export default function FeaturedContainer() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-foreground flex items-center gap-3 text-2xl font-bold">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-md shadow-amber-200">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white">
               <Star size={20} />
             </div>
             หอพักแนะนำ

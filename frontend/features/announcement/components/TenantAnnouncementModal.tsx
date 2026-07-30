@@ -219,7 +219,7 @@ export default function TenantAnnouncementModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 transition-all duration-300">
-      <div className="animate-in fade-in zoom-in-95 flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl duration-300">
+      <div className="animate-in fade-in zoom-in-95 bg-surface flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl shadow-2xl duration-300">
         <div
           className={`flex items-center justify-between border-b px-6 py-4 transition-colors duration-300 ${config.bg} ${config.border}`}
         >
@@ -243,7 +243,7 @@ export default function TenantAnnouncementModal() {
             onClick={handleClose}
             disabled={loading}
             title="ปิดหน้าต่างนี้ (ยังไม่นับว่าอ่านประกาศ เว้นแต่ติ๊กตัวเลือกด้านล่าง)"
-            className="cursor-pointer rounded-full p-1 text-gray-400 transition-colors hover:bg-black/5 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="text-muted hover:text-foreground cursor-pointer rounded-full p-1 transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -252,11 +252,11 @@ export default function TenantAnnouncementModal() {
           <div
             className={`transform transition-all duration-300 ease-out ${getAnimationClass()}`}
           >
-            <h2 className="mb-4 text-lg leading-snug font-bold text-gray-900 md:text-xl">
+            <h2 className="text-foreground mb-4 text-lg leading-snug font-bold md:text-xl">
               {currentAnn.title}
             </h2>
             {currentAnn.images && currentAnn.images.length > 0 && (
-              <div className="mb-4 overflow-hidden rounded-xl bg-slate-50 shadow-inner">
+              <div className="bg-background mb-4 overflow-hidden rounded-xl shadow-inner">
                 <img
                   src={currentAnn.images[0].url}
                   alt="Announcement Attachment"
@@ -264,45 +264,45 @@ export default function TenantAnnouncementModal() {
                 />
               </div>
             )}
-            <div className="text-sm leading-relaxed whitespace-pre-line text-gray-600 md:text-base">
+            <div className="text-muted text-sm leading-relaxed whitespace-pre-line md:text-base">
               {currentAnn.content}
             </div>
           </div>
         </div>
-        <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/50 p-4">
-          <div className="flex flex-col gap-1.5 text-xs text-gray-500 md:text-sm">
+        <div className="border-border bg-background/50 flex flex-col gap-3 border-t p-4">
+          <div className="text-muted flex flex-col gap-1.5 text-xs md:text-sm">
             <label className="group flex cursor-pointer items-center gap-2 select-none">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 transition-shadow focus:ring-blue-500/30"
+                className="border-border h-4 w-4 rounded text-blue-600 transition-shadow focus:ring-blue-500/30"
                 checked={dontShowFor24h}
                 disabled={dontShowAgain}
                 onChange={(e) => setDontShowFor24h(e.target.checked)}
               />
-              <span className="transition-colors group-hover:text-gray-700">
+              <span className="group-hover:text-foreground transition-colors">
                 ปิดไว้ก่อน ไม่ต้องแสดงอีกภายใน 24 ชม.
               </span>
             </label>
             <label className="group flex cursor-pointer items-center gap-2 select-none">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 transition-shadow focus:ring-blue-500/30"
+                className="border-border h-4 w-4 rounded text-blue-600 transition-shadow focus:ring-blue-500/30"
                 checked={dontShowAgain}
                 onChange={(e) => setDontShowAgain(e.target.checked)}
               />
-              <span className="transition-colors group-hover:text-gray-700">
+              <span className="group-hover:text-foreground transition-colors">
                 ไม่ต้องแสดงอีกเลย (ยังดูย้อนหลังได้ที่หน้าประกาศ)
               </span>
             </label>
           </div>
           <div className="flex items-center justify-between">
-            <span className="rounded bg-slate-200/70 px-2.5 py-1 text-xs font-semibold text-gray-600 shadow-sm">
+            <span className="bg-border/50 text-muted rounded px-2.5 py-1 text-xs font-semibold shadow-sm">
               {currentIndex + 1}/ {announcements.length}
             </span>
             <button
               onClick={handleClose}
               disabled={loading}
-              className="cursor-pointer text-xs font-medium text-gray-400 underline-offset-2 hover:text-gray-600 hover:underline disabled:cursor-not-allowed"
+              className="text-muted hover:text-foreground cursor-pointer text-xs font-medium underline-offset-2 hover:underline disabled:cursor-not-allowed"
             >
               ปิดหน้าต่างนี้
             </button>
@@ -312,7 +312,7 @@ export default function TenantAnnouncementModal() {
               <button
                 disabled={currentIndex === 0 || loading || isAnimating}
                 onClick={handlePrev}
-                className="rounded-xl border bg-white p-2.5 text-gray-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 disabled:active:scale-100"
+                className="bg-surface text-muted hover:bg-background rounded-xl border p-2.5 shadow-sm transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 disabled:active:scale-100"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -323,7 +323,7 @@ export default function TenantAnnouncementModal() {
                   isAnimating
                 }
                 onClick={handleNext}
-                className="rounded-xl border bg-white p-2.5 text-gray-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 disabled:active:scale-100"
+                className="bg-surface text-muted hover:bg-background rounded-xl border p-2.5 shadow-sm transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 disabled:active:scale-100"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>

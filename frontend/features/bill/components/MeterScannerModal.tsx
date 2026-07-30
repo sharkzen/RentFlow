@@ -404,7 +404,6 @@ export default function MeterScannerModal({
             <X size={20} />
           </button>
         </div>
-
         <div className="flex-1 overflow-y-auto p-4 text-center">
           <div className="mb-2 flex justify-evenly">
             <h2 className="text-2xl font-black text-indigo-700">
@@ -417,13 +416,13 @@ export default function MeterScannerModal({
                 <Settings size={28} />
                 <h3 className="text-xl font-bold">ตั้งค่าก่อนใช้งานครั้งแรก</h3>
               </div>
-              <p className="mb-4 text-sm text-slate-600">
+              <p className="text-muted mb-4 text-sm">
                 เนื่องจากเป็นครั้งแรกที่สแกนมิเตอร์น้ำห้องนี้ กรุณาระบุ{" "}
-                <strong className="text-slate-800">จำนวนหลัก</strong>{" "}
+                <strong className="text-foreground">จำนวนหลัก</strong>{" "}
                 ที่ใช้คิดเงิน (นับเฉพาะตัวเลขสีดำ ไม่รวมตัวเลขสีแดงหรือทศนิยม)
               </p>
-              <div className="mb-6 rounded-xl bg-white p-4 shadow-sm">
-                <p className="mb-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+              <div className="bg-surface mb-6 rounded-xl p-4 shadow-sm">
+                <p className="text-muted mb-2 text-xs font-semibold tracking-wider uppercase">
                   ตัวอย่าง
                 </p>
                 <div className="flex items-center gap-1 font-mono text-2xl font-black">
@@ -448,12 +447,12 @@ export default function MeterScannerModal({
                 </p>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">
+                <label className="text-foreground text-sm font-bold">
                   จำนวนหลักตัวเลขสีดำ
                 </label>
                 <div className="relative">
                   <Droplets
-                    className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-400"
+                    className="text-muted absolute top-1/2 left-4 -translate-y-1/2"
                     size={20}
                   />
                   <input
@@ -461,7 +460,7 @@ export default function MeterScannerModal({
                     value={setupDigits}
                     onChange={(e) => setSetupDigits(e.target.value)}
                     placeholder="เช่น 4 หรือ 5"
-                    className="w-full rounded-xl border-2 border-slate-200 py-3 pr-4 pl-12 text-lg font-bold transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 focus:outline-none"
+                    className="bg-surface text-foreground border-border w-full rounded-xl border-2 py-3 pr-4 pl-12 text-lg font-bold transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 focus:outline-none"
                   />
                 </div>
               </div>
@@ -485,7 +484,6 @@ export default function MeterScannerModal({
                     />
                   )
                 )}
-
                 {step === "camera" && (
                   <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
                     <div className="box-content h-[13.6%] w-[45.5%] rounded border-2 border-red-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"></div>
@@ -497,7 +495,6 @@ export default function MeterScannerModal({
                     )}
                   </div>
                 )}
-
                 {step === "processing" && (
                   <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
                     <RefreshCw
@@ -509,7 +506,6 @@ export default function MeterScannerModal({
                     </p>
                   </div>
                 )}
-
                 {step === "result" && (
                   <div className="animate-in fade-in absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 px-6 backdrop-blur-md">
                     <p
@@ -529,7 +525,7 @@ export default function MeterScannerModal({
                         onChange={(e) =>
                           setOcrValue(e.target.value.replace(/[^0-9]/g, ""))
                         }
-                        className={`w-full rounded-2xl border-4 bg-white py-4 text-center text-5xl font-black tracking-[0.2em] text-slate-800 transition-all outline-none ${ocrWarning ? "border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.4)]" : ocrValue ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-slate-300"}`}
+                        className={`bg-surface text-foreground w-full rounded-2xl border-4 py-4 text-center text-5xl font-black tracking-[0.2em] transition-all outline-none ${ocrWarning ? "border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.4)]" : ocrValue ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-border"}`}
                         placeholder="00000"
                       />
                       <Edit3

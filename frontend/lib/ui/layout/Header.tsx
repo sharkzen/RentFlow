@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/providers/AuthProvider";
 import useLogout from "@/features/auth/hooks/useLogout";
 import { toast } from "react-toastify";
+import { flushSync } from "react-dom";
 import {
   LayoutDashboard,
   LogOut,
@@ -158,7 +159,9 @@ export default function Header() {
     );
 
     const transition = document.startViewTransition(() => {
-      setTheme(nextTheme);
+      flushSync(() => {
+        setTheme(nextTheme);
+      });
     });
 
     transition.ready.then(() => {
@@ -182,27 +185,9 @@ export default function Header() {
     <header className="bg-background/80 border-border sticky top-0 z-50 w-full border-b backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
         <div className="flex items-center justify-center">
-          <Link href="/">
-            <Image
-              src={"/logoblack.png"}
-              alt="logo"
-              width={40}
-              height={40}
-              className="hidden dark:block md:dark:hidden"
-            />
-          </Link>
-          <Link href="/">
-            <Image
-              src={"/logowhite.png"}
-              alt="logo"
-              width={40}
-              height={40}
-              className="block md:hidden dark:hidden"
-            />
-          </Link>
           <Link
             href="/"
-            className={`text-foreground group flex items-center text-xl font-bold tracking-tight max-md:hidden ${user ? "max-[960px]:pl-10" : ""}`}
+            className={`text-foreground group flex items-center text-xl font-bold tracking-tight max-sm:text-sm ${user ? "max-[960px]:pl-10" : ""}`}
           >
             Rent
             <span className="ml-1 bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
@@ -216,7 +201,7 @@ export default function Header() {
           ) : (
             <>
               {!user ? (
-                <div className="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="flex items-center gap-1 rounded-full bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900">
                   {tabs.map((tab) => {
                     const isActive = pathname === tab.href;
                     const isHovered = hoveredTab === tab.href;
@@ -227,7 +212,7 @@ export default function Header() {
                         href={tab.href}
                         onMouseEnter={() => setHoveredTab(tab.href)}
                         onMouseLeave={() => setHoveredTab(null)}
-                        className={`relative rounded-full px-4 py-2 text-sm font-medium transition-colors ${isActive ? "text-white" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
+                        className={`relative rounded-full px-4 py-1 font-medium transition-colors ${isActive ? "text-white" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
                       >
                         {isActive && (
                           <motion.div
@@ -253,7 +238,7 @@ export default function Header() {
                             }}
                           />
                         )}
-                        <span className="relative z-10 text-xs md:text-sm">
+                        <span className="relative z-10 text-xs">
                           {tab.name}
                         </span>
                       </Link>
@@ -368,7 +353,7 @@ export default function Header() {
               type="button"
               onClick={toggleTheme}
               aria-label="สลับธีมสว่าง/มืด"
-              className="border-border text-muted hover:bg-surface flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border transition-colors active:scale-95"
+              className="border-border text-muted hover:bg-surface flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border transition-colors active:scale-95"
             >
               {resolvedTheme === "dark" ? (
                 <Sun size={16} />

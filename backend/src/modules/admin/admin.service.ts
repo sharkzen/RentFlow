@@ -967,6 +967,73 @@ export const AdminService = {
     return result;
   },
 
+  getLockedUsers: async (page: number, limit: number) => {
+    const skip = (page - 1) * limit;
+
+    const whereCondition: Prisma.UserWhereInput = {
+      lockedUntil: {
+        gt: new Date(),
+      },
+    };
+
+    const [total, items] = await prisma.$transaction([
+      prisma.user.count({
+        where: whereCondition,
+      }),
+      prisma.user.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+
+        orderBy: {
+          lockedUntil: "asc",
+        },
+
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          lockedUntil: true,
+          failedLoginAttempts: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    return {
+      data: items,
+
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  },
+
+  unlockUser: async (userId: string, adminUserId: string) => {
+    const result = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+
+      data: {
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
+    });
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "UNLOCK_ACCOUNT",
+      entityType: "User",
+      entityId: userId,
+    });
+
+    return result;
+  },
+
   getLandmarks: async (
     page: number,
     limit: number,

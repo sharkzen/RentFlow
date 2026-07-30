@@ -86,7 +86,7 @@ export default function SelectDormModal({
               placeholder="ค้นหาชื่อหอพัก..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full rounded-xl border-0 bg-white py-3 pr-4 pl-10 text-sm text-gray-900 shadow-lg outline-none placeholder:text-gray-400 focus:ring-2 focus:ring-white/70"
+              className="bg-surface text-foreground placeholder:text-muted w-full rounded-xl border-0 py-3 pr-4 pl-10 text-sm shadow-lg outline-none focus:ring-2 focus:ring-white/70"
             />
           </div>
         </div>

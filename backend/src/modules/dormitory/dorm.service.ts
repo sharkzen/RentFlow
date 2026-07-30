@@ -463,6 +463,7 @@ export const dormService = {
         totalAvailable: availableRoomsCount,
         airAvailable: availableAirRoomsCount,
         fanAvailable: availableFanRoomsCount,
+        totalRooms: dorm.rooms?.length ?? 0,
       },
     };
   },
@@ -663,6 +664,10 @@ export const dormService = {
       );
     }
 
+    if (!latLng && dorm.mapUrl !== existingDorm.mapUrl) {
+      throw new Error("MAP_LINK_UNRESOLVED");
+    }
+
     const validPromptPayType =
       dorm.promptPayType &&
       ["PHONE", "ID_CARD", "E_WALLET"].includes(dorm.promptPayType)
@@ -749,6 +754,7 @@ export const dormService = {
           bankHolder: dorm.bankHolder,
           promptPayType: validPromptPayType,
           promptPayValue: dorm.promptPayValue,
+          promptPayHolder: dorm.promptPayHolder,
         },
 
         create: {
@@ -758,6 +764,7 @@ export const dormService = {
           bankHolder: dorm.bankHolder,
           promptPayType: validPromptPayType,
           promptPayValue: dorm.promptPayValue,
+          promptPayHolder: dorm.promptPayHolder,
           isActive: true,
         },
       });

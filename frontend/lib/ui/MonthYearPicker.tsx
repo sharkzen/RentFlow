@@ -98,7 +98,9 @@ export default function MonthYearPicker({
               size={16}
               className={`shrink-0 ${isMonthOpen ? "text-indigo-500" : "text-gray-400"}`}
             />
-            <span className="truncate">{THAI_MONTHS[currentMonth]}</span>
+            <span className="text-muted truncate">
+              {THAI_MONTHS[currentMonth]}
+            </span>
           </div>
           <ChevronDown
             size={16}
@@ -129,7 +131,7 @@ export default function MonthYearPicker({
           onClick={() => setIsYearOpen(!isYearOpen)}
           className={`flex h-full w-full items-center justify-between rounded-lg border px-3 text-sm font-medium transition-all focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${isYearOpen ? "border-indigo-500 text-indigo-600" : "border-gray-200 text-gray-700 hover:border-gray-400 hover:bg-gray-50"} ${disabled ? "" : "cursor-pointer"}`}
         >
-          <span>{currentYear + 543}</span>
+          <span className="text-muted">{currentYear + 543}</span>
           <ChevronDown
             size={16}
             className={`shrink-0 text-gray-400 transition-transform duration-200 ${isYearOpen ? "rotate-180 text-indigo-500" : ""}`}

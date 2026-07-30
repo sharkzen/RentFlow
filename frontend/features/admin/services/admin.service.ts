@@ -5,6 +5,7 @@ import {
   DashboardData,
   Dormitory,
   Landmark,
+  LockedUser,
   OwnerApproval,
   OwnerUser,
   PaginatedResponse,
@@ -139,6 +140,25 @@ export const AdminService = {
       status,
     });
 
+    return res.data;
+  },
+
+  getLockedUsers: async (
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedResponse<LockedUser>> => {
+    const res = await axios.get("/api/admin/users/locked", {
+      params: {
+        page,
+        limit,
+      },
+    });
+
+    return res.data;
+  },
+
+  unlockUser: async (userId: string) => {
+    const res = await axios.patch(`/api/admin/users/${userId}/unlock`);
     return res.data;
   },
 

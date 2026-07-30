@@ -4,7 +4,7 @@ export default function Hero() {
   return (
     <section
       suppressHydrationWarning
-      className="bg-background relative flex min-h-screen w-full items-center justify-center overflow-hidden"
+      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden"
     >
       <div className="bg-grid bg-grid-fade absolute inset-0 -z-10" />
       <div

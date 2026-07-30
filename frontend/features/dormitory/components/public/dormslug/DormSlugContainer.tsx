@@ -10,21 +10,23 @@ import { DormMap } from "./DormMap";
 import log from "@/lib/logger";
 
 const DormSlugSkeleton = () => (
-  <div className="mx-auto max-w-7xl animate-pulse space-y-8 px-4 pt-8 pb-20 sm:px-6 lg:px-8">
-    <div className="h-105 w-full rounded-3xl bg-slate-100 md:h-130" />
-    <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
-      <div className="space-y-6 lg:col-span-8">
-        <div className="h-9 w-2/3 rounded-full bg-slate-100" />
-        <div className="space-y-3">
-          <div className="h-4 w-full rounded-full bg-slate-50" />
-          <div className="h-4 w-5/6 rounded-full bg-slate-50" />
-          <div className="h-4 w-4/6 rounded-full bg-slate-50" />
+  <main className="bg-grid bg-background min-h-screen">
+    <div className="mx-auto max-w-7xl animate-pulse space-y-8 px-4 pt-8 pb-20 sm:px-6 lg:px-8">
+      <div className="bg-skeleton h-105 w-full rounded-3xl md:h-130" />
+      <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
+        <div className="space-y-6 lg:col-span-8">
+          <div className="bg-skeleton h-9 w-2/3 rounded-full" />
+          <div className="space-y-3">
+            <div className="bg-skeleton h-4 w-full rounded-full" />
+            <div className="bg-skeleton h-4 w-5/6 rounded-full" />
+            <div className="bg-skeleton h-4 w-4/6 rounded-full" />
+          </div>
+          <div className="bg-skeleton mt-8 h-72 w-full rounded-2xl" />
         </div>
-        <div className="mt-8 h-72 w-full rounded-2xl bg-slate-100" />
+        <div className="bg-skeleton h-96 w-full rounded-2xl lg:col-span-4" />
       </div>
-      <div className="h-96 w-full rounded-2xl bg-slate-100 lg:col-span-4" />
     </div>
-  </div>
+  </main>
 );
 
 export default function DormSlugContainer() {
@@ -56,7 +58,7 @@ export default function DormSlugContainer() {
   if (loading || !dorm) return <DormSlugSkeleton />;
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-20 sm:p-4">
+    <main className="bg-grid bg-background min-h-screen pb-20 sm:p-4">
       {/* Hero Slider - Full width, no padding */}
       <section className="w-full overflow-hidden">
         <DormHeroSlider images={dorm.images} />
@@ -66,11 +68,11 @@ export default function DormSlugContainer() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           {/* Main Content */}
           <div className="order-2 space-y-8 lg:order-1 lg:col-span-8">
-            <div className="bg-white p-6 sm:rounded-2xl sm:p-8">
+            <div className="bg-surface border-border p-6 sm:rounded-2xl sm:border sm:p-8">
               <DormContent data={dorm} />
             </div>
 
-            <div className="bg-white p-6 sm:rounded-2xl sm:p-8">
+            <div className="bg-surface border-border p-6 sm:rounded-2xl sm:border sm:p-8">
               <DormMap
                 latitude={dorm.latitude}
                 longitude={dorm.longitude}

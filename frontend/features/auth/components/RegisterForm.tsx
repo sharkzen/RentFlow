@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import log from "@/lib/logger";
 import useRegister from "@/features/auth/hooks/useRegister";
 import type { OwnerRegisterFormData } from "@/features/auth/types";
 
@@ -26,8 +25,8 @@ import {
 } from "@/features/auth/validators";
 
 import FormSuccess from "@/lib/ui/status/FormSuccess";
-import { showBackendError } from "@/lib/backendError";
 import InfoTooltip from "@/lib/ui/InfoTooltip";
+import MapTutorialContent from "@/lib/ui/MapTutorialContent";
 
 export default function OwnerRegisterForm() {
   const mutation = useRegister();
@@ -95,7 +94,8 @@ export default function OwnerRegisterForm() {
     if (!isValidText(form.dormName, 3))
       newErrors.dormName = "กรุณากรอกชื่อหอพัก";
 
-    if (!isValidText(form.address, 5)) newErrors.address = "กรุณากรอกที่อยู่";
+    if (!isValidText(form.address, 5, 500))
+      newErrors.address = "กรุณากรอกที่อยู่";
 
     if (!isValidEmail(form.email)) newErrors.email = "อีเมลไม่ถูกต้อง";
 
@@ -241,6 +241,7 @@ export default function OwnerRegisterForm() {
                           className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-border"} `}
                         />
                         <button
+                          tabIndex={-1}
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="text-muted hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
@@ -272,6 +273,7 @@ export default function OwnerRegisterForm() {
                           className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.confirmPassword ? "border-red-500" : "border-border"} `}
                         />
                         <button
+                          tabIndex={-1}
                           type="button"
                           onClick={() =>
                             setShowConfirmPassword(!showConfirmPassword)
@@ -332,59 +334,16 @@ export default function OwnerRegisterForm() {
                     <div className="space-y-1">
                       <label className="text-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium">
                         <MapPin className="text-muted h-4 w-4 shrink-0" />
-                        ลิงก์ Google Map
-                        <Link
-                          className="text-blue-500 underline"
-                          href={"https://maps.google.com"}
-                          target="_blank"
-                        >
-                          เปิด Map
-                        </Link>
-                        <InfoTooltip>
-                          <p className="text-foreground font-semibold">
-                            วิธีคัดลอกลิงก์ตำแหน่งที่ถูกต้อง
-                          </p>
-                          <ol className="mt-2 list-decimal space-y-1.5 pl-4">
-                            <li>
-                              เปิด{" "}
-                              <strong>Google Maps ผ่านเว็บเบราว์เซอร์</strong>
-                              (เช่น Chrome, Edge หรือ Safari)
-                              <span className="text-muted block text-xs">
-                                ไม่แนะนำให้ทำผ่านแอป Google Maps
-                              </span>
-                            </li>
-                            <li>
-                              เลื่อนแผนที่ไปยังตำแหน่งของหอพักให้ตรงที่สุด
-                            </li>
-                            <li>
-                              คลิกหรือกดค้างบนตำแหน่งหอพักจริง เพื่อ
-                              <strong>ปักหมุด (Dropped Pin)</strong>
-                              <span className="text-muted block text-xs">
-                                อย่าค้นหาชื่อหอพักแล้วกดแชร์ทันที
-                              </span>
-                            </li>
-                            <li>
-                              เมื่อปักหมุดแล้ว ให้คัดลอกลิงก์จาก
-                              <strong>แถบ URL ด้านบนของเบราว์เซอร์</strong>
-                              แล้วนำมาวางในช่องนี้
-                            </li>
-                          </ol>
-                          <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 p-2 text-amber-700">
-                            <p className="font-medium">⚠️ ข้อควรระวัง</p>
-                            <p className="mt-1 text-sm">
-                              หากค้นหาชื่อหอพักแล้วกดแชร์ทันที Google Maps
-                              อาจสร้างลิงก์ของสถานที่ที่อยู่ใกล้เคียง
-                              หรือพิกัดที่ไม่ตรงกับตำแหน่งจริงของหอพัก
-                              ทำให้ผู้เช่าเดินทางผิดตำแหน่งได้
-                            </p>
-                          </div>
+                        ลิงก์ Google Map หรือ พิกัดที่ตั้ง
+                        <InfoTooltip fullscreen>
+                          <MapTutorialContent />
                         </InfoTooltip>
                       </label>
                       <input
                         id="mapUrl"
                         type="text"
                         value={form.mapUrl}
-                        placeholder="https://maps.google.com/?q=14.9799,102.0977"
+                        placeholder="วางลิงก์แมพ หรือกรอกพิกัด (เช่น 16.18807, 103.27974)"
                         onChange={(e) =>
                           handleChange(
                             "mapUrl",

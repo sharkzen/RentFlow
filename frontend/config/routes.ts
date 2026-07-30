@@ -11,6 +11,7 @@ export const routes = {
     featured: "/admin/featured",
     features: "/admin/features",
     landmarks: "/admin/landmarks",
+    lockedUsers: "/admin/locked-users",
     owners: "/admin/owners",
     users: "/admin/users",
   },

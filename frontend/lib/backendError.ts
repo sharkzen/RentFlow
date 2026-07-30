@@ -3,6 +3,8 @@ export const errorMessageMap: Record<string, string> = {
   DATA_ARE_NOT_VALID: "ข้อมูลไม่ครบหรือไม่ถูกต้อง",
   EMAIL_ALREADY_EXISTS: "อีเมลนี้ถูกใช้งานแล้ว",
   INVALID_MAP_URL: "ลิงก์ Google Map ไม่ถูกต้อง",
+  MAP_LINK_UNRESOLVED:
+    "ไม่สามารถอ่านพิกัดจากลิงก์/ข้อความที่กรอกได้ กรุณาปักหมุดใหม่แล้วคัดลอกลิงก์จากแถบ URL หรือกรอกพิกัด (ละติจูด, ลองจิจูด) แทน",
   INVALID_EMAIL_OR_PASSWORD: "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
   UNAUTHORIZED: "ไม่สามารถเข้าถึงข้อมูลได้ กรุณาลองใหม่ภายหลัง",
   FORBIDDEN: "ไม่สามารถเข้าถึงข้อมูลได้ กรุณาลองใหม่ภายหลัง",

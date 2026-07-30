@@ -25,6 +25,8 @@ import * as argon2 from "argon2";
 import { env } from "@/config/env";
 const OTP_TTL_MS = 5 * 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_MS = 5 * 60 * 1000;
 
 export const authService = {
   async me(user: UserDecodedDto) {
@@ -94,9 +96,20 @@ export const authService = {
     if (existing) throw new Error("EMAIL_ALREADY_EXISTS");
 
     const hashedPassword = await hashPassword(data.password);
-    const latLng = await getLatLngFromUrl(data.mapUrl);
+    let latLng = null;
+    const coordinateRegex = /^(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)$/;
+    const isCoordinate = data.mapUrl.match(coordinateRegex);
 
-    if (!latLng) throw new Error("INVALID_MAP_URL");
+    if (isCoordinate) {
+      latLng = {
+        lat: parseFloat(isCoordinate[1]),
+        lng: parseFloat(isCoordinate[3]),
+      };
+    } else {
+      latLng = await getLatLngFromUrl(data.mapUrl);
+    }
+
+    if (!latLng) throw new Error("INVALID_MAP_URL_OR_COORDINATE");
 
     const result = await prisma.$transaction(async (prismaTx) => {
       const user = await prismaTx.user.create({
@@ -194,9 +207,65 @@ export const authService = {
 
     if (!user) throw new Error("EMAIL_NOT_FOUND");
 
+    const now = new Date();
+
+    if (user.lockedUntil && user.lockedUntil > now) {
+      const err = new Error("ACCOUNT_LOCKED");
+      (err as any).lockedUntil = user.lockedUntil;
+      throw err;
+    }
+
+    const priorFailedAttempts = user.lockedUntil ? 0 : user.failedLoginAttempts;
     const isValid = await verifyPassword(user.password, data.password);
 
-    if (!isValid) throw new Error("INVALID_EMAIL_OR_PASSWORD");
+    if (!isValid) {
+      const attempts = priorFailedAttempts + 1;
+
+      if (attempts >= LOGIN_MAX_ATTEMPTS) {
+        const lockedUntil = new Date(now.getTime() + LOGIN_LOCKOUT_MS);
+
+        await prisma.user.update({
+          where: {
+            id: user.id,
+          },
+
+          data: {
+            failedLoginAttempts: attempts,
+            lockedUntil,
+          },
+        });
+
+        const err = new Error("ACCOUNT_LOCKED");
+        (err as any).lockedUntil = lockedUntil;
+        throw err;
+      }
+
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+
+        data: {
+          failedLoginAttempts: attempts,
+          lockedUntil: null,
+        },
+      });
+
+      throw new Error("INVALID_EMAIL_OR_PASSWORD");
+    }
+
+    if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+      await prisma.user.update({
+        where: {
+          id: user.id,
+        },
+
+        data: {
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+      });
+    }
 
     await createActivityLog({
       userId: user.id,
@@ -262,16 +331,6 @@ export const authService = {
     if (user.status !== "ACTIVE" && user.status !== "PENDING") {
       throw new Error("USER_ACCOUNT_SUSPENDED");
     }
-
-    await prisma.activityLog.create({
-      data: {
-        userId: user.id,
-        tenantId: activeTenant.id,
-        action: "LOGIN_QR",
-        entityType: "User",
-        entityId: user.id,
-      },
-    });
 
     return user;
   },

@@ -8,6 +8,7 @@ import {
   Sparkles,
   CheckCircle2,
   XCircle,
+  HelpCircle,
   DoorOpen,
   Snowflake,
   Wind,
@@ -43,42 +44,45 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
     : null;
 
   return (
-    <div className="overflow-hidden bg-white sm:rounded-2xl">
+    <div className="bg-surface border-border overflow-hidden border sm:rounded-2xl">
       <div className="p-6 pb-5">
         {/* Header: Price & Status */}
         <div className="flex items-start justify-between">
           <div>
-            <p className="mb-1 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+            <p className="text-muted mb-1 text-xs font-semibold tracking-wider uppercase">
               ราคาเริ่มต้น
             </p>
             <div className="flex items-baseline gap-2">
               {settings?.roomPrice != null ? (
                 <>
-                  <span className="text-4xl font-bold text-slate-900">
+                  <span className="text-foreground text-4xl font-bold">
                     {settings.roomPrice.toLocaleString()}
                   </span>
-                  <span className="text-sm font-medium text-slate-500">
+                  <span className="text-muted text-sm font-medium">
                     บาท / เดือน
                   </span>
                 </>
               ) : (
-                <span className="text-xl font-semibold text-slate-400">
+                <span className="text-muted text-xl font-semibold">
                   ยังไม่กำหนด
                 </span>
               )}
             </div>
           </div>
 
-          {/* Status (Right Aligned, No Background, Larger Text) */}
           {availability && (
             <div className="mt-1 shrink-0 text-right">
               {availability.isAvailable ? (
                 <span className="flex items-center justify-end gap-1.5 text-lg font-bold text-emerald-600">
                   <CheckCircle2 size={20} /> มีห้องว่าง
                 </span>
-              ) : (
+              ) : availability.totalRooms > 0 ? (
                 <span className="flex items-center justify-end gap-1.5 text-lg font-bold text-rose-600">
                   <XCircle size={20} /> ไม่ว่าง
+                </span>
+              ) : (
+                <span className="text-muted flex items-center justify-end gap-1.5 text-lg font-bold">
+                  <HelpCircle size={20} /> ยังไม่ระบุ
                 </span>
               )}
             </div>
@@ -90,10 +94,10 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
           <div className="mt-5 flex flex-col gap-3">
             {/* Total Rooms */}
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-2 text-base font-semibold text-slate-800">
+              <span className="text-foreground flex items-center gap-2 text-base font-semibold">
                 <DoorOpen size={18} className="text-blue-500" /> ห้องว่างทั้งหมด
               </span>
-              <span className="text-base font-bold text-slate-900">
+              <span className="text-foreground text-base font-bold">
                 {availability.totalAvailable} ห้อง
               </span>
             </div>
@@ -101,9 +105,9 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             {/* Split Air/Fan */}
             {(availability.airAvailable > 0 ||
               availability.fanAvailable > 0) && (
-              <div className="flex flex-col gap-2 border-t border-slate-200 pt-3">
+              <div className="border-border flex flex-col gap-2 border-t pt-3">
                 {availability.airAvailable > 0 && (
-                  <div className="flex items-center justify-between text-sm font-medium text-slate-600">
+                  <div className="text-muted flex items-center justify-between text-sm font-medium">
                     <span className="flex items-center gap-2">
                       <Snowflake size={16} className="text-sky-500" /> แอร์
                     </span>
@@ -111,7 +115,7 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
                   </div>
                 )}
                 {availability.fanAvailable > 0 && (
-                  <div className="flex items-center justify-between text-sm font-medium text-slate-600">
+                  <div className="text-muted flex items-center justify-between text-sm font-medium">
                     <span className="flex items-center gap-2">
                       <Wind size={16} className="text-teal-500" /> พัดลม
                     </span>
@@ -125,16 +129,16 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
       </div>
 
       {/* Utilities */}
-      <div className="border-t border-slate-100 px-6 py-5">
-        <p className="mb-4 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+      <div className="border-border border-t px-6 py-5">
+        <p className="text-muted mb-4 text-xs font-semibold tracking-wider uppercase">
           ค่าใช้จ่ายเพิ่มเติม
         </p>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-sm text-slate-600">
+            <span className="text-muted flex items-center gap-2 text-sm">
               <Droplets size={15} className="text-blue-400" /> ค่าน้ำ
             </span>
-            <span className="text-sm font-semibold text-slate-800">
+            <span className="text-foreground text-sm font-semibold">
               {settings?.waterRate > 0
                 ? settings?.waterBillingType === "FLAT_RATE"
                   ? `${settings.waterRate} บาท/ด. (เหมาจ่าย)`
@@ -143,21 +147,21 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-sm text-slate-600">
+            <span className="text-muted flex items-center gap-2 text-sm">
               <Zap size={15} className="text-yellow-400" /> ค่าไฟ
             </span>
-            <span className="text-sm font-semibold text-slate-800">
+            <span className="text-foreground text-sm font-semibold">
               {settings?.electricRate > 0
                 ? `${settings.electricRate} บ./หน่วย`
                 : "ยังไม่กำหนด"}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-sm text-slate-600">
+            <span className="text-muted flex items-center gap-2 text-sm">
               <Sparkles size={15} className="text-purple-400" /> ส่วนกลาง
             </span>
             <span
-              className={`text-sm font-semibold ${settings?.commonFee > 0 ? "text-slate-800" : "text-emerald-500"}`}
+              className={`text-sm font-semibold ${settings?.commonFee > 0 ? "text-foreground" : "text-emerald-500"}`}
             >
               {settings?.commonFee > 0 ? `${settings.commonFee} บาท` : "ไม่มี"}
             </span>
@@ -166,8 +170,8 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
       </div>
 
       {/* Contact */}
-      <div className="border-t border-slate-100 bg-white px-6 py-5">
-        <p className="mb-1 text-xs font-semibold tracking-wider uppercase">
+      <div className="border-border bg-surface border-t px-6 py-5">
+        <p className="text-foreground mb-1 text-xs font-semibold tracking-wider uppercase">
           ติดต่อห้องพัก
         </p>
 
@@ -176,7 +180,7 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             <a
               key={contact.id}
               href={`tel:${contact.phone}`}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white transition-all hover:bg-slate-700 active:scale-95"
+              className="bg-foreground text-background flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all hover:opacity-85 active:scale-95"
             >
               <Phone size={16} />
               {contact.name

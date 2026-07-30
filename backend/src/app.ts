@@ -31,6 +31,7 @@ export async function buildApp() {
     if (error instanceof AppError) {
       return reply.status(error.statusCode).send({
         message: error.code,
+        ...error.meta,
 
         ...(env.NODE_ENV !== "production" && {
           detail: error.message,
@@ -42,6 +43,12 @@ export async function buildApp() {
       return reply.status(400).send({
         message: "VALIDATION_ERROR",
         issues: (error as any).issues,
+      });
+    }
+
+    if ((error as any).statusCode === 429) {
+      return reply.status(429).send({
+        message: "RATE_LIMIT_EXCEEDED",
       });
     }
 

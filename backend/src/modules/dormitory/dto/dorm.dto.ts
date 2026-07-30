@@ -26,6 +26,7 @@ export interface DormFormDataDto {
   bankHolder?: string;
   promptPayType?: string;
   promptPayValue?: string;
+  promptPayHolder?: string;
 }
 
 export interface GetDormsQueryDto {

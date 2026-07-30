@@ -69,7 +69,7 @@ export default function DormSelector({ dorms, selectedDorm, onSelect }: Props) {
         />
       </button>
       {isOpen && (
-        <div className="border-border bg-surface animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-2 w-full min-w-[240px] origin-top-right overflow-hidden rounded-xl border shadow-xl ring-1 ring-black/5 md:right-0 md:left-auto">
+        <div className="border-border bg-surface animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-2 w-full min-w-[240px] origin-top-right overflow-hidden rounded-xl border shadow-xl ring-1 ring-black/5 md:right-0 md:right-auto">
           <div className="border-border border-b p-2">
             <div className="relative">
               <Search className="text-muted absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2" />

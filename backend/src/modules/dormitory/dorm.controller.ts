@@ -101,6 +101,10 @@ export const DormController = {
         throw AppError.forbidden("FORBIDDEN");
       }
 
+      if (error.message === "MAP_LINK_UNRESOLVED") {
+        throw AppError.badRequest("MAP_LINK_UNRESOLVED");
+      }
+
       throw AppError.internal("UPDATE_FAILED");
     }
   },

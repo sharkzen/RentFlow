@@ -322,6 +322,38 @@ export const AdminController = {
     }
   },
 
+  getLockedUsers: async (req: FastifyRequest, reply: FastifyReply) => {
+    const { page = 1, limit = 10 } = req.query as any;
+
+    const result = await AdminService.getLockedUsers(
+      Number(page),
+      Number(limit),
+    );
+    return reply.send(result);
+  },
+
+  unlockUser: async (
+    req: FastifyRequest<{
+      Params: {
+        id: string;
+      };
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const user = req.user as UserDecodedDto;
+
+    try {
+      const result = await AdminService.unlockUser(req.params.id, user.sub);
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        throw AppError.notFound("USER_NOT_FOUND", "ไม่พบข้อมูลผู้ใช้นี้");
+      }
+
+      throw error;
+    }
+  },
+
   getLandmarks: async (req: FastifyRequest, reply: FastifyReply) => {
     const { page = 1, limit = 10, q = "", type = "ALL" } = req.query as any;
 

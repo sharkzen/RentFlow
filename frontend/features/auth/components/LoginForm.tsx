@@ -106,30 +106,37 @@ export default function LoginForm() {
         DATA_ARE_NOT_VALID: "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
         UNAUTHORIZED: "ไม่มีสิทธิ์เข้าใช้งาน",
         INTERNAL_SERVER_ERROR: "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์",
+        ACCOUNT_LOCKED:
+          "บัญชีถูกล็อกชั่วคราวเนื่องจากเข้าสู่ระบบผิดหลายครั้ง กรุณาลองใหม่ภายหลัง",
       };
 
-      try {
-        const response = await toast.promise(
-          mutation.mutateAsync({
-            email,
-            password,
-          }),
-          {
-            pending: "กำลังเข้าสู่ระบบ...",
-            success: "เข้าสู่ระบบสำเร็จ",
+      const loadingToastId = "login-form-toast";
 
-            error: {
-              render({ data }: { data: any }) {
-                const backendErrorCode =
-                  data?.response?.data?.message || data?.message;
-                return (
-                  errorMessages[backendErrorCode] ||
-                  "เข้าสู่ระบบไม่สำเร็จ โปรดลองอีกครั้ง"
-                );
-              },
-            },
-          },
-        );
+      if (toast.isActive(loadingToastId)) {
+        toast.update(loadingToastId, {
+          render: "กำลังเข้าสู่ระบบ...",
+          type: "default",
+          isLoading: true,
+          autoClose: false,
+        });
+      } else {
+        toast.loading("กำลังเข้าสู่ระบบ...", {
+          toastId: loadingToastId,
+        });
+      }
+
+      try {
+        const response = await mutation.mutateAsync({
+          email,
+          password,
+        });
+
+        toast.update(loadingToastId, {
+          render: "เข้าสู่ระบบสำเร็จ",
+          type: "success",
+          isLoading: false,
+          autoClose: 2000,
+        });
 
         const me = await authService.getMe();
         setUser(me);
@@ -148,6 +155,47 @@ export default function LoginForm() {
         else if (response.role === "ADMIN") router.replace("/admin/dashboard");
       } catch (error: any) {
         log.error("Login failed:", error);
+        const backendErrorCode =
+          error?.response?.data?.message || error?.message;
+
+        if (backendErrorCode === "ACCOUNT_LOCKED") {
+          const lockedUntil = error?.response?.data?.lockedUntil;
+          const remainingSeconds = lockedUntil
+            ? Math.max(
+                0,
+                Math.round(
+                  (new Date(lockedUntil).getTime() - Date.now()) / 1000,
+                ),
+              )
+            : 0;
+
+          const formatTime = (totalSeconds: number) => {
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            return `${m}:${s.toString().padStart(2, "0")}`;
+          };
+
+          const message =
+            remainingSeconds > 0
+              ? `บัญชีถูกล็อกชั่วคราว ลองใหม่ในอีก ${formatTime(remainingSeconds)} นาที`
+              : "สามารถลองเข้าสู่ระบบใหม่ได้แล้ว";
+
+          toast.update(loadingToastId, {
+            render: message,
+            type: "error",
+            isLoading: false,
+            autoClose: 4000,
+          });
+        } else {
+          toast.update(loadingToastId, {
+            render:
+              errorMessages[backendErrorCode] ||
+              "เข้าสู่ระบบไม่สำเร็จ โปรดลองอีกครั้ง",
+            type: "error",
+            isLoading: false,
+            autoClose: 4000,
+          });
+        }
       }
     }
   };
@@ -186,12 +234,12 @@ export default function LoginForm() {
             )}
           </div>
           {qrState === "loading" && (
-            <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center shadow-sm">
+            <div className="border-border bg-surface rounded-2xl border p-10 text-center shadow-sm">
               <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-foreground text-lg font-semibold">
                 กำลังตรวจสอบ QR Code...
               </h3>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="text-muted mt-2 text-sm">
                 โปรดรอสักครู่ ระบบกำลังนำคุณเข้าสู่แดชบอร์ด
               </p>
             </div>
@@ -207,7 +255,7 @@ export default function LoginForm() {
               <p className="mb-6 text-sm text-red-600">{qrErrorMessage}</p>
               <button
                 onClick={() => setQrState("idle")}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                className="bg-surface text-foreground hover:bg-background flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm transition"
               >
                 <ArrowLeft className="h-4 w-4" />
                 กลับไปเข้าสู่ระบบด้วยอีเมล
@@ -267,9 +315,10 @@ export default function LoginForm() {
                       className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-border"} `}
                     />
                     <button
+                      tabIndex={-1}
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="text-muted hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
                     >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5" />

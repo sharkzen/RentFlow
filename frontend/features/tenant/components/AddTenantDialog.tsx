@@ -303,7 +303,7 @@ export default function AddTenantDialog({
                       <button
                         type="button"
                         onClick={() => setIsRoomSelectOpen(!isRoomSelectOpen)}
-                        className={`flex h-10 w-full cursor-pointer items-center justify-between rounded-lg border px-3 text-sm transition-all focus:ring-2 focus:ring-indigo-200 focus:outline-none ${formData.roomId ? "border-indigo-200 bg-indigo-50/50 text-indigo-900" : "border-border bg-surface text-muted hover:border-muted"}`}
+                        className={`flex h-10 w-full cursor-pointer items-center justify-between rounded-lg border px-3 text-sm transition-all focus:outline-none ${formData.roomId ? "dark:bg-background border-indigo-200 bg-indigo-50/50 text-indigo-900 dark:text-white" : "border-border bg-surface text-muted hover:border-muted"}`}
                       >
                         <span className="truncate">
                           {selectedRoomObj
@@ -339,7 +339,7 @@ export default function AddTenantDialog({
                                 <li
                                   key={room.id}
                                   onClick={() => handleSelectRoom(room.id)}
-                                  className={`flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-indigo-50 ${formData.roomId === room.id ? "bg-indigo-50 font-medium text-indigo-700" : "text-foreground"}`}
+                                  className={`dark:hover:bg-background flex cursor-pointer items-center justify-between px-3 py-2 text-sm transition-colors hover:bg-indigo-50 ${formData.roomId === room.id ? "dark:bg-background bg-indigo-50 font-medium text-indigo-700" : "text-foreground"}`}
                                 >
                                   <div>
                                     <div>ห้อง {room.roomNumber}</div>

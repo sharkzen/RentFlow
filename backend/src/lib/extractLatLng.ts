@@ -45,6 +45,27 @@ function isValidLatLng(lat: number, lng: number): boolean {
   );
 }
 
+const BARE_COORD_PATTERN =
+  /^(-?\d{1,3}(?:\.\d+)?)\s*[,،]\s*(-?\d{1,3}(?:\.\d+)?)$/;
+
+export function extractBareCoords(text: string): LatLng | null {
+  if (typeof text !== "string") return null;
+
+  const match = text.trim().match(BARE_COORD_PATTERN);
+
+  if (!match) return null;
+
+  const lat = parseFloat(match[1]);
+  const lng = parseFloat(match[2]);
+
+  return isValidLatLng(lat, lng)
+    ? {
+        lat,
+        lng,
+      }
+    : null;
+}
+
 function extractCoords(url: string): LatLng | null {
   if (!url) return null;
 
@@ -208,6 +229,10 @@ async function resolveWithFallbackUserAgents(
 
 export async function getLatLngFromUrl(url: string): Promise<LatLng | null> {
   if (!url) return null;
+
+  const bareCoords = extractBareCoords(url);
+
+  if (bareCoords) return bareCoords;
 
   const trimmedUrl = extractMapUrlFromText(url);
 

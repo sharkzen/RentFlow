@@ -313,8 +313,7 @@ export default function DormPaymentSettings({
         </div>
         <div className="md:col-span-2">
           <Label>
-            ชื่อบัญชี ต้องตรงกับบัญชีพร้อมเพย์ (ถ้ามี){" "}
-            <span className="text-red-500">*</span>
+            ชื่อบัญชี <span className="text-red-500">*</span>
           </Label>
           <Input
             value={formData.bankHolder}
@@ -344,6 +343,16 @@ export default function DormPaymentSettings({
             value={formData.promptPayValue}
             onChange={(e: any) => updateField("promptPayValue", e.target.value)}
             placeholder="08xxxxxxxx / 1xxxxxxxxxxxx"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <Label>ชื่อบัญชีพร้อมเพย์</Label>
+          <Input
+            value={formData.promptPayHolder}
+            onChange={(e: any) =>
+              updateField("promptPayHolder", e.target.value)
+            }
+            placeholder="ชื่อเจ้าของบัญชีพร้อมเพย์ (ถ้าไม่ระบุจะใช้ชื่อบัญชีธนาคาร)"
           />
         </div>
       </div>

@@ -39,9 +39,7 @@ export default function MaintenanceStatusBadge({ status }: Props) {
       );
     case "CANCELLED":
       return (
-        <span
-          className={`${baseStyle} bg-gray-50 text-gray-600 ring-gray-500/10`}
-        >
+        <span className={`${baseStyle} bg-background text-muted ring-border`}>
           <XCircle size={12} />
           ยกเลิก
         </span>

@@ -143,7 +143,7 @@ export default function BillTable({
         );
       case "CANCELLED":
         return (
-          <span className={`${base} bg-gray-50 text-gray-600 ring-gray-500/20`}>
+          <span className={`${base} bg-background text-muted ring-border`}>
             <XCircle size={12} />
             ยกเลิก
           </span>

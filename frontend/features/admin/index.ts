@@ -5,3 +5,4 @@ export { default as AdminDashboardContainer } from "./components/dashboard/Dashb
 export { default as LandmarkContainer } from "./components/landmark/LandmarkContainer";
 export { default as FeaturedContainer } from "./components/featured/FeaturedContainer";
 export { default as UserController } from "./components/user/UserController";
+export { default as LockedUsersController } from "./components/locked-users/LockedUsersController";

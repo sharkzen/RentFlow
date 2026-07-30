@@ -445,7 +445,7 @@ export default function BillDetailDialog({
         );
       case "CANCELLED":
         return (
-          <span className={`${base} border-gray-200 bg-gray-50 text-gray-600`}>
+          <span className={`${base} border-border bg-background text-muted`}>
             <XCircle size={14} />
             ยกเลิก
           </span>

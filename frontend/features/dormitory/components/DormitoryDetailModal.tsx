@@ -49,6 +49,9 @@ const DormMap = ({
     typeof latitude === "number" &&
     typeof longitude === "number" &&
     !(latitude === 0 && longitude === 0);
+  const navigateUrl = hasValidLatLng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
+    : mapUrl;
 
   return (
     <div className="border-border bg-surface mt-8 rounded-xl border p-5">
@@ -57,9 +60,9 @@ const DormMap = ({
           <MapPin className="text-red-500" size={20} />
           แผนที่และการเดินทาง
         </h3>
-        {mapUrl && (
+        {navigateUrl && (
           <a
-            href={mapUrl}
+            href={navigateUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline"

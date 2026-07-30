@@ -43,6 +43,7 @@ export const updateDormSchema = z
     bankHolder: z.string().optional(),
     promptPayType: z.string().optional(),
     promptPayValue: z.string().optional(),
+    promptPayHolder: z.string().optional(),
   })
   .refine((data) => (data.contacts ?? []).some((c) => c.phone.trim() !== ""), {
     message: "กรุณากรอกเบอร์โทรผู้ติดต่ออย่างน้อย 1 เบอร์",

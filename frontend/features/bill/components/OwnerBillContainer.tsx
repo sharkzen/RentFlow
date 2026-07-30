@@ -84,6 +84,26 @@ export default function BillContainer() {
   const currentDorm = dorms.find((d) => d.id === selectedDorm);
   const currentDormName = currentDorm?.name || "เลือกหอพัก";
 
+  const checkDormReadyForBill = (dormId: string): boolean => {
+    const dorm = dorms.find((d) => d.id === dormId);
+
+    if (!dorm?.settings) {
+      toast.error("กรุณาตั้งค่า 'ค่าน้ำ/ค่าไฟ' ของหอพักก่อนสร้างบิล");
+      return false;
+    }
+
+    const hasBank =
+      dorm.paymentSetting?.bankAccount && dorm.paymentSetting?.bankName;
+    const hasPromptPay = dorm.paymentSetting?.promptPayValue;
+
+    if (!hasBank && !hasPromptPay) {
+      toast.error("กรุณาตั้งค่า 'วิธีชำระเงิน' (บัญชีธนาคาร/PromptPay) ก่อน");
+      return false;
+    }
+
+    return true;
+  };
+
   useEffect(() => {
     const currentDormId = searchParams.get("dormId") || "ALL";
     const currentFilter = searchParams.get("filter") || "ALL";
@@ -365,7 +385,6 @@ export default function BillContainer() {
             จัดการบิล ตรวจสอบยอดชำระ และออกบิลใหม่
           </p>
         </div>
-
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap xl:w-auto xl:flex-1 xl:flex-nowrap xl:justify-end">
           <div className="w-full sm:w-auto">
             <DormSelector
@@ -374,7 +393,6 @@ export default function BillContainer() {
               onSelect={setSelectedDorm}
             />
           </div>
-
           <div className="flex w-full gap-2 sm:w-auto sm:flex-1 xl:flex-initial">
             <button
               type="button"
@@ -387,7 +405,6 @@ export default function BillContainer() {
                 ส่งบิล<span className="hidden sm:inline">แจ้งลูกบ้าน</span>
               </span>
             </button>
-
             <button
               type="button"
               onClick={() => {
@@ -395,6 +412,8 @@ export default function BillContainer() {
                   setIsSelectDormOpen(true);
                   return;
                 }
+
+                if (!checkDormReadyForBill(selectedDorm)) return;
 
                 setIsCreateOpen(true);
               }}
@@ -488,6 +507,10 @@ export default function BillContainer() {
         dorms={dorms}
         onSelect={(dormId) => {
           setSelectedDorm(dormId);
+          setIsSelectDormOpen(false);
+
+          if (!checkDormReadyForBill(dormId)) return;
+
           setIsCreateOpen(true);
         }}
       />

@@ -20,6 +20,8 @@ import {
   CreditCard,
   Image as ImageIcon,
   Phone,
+  Building2,
+  ExternalLink,
 } from "lucide-react";
 
 import {
@@ -40,6 +42,7 @@ import { toast } from "react-toastify";
 import { useHotkeys } from "react-hotkeys-hook";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import InfoTooltip from "@/lib/ui/InfoTooltip";
+import MapTutorialContent from "@/lib/ui/MapTutorialContent";
 import Link from "next/link";
 import DormPaymentSettings from "./DormPaymentSettings";
 import DormContactSettings from "./DormContactSettings";
@@ -50,6 +53,7 @@ interface DormPaymentSetting {
   bankHolder?: string;
   promptPayType?: string;
   promptPayValue?: string;
+  promptPayHolder?: string;
 }
 
 interface DormsDialogProps {
@@ -495,6 +499,7 @@ export default function DormsDialog({
     bankHolder: dorm.paymentSetting?.bankHolder ?? "",
     promptPayType: dorm.paymentSetting?.promptPayType ?? "",
     promptPayValue: dorm.paymentSetting?.promptPayValue ?? "",
+    promptPayHolder: dorm.paymentSetting?.promptPayHolder ?? "",
   });
 
   useEffect(() => {
@@ -736,25 +741,38 @@ export default function DormsDialog({
           ref={closeRef}
           className="bg-surface flex h-full w-full flex-col overflow-hidden ring-1 ring-slate-900/5 sm:max-h-[90vh] sm:max-w-4xl sm:rounded-2xl"
         >
-          <div className="border-border flex items-center justify-between border-b px-6 py-4">
-            <div className="flex flex-col">
-              <h2 className="text-foreground text-xl font-bold">
-                แก้ไขข้อมูลหอพัก
-              </h2>
+          <div className="border-border relative border-b px-6 py-5">
+            <button
+              onClick={onClose}
+              className="text-muted hover:bg-surface hover:text-foreground absolute top-5 right-5 cursor-pointer rounded-full p-2 transition-colors"
+              aria-label="Close modal"
+            >
+              <X size={20} strokeWidth={2.5} />
+            </button>
+            <div className="flex flex-col gap-4 pr-10 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 shadow-inner dark:bg-blue-900/30">
+                  <Building2 size={22} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h2 className="text-foreground text-xl leading-tight font-bold">
+                    แก้ไขข้อมูลหอพัก
+                  </h2>
+                  <p className="text-muted mt-0.5 text-sm">
+                    จัดการรายละเอียดและข้อมูลติดต่อ
+                  </p>
+                </div>
+              </div>
+
               <Link
                 href={`/dorms/${dorm.slug}`}
                 target="_blank"
-                className="text-sm text-blue-500 underline"
+                className="bg-background border-border text-foreground inline-flex w-fit items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold shadow-sm transition-all hover:border-blue-200 hover:text-blue-600 hover:shadow active:scale-95"
               >
-                ดูห้องพัก
+                ดูหน้าหอพัก
+                <ExternalLink size={16} className="text-blue-500" />
               </Link>
             </div>
-            <button
-              onClick={onClose}
-              className="bg-background text-muted hover:bg-border hover:text-foreground cursor-pointer rounded-full p-2 transition"
-            >
-              <X size={20} />
-            </button>
           </div>
           <div className="bg-background/50 flex flex-1 overflow-hidden">
             <nav className="border-border bg-surface hidden w-52 shrink-0 space-y-1 overflow-y-auto border-r p-3 sm:block">
@@ -829,45 +847,9 @@ export default function DormsDialog({
                       </div>
                       <div>
                         <Label required>
-                          ลิงก์ Google Maps
-                          <InfoTooltip>
-                            <p className="text-foreground font-semibold">
-                              วิธีคัดลอกลิงก์ตำแหน่งที่ถูกต้อง
-                            </p>
-                            <ol className="mt-2 list-decimal space-y-1.5 pl-4">
-                              <li>
-                                เปิด{" "}
-                                <strong>Google Maps ผ่านเว็บเบราว์เซอร์</strong>
-                                (เช่น Chrome, Edge หรือ Safari)
-                                <span className="text-muted block text-xs">
-                                  ไม่แนะนำให้ทำผ่านแอป Google Maps
-                                </span>
-                              </li>
-                              <li>
-                                เลื่อนแผนที่ไปยังตำแหน่งของหอพักให้ตรงที่สุด
-                              </li>
-                              <li>
-                                คลิกหรือกดค้างบนตำแหน่งหอพักจริง เพื่อ
-                                <strong>ปักหมุด (Dropped Pin)</strong>
-                                <span className="text-muted block text-xs">
-                                  อย่าค้นหาชื่อหอพักแล้วกดแชร์ทันที
-                                </span>
-                              </li>
-                              <li>
-                                เมื่อปักหมุดแล้ว ให้คัดลอกลิงก์จาก
-                                <strong>แถบ URL ด้านบนของเบราว์เซอร์</strong>
-                                แล้วนำมาวางในช่องนี้
-                              </li>
-                            </ol>
-                            <div className="mt-2 rounded-md border border-amber-200 bg-amber-50 p-2 text-amber-700">
-                              <p className="font-medium">⚠️ ข้อควรระวัง</p>
-                              <p className="mt-1 text-sm">
-                                หากค้นหาชื่อหอพักแล้วกดแชร์ทันที Google Maps
-                                อาจสร้างลิงก์ของสถานที่ที่อยู่ใกล้เคียง
-                                หรือพิกัดที่ไม่ตรงกับตำแหน่งจริงของหอพัก
-                                ทำให้ผู้เช่าเดินทางผิดตำแหน่งได้
-                              </p>
-                            </div>
+                          ลิงก์ Map หรือ ละติจูด
+                          <InfoTooltip fullscreen>
+                            <MapTutorialContent />
                           </InfoTooltip>
                         </Label>
                         <Input
@@ -875,6 +857,7 @@ export default function DormsDialog({
                           onChange={(e) =>
                             updateField("mapUrl", e.target.value)
                           }
+                          placeholder="https://maps.app.goo.gl/... หรือ 16.188169, 103.279746"
                           error={fieldErrors.has("mapUrl")}
                         />
                       </div>

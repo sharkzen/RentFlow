@@ -24,8 +24,10 @@ export default function FormPending() {
         >
           <Clock className="mb-6 h-20 w-20 text-yellow-500" />
         </motion.div>
-        <h1 className="mb-4 text-3xl font-bold text-gray-800">รอการอนุมัติ</h1>
-        <p className="mb-6 text-gray-600">
+        <h1 className="mb-4 text-3xl font-bold text-gray-800 dark:text-yellow-500">
+          รอการอนุมัติ
+        </h1>
+        <p className="mb-6 text-gray-600 dark:text-white">
           ขอบคุณที่ลงทะเบียนเป็นเจ้าของหอพักกับ{" "}
           <span className="font-semibold">Rent Flow</span>.<br />
           ระบบกำลังตรวจสอบข้อมูลของคุณ

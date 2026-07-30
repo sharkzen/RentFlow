@@ -42,7 +42,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2️⃣ protected route
   const accessToken = request.cookies.get("access_token")?.value;
   const refreshToken = request.cookies.get("refresh_token")?.value;
 
@@ -77,7 +76,7 @@ export async function proxy(request: NextRequest) {
         }
       }
     } catch (error) {
-      console.error("Refresh Token Error in Middleware:", error); // แอบใส่ log ไว้เผื่อพังคราวหน้าจะได้รู้
+      console.error("Refresh Token Error in Middleware:", error);
     }
   }
 
@@ -103,6 +102,6 @@ function isPublicRoute(pathname: string) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|images/|robots.txt|sitemap.xml|.*\\.(?:jpg|jpeg|png|gif|svg|webp|ico|css|js)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|images/|videos/|tutorial/|robots.txt|sitemap.xml|.*\\.(?:jpg|jpeg|png|gif|svg|webp|ico|css|js|mp4|webm)$).*)",
   ],
 };

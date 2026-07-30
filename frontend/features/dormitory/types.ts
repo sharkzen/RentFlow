@@ -115,6 +115,7 @@ export interface DormFormData {
   bankHolder?: string;
   promptPayType?: string;
   promptPayValue?: string;
+  promptPayHolder?: string;
 }
 
 export interface DormOverview {
@@ -150,6 +151,7 @@ export type DormSlugResponse = {
     airAvailable: number;
     fanAvailable: number;
     totalAvailable: number;
+    totalRooms: number;
   };
   description: {
     sections: (

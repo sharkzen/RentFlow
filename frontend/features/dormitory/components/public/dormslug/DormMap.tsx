@@ -19,21 +19,25 @@ export const DormMap: React.FC<DormMapProps> = ({
     typeof longitude === "number" &&
     !(latitude === 0 && longitude === 0);
 
+  const navigateUrl = hasValidLatLng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
+    : mapUrl;
+
   return (
     <div>
-      <h3 className="mb-3 flex items-center gap-2 text-lg font-semibold text-slate-900">
+      <h3 className="text-foreground mb-3 flex items-center gap-2 text-lg font-semibold">
         <MapPin size={18} className="text-red-500" />
         แผนที่และการเดินทาง
       </h3>
 
       {address && (
-        <p className="mb-4 flex items-start gap-2 text-sm text-slate-500">
-          <MapPin size={14} className="mt-0.5 shrink-0 text-slate-400" />
+        <p className="text-muted mb-4 flex items-start gap-2 text-sm">
+          <MapPin size={14} className="text-muted mt-0.5 shrink-0" />
           {address}
         </p>
       )}
 
-      <div className="relative h-64 w-full overflow-hidden rounded-xl border border-slate-100 shadow-sm md:h-80">
+      <div className="border-border relative h-64 w-full overflow-hidden rounded-xl border shadow-sm md:h-80">
         {hasValidLatLng ? (
           <iframe
             width="100%"
@@ -46,21 +50,19 @@ export const DormMap: React.FC<DormMapProps> = ({
             className="h-full w-full"
           />
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-3 bg-slate-50 text-center">
-            <MapPin className="h-10 w-10 text-slate-300" />
-            <p className="text-sm text-slate-400">
-              ยังไม่มีข้อมูลตำแหน่งแผนที่
-            </p>
+          <div className="bg-background flex h-full flex-col items-center justify-center gap-3 text-center">
+            <MapPin className="text-muted h-10 w-10 opacity-50" />
+            <p className="text-muted text-sm">ยังไม่มีข้อมูลตำแหน่งแผนที่</p>
           </div>
         )}
 
-        {mapUrl && (
+        {navigateUrl && (
           <div className="absolute right-4 bottom-4 z-10">
             <a
-              href={mapUrl}
+              href={navigateUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-blue-600 shadow-md transition-all hover:bg-blue-50 hover:shadow-lg active:scale-95"
+              className="bg-surface flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-blue-600 shadow-md transition-all hover:bg-blue-50 hover:shadow-lg active:scale-95 dark:hover:bg-blue-950/40"
             >
               <ExternalLink size={15} />
               นำทางใน Google Maps

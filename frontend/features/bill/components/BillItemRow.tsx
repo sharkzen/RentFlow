@@ -202,7 +202,7 @@ export default function BillItemRow({
                     const numericValue = e.target.value.replace(/[^0-9]/g, "");
                     onChange(index, "currentWater", numericValue);
                   }}
-                  className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isWaterEmpty && waterUsage < 0 ? "border-red-400 bg-white text-red-600 focus:ring-red-200" : "border-blue-200 focus:ring-blue-200"}`}
+                  className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isWaterEmpty && waterUsage < 0 ? "border-red-400 bg-red-50/60 text-red-600 focus:ring-red-200 dark:bg-red-50/10" : "border-blue-200 focus:ring-blue-200"}`}
                 />
               </div>
             </div>
@@ -312,7 +312,7 @@ export default function BillItemRow({
                 const numericValue = e.target.value.replace(/[^0-9]/g, "");
                 onChange(index, "currentElectric", numericValue);
               }}
-              className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isElectricEmpty && electricUsage < 0 ? "border-red-400 bg-white text-red-600 focus:ring-red-200" : "border-amber-200 focus:ring-amber-200"} `}
+              className={`h-9 w-full rounded-lg border text-center text-sm font-bold outline-none focus:ring-2 ${!isElectricEmpty && electricUsage < 0 ? "border-red-400 bg-red-50/60 text-red-600 focus:ring-red-200 dark:bg-red-50/10" : "border-amber-200 focus:ring-amber-200"} `}
             />
           </div>
         </div>

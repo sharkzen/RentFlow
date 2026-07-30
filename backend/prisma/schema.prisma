@@ -38,17 +38,19 @@ model File {
 }
 
 model User {
-  id                String             @id @default(uuid())
-  email             String             @unique
-  password          String
-  role              UserRole
-  deletedAt         DateTime?
-  status            Status             @default(PENDING)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  ownerProfile      OwnerProfile?
-  tenantProfiles    TenantProfile[]
-  passwordResetOtps PasswordResetOtp[]
+  id                  String             @id @default(uuid())
+  email               String             @unique
+  password            String
+  role                UserRole
+  deletedAt           DateTime?
+  status              Status             @default(PENDING)
+  failedLoginAttempts Int                @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  ownerProfile        OwnerProfile?
+  tenantProfiles      TenantProfile[]
+  passwordResetOtps   PasswordResetOtp[]
 }
 
 model OwnerProfile {
@@ -121,6 +123,7 @@ model PaymentSetting {
   bankName       String?
   bankAccount    String?
   bankHolder     String?
+  promptPayHolder String?
   isActive       Boolean        @default(true)
   dormitory      Dormitory      @relation(fields: [dormitoryId], references: [id], onDelete: Cascade)
 }

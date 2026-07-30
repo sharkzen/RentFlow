@@ -118,6 +118,15 @@ export interface OwnerUser {
   } | null;
 }
 
+export interface LockedUser {
+  id: string;
+  email: string;
+  role: string;
+  lockedUntil: string;
+  failedLoginAttempts: number;
+  createdAt: string;
+}
+
 export enum LandmarkType {
   UNIVERSITY = "UNIVERSITY",
   SCHOOL = "SCHOOL",

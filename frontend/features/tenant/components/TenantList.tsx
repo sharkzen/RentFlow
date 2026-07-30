@@ -53,7 +53,7 @@ export default function TenantList({
   const renderStatusBadge = (tenant: Tenant) => {
     if (!tenant.isActive) {
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-500/10 ring-inset">
+        <span className="bg-background text-muted ring-border inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset">
           <LogOut size={12} />
           <span className="hidden sm:inline">ย้ายออก</span>
         </span>
@@ -91,7 +91,7 @@ export default function TenantList({
 
   if (!tenants || tenants.length === 0) {
     return (
-      <div className="flex h-[60vh] w-full flex-col items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="bg-surface flex h-[60vh] w-full flex-col items-center justify-center rounded-xl border border-gray-200 shadow-sm dark:border-gray-800">
         <div className="flex flex-col items-center justify-center p-8 text-center">
           <div className="bg-background ring-border mb-4 rounded-full p-4 shadow-sm ring-1">
             <UserX className="text-muted h-10 w-10" strokeWidth={1.5} />

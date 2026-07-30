@@ -17,6 +17,7 @@ import {
   X,
   Star,
   FileCode2,
+  Lock,
 } from "lucide-react";
 
 export default function AdminSidebar() {
@@ -48,6 +49,11 @@ export default function AdminSidebar() {
       name: "จัดการผู้ใช้งาน",
       href: routes.admin.users,
       icon: <Users size={20} />,
+    },
+    {
+      name: "บัญชีที่ถูกล็อค",
+      href: routes.admin.lockedUsers,
+      icon: <Lock size={20} />,
     },
     {
       name: "สถานที่สำคัญ (Landmarks)",

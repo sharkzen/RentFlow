@@ -1,11 +1,18 @@
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly code: string;
+  public readonly meta?: Record<string, unknown>;
 
-  constructor(statusCode: number, code: string, message?: string) {
+  constructor(
+    statusCode: number,
+    code: string,
+    message?: string,
+    meta?: Record<string, unknown>,
+  ) {
     super(message ?? code);
     this.statusCode = statusCode;
     this.code = code;
+    this.meta = meta;
     this.name = "AppError";
     Object.setPrototypeOf(this, AppError.prototype);
   }
@@ -32,5 +39,13 @@ export class AppError extends Error {
 
   static internal(code: string, message?: string) {
     return new AppError(500, code, message);
+  }
+
+  static locked(
+    code: string,
+    message?: string,
+    meta?: Record<string, unknown>,
+  ) {
+    return new AppError(423, code, message, meta);
   }
 }

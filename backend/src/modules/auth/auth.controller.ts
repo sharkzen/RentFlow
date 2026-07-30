@@ -135,6 +135,12 @@ export const AuthController = {
         role: user.role,
       });
     } catch (error: any) {
+      if (error.message === "ACCOUNT_LOCKED") {
+        throw AppError.locked("ACCOUNT_LOCKED", undefined, {
+          lockedUntil: error.lockedUntil,
+        });
+      }
+
       if (error.message === "INVALID_EMAIL_OR_PASSWORD") {
         throw AppError.badRequest("INVALID_EMAIL_OR_PASSWORD");
       }

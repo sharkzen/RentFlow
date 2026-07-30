@@ -186,16 +186,16 @@ export default function MaintenanceDetailDialog({
         };
       case "CANCELLED":
         return {
-          bg: "bg-gray-50",
-          text: "text-gray-600",
-          border: "border-gray-200",
+          bg: "bg-background",
+          text: "text-muted",
+          border: "border-border",
           label: "ยกเลิก",
         };
       default:
         return {
-          bg: "bg-gray-50",
-          text: "text-gray-600",
-          border: "border-gray-200",
+          bg: "bg-background",
+          text: "text-muted",
+          border: "border-border",
           label: status,
         };
     }

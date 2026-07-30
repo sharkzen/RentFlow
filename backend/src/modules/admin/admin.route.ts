@@ -467,6 +467,58 @@ export async function adminRoute(app: FastifyInstance) {
     );
 
     routeRoles.get(
+      "/users/locked",
+      {
+        schema: {
+          tags: ["Admin"],
+          summary:
+            "รายชื่อบัญชีที่ถูกล็อคชั่วคราวจากการเข้าสู่ระบบผิดหลายครั้ง",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          querystring: pageQuery,
+
+          response: {
+            200: paginatedResponse("รายชื่อบัญชีที่ถูกล็อค"),
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+          },
+        },
+      },
+      AdminController.getLockedUsers,
+    );
+
+    routeRoles.patch(
+      "/users/:id/unlock",
+      {
+        schema: {
+          tags: ["Admin"],
+          summary: "ปลดล็อคบัญชีผู้ใช้งาน",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam,
+
+          response: {
+            200: okResponse("ปลดล็อคบัญชีสำเร็จ"),
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      AdminController.unlockUser,
+    );
+
+    routeRoles.get(
       "/landmarks",
       {
         schema: {

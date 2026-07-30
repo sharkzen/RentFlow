@@ -16,6 +16,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+import { DormMap } from "@/features/dormitory/components/public/dormslug/DormMap";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 
@@ -139,27 +140,14 @@ export default function ApprovalDetailModal({
                             {dorm.name}
                           </h6>
                         </div>
-                        <p className="text-muted mb-3 flex items-start gap-1 text-sm">
-                          <MapPin size={16} className="mt-0.5 shrink-0" />{" "}
-                          {dorm.address}
-                        </p>
-                        <div className="border-border bg-background flex items-center gap-3 rounded-lg border p-3">
-                          <div className="text-muted text-xs">
-                            <span className="block font-semibold">
-                              Coordinates:
-                            </span>
-                            {dorm.latitude.toFixed(6)},{" "}
-                            {dorm.longitude.toFixed(6)}
-                          </div>
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${dorm.latitude},${dorm.longitude}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-auto flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-blue-700"
-                          >
-                            <ExternalLink size={14} />
-                            เปิดแผนที่ Google Maps
-                          </a>
+
+                        <div className="mt-4">
+                          <DormMap
+                            latitude={dorm.latitude}
+                            longitude={dorm.longitude}
+                            address={dorm.address}
+                            mapUrl={`https://www.google.com/maps/search/?api=1&query=${dorm.latitude},${dorm.longitude}`}
+                          />
                         </div>
                       </div>
                     </div>
