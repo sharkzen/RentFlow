@@ -19,8 +19,9 @@ import {
 import { Role } from "@/features/auth";
 import Skeleton from "@/lib/ui/Skeleton";
 import log from "@/lib/logger";
+import { FaUserCircle } from "react-icons/fa";
+import { getDisplayFirstName } from "@/lib/getDisplayFirstName";
 import Image from "next/image";
-
 export default function Header() {
   const { user, loading: authLoading, setUser } = useAuth();
 
@@ -29,8 +30,7 @@ export default function Header() {
   const [isMounted, setIsMounted] = useState(false);
   const logoutMutation = useLogout();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const initial = user?.fullName?.charAt(0).toUpperCase() || "U";
-  const firstName = user?.fullName?.trim().split(/\s+/)[0];
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuItemRefs = useRef<(HTMLElement | null)[]>([]);
@@ -184,17 +184,19 @@ export default function Header() {
   return (
     <header className="bg-background/80 border-border sticky top-0 z-50 w-full border-b backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
-        <div className="flex items-center justify-center">
-          <Link
-            href="/"
-            className={`text-foreground group flex items-center text-xl font-bold tracking-tight max-sm:text-sm ${user ? "max-[960px]:pl-10" : ""}`}
-          >
-            Rent
-            <span className="ml-1 bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-              Flow
-            </span>
-          </Link>
-        </div>
+        <Link href="/">
+          <div className="flex items-center justify-center space-x-1">
+            <Image src={"/logo.png"} width={32} height={32} alt={"logo"} />
+            <p
+              className={`text-foreground group flex items-center text-xl font-bold tracking-tight max-sm:text-sm ${user ? "max-[960px]:pl-3" : ""}`}
+            >
+              Rent
+              <span className="ml-1 bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                Flow
+              </span>
+            </p>
+          </div>
+        </Link>
         <div className="flex items-center gap-3">
           {!isMounted || authLoading ? (
             <Skeleton className="bg-surface/50 h-8 w-32 rounded-full" />
@@ -257,10 +259,10 @@ export default function Header() {
                     className="border-border bg-surface hover:bg-background flex items-center gap-2 rounded-full border p-1 pr-3 transition-all hover:cursor-pointer active:scale-95"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
-                      {initial}
+                      <FaUserCircle size={20} />
                     </div>
                     <span className="text-foreground hidden text-sm font-semibold md:block">
-                      {firstName}
+                      {getDisplayFirstName(user?.fullName)}
                     </span>
                     <ChevronDown
                       size={14}

@@ -49,4 +49,26 @@ export const maintenanceService = {
 
     return res.data;
   },
+
+  getMessages: async (id: string) => {
+    const res = await axios.get(`/api/maintenances/${id}/messages`);
+    return res.data;
+  },
+
+  sendMessage: async (id: string, message: string) => {
+    const res = await axios.post(`/api/maintenances/${id}/messages`, {
+      message,
+    });
+
+    return res.data;
+  },
+
+  editMessage: async (id: string, messageId: string, message: string) => {
+    const res = await axios.patch(
+      `/api/maintenances/${id}/messages/${messageId}`,
+      { message },
+    );
+
+    return res.data;
+  },
 };

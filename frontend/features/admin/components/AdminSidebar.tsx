@@ -19,6 +19,7 @@ import {
   FileCode2,
   Lock,
 } from "lucide-react";
+import Image from "next/image";
 
 export default function AdminSidebar() {
   const pathname = usePathname();
@@ -91,8 +92,8 @@ export default function AdminSidebar() {
         className={`border-border bg-surface fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden border-r transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} min-[960px]:sticky min-[960px]:translate-x-0`}
       >
         <div className="border-border flex h-20 items-center gap-3 border-b px-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600">
-            <ShieldCheck className="h-5 w-5 text-white" />
+          <div className="flex h-10 w-10 items-center justify-center">
+            <Image src={"/logo.png"} width={32} height={32} alt={"logo"} />
           </div>
           <div>
             <h1 className="text-foreground font-bold tracking-tight">

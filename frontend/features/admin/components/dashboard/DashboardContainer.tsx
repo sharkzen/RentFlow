@@ -53,7 +53,7 @@ export default function DashboardContainer() {
 
   if (error || !data) {
     return (
-      <div className="flex h-96 flex-col items-center justify-center space-y-4 rounded-3xl border border-red-100 bg-red-50 p-8 text-center">
+      <div className="dark:bg-background flex h-96 flex-col items-center justify-center space-y-4 rounded-3xl border border-red-100 bg-red-50 p-8 text-center">
         <div className="rounded-full bg-red-100 p-4">
           <LayoutDashboard className="h-8 w-8 text-red-500" />
         </div>

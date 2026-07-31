@@ -160,12 +160,12 @@ function AnnouncementHistoryCard({
           )}
           <div className="min-w-0 flex-1">
             <h3
-              className={`text-base leading-snug font-bold sm:text-lg ${announcement.isRead ? "text-muted" : "text-foreground"}`}
+              className={`text-base leading-snug font-bold sm:text-lg dark:text-white ${announcement.isRead ? "text-muted" : "text-foreground"}`}
             >
               {announcement.title}
             </h3>
             <div
-              className={`mt-2 text-sm leading-relaxed whitespace-pre-line ${announcement.isRead ? "text-muted" : "text-foreground opacity-80"}`}
+              className={`mt-2 text-sm leading-relaxed whitespace-pre-line dark:text-white ${announcement.isRead ? "text-muted" : "text-foreground opacity-80"}`}
             >
               {displayContent}
             </div>

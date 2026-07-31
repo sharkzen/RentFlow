@@ -1,3 +1,5 @@
+# ⚠️ แก้ yourdomain.com / api.yourdomain.com ด้านล่างเป็นโดเมนจริงของคุณก่อน deploy
+
 # โดเมนหลัก วิ่งไปหา Next.js (Frontend)
 yourdomain.com {
     reverse_proxy frontend:3000

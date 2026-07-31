@@ -15,6 +15,8 @@ import {
 import { useScrollLock } from "usehooks-ts";
 import { statusConfig } from "./RequestHistory";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
+import MaintenanceChatThread from "./MaintenanceChatThread";
+import { TenantService } from "@/features/tenant/services/tenant.service";
 
 interface MaintenanceDetailModalProps {
   isOpen: boolean;
@@ -257,6 +259,28 @@ export default function MaintenanceDetailModal({
                     )}
                   </div>
                 </div>
+                {request.ownerNote && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                    <p className="mb-2 text-xs font-bold text-amber-700">
+                      บันทึกการรับเรื่องจากเจ้าของหอ
+                    </p>
+                    <p className="text-sm leading-relaxed text-amber-900 italic whitespace-pre-line">
+                      "{request.ownerNote}"
+                    </p>
+                  </div>
+                )}
+                <MaintenanceChatThread
+                  maintenanceId={request.id}
+                  currentRole="TENANT"
+                  enabled={
+                    request.status === "IN_PROGRESS" ||
+                    request.status === "COMPLETED"
+                  }
+                  readOnly={request.status === "COMPLETED"}
+                  getMessages={TenantService.getMaintenanceMessages}
+                  sendMessage={TenantService.sendMaintenanceMessage}
+                  editMessage={TenantService.editMaintenanceMessage}
+                />
                 {request.images && request.images.length > 0 && (
                   <div>
                     <p className="text-foreground mb-4 text-sm font-bold">

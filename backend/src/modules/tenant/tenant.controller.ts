@@ -12,6 +12,8 @@ import {
   moveOutSchema,
   generateQrPaymentSchema,
   reEntryTenantSchema,
+  sendMaintenanceMessageSchema,
+  editMaintenanceMessageSchema,
 } from "./dto/tenant.schema";
 
 interface GetMaintenanceQuery {
@@ -585,6 +587,115 @@ export const TenantController = {
         throw AppError.badRequest(
           "MAINTENANCE_NOT_OPEN",
           "ไม่สามารถยกเลิกได้ เนื่องจากเจ้าหน้าที่รับเรื่องไปแล้ว",
+        );
+      }
+
+      throw error;
+    }
+  },
+
+  sendMaintenanceMessage: async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ) => {
+    const user = request.user as UserDecodedDto;
+
+    const { requestId } = request.params as { requestId: string };
+
+    const { message } = sendMaintenanceMessageSchema.parse(request.body);
+
+    try {
+      const result = await tenantService.sendMaintenanceMessage(
+        user.sub,
+        requestId,
+        message,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.message === "NOT_FOUND") {
+        throw AppError.notFound(
+          "MAINTENANCE_NOT_FOUND",
+          "ไม่พบรายการแจ้งซ่อม หรือคุณไม่มีสิทธิ์เข้าถึงรายการนี้",
+        );
+      }
+
+      if (error.message === "INVALID_STATUS") {
+        throw AppError.badRequest(
+          "INVALID_STATUS",
+          "แชทเปิดใช้งานได้เฉพาะเมื่อรับเรื่องแล้วเท่านั้น",
+        );
+      }
+
+      throw error;
+    }
+  },
+
+  getMaintenanceMessages: async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ) => {
+    const user = request.user as UserDecodedDto;
+
+    const { requestId } = request.params as { requestId: string };
+
+    try {
+      const result = await tenantService.getMaintenanceMessages(
+        user.sub,
+        requestId,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.message === "NOT_FOUND") {
+        throw AppError.notFound(
+          "MAINTENANCE_NOT_FOUND",
+          "ไม่พบรายการแจ้งซ่อม หรือคุณไม่มีสิทธิ์เข้าถึงรายการนี้",
+        );
+      }
+
+      throw error;
+    }
+  },
+
+  editMaintenanceMessage: async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ) => {
+    const user = request.user as UserDecodedDto;
+
+    const { requestId, messageId } = request.params as {
+      requestId: string;
+      messageId: string;
+    };
+
+    const { message } = editMaintenanceMessageSchema.parse(request.body);
+
+    try {
+      const result = await tenantService.editMaintenanceMessage(
+        user.sub,
+        requestId,
+        messageId,
+        message,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      if (
+        error.message === "NOT_FOUND" ||
+        error.message === "MESSAGE_NOT_FOUND"
+      ) {
+        throw AppError.notFound("MAINTENANCE_NOT_FOUND", "ไม่พบข้อความ");
+      }
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        throw AppError.forbidden(
+          "FORBIDDEN_ACCESS",
+          "คุณไม่มีสิทธิ์แก้ไขข้อความนี้",
+        );
+      }
+
+      if (error.message === "INVALID_STATUS") {
+        throw AppError.badRequest(
+          "INVALID_STATUS",
+          "ไม่สามารถแก้ไขข้อความได้ เนื่องจากงานซ่อมนี้เสร็จสิ้นแล้ว",
         );
       }
 

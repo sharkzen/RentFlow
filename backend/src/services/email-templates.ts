@@ -244,11 +244,19 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
                   <td style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border};">
                     <div style="font-weight: 700; color: ${THEME.text};">ค่าน้ำประปา 💧</div>
                     <div style="font-size: 12px; color: ${THEME.muted}; margin-top: 4px;">
-                      (มิเตอร์: ${data.details.water.prev} - ${data.details.water.curr})
+                      ${
+                        Number(data.details.water.prev) === 0 && Number(data.details.water.curr) === 0
+                          ? '(เหมาจ่าย)'
+                          : `(มิเตอร์: ${data.details.water.prev} - ${data.details.water.curr})`
+                      }
                     </div>
                   </td>
                   <td align="center" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; font-weight: 600; color: ${THEME.text};">
-                    ${data.details.water.used}
+                    ${
+                      Number(data.details.water.prev) === 0 && Number(data.details.water.curr) === 0
+                        ? '-'
+                        : data.details.water.used
+                    }
                   </td>
                   <td align="right" style="padding: 15px 12px; border-bottom: 1px solid ${THEME.border}; color: ${THEME.text};">
                     ${data.details.water.unitPrice}
@@ -979,6 +987,59 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
         ),
       };
     }
+    case EmailType.MAINTENANCE_NEW_MESSAGE: {
+      return {
+        subject: getSubject(
+          `💬 ข้อความใหม่: ${data.title} (ห้อง ${data.roomNumber})`,
+        ),
+
+        html: minifyHtml(
+          wrapEmail(
+            "ข้อความใหม่จากแจ้งซ่อม",
+            `
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center" style="padding-bottom: 24px;">
+                  <table border="0" cellspacing="0" cellpadding="0" style="margin: 0 auto;">
+                    <tr>
+                      <td align="center" bgcolor="${THEME.bg}" style="width: 70px; height: 70px; border-radius: 35px; vertical-align: middle;">
+                        <span style="font-size: 32px; line-height: 70px; display: block;">💬</span>
+                      </td>
+                    </tr>
+                  </table>
+                  <h2 style="color: ${THEME.primary}; margin: 16px 0 4px 0; font-size: 22px;">${data.senderRoleLabel}ส่งข้อความถึงคุณ</h2>
+                  <p style="color: ${THEME.muted}; margin: 0;">เกี่ยวกับรายการแจ้งซ่อม "<strong>${data.title}</strong>" ห้อง ${data.roomNumber} - หอพัก <strong>${data.dormName}</strong></p>
+                </td>
+              </tr>
+            </table>
+
+            <div style="background-color: #f8fafc; border: 1px solid ${THEME.border}; border-radius: 12px; padding: 24px; margin-bottom: 30px;">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="padding-bottom: 8px; color: ${THEME.muted}; font-size: 13px; font-weight: 700; text-transform: uppercase;">ข้อความจาก${data.senderName}:</td>
+                </tr>
+                <tr>
+                  <td style="color: ${THEME.primary}; font-size: 16px; font-weight: 600; line-height: 1.6; font-style: italic;">
+                    "${data.message}"
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td align="center">
+                  <a href="${data.link}" style="background-color: ${THEME.primary}; color: #ffffff; padding: 14px 35px; text-decoration: none; border-radius: 8px; font-weight: 700; display: inline-block; box-shadow: 0 4px 10px rgba(15,23,42,0.2);">
+                    ดูข้อความและตอบกลับ
+                  </a>
+                </td>
+              </tr>
+            </table>
+            `,
+          ),
+        ),
+      };
+    }
     case EmailType.MAINTENANCE_COMPLETED: {
       return {
         subject: getSubject(`✅ ซ่อมแซมเสร็จสิ้น: ${data.title}`),
@@ -1159,7 +1220,7 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
         <tr>
           <td class="content-area" style="background-color: #fafafa; padding: 24px 40px; border-top: 1px solid #e4e4e7;">
             <p style="margin: 0 0 8px 0; font-size: 13px; color: #71717a; line-height: 1.6;">
-              หากท่านมีข้อสงสัยเกี่ยวกับการแจ้งเตือนนี้ กรุณาติดต่อสำนักงาน <strong>${data.dormName}</strong> โดยตรง
+              หากท่านมีข้อสงสัยเกี่ยวกับการแจ้งเตือนนี้ กรุณาติดต่อ <strong>${data.dormName}</strong> โดยตรง
             </p>
             <p style="margin: 0; font-size: 12px; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px;">
               &copy; 2026 RentFlow Management System

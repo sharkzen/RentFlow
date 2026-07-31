@@ -189,7 +189,7 @@ export default function MaintenanceTable({
               <div>ห้อง / พื้นที่</div>
               <div>หัวข้อการแจ้งซ่อม</div>
               <div>ผู้แจ้ง</div>
-              <div>วันที่แจ้ง</div>
+              <div>แจ้งเมื่อ</div>
               <div className="text-right">จัดการ</div>
             </div>
             <div>
@@ -202,8 +202,13 @@ export default function MaintenanceTable({
                   <div>
                     <MaintenanceStatusBadge status={item.status} />
                   </div>
-                  <div className="text-foreground font-bold">
-                    {item.room.roomNumber}
+                  <div>
+                    <div className="text-foreground font-bold">
+                      {item.room.roomNumber}
+                    </div>
+                    <div className="text-muted text-xs">
+                      ชั้น {item.room.floor}
+                    </div>
                   </div>
                   <div className="min-w-0 pr-4">
                     <div className="text-foreground truncate text-sm font-medium">

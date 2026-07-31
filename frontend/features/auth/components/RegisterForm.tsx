@@ -27,6 +27,7 @@ import {
 import FormSuccess from "@/lib/ui/status/FormSuccess";
 import InfoTooltip from "@/lib/ui/InfoTooltip";
 import MapTutorialContent from "@/lib/ui/MapTutorialContent";
+import Image from "next/image";
 
 export default function OwnerRegisterForm() {
   const mutation = useRegister();
@@ -163,25 +164,32 @@ export default function OwnerRegisterForm() {
           </p>
         </div>
       </div>
-      <div className="bg-background flex items-center justify-center px-4 py-10 min-[1420px]:px-16 sm:px-6 sm:py-12 md:px-12">
+      <div className="bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-2xl">
           {success ? (
             <FormSuccess />
           ) : (
             <>
-              <div className="mb-6 text-center">
-                <h1 className="text-foreground mb-2 text-3xl font-extrabold sm:text-4xl">
-                  Rent
-                  <span className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                    Flow
-                  </span>
-                </h1>
-                <h2 className="text-foreground text-xl font-semibold sm:text-2xl">
-                  ลงทะเบียนหอพัก
+              <div className="mb-8 text-center">
+                <div className="flex items-center justify-center gap-3">
+                  <Image
+                    src="/logo.png"
+                    width={48}
+                    height={48}
+                    alt="RentFlow Logo"
+                  />
+
+                  <h1 className="text-foreground text-3xl font-extrabold sm:text-4xl">
+                    Rent
+                    <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                      Flow
+                    </span>
+                  </h1>
+                </div>
+
+                <h2 className="text-foreground mt-6 text-xl font-semibold sm:text-2xl">
+                  สร้างบัญชีเจ้าของหอพัก
                 </h2>
-                <p className="text-muted mt-2 text-sm">
-                  กรอกข้อมูลด้านล่างเพื่อสร้างบัญชีเจ้าของหอพัก
-                </p>
               </div>
               <form
                 onSubmit={handleSubmit}

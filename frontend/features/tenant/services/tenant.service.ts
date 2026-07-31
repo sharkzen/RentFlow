@@ -177,6 +177,32 @@ export const TenantService = {
     return res.data;
   },
 
+  getMaintenanceMessages: async (id: string) => {
+    const res = await axios.get(`/api/tenants/maintenance/${id}/messages`);
+    return res.data;
+  },
+
+  sendMaintenanceMessage: async (id: string, message: string) => {
+    const res = await axios.post(`/api/tenants/maintenance/${id}/messages`, {
+      message,
+    });
+
+    return res.data;
+  },
+
+  editMaintenanceMessage: async (
+    id: string,
+    messageId: string,
+    message: string,
+  ) => {
+    const res = await axios.patch(
+      `/api/tenants/maintenance/${id}/messages/${messageId}`,
+      { message },
+    );
+
+    return res.data;
+  },
+
   getContractDetail: async () => {
     const response = await axios.get(`/api/tenants/contract`);
     return response.data;

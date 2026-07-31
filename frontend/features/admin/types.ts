@@ -138,6 +138,17 @@ export enum LandmarkType {
   OTHER = "OTHER",
 }
 
+export const LandmarkTypeLabel: Record<LandmarkType, string> = {
+  [LandmarkType.UNIVERSITY]: "มหาวิทยาลัย",
+  [LandmarkType.SCHOOL]: "โรงเรียน",
+  [LandmarkType.HOSPITAL]: "โรงพยาบาล",
+  [LandmarkType.SHOPPING_MALL]: "ห้างสรรพสินค้า",
+  [LandmarkType.ARL]: "รถไฟฟ้า",
+  [LandmarkType.OFFICE]: "สำนักงาน",
+  [LandmarkType.MARKET]: "ตลาด",
+  [LandmarkType.OTHER]: "อื่นๆ",
+};
+
 export interface Landmark {
   id: string;
   name: string;

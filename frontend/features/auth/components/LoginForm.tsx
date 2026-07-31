@@ -18,6 +18,7 @@ import useLogin from "@/features/auth/hooks/useLogin";
 import { authService } from "../services/auth.service";
 import { useAuth } from "@/lib/providers/AuthProvider";
 import log from "@/lib/logger";
+import Image from "next/image";
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -220,18 +221,15 @@ export default function LoginForm() {
       </div>
       <div className="flex items-center justify-center px-6 py-12 md:px-12 lg:px-24">
         <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <h1 className="mb-10 text-5xl font-extrabold">
+          <div className="mb-8 flex items-center justify-center gap-3">
+            <Image src="/logo.png" width={48} height={48} alt="RentFlow Logo" />
+
+            <h1 className="text-5xl font-extrabold">
               Rent{" "}
-              <span className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
                 Flow
               </span>
             </h1>
-            {qrState === "idle" && (
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-                เข้าสู่ระบบ
-              </h2>
-            )}
           </div>
           {qrState === "loading" && (
             <div className="border-border bg-surface rounded-2xl border p-10 text-center shadow-sm">

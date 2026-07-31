@@ -138,12 +138,23 @@ export interface MaintenanceRequest {
   title: string;
   description: string;
   status: "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+  ownerNote?: string | null;
   createdAt: string;
   images: {
     id: string;
     objectKey: string;
     url: string;
   }[];
+}
+
+export interface MaintenanceMessage {
+  id: string;
+  maintenanceId: string;
+  senderRole: "OWNER" | "TENANT";
+  senderId: string;
+  message: string;
+  createdAt: string;
+  editedAt?: string | null;
 }
 
 export interface TenantContractDetail {

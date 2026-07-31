@@ -29,9 +29,22 @@ export interface MaintenanceRequest {
   title: string;
   description: string;
   status: MaintenanceStatus;
+  ownerNote?: string | null;
   createdAt: string;
   updatedAt: string;
   room: MaintenanceRoom;
   tenant: MaintenanceTenant;
   images: MaintenanceImage[];
+}
+
+export type MaintenanceSenderRole = "OWNER" | "TENANT";
+
+export interface MaintenanceMessage {
+  id: string;
+  maintenanceId: string;
+  senderRole: MaintenanceSenderRole;
+  senderId: string;
+  message: string;
+  createdAt: string;
+  editedAt?: string | null;
 }

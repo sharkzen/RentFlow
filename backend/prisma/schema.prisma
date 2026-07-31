@@ -285,10 +285,24 @@ model MaintenanceRequest {
   dormitory   Dormitory         @relation(fields: [dormitoryId], references: [id])
   room        Room              @relation(fields: [roomId], references: [id])
   tenant      TenantProfile     @relation(fields: [tenantId], references: [id])
+  messages    MaintenanceMessage[]
 
   @@index([dormitoryId])
   @@index([roomId])
   @@index([tenantId])
+}
+
+model MaintenanceMessage {
+  id            String              @id @default(uuid())
+  maintenanceId String
+  senderRole    UserRole
+  senderId      String
+  message       String
+  createdAt     DateTime            @default(now())
+  editedAt      DateTime?
+  maintenance   MaintenanceRequest  @relation(fields: [maintenanceId], references: [id], onDelete: Cascade)
+
+  @@index([maintenanceId, createdAt])
 }
 
 model Landmark {

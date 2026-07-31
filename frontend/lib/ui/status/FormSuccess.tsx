@@ -24,12 +24,13 @@ export default function FormSuccess() {
         >
           <CheckCircle className="mb-6 h-20 w-20 text-green-500" />
         </motion.div>
-        <h1 className="mb-4 text-3xl font-bold text-gray-800">
+        <h1 className="mb-4 text-3xl font-bold text-gray-800 dark:text-white">
           สมัครเจ้าของหอพักสำเร็จ!
         </h1>
-        <p className="mb-6 text-gray-600">
+        <p className="mb-6 text-gray-600 dark:text-white">
           ขอบคุณที่ลงทะเบียนเป็นเจ้าของหอพักกับ{" "}
-          <span className="font-semibold">Rent Flow</span>.<br />
+          <span className="font-semibold dark:text-white">Rent Flow</span>.
+          <br />
           เราจะทำการตรวจสอบข้อมูลของคุณภายใน 24 ชั่วโมง
         </p>
         <span className="my-2 text-sm font-bold">

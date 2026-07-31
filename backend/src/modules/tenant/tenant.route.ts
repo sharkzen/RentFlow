@@ -15,11 +15,14 @@ import {
   generateQrPaymentSchema,
   getMaintenanceQuerySchema,
   reEntryTenantSchema,
+  sendMaintenanceMessageSchema,
+  editMaintenanceMessageSchema,
 } from "@/modules/tenant/dto/tenant.schema";
 
 import {
   zodBody,
   okResponse,
+  okArrayResponse,
   paginatedItemsResponse,
   commonErrorResponses,
 } from "@/config/swagger";
@@ -496,6 +499,100 @@ export async function tenantRoute(app: FastifyInstance) {
         },
       },
       TenantController.cancelMaintenance,
+    );
+
+    routeRoles.get(
+      "/maintenance/:requestId/messages",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "รายการข้อความแชทของคำขอแจ้งซ่อม",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam("requestId"),
+
+          response: {
+            200: okArrayResponse("รายการข้อความ"),
+            401: commonErrorResponses[401],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      TenantController.getMaintenanceMessages,
+    );
+
+    routeRoles.post(
+      "/maintenance/:requestId/messages",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "ส่งข้อความแชทถึงเจ้าของหอ",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam("requestId"),
+          body: zodBody(sendMaintenanceMessageSchema),
+
+          response: {
+            200: okResponse("ส่งข้อความสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      TenantController.sendMaintenanceMessage,
+    );
+
+    routeRoles.patch(
+      "/maintenance/:requestId/messages/:messageId",
+      {
+        schema: {
+          tags: ["Tenant Self-Service (Tenant)"],
+          summary: "แก้ไขข้อความแชทของตัวเอง",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: {
+            type: "object",
+
+            properties: {
+              requestId: {
+                type: "string",
+              },
+
+              messageId: {
+                type: "string",
+              },
+            },
+
+            required: ["requestId", "messageId"],
+          },
+
+          body: zodBody(editMaintenanceMessageSchema),
+
+          response: {
+            200: okResponse("แก้ไขข้อความสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      TenantController.editMaintenanceMessage,
     );
 
     routeRoles.get(

@@ -8,6 +8,8 @@ import { EmailType } from "@/queues/email.types";
 import { emailQueue, EMAIL_JOB_NAME } from "@/queues/email.queue";
 import logger from "@/utils/logger";
 import { env } from "@/config/env";
+import { UserRole } from "@prisma/client";
+import { maintenanceMessageService } from "./maintenance-message.service";
 
 export const maintenanceService = {
   getMaintenance: async (
@@ -274,5 +276,72 @@ export const maintenanceService = {
     });
 
     return updatedRequest;
+  },
+
+  sendMessage: async (
+    user: UserDecodedDto,
+    maintenanceId: string,
+    message: string,
+  ) => {
+    const existingRequest = await prisma.maintenanceRequest.findUnique({
+      where: { id: maintenanceId },
+
+      include: {
+        dormitory: { include: { owner: { include: { user: true } } } },
+        tenant: { include: { user: true } },
+        room: true,
+      },
+    });
+
+    if (!existingRequest) throw new Error("NOT_FOUND");
+
+    if (existingRequest.dormitory.owner.userId !== user.sub)
+      throw new Error("FORBIDDEN_ACCESS");
+
+    return maintenanceMessageService.createAndNotify({
+      existingRequest,
+      senderRole: UserRole.OWNER,
+      senderUserId: user.sub,
+      senderName: existingRequest.dormitory.name,
+      message,
+    });
+  },
+
+  getMessages: async (user: UserDecodedDto, maintenanceId: string) => {
+    const existingRequest = await prisma.maintenanceRequest.findUnique({
+      where: { id: maintenanceId },
+      include: { dormitory: { include: { owner: true } } },
+    });
+
+    if (!existingRequest) throw new Error("NOT_FOUND");
+
+    if (existingRequest.dormitory.owner.userId !== user.sub)
+      throw new Error("FORBIDDEN_ACCESS");
+
+    return maintenanceMessageService.getMessages(maintenanceId);
+  },
+
+  editMessage: async (
+    user: UserDecodedDto,
+    maintenanceId: string,
+    messageId: string,
+    message: string,
+  ) => {
+    const existingRequest = await prisma.maintenanceRequest.findUnique({
+      where: { id: maintenanceId },
+      include: { dormitory: { include: { owner: true } } },
+    });
+
+    if (!existingRequest) throw new Error("NOT_FOUND");
+
+    if (existingRequest.dormitory.owner.userId !== user.sub)
+      throw new Error("FORBIDDEN_ACCESS");
+
+    return maintenanceMessageService.updateMessage({
+      maintenanceId,
+      messageId,
+      senderUserId: user.sub,
+      message,
+    });
   },
 };

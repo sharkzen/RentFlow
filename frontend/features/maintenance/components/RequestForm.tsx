@@ -141,7 +141,7 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="ระบุอาการอย่างละเอียด หรือช่วงเวลาที่สะดวกให้เข้าซ่อม..."
+                placeholder="ระบุอาการอย่างละเอียด"
                 rows={4}
                 className="border-border bg-background text-foreground placeholder:text-muted focus:bg-surface w-full resize-none rounded-xl border px-4 py-2.5 transition-all outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />

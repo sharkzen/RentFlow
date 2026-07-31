@@ -40,7 +40,7 @@ export default function DormCard({
 
   return (
     <Link href={`/dorms/${slug}`} className="group block h-full">
-      <div className="border-border bg-surface relative flex h-full w-full flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 will-change-transform backface-hidden hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-100/50">
+      <div className="border-border bg-surface relative flex h-full w-full flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 will-change-transform backface-hidden hover:-translate-y-1">
         <div className="bg-background relative aspect-4/3 w-full overflow-hidden">
           {isFull && <div className="absolute inset-0 z-10" />}
           {isFeatured && (
@@ -56,7 +56,7 @@ export default function DormCard({
             unoptimized={isPlaceholder}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             quality={65}
-            className={`object-cover transition-transform duration-700 ease-in-out group-hover:scale-110 ${isFull ? "grayscale-[40%]" : ""}`}
+            className={`object-cover transition-transform duration-700 ease-in-out ${isFull ? "grayscale-[40%]" : ""}`}
             loading="lazy"
           />
           <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />

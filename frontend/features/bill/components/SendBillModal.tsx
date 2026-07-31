@@ -9,6 +9,7 @@ import {
   Building,
   AlertCircle,
   Clock,
+  ShieldAlert,
 } from "lucide-react";
 
 export interface BillSummary {
@@ -35,6 +36,7 @@ export default function SendBillModal({
   onSendBills,
 }: SendBillModalProps) {
   const [selectedBillIds, setSelectedBillIds] = useState<string[]>([]);
+  const [showConfirm, setShowConfirm] = useState(false);
   const neverNotifiedBills = bills.filter((b) => !b.lastNotifiedAt);
   const neverNotifiedIds = neverNotifiedBills.map((b) => b.id);
 
@@ -44,6 +46,7 @@ export default function SendBillModal({
     } else {
       setSelectedBillIds([]);
     }
+    setShowConfirm(false);
   }, [isOpen, bills]);
 
   if (!isOpen) return null;
@@ -68,9 +71,13 @@ export default function SendBillModal({
     );
   };
 
-  const handleConfirmSend = () => {
+  const handleOpenConfirm = () => {
     if (selectedBillIds.length === 0) return;
+    setShowConfirm(true);
+  };
 
+  const handleConfirmSend = () => {
+    setShowConfirm(false);
     onSendBills(selectedBillIds);
   };
 
@@ -173,7 +180,7 @@ export default function SendBillModal({
                   return (
                     <label
                       key={bill.id}
-                      className={`group grid cursor-pointer grid-cols-12 items-center gap-4 rounded-xl border px-4 py-3 transition-all hover:border-blue-300 hover:bg-blue-50/50 ${isSelected ? "border-blue-400 bg-blue-50/30 shadow-sm" : "border-border bg-surface"} ${isOverdue && !isSelected ? "border-red-200 bg-red-50/20" : ""} ${hasBeenNotified && !isSelected ? "opacity-80" : ""}`}
+                      className={`group dark:hover:bg-background grid cursor-pointer grid-cols-12 items-center gap-4 rounded-xl border px-4 py-3 transition-all hover:border-blue-300 hover:bg-blue-50/50 ${isSelected ? "border-blue-400 bg-blue-50/30 shadow-sm" : "border-border bg-surface"} ${isOverdue && !isSelected ? "border-red-200 bg-red-50/20" : ""} ${hasBeenNotified && !isSelected ? "opacity-80" : ""}`}
                     >
                       <div className="col-span-1 flex items-center justify-center">
                         <input
@@ -190,7 +197,7 @@ export default function SendBillModal({
                         <div className="bg-background text-muted flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
                           <User size={12} />
                         </div>
-                        <span className="truncate font-medium">
+                        <span className="truncate font-medium dark:text-white">
                           {bill.tenantNameSnapshot}
                         </span>
                       </div>
@@ -216,7 +223,7 @@ export default function SendBillModal({
                             {formatLastNotified(bill.lastNotifiedAt)}
                           </span>
                         ) : (
-                          <span className="text-muted text-[11px] italic">
+                          <span className="text-muted text-[11px] italic dark:text-white">
                             ยังไม่เคยส่ง
                           </span>
                         )}
@@ -236,7 +243,7 @@ export default function SendBillModal({
             ยกเลิก
           </button>
           <button
-            onClick={handleConfirmSend}
+            onClick={handleOpenConfirm}
             disabled={selectedBillIds.length === 0}
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold whitespace-nowrap text-white shadow-md transition-all hover:bg-blue-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
@@ -246,6 +253,62 @@ export default function SendBillModal({
           </button>
         </div>
       </div>
+
+      {showConfirm && (
+        <div className="animate-in fade-in fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 p-4">
+          <div className="bg-surface animate-in zoom-in-95 w-full max-w-md rounded-2xl p-6 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                <ShieldAlert size={20} />
+              </div>
+              <div>
+                <h3 className="text-foreground text-base font-bold">
+                  ยืนยันการส่งอีเมลบิล
+                </h3>
+                <p className="text-muted mt-1 text-sm">
+                  กำลังจะส่งอีเมลแจ้งบิลให้ผู้เช่า{" "}
+                  <span className="text-foreground font-semibold">
+                    {selectedBillIds.length}
+                  </span>{" "}
+                  รายการ ยอดรวม{" "}
+                  <span className="font-semibold text-blue-600">
+                    ฿{totalSelectedAmount.toLocaleString()}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              หากมี<span className="font-semibold">ส่วนลด</span>หรือ
+              <span className="font-semibold">ค่าใช้จ่ายเพิ่มเติม</span>
+              สำหรับห้องใด กรุณาไปแก้ไขที่
+              <span className="font-semibold">
+                {" "}
+                รายละเอียดบิล
+              </span>{" "}
+              ให้ถูกต้องก่อน เพราะเมื่อกดยืนยันแล้ว
+              ระบบจะส่งอีเมลตามยอดที่แสดงอยู่ตอนนี้ทันที
+              และแก้ไขย้อนหลังไม่ได้
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="text-muted hover:bg-background cursor-pointer rounded-lg px-5 py-2.5 text-sm font-medium whitespace-nowrap transition-colors active:scale-95"
+              >
+                กลับไปตรวจสอบ
+              </button>
+              <button
+                onClick={handleConfirmSend}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold whitespace-nowrap text-white shadow-md transition-all hover:bg-blue-700 active:scale-95"
+              >
+                <Send size={16} className="shrink-0" />
+                ยืนยัน ส่งเลย
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -18,6 +18,8 @@ import { MaintenanceRequest, MaintenanceStatus } from "@/features/maintenance";
 import { useEffect, useState } from "react";
 import { useScrollLock } from "usehooks-ts";
 import ConfirmDialog, { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
+import MaintenanceChatThread from "./MaintenanceChatThread";
+import { maintenanceService } from "@/features/maintenance/services/maintenance.service";
 
 interface MaintenanceDetailDialogProps {
   isOpen: boolean;
@@ -312,6 +314,17 @@ export default function MaintenanceDetailDialog({
                   </div>
                 )}
               </div>
+              <MaintenanceChatThread
+                maintenanceId={data.id}
+                currentRole="OWNER"
+                enabled={
+                  data.status === "IN_PROGRESS" || data.status === "COMPLETED"
+                }
+                readOnly={data.status === "COMPLETED"}
+                getMessages={maintenanceService.getMessages}
+                sendMessage={maintenanceService.sendMessage}
+                editMessage={maintenanceService.editMessage}
+              />
               <div className="border-border text-muted flex flex-wrap gap-x-6 gap-y-2 border-t pt-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Calendar size={16} />{" "}

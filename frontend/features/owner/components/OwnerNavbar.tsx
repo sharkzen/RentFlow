@@ -18,6 +18,7 @@ import {
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function OwnerNavbar() {
   const pathname = usePathname();
@@ -96,8 +97,8 @@ export default function OwnerNavbar() {
       >
         <div className="flex h-full flex-col">
           <div className="flex items-center gap-3 px-6 py-8">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
-              <Building2 size={20} />
+            <div className="flex h-10 w-10 items-center justify-center text-white">
+              <Image src={"/logo.png"} width={32} height={32} alt={"logo"} />
             </div>
             <div>
               <h1 className="text-foreground font-bold tracking-tight">Menu</h1>

@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { LandmarkType, CreateLandmarkPayload } from "@/features/admin/types";
+import {
+  LandmarkType,
+  LandmarkTypeLabel,
+  CreateLandmarkPayload,
+} from "@/features/admin/types";
 import { Button } from "@/lib/ui/Button";
 import { Map, X, MapPin, Search, ChevronDown, Check } from "lucide-react";
 import { Landmark } from "@/features/admin/types";
@@ -72,7 +76,7 @@ export const LandmarkModal = ({
   const isEditMode = !!initialData;
   const landmarkTypes = Object.values(LandmarkType);
   const filteredTypes = landmarkTypes.filter((t) =>
-    t.replace("_", " ").toLowerCase().includes(searchTerm.toLowerCase()),
+    LandmarkTypeLabel[t].toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -124,7 +128,7 @@ export const LandmarkModal = ({
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="bg-background text-foreground hover:bg-border focus:bg-surface flex h-11 w-full cursor-pointer items-center justify-between rounded-lg border border-transparent px-4 text-sm transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none"
               >
-                <span>{formData.type.replace("_", " ")}</span>
+                <span>{LandmarkTypeLabel[formData.type]}</span>
                 <ChevronDown
                   className={`text-muted h-4 w-4 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                 />
@@ -161,7 +165,7 @@ export const LandmarkModal = ({
                           }}
                           className={`flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors ${formData.type === t ? "bg-blue-50 font-medium text-blue-700" : "text-foreground hover:bg-background"}`}
                         >
-                          {t.replace("_", " ")}
+                          {LandmarkTypeLabel[t]}
                           {formData.type === t && (
                             <Check className="h-4 w-4 text-blue-600" />
                           )}

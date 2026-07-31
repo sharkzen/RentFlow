@@ -1,5 +1,5 @@
 import { ExternalLink, Trash2, MapPinOff, Pencil } from "lucide-react";
-import { Landmark } from "@/features/admin";
+import { Landmark, LandmarkTypeLabel, LandmarkType } from "@/features/admin";
 import { Button } from "@/lib/ui/Button";
 
 interface Props {
@@ -65,7 +65,8 @@ export const LandmarkTable = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                    {item.type.replace("_", " ")}
+                    {LandmarkTypeLabel[item.type as LandmarkType] ??
+                      item.type.replace("_", " ")}
                   </span>
                 </td>
                 <td className="text-muted px-6 py-4 font-mono text-xs whitespace-nowrap">

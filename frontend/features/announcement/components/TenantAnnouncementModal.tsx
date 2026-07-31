@@ -235,7 +235,7 @@ export default function TenantAnnouncementModal() {
                 ปักหมุด
               </span>
             )}
-            <div className="text-xs">
+            <div className="text-xs dark:text-gray-500">
               เมื่อ {formatThaiDate(currentAnn.createdAt)}
             </div>
           </div>
@@ -264,7 +264,7 @@ export default function TenantAnnouncementModal() {
                 />
               </div>
             )}
-            <div className="text-muted text-sm leading-relaxed whitespace-pre-line md:text-base">
+            <div className="text-muted text-sm leading-relaxed whitespace-pre-line md:text-base dark:text-white">
               {currentAnn.content}
             </div>
           </div>

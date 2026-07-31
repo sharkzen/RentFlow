@@ -18,6 +18,7 @@ import {
   Menu,
   Megaphone,
 } from "lucide-react";
+import Image from "next/image";
 
 export default function TenantNavbar() {
   const pathname = usePathname();
@@ -83,8 +84,8 @@ export default function TenantNavbar() {
       >
         <div className="flex h-full flex-col">
           <div className="border-border flex items-center gap-3 border-b px-6 py-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white">
-              <Building2 size={20} />
+            <div className="flex h-10 w-10 items-center justify-center text-white">
+              <Image src={"/logo.png"} width={32} height={32} alt={"logo"} />
             </div>
             <div>
               <h1 className="text-foreground text-lg font-bold tracking-tight">
@@ -94,7 +95,7 @@ export default function TenantNavbar() {
             </div>
           </div>
           <div className="scrollbar-thin scrollbar-thumb-border flex-1 overflow-y-auto px-4 py-4">
-            <nav className="mb-6 space-y-1">
+            <nav className="mb-6 space-y-1.5">
               <p className="text-muted mb-3 px-4 text-xs font-bold tracking-wider uppercase">
                 Menu
               </p>
