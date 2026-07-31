@@ -28,6 +28,9 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
+RUN chown -R node:node /app
+USER node
+
 EXPOSE 3000
 
 # รันไฟล์ server.js ที่ Next.js สร้างให้ตอนใช้โหมด standalone

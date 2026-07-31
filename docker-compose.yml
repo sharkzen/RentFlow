@@ -42,10 +42,10 @@ services:
 
   ocr-service:
     build:
-      context: ./ocr-service # ชี้ไปยังโฟลเดอร์ที่เราเพิ่งสร้าง
+      context: ./ocr-service
     container_name: ocr-server
     ports:
-      - "8899:8899" # แมปพอร์ตเครื่อง : พอร์ตในคอนเทนเนอร์
+      - "8899:8899"
     restart: unless-stopped
 
   postgres:
@@ -66,23 +66,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: rentflow-pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@rentflow.com
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      TZ: Asia/Bangkok
-    ports:
-      - "5050:80"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
 
   redis:
     image: redis:7
@@ -122,7 +105,6 @@ services:
 
 volumes:
   postgres_data:
-  pgadmin_data:
   redis_data:
   backend_node_modules:
   frontend_node_modules:

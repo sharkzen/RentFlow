@@ -10,13 +10,13 @@ import { env } from "../config/env";
 console.log("========================================");
 console.log("👷 RentFlow Background Workers STARTING...");
 console.log("========================================");
-startMoveOutWorker();
+const moveOutWorker = startMoveOutWorker();
 console.log("✅ MoveOut Worker: Started successfully!");
-startTempCleanupWorker();
+const tempCleanupWorker = startTempCleanupWorker();
 console.log("✅ Temp-Drafts Cleanup Worker: Started successfully!");
-startBillDueReminderWorker();
+const billDueReminderWorker = startBillDueReminderWorker();
 console.log("✅ Bill Due-Reminder Worker: Started successfully!");
-startPasswordResetOtpCleanupWorker();
+const passwordResetOtpCleanupWorker = startPasswordResetOtpCleanupWorker();
 console.log("✅ Password-Reset-OTP Cleanup Worker: Started successfully!");
 
 const emailWorker = new Worker(
@@ -65,3 +65,31 @@ emailWorker.on("error", (err) => {
 emailWorker.on("failed", (job, error) => {
   console.error(`❌ [Worker] Job ${job?.id} Failed:`, error);
 });
+
+let shuttingDown = false;
+
+async function shutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+
+  console.log(`\n🛑 Received ${signal}, closing workers gracefully...`);
+
+  try {
+    await Promise.all([
+      moveOutWorker.close(),
+      tempCleanupWorker.close(),
+      billDueReminderWorker.close(),
+      passwordResetOtpCleanupWorker.close(),
+      emailWorker.close(),
+    ]);
+
+    console.log("✅ All workers closed. Exiting.");
+    process.exit(0);
+  } catch (error) {
+    console.error("❌ Error while closing workers:", error);
+    process.exit(1);
+  }
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

@@ -80,6 +80,32 @@ export async function buildApp() {
     prefix: "/public/",
   });
 
+  app.get("/health", async (request, reply) => {
+    const checks: Record<string, "ok" | "error"> = { server: "ok" };
+
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      checks.database = "ok";
+    } catch (error) {
+      checks.database = "error";
+    }
+
+    try {
+      const client = await emailQueue.client;
+      await client.ping();
+      checks.redis = "ok";
+    } catch (error) {
+      checks.redis = "error";
+    }
+
+    const healthy = Object.values(checks).every((status) => status === "ok");
+
+    reply.status(healthy ? 200 : 503).send({
+      status: healthy ? "ok" : "degraded",
+      checks,
+    });
+  });
+
   app.get(
     "/api/status",
     {
