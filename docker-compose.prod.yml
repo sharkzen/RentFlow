@@ -39,6 +39,7 @@ services:
       context: ./frontend
       args:
         API_URL: http://backend:3001
+        NEXT_PUBLIC_SITE_URL: https://rentflow.duckdns.org
     container_name: rentflow-frontend
     restart: unless-stopped
     init: true
@@ -50,6 +51,7 @@ services:
         condition: service_healthy
     environment:
       API_URL: http://backend:3001
+      NEXT_PUBLIC_SITE_URL: https://rentflow.duckdns.org
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "-O", "/dev/null", "http://127.0.0.1:3000/"]
       interval: 15s

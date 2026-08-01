@@ -13,6 +13,9 @@ COPY . .
 ARG API_URL
 ENV API_URL=$API_URL
 
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+
 RUN npm run build
 
 # Stage 3: Production Runner (ตัวที่จะรันจริง)

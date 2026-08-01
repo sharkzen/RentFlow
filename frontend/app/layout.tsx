@@ -29,11 +29,26 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "RentFlow",
+    title: "RentFlow",
+    description:
+      "ระบบจัดการหอพักครบวงจร จัดการห้องพัก ค่าไฟ ค่าน้ำ บิล และผู้เช่าได้ในที่เดียว",
+    url: "https://rentflow.duckdns.org",
     locale: "th_TH",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "RentFlow",
+      },
+    ],
   },
 
   twitter: {
     card: "summary_large_image",
+    title: "RentFlow",
+    description: "ระบบจัดการหอพักครบวงจร",
+    images: ["/og-image.png"],
   },
 };
 
