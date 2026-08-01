@@ -29,14 +29,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "RentFlow",
-    title: "RentFlow",
+    title: "RentFlow — ค้นหาและจัดการหอพักครบวงจร",
     description:
       "ระบบจัดการหอพักครบวงจร จัดการห้องพัก ค่าไฟ ค่าน้ำ บิล และผู้เช่าได้ในที่เดียว",
     url: "https://rentflow.duckdns.org",
     locale: "th_TH",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "RentFlow",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RentFlow",
     description: "ระบบจัดการหอพักครบวงจร",
-    images: ["/og-image.png"],
+    images: ["/og-image.jpg"],
   },
 };
 
