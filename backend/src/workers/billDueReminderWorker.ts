@@ -54,6 +54,8 @@ export const startBillDueReminderWorker = () => {
 
                         take: 1,
                       },
+
+                      settings: true,
                     },
                   },
                 },
@@ -90,6 +92,8 @@ export const startBillDueReminderWorker = () => {
                   amount: bill.total.toLocaleString("th-TH", {
                     minimumFractionDigits: 2,
                   }),
+
+                  lateFeeRate: bill.room.dormitory.settings?.lateFee || 0,
 
                   link: `${env.FRONTEND_URL}/tenant/bills/${bill.id}`,
                 },
