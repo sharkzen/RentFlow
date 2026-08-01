@@ -147,10 +147,13 @@ export default function OwnerRegisterForm() {
   return (
     <div className="bg-background grid min-h-[calc(100vh-65px)] w-full min-[1420px]:grid-cols-2">
       <div className="relative hidden min-[1420px]:block">
-        <img
+        <Image
           src="/images/bg-main.jpg"
           alt="Apartment management"
-          className="absolute inset-0 h-full w-full object-cover dark:opacity-50"
+          fill
+          priority
+          sizes="50vw"
+          className="object-cover dark:opacity-50"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
         <div className="relative z-10 flex h-full flex-col p-12 text-white">
