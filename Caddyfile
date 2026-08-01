@@ -1,8 +1,4 @@
-# ⚠️ แก้ yourdomain.com / api.yourdomain.com ด้านล่างเป็นโดเมนจริงของคุณก่อน deploy
-# Caddy จะออก HTTPS certificate (Let's Encrypt) ให้อัตโนมัติ ตราบใดที่โดเมนชี้ DNS มาที่ VPS นี้แล้ว
-
-# โดเมนหลัก วิ่งไปหา Next.js (Frontend)
-localhost {
+rentflow.duckdns.org {
     encode gzip zstd
 
     header {
@@ -19,25 +15,3 @@ localhost {
         format json
     }
 }
-
-# ซับโดเมน API วิ่งไปหา Fastify (Backend)
-api.localhost {
-    encode gzip zstd
-
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
-        Referrer-Policy "strict-origin-when-cross-origin"
-    }
-
-    reverse_proxy backend:3001
-
-    log {
-        output file /data/access-backend.log
-        format json
-    }
-}
-
-# หมายเหตุ: ไม่มีการเปิด route สาธารณะให้ postgres/redis/ocr-service/worker
-# โดยตั้งใจ — service เหล่านี้เข้าถึงได้เฉพาะภายใน Docker network เท่านั้น

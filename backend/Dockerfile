@@ -32,7 +32,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
