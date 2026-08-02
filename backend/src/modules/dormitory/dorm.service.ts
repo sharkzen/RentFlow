@@ -381,6 +381,39 @@ export const dormService = {
     };
   },
 
+  async getDormCoverImageKey(slug: string) {
+    const dorm = await prisma.dormitory.findUnique({
+      where: {
+        slug: slug,
+      },
+
+      select: {
+        images: {
+          where: {
+            category: "DORMITORY",
+          },
+
+          orderBy: [
+            {
+              isCover: "desc",
+            },
+            {
+              order: "asc",
+            },
+          ],
+
+          take: 1,
+
+          select: {
+            objectKey: true,
+          },
+        },
+      },
+    });
+
+    return dorm?.images[0]?.objectKey ?? null;
+  },
+
   async getDormSlug(slug: string) {
     const dorm = await prisma.dormitory.findUnique({
       where: {

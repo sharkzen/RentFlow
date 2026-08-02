@@ -24,10 +24,17 @@ export async function generateMetadata({
     if (!res.ok) return {};
 
     const dorm = await res.json();
-    const cover = dorm.images?.find((img: { isCover?: boolean }) => img.isCover) ?? dorm.images?.[0];
     // Next.js does not deep-merge openGraph/twitter with the root layout, so
     // fall back to the site's default OG image explicitly instead of omitting it.
-    const image = (cover?.url as string | undefined) ?? "/og-image.jpg";
+    // Point at the cover-image proxy route (not dorm.images[].url directly) since
+    // that URL is a presigned R2 link that expires in 1 hour and would go stale
+    // before crawlers re-fetch it. The route lives on this (public) frontend
+    // origin, not API_URL, since API_URL is an internal-only backend address
+    // in production and wouldn't be reachable by external crawlers.
+    const hasImages = (dorm.images?.length ?? 0) > 0;
+    const image = hasImages
+      ? `/api/og-image/${encodeURIComponent(slug)}`
+      : "/og-image.jpg";
     const price = dorm.settings?.roomPrice as number | undefined;
     const title = price
       ? `${dorm.name} | เริ่มต้น ${price.toLocaleString()} บาท/เดือน`

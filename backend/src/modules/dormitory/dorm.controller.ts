@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { extname } from "path";
 import { randomUUID } from "crypto";
 import { dormService } from "@/modules/dormitory/dorm.service";
+import { generateSignedUrl } from "@/services/r2Client";
 import sharp from "sharp";
 import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import {
@@ -35,6 +36,27 @@ export const DormController = {
     }
 
     return reply.send(dorm);
+  },
+
+  async getDormCoverImage(request: FastifyRequest, reply: FastifyReply) {
+    const { slug } = request.params as {
+      slug: string;
+    };
+
+    if (!slug) {
+      throw AppError.badRequest("SLUG_REQUIRED");
+    }
+
+    const decodedSlug = decodeURIComponent(slug);
+    const objectKey = await dormService.getDormCoverImageKey(decodedSlug);
+
+    if (!objectKey) {
+      throw AppError.notFound("DORM_COVER_IMAGE_NOT_FOUND");
+    }
+
+    const signedUrl = await generateSignedUrl(objectKey);
+
+    return reply.redirect(signedUrl, 302);
   },
 
   async createDorm(request: FastifyRequest, reply: FastifyReply) {

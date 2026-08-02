@@ -80,6 +80,33 @@ export async function dormRoute(app: FastifyInstance) {
     DormController.getDormSlug,
   );
 
+  app.get(
+    "/:slug/cover-image",
+    {
+      schema: {
+        tags: ["Dormitory (Public)"],
+        summary: "รับลิงก์รูปปกหอพักแบบไม่หมดอายุ (สำหรับ OG image)",
+
+        params: {
+          type: "object",
+
+          properties: {
+            slug: {
+              type: "string",
+            },
+          },
+
+          required: ["slug"],
+        },
+
+        response: {
+          404: commonErrorResponses[404],
+        },
+      },
+    },
+    DormController.getDormCoverImage,
+  );
+
   app.register(async (routeRoles) => {
     routeRoles.addHook("preHandler", authMiddleware);
     routeRoles.addHook(
