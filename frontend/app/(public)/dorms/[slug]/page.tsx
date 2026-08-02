@@ -24,19 +24,33 @@ export async function generateMetadata({
     if (!res.ok) return {};
 
     const dorm = await res.json();
-    const image = dorm.images?.[0]?.url as string | undefined;
+    const cover = dorm.images?.find((img: { isCover?: boolean }) => img.isCover) ?? dorm.images?.[0];
+    // Next.js does not deep-merge openGraph/twitter with the root layout, so
+    // fall back to the site's default OG image explicitly instead of omitting it.
+    const image = (cover?.url as string | undefined) ?? "/og-image.jpg";
+    const price = dorm.settings?.roomPrice as number | undefined;
+    const title = price
+      ? `${dorm.name} | เริ่มต้น ${price.toLocaleString()} บาท/เดือน`
+      : dorm.name;
     const description = dorm.address
       ? `หอพัก ${dorm.name} ที่ ${dorm.address} ดูรายละเอียดห้องว่าง ราคา และติดต่อเจ้าของหอพักได้ทันทีบน RentFlow`
       : `รายละเอียดหอพัก ${dorm.name} บน RentFlow`;
 
     return {
-      title: dorm.name,
+      title,
       description,
 
       openGraph: {
-        title: dorm.name,
+        title,
         description,
-        images: image ? [image] : undefined,
+        images: [image],
+      },
+
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [image],
       },
     };
   } catch {

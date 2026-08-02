@@ -14,6 +14,7 @@ import {
   Wind,
 } from "lucide-react";
 import { DormSlugResponse } from "@/features/dormitory/types";
+import { ShareButton } from "./ShareButton";
 
 const LineIcon = ({ className }: { className?: string }) => (
   <svg
@@ -28,6 +29,7 @@ const LineIcon = ({ className }: { className?: string }) => (
 
 export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
   const {
+    name,
     settings,
     owner,
     availability,
@@ -36,6 +38,10 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
     lineType,
     facebook,
   } = data;
+
+  const shareText = settings?.roomPrice
+    ? `${name} | เริ่มต้น ${settings.roomPrice.toLocaleString()} บาท/เดือน`
+    : name;
 
   const lineUrl = lineId
     ? lineType === "OFFICIAL"
@@ -217,6 +223,8 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
               )}
             </div>
           )}
+
+          <ShareButton title={name} text={shareText} />
         </div>
       </div>
     </div>
