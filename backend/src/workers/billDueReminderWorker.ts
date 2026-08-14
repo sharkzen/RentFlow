@@ -17,11 +17,9 @@ export const startBillDueReminderWorker = () => {
     async (job) => {
       if (job.name === "daily-bill-due-reminder") {
         logger.info("[Worker] Running daily bill due-date reminder check...");
-
         const startOfTomorrow = new Date();
         startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
         startOfTomorrow.setHours(0, 0, 0, 0);
-
         const endOfTomorrow = new Date(startOfTomorrow);
         endOfTomorrow.setHours(23, 59, 59, 999);
 
@@ -49,7 +47,15 @@ export const startBillDueReminderWorker = () => {
                 include: {
                   dormitory: {
                     include: {
-                      owner: true,
+                      contacts: {
+                        orderBy: {
+                          order: "asc",
+                        },
+
+                        take: 1,
+                      },
+
+                      settings: true,
                     },
                   },
                 },
@@ -77,7 +83,7 @@ export const startBillDueReminderWorker = () => {
 
                 data: {
                   dormName: bill.room.dormitory.name,
-                  ownerPhone: bill.room.dormitory.owner.phone || "-",
+                  ownerPhone: bill.room.dormitory.contacts?.[0]?.phone || "-",
                   tenantName: bill.tenantNameSnapshot,
                   roomNumber: bill.roomNumberSnapshot,
                   month: formatDateTH(bill.billingMonth),
@@ -86,6 +92,8 @@ export const startBillDueReminderWorker = () => {
                   amount: bill.total.toLocaleString("th-TH", {
                     minimumFractionDigits: 2,
                   }),
+
+                  lateFeeRate: bill.room.dormitory.settings?.lateFee || 0,
 
                   link: `${env.FRONTEND_URL}/tenant/bills/${bill.id}`,
                 },

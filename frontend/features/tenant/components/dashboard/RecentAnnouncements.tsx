@@ -16,7 +16,6 @@ interface Announcement {
 export default function RecentAnnouncements() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
-
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -27,6 +26,7 @@ export default function RecentAnnouncements() {
         const res = await AnnouncementService.tenantGetAnnouncements({
           limit: 3,
         });
+
         if (isMountedRef.current) setAnnouncements(res.data);
       } catch (error) {
         console.error("Failed to fetch announcements:", error);
@@ -43,9 +43,9 @@ export default function RecentAnnouncements() {
   }, []);
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+    <div className="border-border bg-surface rounded-2xl border p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-slate-800">
+        <h3 className="text-foreground flex items-center gap-2 text-base font-semibold">
           <Megaphone size={18} className="text-indigo-500" />
           ประกาศจากหอพัก
         </h3>
@@ -61,11 +61,11 @@ export default function RecentAnnouncements() {
           [...Array(2)].map((_, i) => (
             <div
               key={i}
-              className="h-14 animate-pulse rounded-xl bg-slate-100"
+              className="bg-skeleton h-14 animate-pulse rounded-xl"
             />
           ))
         ) : announcements.length === 0 ? (
-          <p className="py-4 text-center text-sm text-slate-400">
+          <p className="text-muted py-4 text-center text-sm">
             ยังไม่มีประกาศจากหอพัก
           </p>
         ) : (
@@ -73,22 +73,22 @@ export default function RecentAnnouncements() {
             <Link
               key={item.id}
               href={routes.tenant.announcements}
-              className="flex cursor-pointer items-center justify-between rounded-xl border border-slate-50 bg-slate-50/50 p-3 transition-colors hover:bg-slate-100"
+              className="border-border bg-background hover:bg-surface flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-colors"
             >
               <div className="flex gap-3">
                 <div
-                  className={`mt-1 h-2 w-2 shrink-0 rounded-full ${item.type === "URGENT" ? "bg-red-500" : item.type === "IMPORTANT" ? "bg-amber-500" : "bg-slate-300"}`}
+                  className={`mt-1 h-2 w-2 shrink-0 rounded-full ${item.type === "URGENT" ? "bg-red-500" : item.type === "IMPORTANT" ? "bg-amber-500" : "bg-muted"}`}
                 />
                 <div>
-                  <p className="line-clamp-1 text-sm font-medium text-slate-700">
+                  <p className="text-foreground line-clamp-1 text-sm font-medium">
                     {item.title}
                   </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-muted text-xs">
                     {formatThaiDate(item.createdAt)}
                   </p>
                 </div>
               </div>
-              <ChevronRight size={16} className="text-slate-300" />
+              <ChevronRight size={16} className="text-muted" />
             </Link>
           ))
         )}

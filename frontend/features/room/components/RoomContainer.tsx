@@ -9,6 +9,7 @@ import RoomCard from "./RoomCard";
 import RoomFilters from "./RoomFilters";
 import log from "@/lib/logger";
 import { useOnClickOutside } from "usehooks-ts";
+import LoadingPage from "@/app/(owner)/owner/rooms/loading";
 
 export default function RoomContainer() {
   const [open, setOpen] = useState(false);
@@ -90,14 +91,16 @@ export default function RoomContainer() {
     return () => clearTimeout(timer);
   }, [fetchRooms]);
 
+  if (isLoading || !dorms) return <LoadingPage />;
+
   return (
     <div className="flex w-full max-w-full flex-col gap-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h2 className="text-foreground text-3xl font-bold tracking-tight">
             ห้องพัก
           </h2>
-          <p className="text-sm text-gray-500 sm:text-base">
+          <p className="text-muted text-sm sm:text-base">
             จัดการข้อมูลห้องพักและสถานะ
           </p>
         </div>
@@ -105,7 +108,7 @@ export default function RoomContainer() {
           <div ref={menuRef} className="relative w-full sm:w-64">
             <button
               onClick={() => setOpen((v) => !v)}
-              className="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-800 transition hover:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
+              className="border-border bg-surface text-foreground flex w-full cursor-pointer items-center justify-between rounded-lg border px-4 py-2.5 text-sm font-medium transition hover:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
             >
               <div className="flex flex-col items-start">
                 <span className="truncate font-semibold text-blue-600">
@@ -113,18 +116,18 @@ export default function RoomContainer() {
                 </span>
               </div>
               <ChevronDown
-                className={`h-4 w-4 text-gray-400 transition ${open ? "rotate-180" : ""}`}
+                className={`text-muted h-4 w-4 transition ${open ? "rotate-180" : ""}`}
               />
             </button>
             {open && (
-              <div className="absolute top-full right-0 z-50 mt-2 max-h-60 w-full overflow-hidden overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5">
+              <div className="border-border bg-surface absolute top-full right-0 z-50 mt-2 max-h-60 w-full overflow-hidden overflow-y-auto rounded-xl border shadow-xl ring-1 ring-black/5">
                 <div className="space-y-1 p-1">
                   <button
                     onClick={() => {
                       setSelectedDormId("ALL");
                       setOpen(false);
                     }}
-                    className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition ${selectedDormId === "ALL" ? "bg-blue-50 font-medium text-blue-700" : "text-gray-700 hover:bg-gray-50"}`}
+                    className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition ${selectedDormId === "ALL" ? "bg-blue-50 font-medium text-blue-700" : "text-foreground hover:bg-background"}`}
                   >
                     <span className="truncate">ทั้งหมดทุกหอพัก</span>
                     {selectedDormId === "ALL" && (
@@ -141,7 +144,7 @@ export default function RoomContainer() {
                           setSelectedDormId(dorm.id);
                           setOpen(false);
                         }}
-                        className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition ${active ? "bg-blue-50 font-medium text-blue-700" : "text-gray-700 hover:bg-gray-50"}`}
+                        className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm transition ${active ? "bg-blue-50 font-medium text-blue-700" : "text-foreground hover:bg-background"}`}
                       >
                         <span className="truncate">{dorm.name}</span>
                         {active && <Check className="h-4 w-4 text-blue-600" />}

@@ -203,12 +203,12 @@ export default function DormFilter() {
         data-aos="fade-up"
         className="relative z-20 mx-auto my-8 w-full"
       >
-        <div className="flex flex-col bg-white p-2 ring-1 ring-slate-100 sm:rounded-3xl md:flex-row md:items-center md:p-1.5">
+        <div className="bg-surface ring-border flex flex-col p-2 ring-1 sm:rounded-3xl md:flex-row md:items-center md:p-1.5">
           <div
-            className={`group relative flex flex-1 flex-col justify-center border-slate-100 px-6 py-3 transition-all md:rounded-l-full md:border-r`}
+            className={`border-border group relative flex flex-1 flex-col justify-center px-6 py-3 transition-all md:rounded-l-full md:border-r`}
           >
             <label
-              className={`mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider uppercase ${isError ? "text-red-600" : "text-slate-500"}`}
+              className={`mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider uppercase ${isError ? "text-red-600" : "text-muted"}`}
             >
               <Building2
                 size={14}
@@ -225,7 +225,7 @@ export default function DormFilter() {
               ref={inputRef}
               type="text"
               placeholder="เช่น หอพักใจดี..."
-              className="w-full truncate bg-transparent text-sm font-semibold text-slate-700 placeholder:font-normal placeholder:text-slate-400 focus:outline-none md:text-base"
+              className="text-foreground placeholder:text-muted w-full truncate bg-transparent text-sm font-semibold placeholder:font-normal focus:outline-none md:text-base"
               value={name}
               onChange={(e) => {
                 const val = e.target.value;
@@ -248,9 +248,9 @@ export default function DormFilter() {
           </div>
           <div
             ref={dropdownRef}
-            className="group relative flex flex-1 flex-col justify-center px-6 py-3 transition-colors md:border-r md:border-slate-100"
+            className="border-border group relative flex flex-1 flex-col justify-center px-6 py-3 transition-colors md:border-r"
           >
-            <label className="my-1 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
+            <label className="text-muted my-1 flex items-center gap-2 text-xs font-bold tracking-wider uppercase">
               <MapPin size={14} className="text-rose-500" />
               ทำเล / สถานที่ใกล้เคียง
             </label>
@@ -258,22 +258,22 @@ export default function DormFilter() {
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex w-full cursor-pointer items-center justify-between bg-transparent text-sm font-semibold text-slate-700 focus:outline-none md:text-base"
+                className="text-foreground flex w-full cursor-pointer items-center justify-between bg-transparent text-sm font-semibold focus:outline-none md:text-base"
               >
                 <span className="truncate pr-4">{displayLocationName}</span>
                 <ChevronDown
                   size={14}
-                  className={`text-slate-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
+                  className={`text-muted transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
                 />
               </button>
               {isDropdownOpen && (
-                <div className="absolute top-full left-0 z-[100] mt-3 w-full min-w-[240px] overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl md:-left-4 md:w-[120%]">
-                  <div className="border-b border-slate-100 bg-slate-50 p-2">
+                <div className="border-border bg-surface absolute top-full left-0 z-[100] mt-3 w-full min-w-[240px] overflow-hidden rounded-xl border shadow-xl md:-left-4 md:w-[120%]">
+                  <div className="border-border bg-background border-b p-2">
                     <div className="relative">
-                      <Search className="absolute top-2.5 left-3 h-4 w-4 text-slate-400" />
+                      <Search className="text-muted absolute top-2.5 left-3 h-4 w-4" />
                       <input
                         type="text"
-                        className="h-9 w-full rounded-lg bg-white pr-3 pl-9 text-sm text-slate-700 ring-1 ring-slate-200 focus:ring-2 focus:ring-rose-500/20 focus:outline-none"
+                        className="bg-surface text-foreground ring-border h-9 w-full rounded-lg pr-3 pl-9 text-sm ring-1 focus:ring-2 focus:ring-rose-500/20 focus:outline-none"
                         placeholder="ค้นหาสถานที่..."
                         value={locationSearch}
                         onChange={(e) => setLocationSearch(e.target.value)}
@@ -285,7 +285,7 @@ export default function DormFilter() {
                     <button
                       type="button"
                       onClick={() => handleSelectLocation("")}
-                      className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${location === "" ? "bg-rose-50 font-semibold text-rose-600" : "text-slate-600 hover:bg-slate-50"}`}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm transition-colors ${location === "" ? "bg-rose-50 font-semibold text-rose-600" : "text-muted hover:bg-background"}`}
                     >
                       ทั้งหมด
                       {location === "" && <Check size={16} />}
@@ -294,7 +294,7 @@ export default function DormFilter() {
                       Object.entries(filteredGroupedLandmarks).map(
                         ([type, items]) => (
                           <div key={type} className="mt-2">
-                            <div className="px-3 py-1 text-xs font-bold tracking-wider text-slate-400 uppercase">
+                            <div className="text-muted px-3 py-1 text-xs font-bold tracking-wider uppercase">
                               {type}
                             </div>
                             {items.map((lm) => (
@@ -302,7 +302,7 @@ export default function DormFilter() {
                                 key={lm.id}
                                 type="button"
                                 onClick={() => handleSelectLocation(lm.id)}
-                                className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${location === lm.id ? "bg-rose-50 font-semibold text-rose-600" : "text-slate-600 hover:bg-slate-50"}`}
+                                className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${location === lm.id ? "bg-rose-50 font-semibold text-rose-600" : "text-muted hover:bg-background"}`}
                               >
                                 <span className="truncate">{lm.name}</span>
                                 {location === lm.id && <Check size={16} />}
@@ -312,7 +312,7 @@ export default function DormFilter() {
                         ),
                       )
                     ) : (
-                      <div className="py-4 text-center text-sm text-slate-500">
+                      <div className="text-muted py-4 text-center text-sm">
                         ไม่พบสถานที่
                       </div>
                     )}
@@ -322,7 +322,7 @@ export default function DormFilter() {
             </div>
           </div>
           <div className="group relative flex flex-[1.3] flex-col justify-center px-6 py-3 transition-colors">
-            <label className="mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider text-slate-500 uppercase">
+            <label className="text-muted mb-0.5 flex items-center gap-2 text-xs font-bold tracking-wider uppercase">
               <Banknote size={14} className="text-emerald-500" />
               ช่วงราคา (บาท)
             </label>
@@ -331,7 +331,7 @@ export default function DormFilter() {
                 min={0}
                 type="number"
                 placeholder="ต่ำสุด"
-                className="flex w-full min-w-15 items-center bg-transparent text-sm font-semibold text-slate-700 placeholder:font-normal placeholder:text-slate-400 focus:outline-none md:text-base"
+                className="text-foreground placeholder:text-muted flex w-full min-w-15 items-center bg-transparent text-sm font-semibold placeholder:font-normal focus:outline-none md:text-base"
                 value={priceMin}
                 onChange={(e) => {
                   const val =
@@ -351,12 +351,12 @@ export default function DormFilter() {
                   if (e.key === "Enter") handleSearchClick();
                 }}
               />
-              <span className="text-slate-300">-</span>
+              <span className="text-muted">-</span>
               <input
                 min={0}
                 type="number"
                 placeholder="สูงสุด"
-                className="w-full min-w-15 bg-transparent text-sm font-semibold text-slate-700 placeholder:font-normal placeholder:text-slate-400 focus:outline-none md:text-base"
+                className="text-foreground placeholder:text-muted w-full min-w-15 bg-transparent text-sm font-semibold placeholder:font-normal focus:outline-none md:text-base"
                 value={priceMax}
                 onChange={(e) => {
                   const val =
@@ -385,7 +385,7 @@ export default function DormFilter() {
               <button
                 onClick={handleReset}
                 title="ล้างตัวกรอง"
-                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all hover:bg-rose-100 hover:text-rose-600 active:scale-95"
+                className="bg-background text-muted flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-all hover:bg-rose-100 hover:text-rose-600 active:scale-95"
               >
                 <RotateCcw size={16} />
               </button>

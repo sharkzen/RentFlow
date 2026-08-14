@@ -17,6 +17,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
       dueDate,
       tenantNameSnapshot,
       roomNumberSnapshot,
+      waterBillingTypeSnapshot,
       prevWaterUnitSnapshot,
       currentWaterUnitSnapshot,
       waterUsedSnapshot,
@@ -84,7 +85,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
             <div className="mt-2 text-sm leading-relaxed text-slate-600">
               {dorm?.address || "ที่อยู่..."}
               <br />
-              โทร: {dorm?.owner?.phone || "-"}
+              โทร: {dorm?.contacts?.[0]?.phone || "-"}
             </div>
           </div>
           <div className="text-right">
@@ -186,15 +187,24 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                 <td className="px-3 py-4">
                   <div className="font-semibold text-slate-900">
                     ค่าน้ำประปา
+                    {waterBillingTypeSnapshot === "FLAT_RATE" && " (เหมาจ่าย)"}
                   </div>
-                  <div className="text-xs text-slate-500">
-                    (มิเตอร์: {prevWaterUnitSnapshot}-{" "}
-                    {currentWaterUnitSnapshot})
-                  </div>
+                  {waterBillingTypeSnapshot !== "FLAT_RATE" && (
+                    <div className="text-xs text-slate-500">
+                      (มิเตอร์: {prevWaterUnitSnapshot}-{" "}
+                      {currentWaterUnitSnapshot})
+                    </div>
+                  )}
                 </td>
-                <td className="px-3 py-4 text-center">{waterUsedSnapshot}</td>
+                <td className="px-3 py-4 text-center">
+                  {waterBillingTypeSnapshot === "FLAT_RATE"
+                    ? "-"
+                    : waterUsedSnapshot}
+                </td>
                 <td className="px-3 py-4 text-right">
-                  {formatMoney(waterRateSnapshot)}
+                  {waterBillingTypeSnapshot === "FLAT_RATE"
+                    ? "-"
+                    : formatMoney(waterRateSnapshot)}
                 </td>
                 <td className="px-3 py-4 text-right font-bold">
                   {formatMoney(waterFeeSnapshot)}

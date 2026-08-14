@@ -64,6 +64,7 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { id } = req.params;
+
     const user = req.user as UserDecodedDto;
 
     try {
@@ -93,6 +94,7 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { id } = req.params;
+
     const user = req.user as UserDecodedDto;
 
     try {
@@ -128,6 +130,7 @@ export const AdminController = {
       String(published),
       String(featured),
     );
+
     return reply.send(result);
   },
 
@@ -148,6 +151,7 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { isFeatured } = toggleFeaturedSchema.parse(req.body);
+
     const user = req.user as UserDecodedDto;
 
     try {
@@ -168,6 +172,7 @@ export const AdminController = {
 
   reorderFeatured: async (req: FastifyRequest, reply: FastifyReply) => {
     const { items } = reorderFeaturedSchema.parse(req.body);
+
     const user = req.user as UserDecodedDto;
 
     try {
@@ -209,6 +214,7 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { isPublished } = togglePublishSchema.parse(req.body);
+
     const user = req.user as UserDecodedDto;
 
     try {
@@ -239,6 +245,7 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { status } = updateStatusSchema.parse(req.body);
+
     const user = req.user as UserDecodedDto;
 
     try {
@@ -296,6 +303,7 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { status } = updateStatusSchema.parse(req.body);
+
     const user = req.user as UserDecodedDto;
 
     try {
@@ -304,6 +312,38 @@ export const AdminController = {
         status as any,
         user.sub,
       );
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.code === "P2025") {
+        throw AppError.notFound("USER_NOT_FOUND", "ไม่พบข้อมูลผู้ใช้นี้");
+      }
+
+      throw error;
+    }
+  },
+
+  getLockedUsers: async (req: FastifyRequest, reply: FastifyReply) => {
+    const { page = 1, limit = 10 } = req.query as any;
+
+    const result = await AdminService.getLockedUsers(
+      Number(page),
+      Number(limit),
+    );
+    return reply.send(result);
+  },
+
+  unlockUser: async (
+    req: FastifyRequest<{
+      Params: {
+        id: string;
+      };
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const user = req.user as UserDecodedDto;
+
+    try {
+      const result = await AdminService.unlockUser(req.params.id, user.sub);
       return reply.send(result);
     } catch (error: any) {
       if (error.code === "P2025") {
@@ -367,8 +407,8 @@ export const AdminController = {
     reply: FastifyReply,
   ) => {
     const { id } = req.params;
-    const user = req.user as UserDecodedDto;
 
+    const user = req.user as UserDecodedDto;
     const body = updateLandmarkSchema.parse(req.body);
 
     try {

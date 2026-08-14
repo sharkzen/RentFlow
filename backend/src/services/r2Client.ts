@@ -93,9 +93,9 @@ export async function moveTempFileToPermanent(oldKey: string, newKey: string) {
   }
 }
 
-export async function cleanupOldTempDrafts(
-  maxAgeMs: number,
-): Promise<{ deletedCount: number }> {
+export async function cleanupOldTempDrafts(maxAgeMs: number): Promise<{
+  deletedCount: number;
+}> {
   let deletedCount = 0;
   let isTruncated = true;
   let continuationToken: string | undefined = undefined;
@@ -123,7 +123,9 @@ export async function cleanupOldTempDrafts(
     continuationToken = response.NextContinuationToken;
   }
 
-  return { deletedCount };
+  return {
+    deletedCount,
+  };
 }
 
 export async function getBucketSize(): Promise<{

@@ -1,29 +1,53 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/providers/AuthProvider";
 import useLogout from "@/features/auth/hooks/useLogout";
 import { toast } from "react-toastify";
-import { LayoutDashboard, LogOut, ChevronDown, Home } from "lucide-react";
+import { flushSync } from "react-dom";
+import {
+  LayoutDashboard,
+  LogOut,
+  ChevronDown,
+  Home,
+  Sun,
+  Moon,
+} from "lucide-react";
 import { Role } from "@/features/auth";
 import Skeleton from "@/lib/ui/Skeleton";
 import log from "@/lib/logger";
-
+import { FaUserCircle } from "react-icons/fa";
+import { getDisplayFirstName } from "@/lib/getDisplayFirstName";
+import Image from "next/image";
 export default function Header() {
   const { user, loading: authLoading, setUser } = useAuth();
+
+  const { resolvedTheme, setTheme } = useTheme();
 
   const [isMounted, setIsMounted] = useState(false);
   const logoutMutation = useLogout();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const router = useRouter();
-  const initial = user?.fullName?.charAt(0).toUpperCase() || "U";
-  const firstName = user?.fullName?.trim().split(/\s+/)[0];
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuItemRefs = useRef<(HTMLElement | null)[]>([]);
   const menuId = useId();
+  const pathname = usePathname();
+  const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+
+  const tabs = [
+    {
+      name: "เข้าสู่ระบบ",
+      href: "/auth/login",
+    },
+    {
+      name: "ลงทะเบียน",
+      href: "/auth/register",
+    },
+  ];
 
   useEffect(() => {
     setIsMounted(true);
@@ -50,7 +74,9 @@ export default function Header() {
 
   const focusMenuItem = (index: number) => {
     const items = menuItemRefs.current.filter(Boolean);
+
     if (items.length === 0) return;
+
     const clamped = (index + items.length) % items.length;
     items[clamped]?.focus();
   };
@@ -117,37 +143,109 @@ export default function Header() {
     }
   };
 
+  const toggleTheme = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
+
+    if (!("startViewTransition" in document)) {
+      setTheme(nextTheme);
+      return;
+    }
+
+    const x = e.clientX;
+    const y = e.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y),
+    );
+
+    const transition = document.startViewTransition(() => {
+      flushSync(() => {
+        setTheme(nextTheme);
+      });
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 500,
+          easing: "ease-in-out",
+          pseudoElement: "::view-transition-new(root)",
+        },
+      );
+    });
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-[#F3F4F6]/80 backdrop-blur-md">
+    <header className="bg-background/80 border-border sticky top-0 z-50 w-full border-b backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
-        <Link
-          href="/"
-          className={`group flex items-center text-xl font-bold tracking-tight text-slate-900 ${user ? "max-[960px]:pl-10" : ""}`}
-        >
-          Rent
-          <span className="ml-1 bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-            Flow
-          </span>
+        <Link href="/">
+          <div className="flex items-center justify-center space-x-1">
+            <Image src={"/logo.png"} width={32} height={32} alt={"logo"} />
+            <p
+              className={`text-foreground group flex items-center text-xl font-bold tracking-tight max-sm:text-sm ${user ? "max-[960px]:pl-3" : ""}`}
+            >
+              Rent
+              <span className="ml-1 bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                Flow
+              </span>
+            </p>
+          </div>
         </Link>
         <div className="flex items-center gap-3">
           {!isMounted || authLoading ? (
-            <Skeleton className="h-8 w-32 rounded-full bg-white/50" />
+            <Skeleton className="bg-surface/50 h-8 w-32 rounded-full" />
           ) : (
             <>
               {!user ? (
-                <div className="flex items-center gap-2">
-                  <Link
-                    href="/auth/login"
-                    className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text px-4 py-2 text-sm font-medium text-transparent transition-colors hover:opacity-80"
-                  >
-                    เข้าสู่ระบบ
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    className="rounded-full bg-linear-to-r from-blue-600 to-cyan-500 px-5 py-2 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95"
-                  >
-                    ลงทะเบียนหอพัก
-                  </Link>
+                <div className="flex items-center gap-1 rounded-full bg-gray-50 dark:border-zinc-800 dark:bg-zinc-900">
+                  {tabs.map((tab) => {
+                    const isActive = pathname === tab.href;
+                    const isHovered = hoveredTab === tab.href;
+
+                    return (
+                      <Link
+                        key={tab.href}
+                        href={tab.href}
+                        onMouseEnter={() => setHoveredTab(tab.href)}
+                        onMouseLeave={() => setHoveredTab(null)}
+                        className={`relative rounded-full px-4 py-1 font-medium transition-colors ${isActive ? "text-white" : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"}`}
+                      >
+                        {isActive && (
+                          <motion.div
+                            layoutId="auth-tab-active"
+                            className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500"
+                            initial={false}
+                            transition={{
+                              type: "spring",
+                              stiffness: 400,
+                              damping: 30,
+                            }}
+                          />
+                        )}
+                        {!isActive && isHovered && (
+                          <motion.div
+                            layoutId="auth-tab-hover"
+                            className="absolute inset-0 rounded-full bg-gray-200 dark:bg-zinc-800"
+                            initial={false}
+                            transition={{
+                              type: "spring",
+                              stiffness: 400,
+                              damping: 30,
+                            }}
+                          />
+                        )}
+                        <span className="relative z-10 text-xs">
+                          {tab.name}
+                        </span>
+                      </Link>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="relative" ref={dropdownRef}>
@@ -158,17 +256,17 @@ export default function Header() {
                     aria-haspopup="menu"
                     aria-expanded={dropdownOpen}
                     aria-controls={menuId}
-                    className="flex items-center gap-2 rounded-full border border-gray-200 bg-white p-1 pr-3 transition-all hover:cursor-pointer hover:bg-white/80 active:scale-95"
+                    className="border-border bg-surface hover:bg-background flex items-center gap-2 rounded-full border p-1 pr-3 transition-all hover:cursor-pointer active:scale-95"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white">
-                      {initial}
+                      <FaUserCircle size={20} />
                     </div>
-                    <span className="hidden text-sm font-semibold text-slate-700 md:block">
-                      {firstName}
+                    <span className="text-foreground hidden text-sm font-semibold md:block">
+                      {getDisplayFirstName(user?.fullName)}
                     </span>
                     <ChevronDown
                       size={14}
-                      className={`text-slate-400 transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`}
+                      className={`text-muted transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""}`}
                     />
                   </button>
                   <AnimatePresence>
@@ -195,13 +293,13 @@ export default function Header() {
                           duration: 0.2,
                           ease: "easeOut",
                         }}
-                        className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl bg-white p-2 ring-1 ring-black/5"
+                        className="bg-surface border-border absolute right-0 mt-2 w-56 origin-top-right rounded-2xl border"
                       >
-                        <div className="mb-1 border-b border-gray-100 px-3 py-2">
-                          <p className="truncate text-xs font-medium text-slate-400">
+                        <div className="border-border mb-1 border-b p-2 px-3 py-2">
+                          <p className="text-muted truncate text-xs font-medium">
                             บัญชีผู้ใช้
                           </p>
-                          <p className="truncate text-sm font-bold text-slate-900">
+                          <p className="text-foreground truncate text-sm font-bold">
                             {user.email}
                           </p>
                         </div>
@@ -214,7 +312,7 @@ export default function Header() {
                             role="menuitem"
                             onClick={() => setDropdownOpen(false)}
                             onKeyDown={(e) => handleMenuKeyDown(e, 0)}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 focus:bg-slate-50 focus:text-indigo-600 focus:outline-none"
+                            className="text-muted hover:bg-background focus:bg-background flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:text-indigo-600 focus:text-indigo-600 focus:outline-none"
                           >
                             <Home size={16} />
                             หน้าหลัก
@@ -227,7 +325,7 @@ export default function Header() {
                             role="menuitem"
                             onClick={() => setDropdownOpen(false)}
                             onKeyDown={(e) => handleMenuKeyDown(e, 1)}
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-indigo-600 focus:bg-slate-50 focus:text-indigo-600 focus:outline-none"
+                            className="text-muted hover:bg-background focus:bg-background flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:text-indigo-600 focus:text-indigo-600 focus:outline-none"
                           >
                             <LayoutDashboard size={16} />
                             แดชบอร์ด
@@ -251,6 +349,20 @@ export default function Header() {
                 </div>
               )}
             </>
+          )}
+          {isMounted && (
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label="สลับธีมสว่าง/มืด"
+              className="border-border text-muted hover:bg-surface flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border transition-colors active:scale-95"
+            >
+              {resolvedTheme === "dark" ? (
+                <Sun size={16} />
+              ) : (
+                <Moon size={16} />
+              )}
+            </button>
           )}
         </div>
       </div>

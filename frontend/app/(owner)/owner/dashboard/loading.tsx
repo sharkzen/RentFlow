@@ -4,12 +4,13 @@ import { StatCardGridSkeleton } from "@/lib/ui/skeletons";
 export default function Loading() {
   return (
     <div className="min-h-screen">
-      <div className="mb-8 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+      <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:justify-between">
         <div className="space-y-2">
-          <Skeleton className="h-8 w-56" />
-          <Skeleton className="h-4 w-72" />
+          <Skeleton className="h-9 w-40" rounded="md" />
+          <Skeleton className="h-5 w-72" rounded="md" />
+          <Skeleton className="h-5 w-20" rounded="md" />
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 lg:justify-end">
           <Skeleton className="h-10 w-full sm:w-64" rounded="lg" />
           <Skeleton className="h-10 w-full sm:w-40" rounded="lg" />
           <Skeleton className="h-10 w-full sm:w-28" rounded="lg" />
@@ -18,19 +19,20 @@ export default function Loading() {
       </div>
       <div className="space-y-8">
         <div>
-          <Skeleton className="mb-4 h-5 w-56" />
+          <Skeleton className="mb-4 h-6 w-56" />
           <StatCardGridSkeleton count={4} />
         </div>
         <div>
-          <Skeleton className="mb-4 h-5 w-56" />
+          <Skeleton className="mb-4 h-6 w-56" />
           <StatCardGridSkeleton count={4} />
         </div>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="flex h-96 items-center justify-center rounded-3xl border border-gray-100 bg-white p-6 lg:col-span-2">
-            <Skeleton className="h-64 w-full" rounded="lg" />
+          <div className="border-border bg-surface flex h-96 flex-col items-center justify-center rounded-3xl border p-6 lg:col-span-2">
+            <Skeleton className="h-[280px] w-full" rounded="lg" />
+            <Skeleton className="mt-4 h-4 w-48" />
           </div>
-          <div className="flex h-96 items-center justify-center rounded-3xl border border-gray-100 bg-white p-6">
-            <Skeleton className="h-48 w-48" rounded="full" />
+          <div className="border-border bg-surface flex h-96 flex-col items-center justify-center rounded-3xl border p-6">
+            <Skeleton className="h-56 w-56" rounded="full" />
           </div>
         </div>
       </div>

@@ -15,9 +15,22 @@ interface GetMaintenanceQuery {
   limit?: string;
 }
 
+interface MaintenanceMessageParams {
+  id: string;
+  messageId: string;
+}
+
 export const updateStatusSchema = z.object({
   status: z.nativeEnum(MaintenanceStatus),
   note: z.string().optional(),
+});
+
+export const sendMessageSchema = z.object({
+  message: z.string().min(1).max(2000),
+});
+
+export const editMessageSchema = z.object({
+  message: z.string().min(1).max(2000),
 });
 
 export const getMaintenanceQuerySchema = z.object({
@@ -111,6 +124,116 @@ export const MaintenanceController = {
         throw AppError.forbidden(
           "FORBIDDEN_ACCESS",
           "You don't have permission",
+        );
+      }
+
+      throw error;
+    }
+  },
+
+  sendMessage: async (
+    request: FastifyRequest<{
+      Params: MaintenanceParams;
+      Body: { message: string };
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const user = request.user as UserDecodedDto;
+
+    const { id } = request.params;
+
+    const { message } = sendMessageSchema.parse(request.body);
+
+    try {
+      const result = await maintenanceService.sendMessage(user, id, message);
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.message === "NOT_FOUND") {
+        throw AppError.notFound("NOT_FOUND", "Maintenance request not found");
+      }
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        throw AppError.forbidden(
+          "FORBIDDEN_ACCESS",
+          "You don't have permission",
+        );
+      }
+
+      if (error.message === "INVALID_STATUS") {
+        throw AppError.badRequest(
+          "INVALID_STATUS",
+          "แชทเปิดใช้งานได้เฉพาะเมื่อรับเรื่องแล้วเท่านั้น",
+        );
+      }
+
+      throw error;
+    }
+  },
+
+  getMessages: async (
+    request: FastifyRequest<{ Params: MaintenanceParams }>,
+    reply: FastifyReply,
+  ) => {
+    const user = request.user as UserDecodedDto;
+
+    const { id } = request.params;
+
+    try {
+      const result = await maintenanceService.getMessages(user, id);
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.message === "NOT_FOUND") {
+        throw AppError.notFound("NOT_FOUND", "Maintenance request not found");
+      }
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        throw AppError.forbidden(
+          "FORBIDDEN_ACCESS",
+          "You don't have permission",
+        );
+      }
+
+      throw error;
+    }
+  },
+
+  editMessage: async (
+    request: FastifyRequest<{
+      Params: MaintenanceMessageParams;
+      Body: { message: string };
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const user = request.user as UserDecodedDto;
+
+    const { id, messageId } = request.params;
+
+    const { message } = editMessageSchema.parse(request.body);
+
+    try {
+      const result = await maintenanceService.editMessage(
+        user,
+        id,
+        messageId,
+        message,
+      );
+      return reply.send(result);
+    } catch (error: any) {
+      if (error.message === "NOT_FOUND" || error.message === "MESSAGE_NOT_FOUND") {
+        throw AppError.notFound("NOT_FOUND", "ไม่พบข้อความ");
+      }
+
+      if (error.message === "FORBIDDEN_ACCESS") {
+        throw AppError.forbidden(
+          "FORBIDDEN_ACCESS",
+          "คุณไม่มีสิทธิ์แก้ไขข้อความนี้",
+        );
+      }
+
+      if (error.message === "INVALID_STATUS") {
+        throw AppError.badRequest(
+          "INVALID_STATUS",
+          "ไม่สามารถแก้ไขข้อความได้ เนื่องจากงานซ่อมนี้เสร็จสิ้นแล้ว",
         );
       }
 

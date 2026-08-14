@@ -4,15 +4,15 @@ import { CardGridSkeleton } from "@/lib/ui/skeletons";
 export default function Loading() {
   return (
     <main className="min-h-screen">
-      <section className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-slate-950">
+      <section className="bg-grid bg-background relative flex min-h-screen w-full items-center justify-center overflow-hidden">
         <div className="relative z-10 flex w-full max-w-4xl flex-col items-center px-6 py-12 text-center">
-          <Skeleton className="mb-6 h-16 w-64 bg-slate-800" />
-          <Skeleton className="mb-8 h-8 w-80 bg-slate-800" />
-          <Skeleton className="mb-10 h-4 w-96 bg-slate-800" />
-          <Skeleton className="h-14 w-full max-w-md bg-slate-800" rounded="lg" />
+          <Skeleton className="mb-6 h-16 w-64" />
+          <Skeleton className="mb-8 h-8 w-80" />
+          <Skeleton className="mb-10 h-4 w-96" />
+          <Skeleton className="h-14 w-full max-w-md" rounded="lg" />
         </div>
       </section>
-      <div className="min-h-screen w-full bg-[#F3F4F6] pb-24">
+      <div className="bg-grid bg-background min-h-screen w-full pb-24">
         <div className="mx-auto sm:px-4">
           <div className="py-6">
             <Skeleton className="h-14 w-full" rounded="lg" />

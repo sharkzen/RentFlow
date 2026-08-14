@@ -26,7 +26,7 @@ export default function RoomCard({
 
   if (loading) {
     return (
-      <div className="flex h-[65vh] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
+      <div className="border-border bg-background flex h-[65vh] w-full items-center justify-center rounded-xl border">
         <LoadingPage />
       </div>
     );
@@ -34,8 +34,8 @@ export default function RoomCard({
 
   if (!rooms || rooms.length === 0) {
     return (
-      <div className="flex h-[65vh] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
-        <div className="text-center text-gray-400">
+      <div className="border-border bg-background flex h-[65vh] w-full items-center justify-center rounded-xl border">
+        <div className="text-muted text-center">
           <FileSearch className="mx-auto mb-2 h-10 w-10 opacity-50" />
           <p>ไม่พบข้อมูลห้องพักในหอนี้</p>
         </div>
@@ -50,9 +50,9 @@ export default function RoomCard({
 
   return (
     <>
-      <div className="flex h-[65vh] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="border-border bg-surface flex h-[65vh] w-full flex-col overflow-hidden rounded-xl border">
         <div
-          className={`grid ${gridTemplate} gap-4 border-b border-gray-200 bg-gray-50 px-6 py-4 text-xs font-medium tracking-wider text-gray-500 uppercase`}
+          className={`grid ${gridTemplate} border-border bg-background text-muted gap-4 border-b px-6 py-4 text-xs font-medium tracking-wider uppercase`}
         >
           <div className="font-semibold">ชั้น</div>
           <div className="font-semibold">หมายเลขห้อง</div>
@@ -62,31 +62,29 @@ export default function RoomCard({
           <div className="font-semibold">ราคา/เดือน</div>
           <div className="font-semibold">จัดการ</div>
         </div>
-        <div className="custom-scrollbar flex-1 overflow-auto bg-white">
+        <div className="custom-scrollbar bg-surface flex-1 overflow-auto">
           <div className="min-w-335">
             {rooms.map((room, index) => (
               <div
                 key={room.id}
                 onClick={() => setEditingRoom(room)}
-                className={`group grid ${gridTemplate} cursor-pointer items-center gap-4 border-b border-gray-100 px-6 py-4 transition-colors last:border-0 hover:bg-indigo-50/40 ${
-                  index % 2 === 0 ? "bg-white" : "bg-gray-50/60"
-                }`}
+                className={`group grid ${gridTemplate} border-border cursor-pointer items-center gap-4 border-b px-6 py-4 transition-colors last:border-0 hover:bg-indigo-50/40 dark:hover:bg-indigo-50/10 ${index % 2 === 0 ? "bg-surface" : "bg-background/60"}`}
               >
-                <div className="text-sm font-medium text-gray-600">
+                <div className="text-muted text-sm font-medium">
                   ชั้น {room.floor}
                 </div>
                 <div>
-                  <span className="text-sm font-bold text-gray-900 transition-colors group-hover:text-indigo-600">
+                  <span className="text-foreground text-sm font-bold transition-colors group-hover:text-indigo-600">
                     {room.roomNumber}
                   </span>
                 </div>
-                <div className="text-sm font-medium text-gray-600">
+                <div className="text-muted text-sm font-medium">
                   {room.dormitory?.name || "-"}
                 </div>
                 <div>
                   <StatusBadge status={room.status} />
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="text-muted flex items-center gap-2 text-sm">
                   {room.type === "AIR" || room.isAir ? (
                     <>
                       <div className="rounded-full bg-blue-100 p-1 text-blue-600">
@@ -103,7 +101,7 @@ export default function RoomCard({
                     </>
                   )}
                 </div>
-                <div className="font-medium text-gray-900">
+                <div className="text-foreground font-medium">
                   ฿{room.basePrice?.toLocaleString() ?? 0}
                 </div>
                 <div className="flex justify-end gap-2">
@@ -112,7 +110,7 @@ export default function RoomCard({
                       e.stopPropagation();
                       setEditingRoom(room);
                     }}
-                    className="group/btn relative cursor-pointer rounded-lg bg-white p-2 text-gray-500 shadow-sm ring-1 ring-gray-200 transition-all hover:bg-blue-50 hover:text-blue-600 hover:ring-blue-200"
+                    className="group/btn bg-surface text-muted ring-border relative cursor-pointer rounded-lg p-2 shadow-sm ring-1 transition-all hover:bg-blue-50 hover:text-blue-600 hover:ring-blue-200"
                     title="แก้ไขข้อมูลห้อง"
                   >
                     <Pencil className="h-4 w-4" />
@@ -122,15 +120,15 @@ export default function RoomCard({
             ))}
           </div>
         </div>
-        <div className="border-t border-gray-100 bg-white px-6 py-4">
+        <div className="border-border bg-surface border-t px-6 py-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-gray-500">
+            <p className="text-muted text-sm">
               แสดง{" "}
-              <span className="font-medium text-gray-900">
+              <span className="text-foreground font-medium">
                 {startItem}-{endItem}
               </span>{" "}
               จากทั้งหมด{" "}
-              <span className="font-medium text-gray-900">
+              <span className="text-foreground font-medium">
                 {totalItems.toLocaleString()}
               </span>{" "}
               ห้อง
@@ -139,17 +137,17 @@ export default function RoomCard({
               <button
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1}
-                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-border text-muted hover:bg-background rounded-lg border px-3 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50"
               >
                 ก่อนหน้า
               </button>
-              <span className="text-xs font-medium text-gray-600">
+              <span className="text-muted text-xs font-medium">
                 หน้า {page}/ {totalPages}
               </span>
               <button
                 onClick={() => setPage(page + 1)}
                 disabled={page === totalPages || totalPages === 0}
-                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-border text-muted hover:bg-background rounded-lg border px-3 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50"
               >
                 ถัดไป
               </button>

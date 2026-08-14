@@ -6,6 +6,7 @@ import { useState } from "react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendError";
+import { toast } from "react-toastify";
 import Link from "next/link";
 
 interface DormsCardProps {
@@ -31,19 +32,20 @@ export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
     } catch (error: any) {
       setPublished(!next);
       log.error(error);
-      showBackendError(error);
+      const code = error?.response?.data?.message;
+      toast.error(showBackendError(code));
     }
   };
 
   return (
-    <div className="flex h-full min-h-70 flex-col overflow-hidden rounded-xl bg-white shadow-sm transition hover:shadow-md">
-      <div className="relative aspect-video bg-slate-200">
+    <div className="bg-surface flex h-full min-h-70 flex-col overflow-hidden rounded-xl shadow-sm transition hover:shadow-md">
+      <div className="bg-skeleton relative aspect-video">
         {cover ? (
           <>
             {isImageLoading && (
-              <div className="absolute inset-0 z-10 animate-pulse bg-slate-200">
+              <div className="bg-skeleton absolute inset-0 z-10 animate-pulse">
                 <div className="flex h-full w-full items-center justify-center">
-                  <div className="h-10 w-10 rounded-full bg-slate-300" />
+                  <div className="bg-border h-10 w-10 rounded-full" />
                 </div>
               </div>
             )}
@@ -58,7 +60,7 @@ export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
             />
           </>
         ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-slate-400">
+          <div className="text-muted flex h-full w-full flex-col items-center justify-center gap-2">
             <ImageOff size={32} />
             <span className="text-sm font-medium">No Image</span>
           </div>
@@ -71,7 +73,7 @@ export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
       </div>
       <div className="flex flex-1 flex-col gap-2 px-4 py-3">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-2 max-h-10 text-sm leading-snug font-semibold text-slate-800">
+          <h3 className="text-foreground line-clamp-2 max-h-10 text-sm leading-snug font-semibold">
             {dorm.name}
           </h3>
           <button
@@ -79,17 +81,17 @@ export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
               e.stopPropagation();
               onEdit();
             }}
-            className="shrink-0 rounded-md bg-slate-100 p-1.5 text-slate-500 transition hover:cursor-pointer hover:bg-indigo-50 hover:text-indigo-600"
+            className="bg-background text-muted shrink-0 rounded-md p-1.5 transition hover:cursor-pointer hover:bg-indigo-50 hover:text-indigo-600"
             aria-label="แก้ไข"
           >
             <Settings size={16} />
           </button>
         </div>
         <div className="mt-auto flex items-center justify-between pt-2">
-          <span className="flex items-center gap-3 text-xs text-slate-500">
+          <span className="text-muted flex items-center gap-3 text-xs">
             สถานะ: {published ? "เผยแพร่" : "ร่าง"}
             {published && (
-              <span className="text-xs text-slate-500">
+              <span className="text-muted text-xs">
                 <Link
                   href={`/dorms/${dorm.slug}`}
                   className="text-blue-500 underline"

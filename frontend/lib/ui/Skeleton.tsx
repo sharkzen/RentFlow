@@ -9,7 +9,7 @@ export default function Skeleton({ className, rounded = "md" }: SkeletonProps) {
   return (
     <div
       className={clsx(
-        "animate-pulse bg-gray-200",
+        "bg-skeleton animate-pulse",
         {
           sm: "rounded-sm",
           md: "rounded-md",

@@ -59,9 +59,9 @@ export default function CreateBillRow({
   const isElectricError = item.currentElectric !== "" && electricUsage < 0;
 
   return (
-    <div className="group relative grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md lg:grid-cols-12 lg:items-start">
+    <div className="border-border bg-surface group relative grid grid-cols-1 gap-4 rounded-xl border p-4 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md lg:grid-cols-12 lg:items-start">
       <div className="col-span-1 space-y-2 lg:col-span-3">
-        <label className="text-xs font-bold text-gray-700 lg:hidden">
+        <label className="text-foreground text-xs font-bold lg:hidden">
           เลือกห้องพัก
         </label>
         <CustomSelect
@@ -82,7 +82,7 @@ export default function CreateBillRow({
           onChange={(val) => onRoomSelect(index, val)}
         />
         {item.tenantName && (
-          <div className="flex items-center gap-1.5 rounded-md bg-gray-100 px-2 py-1.5 text-xs text-gray-600">
+          <div className="bg-background text-muted flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs">
             <User size={12} />
             <span className="max-w-50 truncate">{item.tenantName}</span>
           </div>
@@ -102,7 +102,7 @@ export default function CreateBillRow({
               disabled={!item.isPrevEditable}
               value={item.prevWater}
               onChange={(e) => onChange(index, "prevWater", e.target.value)}
-              className={`h-8 w-full rounded border text-center text-sm ${item.isPrevEditable ? "border-blue-300 font-bold text-blue-700" : "bg-gray-100 text-gray-500"}`}
+              className={`h-8 w-full rounded border text-center text-sm ${item.isPrevEditable ? "border-blue-300 font-bold text-blue-700" : "bg-background text-muted"}`}
             />
           </div>
           <div className="flex-1">
@@ -139,7 +139,7 @@ export default function CreateBillRow({
               disabled={!item.isPrevEditable}
               value={item.prevElectric}
               onChange={(e) => onChange(index, "prevElectric", e.target.value)}
-              className={`h-8 w-full rounded border text-center text-sm ${item.isPrevEditable ? "border-amber-300 font-bold text-amber-700" : "bg-gray-100 text-gray-500"}`}
+              className={`h-8 w-full rounded border text-center text-sm ${item.isPrevEditable ? "border-amber-300 font-bold text-amber-700" : "bg-background text-muted"}`}
             />
           </div>
           <div className="flex-1">
@@ -165,13 +165,13 @@ export default function CreateBillRow({
       </div>
       <div className="col-span-1 space-y-2 pt-1 lg:col-span-2">
         <div className="relative">
-          <Coins size={14} className="absolute top-2.5 left-3 text-gray-400" />
+          <Coins size={14} className="text-muted absolute top-2.5 left-3" />
           <input
             type="number"
             placeholder="ส่วนกลาง"
             value={item.commonFee}
             onChange={(e) => onChange(index, "commonFee", e.target.value)}
-            className="w-full rounded-lg border border-gray-200 py-1.5 pr-2 pl-9 text-sm"
+            className="bg-surface border-border w-full rounded-lg border py-1.5 pr-2 pl-9 text-sm"
           />
         </div>
         <input
@@ -179,7 +179,7 @@ export default function CreateBillRow({
           placeholder="หมายเหตุ"
           value={item.note}
           onChange={(e) => onChange(index, "note", e.target.value)}
-          className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs"
+          className="bg-surface border-border w-full rounded-lg border px-2.5 py-1.5 text-xs"
         />
       </div>
       <div className="col-span-1 flex justify-center lg:pt-4">

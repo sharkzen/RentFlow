@@ -91,9 +91,7 @@ export const dormService = {
 
     const promoteFeaturedIds = (ids: string[]) => {
       const idSet = new Set(ids);
-      const featuredInResult = featuredIdsOrdered.filter((id) =>
-        idSet.has(id),
-      );
+      const featuredInResult = featuredIdsOrdered.filter((id) => idSet.has(id));
       const featuredSet = new Set(featuredInResult);
       const rest = ids.filter((id) => !featuredSet.has(id));
       return [...featuredInResult, ...rest];
@@ -178,14 +176,11 @@ export const dormService = {
         return a._distance - b._distance;
       });
 
-      const orderedIds = promoteFeaturedIds(
-        dormsWithDistance.map((d) => d.id),
-      );
+      const orderedIds = promoteFeaturedIds(dormsWithDistance.map((d) => d.id));
       const dormsById = new Map(dormsWithDistance.map((d) => [d.id, d]));
       const promotedDorms = orderedIds
         .map((id) => dormsById.get(id))
         .filter(Boolean) as typeof dormsWithDistance;
-
       totalItems = promotedDorms.length;
       resultDorms = promotedDorms.slice(skip, skip + limit);
     } else if (!hasSearch && !hasPriceFilter) {
@@ -386,6 +381,39 @@ export const dormService = {
     };
   },
 
+  async getDormCoverImageKey(slug: string) {
+    const dorm = await prisma.dormitory.findUnique({
+      where: {
+        slug: slug,
+      },
+
+      select: {
+        images: {
+          where: {
+            category: "DORMITORY",
+          },
+
+          orderBy: [
+            {
+              isCover: "desc",
+            },
+            {
+              order: "asc",
+            },
+          ],
+
+          take: 1,
+
+          select: {
+            objectKey: true,
+          },
+        },
+      },
+    });
+
+    return dorm?.images[0]?.objectKey ?? null;
+  },
+
   async getDormSlug(slug: string) {
     const dorm = await prisma.dormitory.findUnique({
       where: {
@@ -411,6 +439,12 @@ export const dormService = {
         },
 
         owner: true,
+
+        contacts: {
+          orderBy: {
+            order: "asc",
+          },
+        },
 
         rooms: {
           where: {
@@ -462,6 +496,7 @@ export const dormService = {
         totalAvailable: availableRoomsCount,
         airAvailable: availableAirRoomsCount,
         fanAvailable: availableFanRoomsCount,
+        totalRooms: dorm.rooms?.length ?? 0,
       },
     };
   },
@@ -481,10 +516,24 @@ export const dormService = {
         slug: generateSlug(name),
         ownerId: owner.id,
         address: "",
+        lineId: owner.lineId,
+        facebook: owner.facebook,
         latitude: 0,
         longitude: 0,
         mapUrl: "",
         isPublished: false,
+
+        contacts: owner.phone
+          ? {
+              create: [
+                {
+                  name: null,
+                  phone: owner.phone,
+                  order: 0,
+                },
+              ],
+            }
+          : undefined,
       },
     });
 
@@ -549,6 +598,40 @@ export const dormService = {
 
     if (dorm.ownerId !== user.ownerProfile.id) throw new Error("FORBIDDEN");
 
+    if (isPublished) {
+      const readiness = await prisma.dormitory.findUnique({
+        where: {
+          id: dormId,
+        },
+
+        select: {
+          lineId: true,
+          facebook: true,
+
+          contacts: {
+            select: {
+              id: true,
+            },
+          },
+
+          images: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      const isMissingContact = !readiness?.contacts.length;
+      const isMissingLineOrFacebook =
+        !readiness?.lineId && !readiness?.facebook;
+      const isMissingImage = !readiness?.images.length;
+
+      if (isMissingContact || isMissingLineOrFacebook || isMissingImage) {
+        throw new Error("DORM_NOT_READY_FOR_PUBLISH");
+      }
+    }
+
     const updated = await prisma.dormitory.update({
       where: {
         id: dormId,
@@ -600,7 +683,24 @@ export const dormService = {
     }
 
     const slug = generateSlug(dorm.name);
-    const latLng = await getLatLngFromUrl(dorm.mapUrl ?? 0);
+
+    let latLng: {
+      lat: number;
+      lng: number;
+    } | null = null;
+
+    try {
+      latLng = await getLatLngFromUrl(dorm.mapUrl ?? 0);
+    } catch (error) {
+      logger.error(
+        `getLatLngFromUrl failed for dorm ${dorm.id}, keeping previous coordinates: ${error}`,
+      );
+    }
+
+    if (!latLng && dorm.mapUrl !== existingDorm.mapUrl) {
+      throw new Error("MAP_LINK_UNRESOLVED");
+    }
+
     const validPromptPayType =
       dorm.promptPayType &&
       ["PHONE", "ID_CARD", "E_WALLET"].includes(dorm.promptPayType)
@@ -618,8 +718,11 @@ export const dormService = {
           slug: slug,
           description: dorm.description,
           address: dorm.address,
-          latitude: latLng?.lat ?? 0,
-          longitude: latLng?.lng ?? 0,
+          lineId: dorm.lineId,
+          lineType: dorm.lineType ?? "PERSONAL",
+          facebook: dorm.facebook === "" ? null : dorm.facebook,
+          latitude: latLng?.lat ?? existingDorm.latitude ?? 0,
+          longitude: latLng?.lng ?? existingDorm.longitude ?? 0,
           mapUrl: dorm.mapUrl,
           status: "ACTIVE",
         },
@@ -632,6 +735,7 @@ export const dormService = {
 
         update: {
           roomPrice: Number(dorm.roomPrice),
+          waterBillingType: dorm.waterBillingType ?? "METERED",
           waterRate: Number(dorm.waterRate),
           electricRate: Number(dorm.electricRate),
           commonFee: Number(dorm.commonFee ?? 0),
@@ -643,6 +747,7 @@ export const dormService = {
         create: {
           dormitoryId: dorm.id,
           roomPrice: Number(dorm.roomPrice),
+          waterBillingType: dorm.waterBillingType ?? "METERED",
           waterRate: Number(dorm.waterRate),
           electricRate: Number(dorm.electricRate),
           commonFee: Number(dorm.commonFee ?? 0),
@@ -651,6 +756,25 @@ export const dormService = {
           dueMonthOffset: Number(dorm.dueMonthOffset ?? 1),
         },
       });
+
+      if (dorm.contacts) {
+        await tx.dormitoryContact.deleteMany({
+          where: {
+            dormitoryId: dorm.id,
+          },
+        });
+
+        if (dorm.contacts.length > 0) {
+          await tx.dormitoryContact.createMany({
+            data: dorm.contacts.map((c, i) => ({
+              dormitoryId: dorm.id,
+              name: c.name || null,
+              phone: c.phone,
+              order: i,
+            })),
+          });
+        }
+      }
 
       const paymentSetting = await tx.paymentSetting.upsert({
         where: {
@@ -663,6 +787,7 @@ export const dormService = {
           bankHolder: dorm.bankHolder,
           promptPayType: validPromptPayType,
           promptPayValue: dorm.promptPayValue,
+          promptPayHolder: dorm.promptPayHolder,
         },
 
         create: {
@@ -672,6 +797,7 @@ export const dormService = {
           bankHolder: dorm.bankHolder,
           promptPayType: validPromptPayType,
           promptPayValue: dorm.promptPayValue,
+          promptPayHolder: dorm.promptPayHolder,
           isActive: true,
         },
       });
@@ -768,6 +894,12 @@ export const dormService = {
 
         owner: true,
         paymentSetting: true,
+
+        contacts: {
+          orderBy: {
+            order: "asc",
+          },
+        },
       },
 
       orderBy: [
@@ -1029,6 +1161,7 @@ export const dormService = {
       action: "REORDER_DORM_IMAGES",
       entityType: "Dormitory",
       entityId: dormId,
+
       metadata: {
         count: images.length,
       },

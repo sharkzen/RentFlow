@@ -17,15 +17,15 @@ export const StatCard = ({
   subText,
 }: StatCardProps) => {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+    <div className="group border-border bg-surface relative overflow-hidden rounded-2xl border p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
       <div className="flex items-start justify-between">
         <div className="z-10">
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <h3 className="mt-2 text-3xl font-bold tracking-tight text-gray-800">
+          <p className="text-muted text-sm font-medium">{title}</p>
+          <h3 className="text-foreground mt-2 text-3xl font-bold tracking-tight">
             {typeof value === "number" ? value.toLocaleString() : value}
           </h3>
           {subText && (
-            <p className="mt-2 text-xs font-medium text-gray-400">{subText}</p>
+            <p className="text-muted mt-2 text-xs font-medium">{subText}</p>
           )}
         </div>
         <div

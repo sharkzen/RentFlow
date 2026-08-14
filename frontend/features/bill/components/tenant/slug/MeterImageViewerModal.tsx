@@ -43,15 +43,15 @@ export default function MeterImageViewerModal({
   }) => (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-slate-600">{title}</span>
-        <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-slate-700">
+        <span className="text-foreground text-sm font-semibold">{title}</span>
+        <span className="bg-background text-foreground rounded-md px-2 py-1 text-xs font-bold">
           {unit.toLocaleString()}หน่วย
         </span>
       </div>
       {url ? (
         <div
           onClick={() => setFullScreenImage(url)}
-          className="group relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition-all hover:border-indigo-400 hover:shadow-md"
+          className="border-border bg-background group relative aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl border transition-all hover:border-indigo-400 hover:shadow-md"
         >
           <img
             src={url}
@@ -61,7 +61,7 @@ export default function MeterImageViewerModal({
           <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
         </div>
       ) : (
-        <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 bg-slate-50 text-slate-400">
+        <div className="border-border bg-background text-muted flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed">
           <CameraOff size={24} />
           <span className="text-xs font-medium">ไม่มีรูปภาพ</span>
         </div>
@@ -76,21 +76,21 @@ export default function MeterImageViewerModal({
         onClick={onClose}
       >
         <div
-          className="animate-in zoom-in-95 relative flex max-h-screen w-full max-w-4xl flex-col overflow-hidden bg-white shadow-2xl duration-200 sm:rounded-2xl"
+          className="bg-surface animate-in zoom-in-95 relative flex max-h-screen w-full max-w-4xl flex-col overflow-hidden shadow-2xl duration-200 sm:rounded-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <div className="border-border flex items-center justify-between border-b px-6 py-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-800">
+              <h3 className="text-foreground text-lg font-bold">
                 หลักฐานรูปถ่ายมิเตอร์
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-muted text-xs">
                 เปรียบเทียบการจดมิเตอร์ ห้อง {bill.roomNumberSnapshot}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="cursor-pointer rounded-full bg-slate-100 p-2 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800"
+              className="bg-background text-muted hover:bg-border hover:text-foreground cursor-pointer rounded-full p-2 transition-colors"
             >
               <X size={20} />
             </button>

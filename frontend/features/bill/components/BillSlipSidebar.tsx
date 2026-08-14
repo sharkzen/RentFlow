@@ -110,13 +110,13 @@ export default function BillSlipSidebar({
 
   return (
     <div
-      className={`flex w-full flex-col bg-slate-50/50 ${!isMobile ? "h-full" : ""}`}
+      className={`bg-background/50 flex w-full flex-col ${!isMobile ? "h-full" : ""}`}
     >
       <div
-        className={`border-b border-gray-100 bg-white ${!isMobile ? "sticky top-0 z-10" : ""}`}
+        className={`border-border bg-surface border-b ${!isMobile ? "sticky top-0 z-10" : ""}`}
       >
-        <h4 className="flex items-center gap-2 px-4 py-3 text-sm font-bold text-gray-700">
-          <ImageIcon size={18} className="text-gray-500" />
+        <h4 className="text-foreground flex items-center gap-2 px-4 py-3 text-sm font-bold">
+          <ImageIcon size={18} className="text-muted" />
           หลักฐานการโอน
         </h4>
       </div>
@@ -126,11 +126,11 @@ export default function BillSlipSidebar({
         {slipUrl ? (
           <div className="flex flex-col gap-4">
             <div
-              className="group relative w-full cursor-pointer overflow-hidden rounded-lg border border-gray-100 bg-white shadow-sm transition-all"
+              className="border-border bg-surface group relative w-full cursor-pointer overflow-hidden rounded-lg border shadow-sm transition-all"
               onClick={() => setIsPreviewOpen(true)}
             >
               <div
-                className={`relative flex w-full items-center justify-center bg-gray-50 ${isMobile ? "min-h-50" : "min-h-75"}`}
+                className={`bg-background relative flex w-full items-center justify-center ${isMobile ? "min-h-50" : "min-h-75"}`}
               >
                 <img
                   src={slipUrl}
@@ -139,7 +139,7 @@ export default function BillSlipSidebar({
                 />
               </div>
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
-                <span className="rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-900 shadow-lg backdrop-blur-sm">
+                <span className="text-foreground rounded-full bg-white/90 px-4 py-2 text-sm font-medium shadow-lg backdrop-blur-sm">
                   🔍 แตะเพื่อดูรูปใหญ่
                 </span>
               </div>
@@ -181,11 +181,11 @@ export default function BillSlipSidebar({
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-gray-400">
+          <div className="text-muted flex flex-col items-center justify-center py-12 text-center">
             {canUpload ? (
               <div
                 onClick={() => !isUploading && fileInputRef.current?.click()}
-                className={`group flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all duration-200 ${isMobile ? "h-48" : "h-60"} ${isUploading ? "cursor-wait border-gray-300 bg-gray-50" : "border-indigo-200 bg-white hover:border-indigo-400 hover:bg-indigo-50"}`}
+                className={`group flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all duration-200 ${isMobile ? "h-48" : "h-60"} ${isUploading ? "border-border bg-background cursor-wait" : "bg-surface border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50"}`}
               >
                 {isUploading ? (
                   <>
@@ -193,7 +193,7 @@ export default function BillSlipSidebar({
                       size={32}
                       className="mb-3 animate-spin text-indigo-600"
                     />
-                    <span className="text-sm font-medium text-gray-500">
+                    <span className="text-muted text-sm font-medium">
                       กำลังอัปโหลด...
                     </span>
                   </>
@@ -202,21 +202,24 @@ export default function BillSlipSidebar({
                     <div className="mb-3 rounded-full bg-indigo-50 p-3 text-indigo-600 transition-transform group-hover:scale-110 group-hover:bg-indigo-100">
                       <UploadCloud size={28} />
                     </div>
-                    <p className="text-sm font-semibold text-gray-700">
+                    <p className="text-foreground text-sm font-semibold">
                       อัปโหลดสลิป
                     </p>
-                    <p className="text-xs text-gray-400">แตะเพื่อเลือกรูปภาพ</p>
+                    <span className="text-xs">
+                      (ถ้าเจ้าของหอเป็นคนอัพสลิป สถานะจะขึ้นชำระทันที)
+                    </span>
+                    <p className="text-muted text-xs">แตะเพื่อเลือกรูปภาพ</p>
                   </>
                 )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-8">
-                <div className="mb-3 rounded-full bg-gray-100 p-4">
+                <div className="bg-background mb-3 rounded-full p-4">
                   <ImageIcon size={28} className="opacity-40" />
                 </div>
                 <p className="text-sm font-medium">ไม่มีหลักฐานการโอน</p>
                 {isPaymentClosed && (
-                  <p className="mt-1 text-xs text-gray-400">
+                  <p className="text-muted mt-1 text-xs">
                     (สถานะปิดการอัปโหลด)
                   </p>
                 )}
@@ -234,11 +237,11 @@ export default function BillSlipSidebar({
       </div>
       {payment && (
         <div
-          className={`border-t border-gray-200 bg-white p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] ${isMobile ? "" : "mt-auto"}`}
+          className={`border-border bg-surface border-t p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] ${isMobile ? "" : "mt-auto"}`}
         >
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-bold text-slate-700">
+              <span className="text-foreground text-sm font-bold">
                 ข้อมูลการโอน
               </span>
               <span
@@ -248,14 +251,14 @@ export default function BillSlipSidebar({
                 {payment.status}
               </span>
             </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+            <div className="border-border bg-background rounded-xl border p-3">
               <div className="grid grid-cols-2 gap-x-2 gap-y-3">
-                <div className="col-span-2 flex items-center justify-between border-b border-slate-200 pb-2">
-                  <div className="flex items-center gap-2 text-slate-500">
+                <div className="border-border col-span-2 flex items-center justify-between border-b pb-2">
+                  <div className="text-muted flex items-center gap-2">
                     <Wallet size={16} />
                     <span className="text-xs">ยอดเงิน</span>
                   </div>
-                  <span className="text-lg font-bold text-slate-900">
+                  <span className="text-foreground text-lg font-bold">
                     ฿
                     {payment.transferAmount?.toLocaleString("th-TH", {
                       minimumFractionDigits: 2,
@@ -263,48 +266,48 @@ export default function BillSlipSidebar({
                   </span>
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <div className="text-muted mb-0.5 flex items-center gap-1.5 text-[10px]">
                     <User size={12} />
                     ผู้โอน
                   </div>
                   <div
-                    className="truncate text-xs font-medium text-slate-700"
+                    className="text-foreground truncate text-xs font-medium"
                     title={payment.senderName || ""}
                   >
                     {payment.senderName || "-"}
                   </div>
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <div className="text-muted mb-0.5 flex items-center gap-1.5 text-[10px]">
                     <Building2 size={12} />
                     ธนาคาร
                   </div>
-                  <div className="truncate text-xs font-medium text-slate-700">
+                  <div className="text-foreground truncate text-xs font-medium">
                     {getBankName(payment.transferBank)}
                   </div>
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <div className="text-muted mb-0.5 flex items-center gap-1.5 text-[10px]">
                     <CalendarClock size={12} />
                     วันที่โอน
                   </div>
-                  <div className="text-xs font-medium text-slate-700">
+                  <div className="text-foreground text-xs font-medium">
                     {formatDate(payment.paidAt)}
                   </div>
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <div className="mb-0.5 flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <div className="text-muted mb-0.5 flex items-center gap-1.5 text-[10px]">
                     <FileText size={12} />
                     Ref No.
                   </div>
-                  <div className="truncate font-mono text-xs font-medium text-slate-700">
+                  <div className="text-foreground truncate font-mono text-xs font-medium">
                     {payment.transferRef || "-"}
                   </div>
                 </div>
               </div>
             </div>
             {payment.status === "VERIFIED" && payment.verifiedBy && (
-              <div className="mt-2 text-center text-[10px] text-slate-400">
+              <div className="text-muted mt-2 text-center text-[10px]">
                 ตรวจสอบโดย: {payment.verifiedBy}•{" "}
                 {formatDate(payment.updatedAt)}
               </div>

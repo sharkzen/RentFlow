@@ -21,7 +21,10 @@ export default function DormitorySelector({
   return (
     <CustomSelect
       icon={<Building2 size={16} />}
-      options={dormitories.map((d) => ({ value: d.id, label: d.name }))}
+      options={dormitories.map((d) => ({
+        value: d.id,
+        label: d.name,
+      }))}
       value={selectedDorm.id}
       onChange={(id) => {
         const dorm = dormitories.find((d) => d.id === id);

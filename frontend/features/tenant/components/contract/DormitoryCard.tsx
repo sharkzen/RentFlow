@@ -4,7 +4,7 @@ import { Wind, Fan } from "lucide-react";
 export const DormitoryCard = ({ tenant }: { tenant: TenantContractDetail }) => {
   if (!tenant || !tenant.room) {
     return (
-      <div className="rounded-2xl bg-slate-50 p-8 text-center text-slate-400">
+      <div className="bg-background text-muted rounded-2xl p-8 text-center">
         ไม่พบข้อมูลการเช่า
       </div>
     );
@@ -28,7 +28,7 @@ export const DormitoryCard = ({ tenant }: { tenant: TenantContractDetail }) => {
                 ) : (
                   <Fan size={13} />
                 )}
-                {tenant.room.type === "AIR" ? "แอร์" : "พัดลม"} · ชั้น{" "}
+                {tenant.room.type === "AIR" ? "แอร์" : "พัดลม"}· ชั้น{" "}
                 {tenant.room.floor}
               </span>
             </h2>

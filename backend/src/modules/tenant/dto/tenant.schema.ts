@@ -72,6 +72,14 @@ export const getMaintenanceQuerySchema = z.object({
   search: z.string().optional(),
 });
 
+export const sendMaintenanceMessageSchema = z.object({
+  message: z.string().min(1).max(2000),
+});
+
+export const editMaintenanceMessageSchema = z.object({
+  message: z.string().min(1).max(2000),
+});
+
 export const reEntryTenantSchema = z.object({
   userId: z.string(),
   roomId: z.string(),

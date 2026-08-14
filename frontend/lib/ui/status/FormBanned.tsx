@@ -24,11 +24,13 @@ export default function FormBanned() {
         >
           <XCircle className="mb-6 h-20 w-20 text-red-500" />
         </motion.div>
-        <h1 className="mb-4 text-3xl font-bold text-gray-800">บัญชีถูกระงับ</h1>
-        <p className="mb-6 text-gray-600">
+        <h1 className="mb-4 text-3xl font-bold text-gray-800 dark:text-white">
+          บัญชีถูกระงับ
+        </h1>
+        <p className="mb-6 text-gray-600 dark:text-white">
           ขอโทษ! บัญชีเจ้าของหอพักของคุณถูกระงับหรือไม่ผ่านการอนุมัติ
         </p>
-        <span className="my-2 text-sm font-bold">
+        <span className="my-2 text-sm font-bold dark:text-white">
           หากคุณคิดว่ามีความผิดพลาด กรุณาติดต่อฝ่ายสนับสนุนของ{" "}
           <span className="font-semibold">Rent Flow</span>
         </span>

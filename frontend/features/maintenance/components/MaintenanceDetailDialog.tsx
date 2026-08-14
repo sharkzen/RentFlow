@@ -18,6 +18,8 @@ import { MaintenanceRequest, MaintenanceStatus } from "@/features/maintenance";
 import { useEffect, useState } from "react";
 import { useScrollLock } from "usehooks-ts";
 import ConfirmDialog, { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
+import MaintenanceChatThread from "./MaintenanceChatThread";
+import { maintenanceService } from "@/features/maintenance/services/maintenance.service";
 
 interface MaintenanceDetailDialogProps {
   isOpen: boolean;
@@ -186,16 +188,16 @@ export default function MaintenanceDetailDialog({
         };
       case "CANCELLED":
         return {
-          bg: "bg-gray-50",
-          text: "text-gray-600",
-          border: "border-gray-200",
+          bg: "bg-background",
+          text: "text-muted",
+          border: "border-border",
           label: "ยกเลิก",
         };
       default:
         return {
-          bg: "bg-gray-50",
-          text: "text-gray-600",
-          border: "border-gray-200",
+          bg: "bg-background",
+          text: "text-muted",
+          border: "border-border",
           label: status,
         };
     }
@@ -210,8 +212,8 @@ export default function MaintenanceDetailDialog({
           className="fixed inset-0 bg-black/60 transition-opacity duration-300"
           onClick={handleClose}
         />
-        <div className="animate-in fade-in zoom-in-95 relative flex max-h-screen w-full max-w-3xl flex-col overflow-hidden bg-white shadow-2xl ring-1 ring-gray-900/5 duration-200 sm:max-h-[90vh] sm:rounded-2xl">
-          <div className="flex items-start justify-between border-b border-gray-100 bg-white px-6 py-5 sm:px-8">
+        <div className="bg-surface animate-in fade-in zoom-in-95 relative flex max-h-screen w-full max-w-3xl flex-col overflow-hidden shadow-2xl ring-1 ring-gray-900/5 duration-200 sm:max-h-[90vh] sm:rounded-2xl">
+          <div className="border-border bg-surface flex items-start justify-between border-b px-6 py-5 sm:px-8">
             <div>
               <div className="flex items-center gap-3">
                 <div
@@ -219,64 +221,62 @@ export default function MaintenanceDetailDialog({
                 >
                   {statusStyle.label}
                 </div>
-                <span className="font-mono text-sm tracking-wide text-gray-400">
+                <span className="text-muted font-mono text-sm tracking-wide">
                   #{data.id.split("-")[0]}
                 </span>
               </div>
-              <h3 className="mt-2 text-xl font-bold text-gray-900 sm:text-2xl">
+              <h3 className="text-foreground mt-2 text-xl font-bold sm:text-2xl">
                 {data.title}
               </h3>
             </div>
             <button
               onClick={handleClose}
-              className="cursor-pointer rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100"
+              className="text-muted hover:bg-background cursor-pointer rounded-full p-2 transition-colors"
             >
               <X size={24} />
             </button>
           </div>
-          <div className="custom-scrollbar flex-1 overflow-y-auto bg-white px-6 py-6 sm:px-8">
+          <div className="custom-scrollbar bg-surface flex-1 overflow-y-auto px-6 py-6 sm:px-8">
             <div className="flex flex-col gap-8">
-              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-5">
-                <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-900">
+              <div className="border-border bg-background/50 rounded-xl border p-5">
+                <div className="text-foreground mb-2 flex items-center gap-2 text-sm font-semibold">
                   <FileText size={18} className="text-indigo-600" />
                   รายละเอียด
                 </div>
-                <p className="text-base leading-relaxed text-gray-600">
+                <p className="text-muted text-base leading-relaxed">
                   {data.description || "- ไม่มีรายละเอียดเพิ่มเติม -"}
                 </p>
               </div>
               <div className="grid gap-6 md:grid-cols-2">
-                <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 transition-colors hover:border-indigo-200">
-                  <div className="mb-4 flex items-center gap-2 border-b border-gray-100 pb-2 text-base font-semibold text-gray-900">
+                <div className="border-border bg-surface flex flex-col rounded-xl border p-5 transition-colors hover:border-indigo-200">
+                  <div className="border-border text-foreground mb-4 flex items-center gap-2 border-b pb-2 text-base font-semibold">
                     <Building size={20} className="text-indigo-600" />{" "}
                     ข้อมูลพื้นที่
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">เลขห้อง</span>
+                      <span className="text-muted text-sm">เลขห้อง</span>
                       <span className="rounded-md bg-indigo-50 px-2 py-1 font-semibold text-indigo-700">
                         {data.room.roomNumber}
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 transition-colors hover:border-indigo-200">
-                  <div className="mb-4 flex items-center gap-2 border-b border-gray-100 pb-2 text-base font-semibold text-gray-900">
+                <div className="border-border bg-surface flex flex-col rounded-xl border p-5 transition-colors hover:border-indigo-200">
+                  <div className="border-border text-foreground mb-4 flex items-center gap-2 border-b pb-2 text-base font-semibold">
                     <User size={20} className="text-indigo-600" />
                     ผู้แจ้งซ่อม
                   </div>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">
-                        ชื่อ-นามสกุล
-                      </span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-muted text-sm">ชื่อ-นามสกุล</span>
+                      <span className="text-foreground text-sm font-medium">
                         {data.tenant.firstName} {data.tenant.lastName}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">เบอร์ติดต่อ</span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-muted text-sm">เบอร์ติดต่อ</span>
+                      <span className="text-foreground text-sm font-medium">
                         {data.tenant.phone || "-"}
                       </span>
                     </div>
@@ -284,7 +284,7 @@ export default function MaintenanceDetailDialog({
                 </div>
               </div>
               <div>
-                <div className="mb-4 flex items-center gap-2 text-base font-semibold text-gray-900">
+                <div className="text-foreground mb-4 flex items-center gap-2 text-base font-semibold">
                   <ImageIcon size={20} className="text-indigo-600" />{" "}
                   รูปภาพประกอบ
                 </div>
@@ -294,7 +294,7 @@ export default function MaintenanceDetailDialog({
                       <div
                         key={idx}
                         onClick={() => setSelectedImageUrl(img.url)}
-                        className="group relative aspect-square cursor-zoom-in overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition-all active:scale-95"
+                        className="group border-border bg-background relative aspect-square cursor-zoom-in overflow-hidden rounded-xl border transition-all active:scale-95"
                       >
                         <img
                           src={img.url}
@@ -308,18 +308,29 @@ export default function MaintenanceDetailDialog({
                     ))}
                   </div>
                 ) : (
-                  <div className="flex h-32 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 text-gray-400">
+                  <div className="border-border bg-background/50 text-muted flex h-32 flex-col items-center justify-center rounded-xl border-2 border-dashed">
                     <ImageIcon size={32} className="mb-2 opacity-20" />{" "}
                     <span className="text-sm">ไม่มีรูปภาพแนบ</span>
                   </div>
                 )}
               </div>
-              <div className="flex flex-wrap gap-x-6 gap-y-2 border-t border-gray-100 pt-4 text-sm text-gray-500">
+              <MaintenanceChatThread
+                maintenanceId={data.id}
+                currentRole="OWNER"
+                enabled={
+                  data.status === "IN_PROGRESS" || data.status === "COMPLETED"
+                }
+                readOnly={data.status === "COMPLETED"}
+                getMessages={maintenanceService.getMessages}
+                sendMessage={maintenanceService.sendMessage}
+                editMessage={maintenanceService.editMessage}
+              />
+              <div className="border-border text-muted flex flex-wrap gap-x-6 gap-y-2 border-t pt-4 text-sm">
                 <div className="flex items-center gap-2">
                   <Calendar size={16} />{" "}
                   <span>
                     แจ้งเมื่อ:{" "}
-                    <span className="font-medium text-gray-700">
+                    <span className="text-foreground font-medium">
                       {formatDate(data.createdAt)}
                     </span>
                   </span>
@@ -328,7 +339,7 @@ export default function MaintenanceDetailDialog({
                   <Clock size={16} />{" "}
                   <span>
                     อัปเดตล่าสุด:{" "}
-                    <span className="font-medium text-gray-700">
+                    <span className="text-foreground font-medium">
                       {formatDate(data.updatedAt)}
                     </span>
                   </span>
@@ -336,12 +347,12 @@ export default function MaintenanceDetailDialog({
               </div>
             </div>
           </div>
-          <div className="border-t border-gray-100 bg-gray-50/50 px-6 py-5 sm:px-8">
+          <div className="border-border bg-background/50 border-t px-6 py-5 sm:px-8">
             <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
               <button
                 onClick={handleClose}
                 disabled={isLoading}
-                className="inline-flex w-full cursor-pointer items-center justify-center rounded-xl border border-gray-300 bg-white px-6 py-2.5 text-sm font-semibold text-gray-700 transition-all hover:bg-gray-50 active:scale-95 sm:w-auto"
+                className="border-border bg-surface text-foreground hover:bg-background inline-flex w-full cursor-pointer items-center justify-center rounded-xl border px-6 py-2.5 text-sm font-semibold transition-all active:scale-95 sm:w-auto"
               >
                 ปิดหน้าต่าง
               </button>

@@ -10,16 +10,27 @@ import { FeaturedTable } from "./FeaturedTable";
 import { CustomSelect } from "@/lib/ui/CustomSelect";
 
 const STATUS_OPTIONS = [
-  { value: "ALL", label: "ทุกสถานะ (Status)" },
-  { value: "ACTIVE", label: "Active (ใช้งานปกติ)" },
-  { value: "PENDING", label: "Pending (รออนุมัติ)" },
-  { value: "BANNED", label: "Banned (ถูกระงับ)" },
+  {
+    value: "ALL",
+    label: "ทุกสถานะ (Status)",
+  },
+  {
+    value: "ACTIVE",
+    label: "Active (ใช้งานปกติ)",
+  },
+  {
+    value: "PENDING",
+    label: "Pending (รออนุมัติ)",
+  },
+  {
+    value: "BANNED",
+    label: "Banned (ถูกระงับ)",
+  },
 ];
 
 export default function FeaturedContainer() {
   const [featuredItems, setFeaturedItems] = useState<Dormitory[]>([]);
   const [isFeaturedLoading, setIsFeaturedLoading] = useState(true);
-
   const [tableData, setTableData] = useState<Dormitory[]>([]);
   const [isTableLoading, setIsTableLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -44,7 +55,6 @@ export default function FeaturedContainer() {
   });
 
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
-
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -61,6 +71,7 @@ export default function FeaturedContainer() {
 
     try {
       const res = await AdminService.getFeaturedList();
+
       if (isMountedRef.current) setFeaturedItems(res);
     } catch (error) {
       if (isMountedRef.current) toast.error("ไม่สามารถโหลดรายการหอพักแนะนำได้");
@@ -80,6 +91,7 @@ export default function FeaturedContainer() {
         statusFilter,
         "all",
       );
+
       if (isMountedRef.current) {
         setTableData(res.data);
         setTotalPages(res.meta.totalPages);
@@ -184,19 +196,19 @@ export default function FeaturedContainer() {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="flex items-center gap-3 text-2xl font-bold text-gray-800">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white shadow-md shadow-amber-200">
+          <h2 className="text-foreground flex items-center gap-3 text-2xl font-bold">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-white">
               <Star size={20} />
             </div>
             หอพักแนะนำ
           </h2>
-          <p className="mt-1 pl-13 text-sm text-gray-500">
+          <p className="text-muted mt-1 pl-13 text-sm">
             ปักหมุดหอพักที่ต้องการแนะนำ และจัดลำดับการแสดงผลในหน้าค้นหา
           </p>
         </div>
         <button
           onClick={refreshAll}
-          className="btn-icon flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-600 hover:bg-gray-50"
+          className="btn-icon border-border bg-surface text-muted hover:bg-background flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2"
         >
           <RefreshCw
             size={16}
@@ -207,13 +219,12 @@ export default function FeaturedContainer() {
           รีเฟรช
         </button>
       </div>
-
       <div>
-        <h3 className="mb-3 text-sm font-bold text-gray-700">
+        <h3 className="text-foreground mb-3 text-sm font-bold">
           ลำดับหอพักแนะนำ ({featuredItems.length})
         </h3>
         {isFeaturedLoading ? (
-          <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-400">
+          <div className="border-border bg-surface text-muted rounded-xl border p-8 text-center">
             กำลังโหลดข้อมูล...
           </div>
         ) : (
@@ -224,21 +235,15 @@ export default function FeaturedContainer() {
           />
         )}
       </div>
-
       <div>
-        <h3 className="mb-3 text-sm font-bold text-gray-700">
-          หอพักทั้งหมด
-        </h3>
-        <div className="mb-4 grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 md:grid-cols-4">
+        <h3 className="text-foreground mb-3 text-sm font-bold">หอพักทั้งหมด</h3>
+        <div className="border-border bg-surface mb-4 grid grid-cols-1 gap-4 rounded-xl border p-4 md:grid-cols-4">
           <div className="relative md:col-span-3">
-            <Search
-              className="absolute top-2.5 left-3 text-gray-400"
-              size={18}
-            />
+            <Search className="text-muted absolute top-2.5 left-3" size={18} />
             <input
               type="text"
               placeholder="ค้นหาชื่อหอพัก, ที่อยู่, หรือชื่อเจ้าของ..."
-              className="w-full rounded-lg border border-gray-200 py-2 pr-4 pl-10 transition-all outline-none focus:border-blue-500 focus:ring-blue-500"
+              className="border-border w-full rounded-lg border py-2 pr-4 pl-10 transition-all outline-none focus:border-blue-500 focus:ring-blue-500"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -265,7 +270,6 @@ export default function FeaturedContainer() {
           onToggleFeatured={handleToggleFeatured}
         />
       </div>
-
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
         onClose={() =>

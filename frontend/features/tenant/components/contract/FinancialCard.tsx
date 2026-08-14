@@ -1,6 +1,5 @@
 import { TenantContractDetail } from "@/features/tenant";
 import { Zap, Droplets, Calendar, Wallet, ShieldCheck } from "lucide-react";
-
 const formatMoney = (n: number) => `฿${(n ?? 0).toLocaleString()}`;
 
 export const FinancialCard = ({ tenant }: { tenant: TenantContractDetail }) => {
@@ -30,23 +29,21 @@ export const FinancialCard = ({ tenant }: { tenant: TenantContractDetail }) => {
     (tenant.entranceFee ?? 0);
 
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-7">
-      <h3 className="mb-5 text-sm font-bold text-slate-800">
+    <div className="bg-surface ring-border rounded-2xl p-6 shadow-sm ring-1 md:p-7">
+      <h3 className="text-foreground mb-5 text-sm font-bold">
         ค่าใช้จ่ายตามสัญญา
       </h3>
-
-      {/* เงินก้อนตอนทำสัญญา */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {moneyItems.map((item) => (
           <div
             key={item.label}
-            className="rounded-xl border border-slate-100 bg-slate-50 p-4"
+            className="border-border bg-background rounded-xl border p-4"
           >
-            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+            <div className="text-muted flex items-center gap-1.5 text-xs font-medium">
               <item.icon size={14} />
               {item.label}
             </div>
-            <p className="mt-1.5 text-lg font-bold text-slate-900">
+            <p className="text-foreground mt-1.5 text-lg font-bold">
               {formatMoney(item.value)}
             </p>
           </div>
@@ -60,9 +57,7 @@ export const FinancialCard = ({ tenant }: { tenant: TenantContractDetail }) => {
           {formatMoney(totalUpfront)}
         </span>
       </div>
-
-      {/* อัตราค่าน้ำ/ไฟ + กติกาการเก็บเงิน */}
-      <h4 className="mt-6 mb-3 text-sm font-bold text-slate-800">
+      <h4 className="text-foreground mt-6 mb-3 text-sm font-bold">
         อัตราค่าน้ำ-ไฟ และรอบบิล
       </h4>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -71,10 +66,17 @@ export const FinancialCard = ({ tenant }: { tenant: TenantContractDetail }) => {
             <Droplets size={20} />
           </div>
           <div>
-            <p className="text-xs font-medium text-blue-600">ค่าน้ำ</p>
+            <p className="text-xs font-medium text-blue-600">
+              ค่าน้ำ
+              {settings.waterBillingType === "FLAT_RATE" && " (เหมาจ่าย)"}
+            </p>
             <p className="text-lg font-bold text-blue-900">
               {settings.waterRate}{" "}
-              <span className="text-xs font-normal">บาท/หน่วย</span>
+              <span className="text-xs font-normal">
+                {settings.waterBillingType === "FLAT_RATE"
+                  ? "บาท/เดือน"
+                  : "บาท/หน่วย"}
+              </span>
             </p>
           </div>
         </div>
@@ -91,26 +93,25 @@ export const FinancialCard = ({ tenant }: { tenant: TenantContractDetail }) => {
           </div>
         </div>
       </div>
-
-      <div className="mt-4 space-y-2.5 rounded-xl bg-slate-50 p-4">
+      <div className="bg-background mt-4 space-y-2.5 rounded-xl p-4">
         <div className="flex justify-between text-sm">
-          <span className="text-slate-500">ค่าส่วนกลาง</span>
-          <span className="font-semibold text-slate-900">
+          <span className="text-muted">ค่าส่วนกลาง</span>
+          <span className="text-foreground font-semibold">
             {formatMoney(settings.commonFee)}/เดือน
           </span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-slate-500">ค่าปรับชำระล่าช้า</span>
-          <span className="font-semibold text-slate-900">
+          <span className="text-muted">ค่าปรับชำระล่าช้า</span>
+          <span className="text-foreground font-semibold">
             {formatMoney(settings.lateFee)}
           </span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="flex items-center gap-1.5 text-slate-500">
+          <span className="text-muted flex items-center gap-1.5">
             <Calendar size={13} />
             กำหนดชำระทุกวันที่
           </span>
-          <span className="font-semibold text-slate-900">
+          <span className="text-foreground font-semibold">
             {settings.dueDay}{" "}
             {settings.dueMonthOffset === 1
               ? "ของเดือนถัดไป"

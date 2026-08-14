@@ -93,21 +93,10 @@ export default function BillTable({
     setConfirmConfig(null);
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-full min-h-75 w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
-        <div className="text-center text-gray-500">
-          <div className="mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" />
-          กำลังโหลดข้อมูล...
-        </div>
-      </div>
-    );
-  }
-
   if (!isLoading && bills.length === 0) {
     return (
-      <div className="flex h-full min-h-75 w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
-        <div className="text-center text-gray-400">
+      <div className="border-border bg-background flex h-full min-h-75 w-full items-center justify-center rounded-xl border">
+        <div className="text-muted text-center">
           <FileSearch className="mx-auto mb-2 h-10 w-10 opacity-50" />
           <p>ไม่พบรายการบิล</p>
         </div>
@@ -154,7 +143,7 @@ export default function BillTable({
         );
       case "CANCELLED":
         return (
-          <span className={`${base} bg-gray-50 text-gray-600 ring-gray-500/20`}>
+          <span className={`${base} bg-background text-muted ring-border`}>
             <XCircle size={12} />
             ยกเลิก
           </span>
@@ -185,14 +174,14 @@ export default function BillTable({
           </button>
         </div>
       )}
-      <div className="flex h-full max-h-[calc(100vh-200px)] w-full flex-col overflow-hidden rounded-t-xl border border-gray-200 bg-white shadow-sm">
+      <div className="border-border bg-surface flex h-full max-h-[calc(100vh-200px)] w-full flex-col overflow-hidden rounded-t-xl border shadow-sm">
         <div
-          className={`grid ${gridTemplate} gap-4 border-b border-gray-200 bg-gray-50 px-6 py-4 text-xs font-medium text-gray-500 uppercase`}
+          className={`grid ${gridTemplate} border-border bg-background text-muted gap-4 border-b px-6 py-4 text-xs font-medium uppercase`}
         >
           <div className="flex items-center justify-center">
             <input
               type="checkbox"
-              className="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+              className="border-border h-4 w-4 cursor-pointer rounded text-indigo-600 focus:ring-indigo-600"
               checked={
                 bills.length > 0 && selectedBillIds.length === bills.length
               }
@@ -205,13 +194,13 @@ export default function BillTable({
           <div className="text-center font-semibold tracking-wider">สถานะ</div>
           <div className="text-right font-semibold tracking-wider">จัดการ</div>
         </div>
-        <div className="custom-scrollbar flex-1 overflow-auto bg-white">
+        <div className="custom-scrollbar bg-surface flex-1 overflow-auto">
           <div className="min-w-335 text-nowrap">
             {bills.map((bill) => (
               <div
                 key={bill.id}
                 onClick={() => onViewDetail(bill)}
-                className={`group grid ${gridTemplate} cursor-pointer items-center gap-4 border-b border-gray-100 px-6 py-4 transition-colors last:border-0 hover:bg-gray-50 ${selectedBillIds.includes(bill.id) ? "bg-indigo-50/30" : ""}`}
+                className={`group grid ${gridTemplate} border-border hover:bg-background cursor-pointer items-center gap-4 border-b px-6 py-4 transition-colors last:border-0 ${selectedBillIds.includes(bill.id) ? "bg-indigo-50/30" : ""}`}
               >
                 <div
                   className="flex items-center justify-center"
@@ -219,20 +208,20 @@ export default function BillTable({
                 >
                   <input
                     type="checkbox"
-                    className="h-4 w-4 cursor-pointer rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                    className="border-border h-4 w-4 cursor-pointer rounded text-indigo-600 focus:ring-indigo-600"
                     checked={selectedBillIds.includes(bill.id)}
                     onChange={() => handleSelectOne(bill.id)}
                   />
                 </div>
                 <div className="flex flex-col truncate">
-                  <span className="truncate font-bold text-gray-900 transition-colors group-hover:text-indigo-600">
+                  <span className="text-foreground truncate font-bold transition-colors group-hover:text-indigo-600">
                     {bill.roomNumberSnapshot}
                   </span>
-                  <span className="truncate text-xs text-gray-500">
+                  <span className="text-muted truncate text-xs">
                     {bill.tenantNameSnapshot}
                   </span>
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-muted text-sm">
                   {new Date(bill.billingMonth).toLocaleDateString("th-TH", {
                     month: "long",
                     year: "numeric",
@@ -262,7 +251,7 @@ export default function BillTable({
                   )}
                   <button
                     onClick={() => onViewDetail(bill)}
-                    className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-indigo-600 active:scale-95"
+                    className="text-muted hover:bg-background cursor-pointer rounded-lg p-2 transition-colors hover:text-indigo-600 active:scale-95"
                     title="ดูรายละเอียด"
                   >
                     <Eye size={18} />
@@ -270,7 +259,7 @@ export default function BillTable({
                   {(bill.status === "PENDING" || bill.status === "OVERDUE") && (
                     <button
                       onClick={() => handleActionClick(bill.id, "CANCELLED")}
-                      className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 active:scale-95"
+                      className="text-muted cursor-pointer rounded-lg p-2 transition-colors hover:bg-red-50 hover:text-red-600 active:scale-95"
                       title="ยกเลิกบิล"
                     >
                       <XCircle size={18} />

@@ -63,7 +63,7 @@ export const buildBulkBillHtmlTemplate = (
         <div class="header">
           <div class="header-left">
             <h1>${bill.room.dormitory.name}</h1>
-            <p>${bill.room.dormitory.address}<br>โทร: ${bill.room.dormitory.owner?.phone || "-"}</p>
+            <p>${bill.room.dormitory.address}<br>โทร: ${bill.room.dormitory.contacts?.[0]?.phone || "-"}</p>
           </div>
           <div class="header-right">
             <div class="title">${bill.status === "PAID" ? "ใบเสร็จรับเงิน" : "ใบแจ้งหนี้"}</div>
@@ -122,11 +122,11 @@ export const buildBulkBillHtmlTemplate = (
               </tr>
               <tr>
                 <td>
-                  <div class="font-bold">ค่าน้ำประปา</div>
-                  <div class="unit-detail">(มิเตอร์: ${bill.prevWaterUnitSnapshot} - ${bill.currentWaterUnitSnapshot})</div>
+                  <div class="font-bold">ค่าน้ำประปา${bill.waterBillingTypeSnapshot === "FLAT_RATE" ? " (เหมาจ่าย)" : ""}</div>
+                  ${bill.waterBillingTypeSnapshot === "FLAT_RATE" ? "" : `<div class="unit-detail">(มิเตอร์: ${bill.prevWaterUnitSnapshot} - ${bill.currentWaterUnitSnapshot})</div>`}
                 </td>
-                <td class="text-center">${bill.waterUsedSnapshot}</td>
-                <td class="text-right">${formatMoney(bill.waterRateSnapshot)}</td>
+                <td class="text-center">${bill.waterBillingTypeSnapshot === "FLAT_RATE" ? "-" : bill.waterUsedSnapshot}</td>
+                <td class="text-right">${bill.waterBillingTypeSnapshot === "FLAT_RATE" ? "-" : formatMoney(bill.waterRateSnapshot)}</td>
                 <td class="text-right font-bold">${formatMoney(bill.waterFeeSnapshot)}</td>
               </tr>
               <tr>

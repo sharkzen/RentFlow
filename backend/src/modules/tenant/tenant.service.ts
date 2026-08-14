@@ -8,7 +8,9 @@ import {
   MaintenanceStatus,
   PaymentStatus,
   FileCategory,
+  UserRole,
 } from "@prisma/client";
+import { maintenanceMessageService } from "@/modules/maintenance/maintenance-message.service";
 
 import {
   buildBillHtmlTemplate,
@@ -687,10 +689,15 @@ export const tenantService = {
                 owner: {
                   select: {
                     fullName: true,
-                    phone: true,
-                    lineId: true,
-                    facebook: true,
                   },
+                },
+
+                contacts: {
+                  orderBy: {
+                    order: "asc",
+                  },
+
+                  take: 1,
                 },
               },
             },
@@ -815,9 +822,9 @@ export const tenantService = {
 
       contactInfo: {
         name: tenant.room.dormitory.owner.fullName,
-        phone: tenant.room.dormitory.owner.phone,
-        lineId: tenant.room.dormitory.owner.lineId,
-        facebook: tenant.room.dormitory.owner.facebook,
+        phone: tenant.room.dormitory.contacts[0]?.phone ?? null,
+        lineId: tenant.room.dormitory.lineId,
+        facebook: tenant.room.dormitory.facebook,
       },
 
       bill: latestBill
@@ -1081,7 +1088,6 @@ export const tenantService = {
           (endDate.getTime() - startDate.getTime()) / 86400000,
         );
         const calculatedLateFee = Math.max(daysLate, 0) * dailyRate;
-
         billAmount += Math.max(calculatedLateFee, bill.lateFeeSnapshot || 0);
       }
 
@@ -1117,9 +1123,16 @@ export const tenantService = {
 
                 owner: {
                   select: {
-                    phone: true,
                     fullName: true,
                   },
+                },
+
+                contacts: {
+                  orderBy: {
+                    order: "asc",
+                  },
+
+                  take: 1,
                 },
               },
             },
@@ -1332,7 +1345,10 @@ export const tenantService = {
       result: qrCodeDataUrl,
       total: amount,
       refNo: bill.id,
-      promptPayName: paymentSetting.bankHolder || "ไม่ระบุ",
+      promptPayName:
+        paymentSetting.promptPayHolder ||
+        paymentSetting.bankHolder ||
+        "ไม่ระบุ",
     };
   },
 
@@ -2040,6 +2056,80 @@ export const tenantService = {
     };
   },
 
+  sendMaintenanceMessage: async (
+    userId: string,
+    requestId: string,
+    message: string,
+  ) => {
+    const tenant = await prisma.tenantProfile.findFirst({
+      where: { userId, isActive: true },
+    });
+
+    if (!tenant) throw new Error("NOT_FOUND");
+
+    const existingRequest = await prisma.maintenanceRequest.findFirst({
+      where: { id: requestId, tenantId: tenant.id },
+
+      include: {
+        dormitory: { include: { owner: { include: { user: true } } } },
+        tenant: { include: { user: true } },
+        room: true,
+      },
+    });
+
+    if (!existingRequest) throw new Error("NOT_FOUND");
+
+    return maintenanceMessageService.createAndNotify({
+      existingRequest,
+      senderRole: UserRole.TENANT,
+      senderUserId: userId,
+      senderName: `${tenant.firstName} ${tenant.lastName}`,
+      message,
+    });
+  },
+
+  getMaintenanceMessages: async (userId: string, requestId: string) => {
+    const tenant = await prisma.tenantProfile.findFirst({
+      where: { userId, isActive: true },
+    });
+
+    if (!tenant) throw new Error("NOT_FOUND");
+
+    const existingRequest = await prisma.maintenanceRequest.findFirst({
+      where: { id: requestId, tenantId: tenant.id },
+    });
+
+    if (!existingRequest) throw new Error("NOT_FOUND");
+
+    return maintenanceMessageService.getMessages(requestId);
+  },
+
+  editMaintenanceMessage: async (
+    userId: string,
+    requestId: string,
+    messageId: string,
+    message: string,
+  ) => {
+    const tenant = await prisma.tenantProfile.findFirst({
+      where: { userId, isActive: true },
+    });
+
+    if (!tenant) throw new Error("NOT_FOUND");
+
+    const existingRequest = await prisma.maintenanceRequest.findFirst({
+      where: { id: requestId, tenantId: tenant.id },
+    });
+
+    if (!existingRequest) throw new Error("NOT_FOUND");
+
+    return maintenanceMessageService.updateMessage({
+      maintenanceId: requestId,
+      messageId,
+      senderUserId: userId,
+      message,
+    });
+  },
+
   getTenantContractDetail: async (userId: string) => {
     const tenant = await prisma.tenantProfile.findFirst({
       where: {
@@ -2169,6 +2259,7 @@ export const tenantService = {
       action: "RE_ENTRY_TENANT",
       entityType: "TenantProfile",
       entityId: createdProfile.id,
+
       metadata: {
         roomId: data.roomId,
         userId: data.userId,

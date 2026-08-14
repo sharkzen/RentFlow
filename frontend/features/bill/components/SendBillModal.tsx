@@ -9,6 +9,7 @@ import {
   Building,
   AlertCircle,
   Clock,
+  ShieldAlert,
 } from "lucide-react";
 
 export interface BillSummary {
@@ -35,6 +36,7 @@ export default function SendBillModal({
   onSendBills,
 }: SendBillModalProps) {
   const [selectedBillIds, setSelectedBillIds] = useState<string[]>([]);
+  const [showConfirm, setShowConfirm] = useState(false);
   const neverNotifiedBills = bills.filter((b) => !b.lastNotifiedAt);
   const neverNotifiedIds = neverNotifiedBills.map((b) => b.id);
 
@@ -44,6 +46,7 @@ export default function SendBillModal({
     } else {
       setSelectedBillIds([]);
     }
+    setShowConfirm(false);
   }, [isOpen, bills]);
 
   if (!isOpen) return null;
@@ -68,9 +71,13 @@ export default function SendBillModal({
     );
   };
 
-  const handleConfirmSend = () => {
+  const handleOpenConfirm = () => {
     if (selectedBillIds.length === 0) return;
+    setShowConfirm(true);
+  };
 
+  const handleConfirmSend = () => {
+    setShowConfirm(false);
     onSendBills(selectedBillIds);
   };
 
@@ -93,17 +100,17 @@ export default function SendBillModal({
 
   return (
     <div className="animate-in fade-in fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/50 p-0 sm:p-6 lg:p-8">
-      <div className="animate-in zoom-in-95 flex h-[100dvh] w-full max-w-6xl flex-col overflow-hidden bg-white shadow-2xl sm:h-[95vh] sm:rounded-2xl">
-        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-4 sm:px-6">
+      <div className="bg-surface animate-in zoom-in-95 flex h-[100dvh] w-full max-w-6xl flex-col overflow-hidden shadow-2xl sm:h-[95vh] sm:rounded-2xl">
+        <div className="border-border flex shrink-0 items-center justify-between border-b px-4 py-4 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
               <Send size={20} />
             </div>
             <div>
-              <h2 className="text-base font-bold whitespace-nowrap text-slate-800 sm:text-lg">
+              <h2 className="text-foreground text-base font-bold whitespace-nowrap sm:text-lg">
                 ส่งแจ้งเตือนชำระเงิน
               </h2>
-              <p className="hidden text-sm text-slate-500 sm:block">
+              <p className="text-muted hidden text-sm sm:block">
                 เลือกรายการบิลเพื่อส่งอีเมลแจ้งเตือน
                 (บิลที่เคยส่งแล้วจะไม่ถูกเลือกอัตโนมัติ)
               </p>
@@ -111,20 +118,20 @@ export default function SendBillModal({
           </div>
           <button
             onClick={onClose}
-            className="shrink-0 cursor-pointer rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="text-muted hover:bg-background hover:text-foreground shrink-0 cursor-pointer rounded-full p-2 transition-colors"
           >
             <X size={20} />
           </button>
         </div>
-        <div className="flex shrink-0 flex-col justify-between gap-3 border-b border-slate-50 bg-slate-50/50 px-4 py-3 sm:flex-row sm:items-center sm:px-6">
+        <div className="border-border bg-background/50 flex shrink-0 flex-col justify-between gap-3 border-b px-4 py-3 sm:flex-row sm:items-center sm:px-6">
           <button
             onClick={handleToggleSelectAll}
-            className="flex w-fit items-center gap-2 text-sm font-semibold whitespace-nowrap text-slate-700 transition-colors hover:text-blue-600"
+            className="text-foreground flex w-fit items-center gap-2 text-sm font-semibold whitespace-nowrap transition-colors hover:text-blue-600"
           >
             {isAllNeverNotifiedSelected ? (
               <CheckSquare size={18} className="shrink-0 text-blue-600" />
             ) : (
-              <Square size={18} className="shrink-0 text-slate-400" />
+              <Square size={18} className="text-muted shrink-0" />
             )}
             เลือกเฉพาะที่ยังไม่เคยส่ง (
             {
@@ -133,22 +140,22 @@ export default function SendBillModal({
             }
             /{neverNotifiedIds.length})
           </button>
-          <div className="self-end text-sm font-medium whitespace-nowrap text-slate-500 sm:self-auto">
+          <div className="text-muted self-end text-sm font-medium whitespace-nowrap sm:self-auto">
             ยอดรวมที่เลือก:{" "}
             <span className="text-base font-bold text-blue-600">
               ฿{totalSelectedAmount.toLocaleString()}
             </span>
           </div>
         </div>
-        <div className="flex-1 overflow-auto bg-slate-50/30">
+        <div className="bg-background/30 flex-1 overflow-auto">
           {bills.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center py-10 text-slate-400">
+            <div className="text-muted flex h-full flex-col items-center justify-center py-10">
               <Building size={48} className="mb-4 opacity-20" />
               <p>ไม่มีบิลที่เข้าเงื่อนไขในขณะนี้</p>
             </div>
           ) : (
             <div className="min-w-[800px] p-4 sm:p-6">
-              <div className="sticky top-0 z-10 grid grid-cols-12 gap-4 rounded-t-lg border-b border-slate-200 bg-slate-50/95 px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap text-slate-500 uppercase backdrop-blur-sm">
+              <div className="border-border bg-background/95 text-muted sticky top-0 z-10 grid grid-cols-12 gap-4 rounded-t-lg border-b px-4 py-3 text-xs font-semibold tracking-wider whitespace-nowrap uppercase backdrop-blur-sm">
                 <div className="col-span-1 flex items-center justify-center">
                   เลือก
                 </div>
@@ -173,24 +180,24 @@ export default function SendBillModal({
                   return (
                     <label
                       key={bill.id}
-                      className={`group grid cursor-pointer grid-cols-12 items-center gap-4 rounded-xl border px-4 py-3 transition-all hover:border-blue-300 hover:bg-blue-50/50 ${isSelected ? "border-blue-400 bg-blue-50/30 shadow-sm" : "border-slate-200 bg-white"} ${isOverdue && !isSelected ? "border-red-200 bg-red-50/20" : ""} ${hasBeenNotified && !isSelected ? "opacity-80" : ""}`}
+                      className={`group dark:hover:bg-background grid cursor-pointer grid-cols-12 items-center gap-4 rounded-xl border px-4 py-3 transition-all hover:border-blue-300 hover:bg-blue-50/50 ${isSelected ? "border-blue-400 bg-blue-50/30 shadow-sm" : "border-border bg-surface"} ${isOverdue && !isSelected ? "border-red-200 bg-red-50/20" : ""} ${hasBeenNotified && !isSelected ? "opacity-80" : ""}`}
                     >
                       <div className="col-span-1 flex items-center justify-center">
                         <input
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => handleToggleBill(bill.id)}
-                          className="h-4 w-4 shrink-0 cursor-pointer rounded border-slate-300 text-blue-600 transition-all focus:ring-blue-500"
+                          className="border-border h-4 w-4 shrink-0 cursor-pointer rounded text-blue-600 transition-all focus:ring-blue-500"
                         />
                       </div>
-                      <div className="col-span-2 flex items-center font-bold whitespace-nowrap text-slate-800">
+                      <div className="text-foreground col-span-2 flex items-center font-bold whitespace-nowrap">
                         {bill.roomNumberSnapshot}
                       </div>
-                      <div className="col-span-3 flex items-center gap-2 overflow-hidden text-sm whitespace-nowrap text-slate-600">
-                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                      <div className="text-muted col-span-3 flex items-center gap-2 overflow-hidden text-sm whitespace-nowrap">
+                        <div className="bg-background text-muted flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
                           <User size={12} />
                         </div>
-                        <span className="truncate font-medium">
+                        <span className="truncate font-medium dark:text-white">
                           {bill.tenantNameSnapshot}
                         </span>
                       </div>
@@ -216,7 +223,7 @@ export default function SendBillModal({
                             {formatLastNotified(bill.lastNotifiedAt)}
                           </span>
                         ) : (
-                          <span className="text-[11px] text-slate-400 italic">
+                          <span className="text-muted text-[11px] italic dark:text-white">
                             ยังไม่เคยส่ง
                           </span>
                         )}
@@ -228,15 +235,15 @@ export default function SendBillModal({
             </div>
           )}
         </div>
-        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 bg-white px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end sm:px-6 sm:pb-4">
+        <div className="border-border bg-surface flex shrink-0 items-center justify-between gap-3 border-t px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:justify-end sm:px-6 sm:pb-4">
           <button
             onClick={onClose}
-            className="cursor-pointer rounded-lg px-5 py-2.5 text-sm font-medium whitespace-nowrap text-slate-600 transition-colors hover:bg-slate-100 active:scale-95"
+            className="text-muted hover:bg-background cursor-pointer rounded-lg px-5 py-2.5 text-sm font-medium whitespace-nowrap transition-colors active:scale-95"
           >
             ยกเลิก
           </button>
           <button
-            onClick={handleConfirmSend}
+            onClick={handleOpenConfirm}
             disabled={selectedBillIds.length === 0}
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold whitespace-nowrap text-white shadow-md transition-all hover:bg-blue-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
@@ -246,6 +253,62 @@ export default function SendBillModal({
           </button>
         </div>
       </div>
+
+      {showConfirm && (
+        <div className="animate-in fade-in fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 p-4">
+          <div className="bg-surface animate-in zoom-in-95 w-full max-w-md rounded-2xl p-6 shadow-2xl">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                <ShieldAlert size={20} />
+              </div>
+              <div>
+                <h3 className="text-foreground text-base font-bold">
+                  ยืนยันการส่งอีเมลบิล
+                </h3>
+                <p className="text-muted mt-1 text-sm">
+                  กำลังจะส่งอีเมลแจ้งบิลให้ผู้เช่า{" "}
+                  <span className="text-foreground font-semibold">
+                    {selectedBillIds.length}
+                  </span>{" "}
+                  รายการ ยอดรวม{" "}
+                  <span className="font-semibold text-blue-600">
+                    ฿{totalSelectedAmount.toLocaleString()}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              หากมี<span className="font-semibold">ส่วนลด</span>หรือ
+              <span className="font-semibold">ค่าใช้จ่ายเพิ่มเติม</span>
+              สำหรับห้องใด กรุณาไปแก้ไขที่
+              <span className="font-semibold">
+                {" "}
+                รายละเอียดบิล
+              </span>{" "}
+              ให้ถูกต้องก่อน เพราะเมื่อกดยืนยันแล้ว
+              ระบบจะส่งอีเมลตามยอดที่แสดงอยู่ตอนนี้ทันที
+              และแก้ไขย้อนหลังไม่ได้
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="text-muted hover:bg-background cursor-pointer rounded-lg px-5 py-2.5 text-sm font-medium whitespace-nowrap transition-colors active:scale-95"
+              >
+                กลับไปตรวจสอบ
+              </button>
+              <button
+                onClick={handleConfirmSend}
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold whitespace-nowrap text-white shadow-md transition-all hover:bg-blue-700 active:scale-95"
+              >
+                <Send size={16} className="shrink-0" />
+                ยืนยัน ส่งเลย
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

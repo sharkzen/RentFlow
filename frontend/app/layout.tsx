@@ -29,11 +29,26 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "RentFlow",
+    title: "RentFlow — ค้นหาและจัดการหอพักครบวงจร",
+    description:
+      "ระบบจัดการหอพักครบวงจร จัดการห้องพัก ค่าไฟ ค่าน้ำ บิล และผู้เช่าได้ในที่เดียว",
+    url: "https://rentflow.duckdns.org",
     locale: "th_TH",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "RentFlow",
+      },
+    ],
   },
 
   twitter: {
     card: "summary_large_image",
+    title: "RentFlow",
+    description: "ระบบจัดการหอพักครบวงจร",
+    images: ["/og-image.jpg"],
   },
 };
 
@@ -45,12 +60,13 @@ export default async function RootLayout({
   const initialUser = await getCurrentUser();
 
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body
-        className={`${ibmPlexThai.className} bg-[#F3F4F6] text-[#111827] antialiased`}
+        className={`${ibmPlexThai.className} bg-background text-foreground antialiased`}
+        suppressHydrationWarning
       >
         <SessionKeepAlive />
         <AuthProvider initialUser={initialUser}>

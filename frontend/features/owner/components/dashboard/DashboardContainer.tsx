@@ -3,21 +3,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Home, Calendar, FileDown } from "lucide-react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Dormitory } from "@/features/dormitory";
-import { Spinner } from "@/lib/ui/Spinner";
 import { CustomSelect } from "@/lib/ui/CustomSelect";
 import dynamic from "next/dynamic";
 import { FinancialSection } from "./FinancialSection";
 import { MaintenanceSection } from "./MaintenanceSection";
+import LoadingPage from "@/app/(owner)/owner/dashboard/loading";
 
 const RevenueChart = dynamic(
   () => import("./RevenueChart").then((mod) => mod.RevenueChart),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner />
-      </div>
-    ),
   },
 );
 
@@ -25,13 +20,9 @@ const MaintenancePieChart = dynamic(
   () => import("./MaintenancePieChart").then((mod) => mod.MaintenancePieChart),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner />
-      </div>
-    ),
   },
 );
+
 import log from "@/lib/logger";
 import { toast } from "react-toastify";
 
@@ -41,14 +32,14 @@ export default function DashboardContainer() {
   const [month, setMonth] = useState<number | "ALL">("ALL");
   const [year, setYear] = useState<number | "ALL">("ALL");
   const [overview, setOverview] = useState<any | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
-
   const isMountedRef = useRef(true);
 
   const fetchDorms = useCallback(async () => {
     try {
       const data = await DormService.getDorm();
+
       if (isMountedRef.current) setDorms(data);
     } catch (error) {
       log.error("Failed to fetch dorms", error);
@@ -65,6 +56,7 @@ export default function DashboardContainer() {
         queryMonth,
         queryYear,
       );
+
       if (isMountedRef.current) setOverview(data);
     } catch (error) {
       log.error("Failed to fetch dashboard data", error);
@@ -102,7 +94,6 @@ export default function DashboardContainer() {
         queryMonth,
         queryYear,
       );
-
       const pdfUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = pdfUrl;
@@ -182,16 +173,20 @@ export default function DashboardContainer() {
       : monthOptions.find((m) => m.value === month)?.label || "-";
   const currentYearLabel = year === "ALL" ? "ตลอดชีพ" : year;
 
+  if (loading || !overview) return <LoadingPage />;
+
   return (
     <div className="min-h-screen">
-      <div className="mb-8 flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+      <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900">ภาพรวมหอพัก</h1>
-          <p className="mt-2 text-gray-500">
+          <h1 className="text-foreground text-3xl font-extrabold">
+            ภาพรวมหอพัก
+          </h1>
+          <p className="text-muted mt-2">
             ดูสถิติ รายได้ และการแจ้งซ่อมแบบครบวงจร
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 lg:justify-end">
           <CustomSelect
             options={dormOptions}
             value={selectedDormId}
@@ -204,7 +199,7 @@ export default function DashboardContainer() {
             options={monthOptions}
             value={month}
             onChange={setMonth}
-            icon={<Calendar size={16} className="text-gray-400" />}
+            icon={<Calendar size={16} className="text-muted" />}
             className="w-full sm:w-40"
           />
           <CustomSelect
@@ -216,50 +211,43 @@ export default function DashboardContainer() {
           <button
             onClick={handleExport}
             disabled={isExporting || loading || !overview}
-            className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-border bg-surface text-muted hover:bg-background flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <FileDown size={16} className={isExporting ? "animate-pulse" : ""} />
+            <FileDown
+              size={16}
+              className={isExporting ? "animate-pulse" : ""}
+            />
             {isExporting ? "กำลังสร้างไฟล์..." : "Export PDF"}
           </button>
         </div>
       </div>
-      {loading || !overview ? (
-        <div className="flex h-96 w-full flex-col items-center justify-center rounded-3xl bg-white">
-          <Spinner className="text-blue-500" />
-          <p className="mt-3 animate-pulse text-sm text-gray-400">
-            กำลังโหลดข้อมูล...
-          </p>
-        </div>
-      ) : (
-        <div className="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
-          <FinancialSection
-            overview={overview}
-            monthLabel={currentMonthLabel}
-            year={currentYearLabel}
-          />
-          <MaintenanceSection
-            overview={overview}
-            monthLabel={currentMonthLabel}
-            year={currentYearLabel}
-          />
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="flex h-96 flex-col items-center justify-center rounded-3xl border border-gray-100 bg-white p-6 lg:col-span-2">
-              <RevenueChart data={overview.monthlyRevenue || []} />
-              <p className="mt-4 text-xs text-gray-300">
-                ข้อมูล: {currentDormLabel}({currentMonthLabel}{" "}
-                {currentYearLabel})
-              </p>
-            </div>
-            <div className="flex h-96 flex-col items-center justify-center rounded-3xl border border-gray-100 bg-white p-6">
-              <MaintenancePieChart
-                open={overview.maintenance.open}
-                inProgress={overview.maintenance.inProgress}
-                completed={overview.maintenance.completed}
-              />
-            </div>
+      <div className="animate-in fade-in slide-in-from-bottom-4 space-y-8 duration-500">
+        <FinancialSection
+          overview={overview}
+          monthLabel={currentMonthLabel}
+          year={currentYearLabel}
+        />
+        <MaintenanceSection
+          overview={overview}
+          monthLabel={currentMonthLabel}
+          year={currentYearLabel}
+        />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="border-border bg-surface flex h-96 flex-col items-center justify-center rounded-3xl border p-6 lg:col-span-2">
+            <RevenueChart data={overview?.monthlyRevenue || []} />
+            <p className="text-muted mt-4 text-xs">
+              ข้อมูล: {currentDormLabel}({currentMonthLabel} {currentYearLabel})
+            </p>
+          </div>
+          <div className="border-border bg-surface flex h-96 flex-col items-center justify-center rounded-3xl border p-6">
+            <MaintenancePieChart
+              open={overview?.maintenance?.open || 0}
+              inProgress={overview?.maintenance?.inProgress || 0}
+              completed={overview?.maintenance?.completed || 0}
+            />
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

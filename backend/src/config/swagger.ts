@@ -1,7 +1,10 @@
 import { FastifyInstance } from "fastify";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
-import { authMiddleware, authRoleMiddleware } from "@/middleware/auth.middleware";
+import {
+  authMiddleware,
+  authRoleMiddleware,
+} from "@/middleware/auth.middleware";
 import { Role } from "@/types/role.type";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
@@ -78,7 +81,8 @@ export const SWAGGER_TAGS = [
   },
   {
     name: "Admin",
-    description: "ฟังก์ชันเฉพาะแอดมิน — อนุมัติเจ้าของหอ, จัดการผู้ใช้, หอพักแนะนำ ฯลฯ",
+    description:
+      "ฟังก์ชันเฉพาะแอดมิน — อนุมัติเจ้าของหอ, จัดการผู้ใช้, หอพักแนะนำ ฯลฯ",
   },
 ];
 

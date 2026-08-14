@@ -7,7 +7,6 @@ const envSchema = z.object({
     .default("development"),
   PORT: z.coerce.number().default(3001),
   FRONTEND_URL: z.string().default("http://localhost:3000"),
-  BACKEND_URL: z.string().optional(),
   DATABASE_URL: z
     .string()
     .default("postgresql://rentflow:rentflow@localhost:5432/rentflow"),
@@ -16,6 +15,7 @@ const envSchema = z.object({
   RESET_SECRET: z.string(),
   ENCRYPTION_KEY: z.string(),
   QR_PEPPER_SECRET: z.string(),
+  OTP_PEPPER_SECRET: z.string(),
   ADMIN_EMAIL: z.string().optional(),
   ADMIN_PASSWORD: z.string().optional(),
   R2_ACCOUNT_ID: z.string(),

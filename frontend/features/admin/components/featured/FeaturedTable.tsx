@@ -23,10 +23,10 @@ export function FeaturedTable({
   onToggleFeatured,
 }: FeaturedTableProps) {
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+    <div className="border-border bg-surface overflow-hidden rounded-xl border">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-gray-100 bg-gray-50 font-medium text-gray-500">
+          <thead className="border-border bg-background text-muted border-b font-medium">
             <tr>
               <th className="px-6 py-4">หอพัก</th>
               <th className="px-6 py-4">เจ้าของ</th>
@@ -34,16 +34,16 @@ export function FeaturedTable({
               <th className="px-6 py-4 text-center">แนะนำ</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-border divide-y">
             {isLoading ? (
               <tr>
-                <td colSpan={4} className="p-8 text-center text-gray-400">
+                <td colSpan={4} className="text-muted p-8 text-center">
                   กำลังโหลดข้อมูล...
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={4} className="p-8 text-center text-gray-400">
+                <td colSpan={4} className="text-muted p-8 text-center">
                   ไม่พบหอพักที่ตรงกับเงื่อนไข
                 </td>
               </tr>
@@ -51,11 +51,11 @@ export function FeaturedTable({
               data.map((item) => (
                 <tr
                   key={item.id}
-                  className="transition-colors hover:bg-gray-50"
+                  className="hover:bg-background transition-colors"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+                      <div className="border-border bg-background h-12 w-16 shrink-0 overflow-hidden rounded-lg border">
                         {item.images && item.images.length > 0 ? (
                           <img
                             src={
@@ -67,16 +67,16 @@ export function FeaturedTable({
                             alt=""
                           />
                         ) : (
-                          <div className="flex h-full items-center justify-center text-gray-300">
+                          <div className="text-muted flex h-full items-center justify-center">
                             <Building2 size={16} />
                           </div>
                         )}
                       </div>
                       <div>
-                        <p className="line-clamp-1 font-semibold text-gray-800">
+                        <p className="text-foreground line-clamp-1 font-semibold">
                           {item.name}
                         </p>
-                        <p className="line-clamp-1 flex items-center gap-1 text-xs text-gray-500">
+                        <p className="text-muted line-clamp-1 flex items-center gap-1 text-xs">
                           <MapPin size={10} /> {item.address}
                         </p>
                       </div>
@@ -84,27 +84,23 @@ export function FeaturedTable({
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm">
-                      <p className="font-medium text-gray-800">
+                      <p className="text-foreground font-medium">
                         {item.owner.fullName}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-muted text-xs">
                         {item.owner.user.email}
                       </p>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600">
+                    <span className="bg-background text-muted rounded-full px-2.5 py-1 text-xs font-bold">
                       {item.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
                     <button
                       onClick={() => onToggleFeatured(item)}
-                      className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
-                        item.isFeatured
-                          ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                      }`}
+                      className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${item.isFeatured ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : "bg-background text-muted hover:bg-border"}`}
                     >
                       <Star
                         size={12}
@@ -119,8 +115,8 @@ export function FeaturedTable({
           </tbody>
         </table>
       </div>
-      <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
-        <p className="text-sm text-gray-600">
+      <div className="border-border bg-background flex items-center justify-between border-t px-6 py-4">
+        <p className="text-muted text-sm">
           แสดง {data.length > 0 ? (page - 1) * 10 + 1 : 0}ถึง{" "}
           {Math.min(page * 10, totalItems)}จาก {totalItems}รายการ
         </p>
@@ -128,14 +124,14 @@ export function FeaturedTable({
           <button
             onClick={() => onPageChange(Math.max(1, page - 1))}
             disabled={page === 1}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm transition-colors hover:bg-gray-50 disabled:opacity-50"
+            className="border-muted bg-surface hover:bg-background rounded-lg border px-3 py-1.5 text-sm transition-colors disabled:opacity-50"
           >
             ก่อนหน้า
           </button>
           <button
             onClick={() => onPageChange(Math.min(totalPages, page + 1))}
             disabled={page === totalPages}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm transition-colors hover:bg-gray-50 disabled:opacity-50"
+            className="border-muted bg-surface hover:bg-background rounded-lg border px-3 py-1.5 text-sm transition-colors disabled:opacity-50"
           >
             ถัดไป
           </button>

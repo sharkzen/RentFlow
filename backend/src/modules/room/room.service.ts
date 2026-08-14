@@ -529,7 +529,13 @@ export const roomService = {
       include: {
         dormitory: {
           include: {
-            owner: true,
+            contacts: {
+              orderBy: {
+                order: "asc",
+              },
+
+              take: 1,
+            },
           },
         },
 
@@ -616,7 +622,7 @@ export const roomService = {
         tenantName: `${currentTenant.firstName} ${currentTenant.lastName}`,
         dormName: room.dormitory.name,
         dormAddress: room.dormitory.address,
-        dormPhone: room.dormitory.owner?.phone || "",
+        dormPhone: room.dormitory.contacts?.[0]?.phone || "",
         qrCodeDataUrl,
       });
     }
@@ -715,7 +721,13 @@ export const roomService = {
       include: {
         dormitory: {
           include: {
-            owner: true,
+            contacts: {
+              orderBy: {
+                order: "asc",
+              },
+
+              take: 1,
+            },
           },
         },
 
@@ -814,7 +826,7 @@ export const roomService = {
         tenantName: `${currentTenant.firstName} ${currentTenant.lastName}`,
         dormName: room.dormitory.name,
         dormAddress: room.dormitory.address,
-        dormPhone: room.dormitory.owner?.phone || "",
+        dormPhone: room.dormitory.contacts?.[0]?.phone || "",
         qrCodeDataUrl,
       },
     ];

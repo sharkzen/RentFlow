@@ -177,27 +177,19 @@ export default function MaintenanceTable({
   const dialogConfig = getDialogConfig();
   const gridTemplate = "grid-cols-[140px_120px_2fr_1.5fr_1.2fr_120px]";
 
-  if (loading) {
-    return (
-      <div className="flex h-[60vh] w-full items-center justify-center rounded-xl border border-gray-200 bg-gray-50/50">
-        <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="flex h-[65vh] w-full flex-col overflow-hidden rounded-t-xl border border-gray-200 bg-white">
+      <div className="border-border bg-surface flex h-[65vh] w-full flex-col overflow-hidden rounded-t-xl border">
         <div className="custom-scrollbar h-full w-full overflow-auto">
           <div className="min-w-335">
             <div
-              className={`sticky top-0 z-10 grid ${gridTemplate} gap-4 border-b border-gray-200 bg-gray-50 px-6 py-4 text-xs font-semibold tracking-wider text-gray-500 uppercase`}
+              className={`sticky top-0 z-10 grid ${gridTemplate} border-border bg-background text-muted gap-4 border-b px-6 py-4 text-xs font-semibold tracking-wider uppercase`}
             >
               <div>สถานะ</div>
               <div>ห้อง / พื้นที่</div>
               <div>หัวข้อการแจ้งซ่อม</div>
               <div>ผู้แจ้ง</div>
-              <div>วันที่แจ้ง</div>
+              <div>แจ้งเมื่อ</div>
               <div className="text-right">จัดการ</div>
             </div>
             <div>
@@ -205,26 +197,31 @@ export default function MaintenanceTable({
                 <div
                   key={item.id}
                   onClick={() => setSelectedItem(item)}
-                  className={`group grid ${gridTemplate} cursor-pointer items-center gap-4 border-b border-gray-100 px-6 py-4 transition-colors last:border-0 hover:bg-gray-50`}
+                  className={`group grid ${gridTemplate} border-border hover:bg-background cursor-pointer items-center gap-4 border-b px-6 py-4 transition-colors last:border-0`}
                 >
                   <div>
                     <MaintenanceStatusBadge status={item.status} />
                   </div>
-                  <div className="font-bold text-slate-700">
-                    {item.room.roomNumber}
+                  <div>
+                    <div className="text-foreground font-bold">
+                      {item.room.roomNumber}
+                    </div>
+                    <div className="text-muted text-xs">
+                      ชั้น {item.room.floor}
+                    </div>
                   </div>
                   <div className="min-w-0 pr-4">
-                    <div className="truncate text-sm font-medium text-gray-900">
+                    <div className="text-foreground truncate text-sm font-medium">
                       {item.title}
                     </div>
-                    <div className="truncate text-xs text-gray-500">
+                    <div className="text-muted truncate text-xs">
                       {item.description}
                     </div>
                   </div>
                   <div className="text-sm">
                     {item.tenant.firstName} {item.tenant.lastName}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-muted text-xs">
                     {formatThaiDate(item.createdAt, "short-datetime")}
                   </div>
                   <div
@@ -249,7 +246,7 @@ export default function MaintenanceTable({
                     )}
                     <button
                       onClick={() => setSelectedItem(item)}
-                      className="cursor-pointer p-2 text-gray-400 hover:text-indigo-600"
+                      className="text-muted cursor-pointer p-2 hover:text-indigo-600"
                     >
                       <Eye size={16} />
                     </button>

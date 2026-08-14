@@ -13,6 +13,9 @@ COPY . .
 ARG API_URL
 ENV API_URL=$API_URL
 
+ARG NEXT_PUBLIC_SITE_URL
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+
 RUN npm run build
 
 # Stage 3: Production Runner (ตัวที่จะรันจริง)
@@ -27,6 +30,9 @@ ENV HOSTNAME "0.0.0.0"
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+
+RUN chown -R node:node /app
+USER node
 
 EXPOSE 3000
 

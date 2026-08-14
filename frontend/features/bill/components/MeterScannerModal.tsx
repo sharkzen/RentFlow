@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
+
 import {
   X,
   Camera,
@@ -8,7 +9,10 @@ import {
   Edit3,
   Settings,
   Droplets,
+  LightbulbOff,
+  Focus,
 } from "lucide-react";
+
 import { toast } from "react-toastify";
 import log from "@/lib/logger";
 import { RoomService } from "@/features/room/services/room.service";
@@ -133,8 +137,6 @@ export default function MeterScannerModal({
           log.error("Failed to clean up discarded upload", err),
         );
       } else if (uploadPromiseRef.current) {
-        // Upload ยังไม่เสร็จตอนนี้ (เช่น auto-retry ยิงเร็วกว่า background upload)
-        // แนบ cleanup ต่อท้าย promise เดิม ลบทันทีที่ upload เสร็จแทนที่จะปล่อยค้าง
         uploadPromiseRef.current
           .then((result) => BillService.deleteTempImage(result.objectKey))
           .catch((err) =>
@@ -200,11 +202,8 @@ export default function MeterScannerModal({
     }
   };
 
-  // เรียกเมื่ออ่านเลขไม่ได้ (ภาพเบลอ / หาตัวเลขไม่เจอ) — ถ่ายใหม่อัตโนมัติสูงสุด MAX_AUTO_RETRY
-  // ครั้ง ก่อนจะเปิดให้พิมพ์เอง กันกรณีมุมกล้อง/แสงแย่จนวนถ่ายซ้ำไม่มีที่สิ้นสุด
   const handleUnreadableImage = (rawMessage?: string) => {
     failedAttemptsRef.current += 1;
-
     const isBlurry = rawMessage?.toLowerCase().includes("blurry");
     const reasonText = isBlurry
       ? "ภาพเบลอเกินไป"
@@ -214,6 +213,7 @@ export default function MeterScannerModal({
       toast.warning(
         `${reasonText} กำลังเปิดกล้องให้ถ่ายใหม่ (ครั้งที่ ${failedAttemptsRef.current}/${MAX_AUTO_RETRY})`,
       );
+
       resetUploadState(true);
       setPreview(null);
       setOcrValue("");
@@ -328,6 +328,7 @@ export default function MeterScannerModal({
             data.warningMessage ??
               "ตัวเลขที่อ่านได้อาจไม่แม่นยำ กรุณาตรวจสอบก่อนยืนยัน",
           );
+
           toast.warning("กรุณาตรวจสอบตัวเลขก่อนยืนยัน");
         } else {
           setOcrWarning(null);
@@ -391,24 +392,23 @@ export default function MeterScannerModal({
 
   return (
     <div className="fixed inset-0 z-60 flex justify-center bg-black/80">
-      <div className="animate-in fade-in zoom-in-95 flex w-full max-w-4xl flex-col overflow-hidden bg-white shadow-2xl duration-200 sm:rounded-3xl">
-        <div className="flex shrink-0 items-center justify-between bg-white px-5 py-4 shadow-sm">
-          <h3 className="text-lg font-bold text-slate-800">
+      <div className="bg-surface animate-in fade-in zoom-in-95 flex w-full max-w-4xl flex-col overflow-hidden shadow-2xl duration-200 sm:rounded-3xl">
+        <div className="bg-surface flex shrink-0 items-center justify-between px-5 py-4 shadow-sm">
+          <h3 className="text-foreground text-lg font-bold">
             {scanType === "WATER" ? "💧 สแกนมิเตอร์น้ำ" : "⚡ สแกนมิเตอร์ไฟ"}
           </h3>
           <button
             onClick={onClose}
-            className="cursor-pointer rounded-full bg-slate-100 p-2 text-slate-500 transition-colors hover:bg-red-100 hover:text-red-600"
+            className="bg-background text-muted cursor-pointer rounded-full p-2 transition-colors hover:bg-red-100 hover:text-red-600"
           >
             <X size={20} />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto p-6 text-center">
-          <div className="mb-4">
+        <div className="flex-1 overflow-y-auto p-4 text-center">
+          <div className="mb-2 flex justify-evenly">
             <h2 className="text-2xl font-black text-indigo-700">
               ห้อง {roomNumber}
             </h2>
-            <p className="font-medium text-slate-600">{tenantName}</p>
           </div>
           {step === "setup" ? (
             <div className="mx-auto max-w-md rounded-2xl border-2 border-indigo-100 bg-indigo-50/50 p-6 text-left">
@@ -416,13 +416,13 @@ export default function MeterScannerModal({
                 <Settings size={28} />
                 <h3 className="text-xl font-bold">ตั้งค่าก่อนใช้งานครั้งแรก</h3>
               </div>
-              <p className="mb-4 text-sm text-slate-600">
+              <p className="text-muted mb-4 text-sm">
                 เนื่องจากเป็นครั้งแรกที่สแกนมิเตอร์น้ำห้องนี้ กรุณาระบุ{" "}
-                <strong className="text-slate-800">จำนวนหลัก</strong>{" "}
+                <strong className="text-foreground">จำนวนหลัก</strong>{" "}
                 ที่ใช้คิดเงิน (นับเฉพาะตัวเลขสีดำ ไม่รวมตัวเลขสีแดงหรือทศนิยม)
               </p>
-              <div className="mb-6 rounded-xl bg-white p-4 shadow-sm">
-                <p className="mb-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+              <div className="bg-surface mb-6 rounded-xl p-4 shadow-sm">
+                <p className="text-muted mb-2 text-xs font-semibold tracking-wider uppercase">
                   ตัวอย่าง
                 </p>
                 <div className="flex items-center gap-1 font-mono text-2xl font-black">
@@ -447,12 +447,12 @@ export default function MeterScannerModal({
                 </p>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">
+                <label className="text-foreground text-sm font-bold">
                   จำนวนหลักตัวเลขสีดำ
                 </label>
                 <div className="relative">
                   <Droplets
-                    className="absolute top-1/2 left-4 -translate-y-1/2 text-slate-400"
+                    className="text-muted absolute top-1/2 left-4 -translate-y-1/2"
                     size={20}
                   />
                   <input
@@ -460,87 +460,121 @@ export default function MeterScannerModal({
                     value={setupDigits}
                     onChange={(e) => setSetupDigits(e.target.value)}
                     placeholder="เช่น 4 หรือ 5"
-                    className="w-full rounded-xl border-2 border-slate-200 py-3 pr-4 pl-12 text-lg font-bold transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 focus:outline-none"
+                    className="bg-surface text-foreground border-border w-full rounded-xl border-2 py-3 pr-4 pl-12 text-lg font-bold transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 focus:outline-none"
                   />
                 </div>
               </div>
             </div>
           ) : (
-            <div className="relative mx-auto aspect-square w-full max-w-[320px] overflow-hidden rounded-2xl bg-black shadow-inner">
-              {step === "camera" ? (
-                <video
-                  ref={videoRef}
-                  playsInline
-                  muted
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-              ) : (
-                preview && (
-                  <img
-                    src={preview}
-                    alt="Captured"
+            <div className="flex flex-col items-center">
+              <div className="relative mx-auto aspect-square w-full max-w-[320px] overflow-hidden rounded-2xl bg-black">
+                {step === "camera" ? (
+                  <video
+                    ref={videoRef}
+                    playsInline
+                    muted
                     className="absolute inset-0 h-full w-full object-cover"
                   />
-                )
-              )}
-              {step === "camera" && (
-                <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
-                  <div className="box-content h-[13.6%] w-[45.5%] rounded border-2 border-red-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"></div>
-                  {!isCameraReady && (
-                    <RefreshCw
-                      size={40}
-                      className="absolute animate-spin text-white/50"
+                ) : (
+                  preview && (
+                    <img
+                      src={preview}
+                      alt="Captured"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
-                  )}
-                </div>
-              )}
-              {step === "processing" && (
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
-                  <RefreshCw
-                    size={48}
-                    className="mb-4 animate-spin text-indigo-400"
-                  />
-                  <p className="text-lg font-bold text-white">
-                    กำลังดึงตัวเลข...
-                  </p>
-                </div>
-              )}
-              {step === "result" && (
-                <div className="animate-in fade-in absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 px-6 backdrop-blur-md">
-                  <p
-                    className={`mb-3 text-sm font-bold ${ocrWarning ? "text-amber-400" : "text-emerald-400"}`}
-                  >
-                    {ocrWarning ? "⚠️ กรุณาตรวจสอบตัวเลข" : "✅ ตรวจสอบความถูกต้อง"}
-                  </p>
-                  <div className="relative w-full">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      value={ocrValue}
-                      onChange={(e) =>
-                        setOcrValue(e.target.value.replace(/[^0-9]/g, ""))
-                      }
-                      className={`w-full rounded-2xl border-4 bg-white py-4 text-center text-5xl font-black tracking-[0.2em] text-slate-800 transition-all outline-none ${ocrWarning ? "border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.4)]" : ocrValue ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-slate-300"}`}
-                      placeholder="00000"
-                    />
-                    <Edit3
-                      className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-slate-400"
-                      size={24}
-                    />
+                  )
+                )}
+                {step === "camera" && (
+                  <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center">
+                    <div className="box-content h-[13.6%] w-[45.5%] rounded border-2 border-red-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"></div>
+                    {!isCameraReady && (
+                      <RefreshCw
+                        size={40}
+                        className="absolute animate-spin text-white/50"
+                      />
+                    )}
                   </div>
-                  {ocrWarning && (
-                    <p className="mt-3 max-w-xs text-sm font-medium text-amber-300">
-                      {ocrWarning}
+                )}
+                {step === "processing" && (
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
+                    <RefreshCw
+                      size={48}
+                      className="mb-4 animate-spin text-indigo-400"
+                    />
+                    <p className="text-lg font-bold text-white">
+                      กำลังดึงตัวเลข...
                     </p>
-                  )}
+                  </div>
+                )}
+                {step === "result" && (
+                  <div className="animate-in fade-in absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 px-6 backdrop-blur-md">
+                    <p
+                      className={`mb-3 text-sm font-bold ${ocrWarning ? "text-amber-400" : "text-emerald-400"}`}
+                    >
+                      {ocrWarning
+                        ? "⚠️ กรุณาตรวจสอบตัวเลข"
+                        : "✅ ตรวจสอบความถูกต้อง"}
+                    </p>
+                    <div className="relative w-full">
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={ocrValue}
+                        onChange={(e) =>
+                          setOcrValue(e.target.value.replace(/[^0-9]/g, ""))
+                        }
+                        className={`bg-surface text-foreground w-full rounded-2xl border-4 py-4 text-center text-5xl font-black tracking-[0.2em] transition-all outline-none ${ocrWarning ? "border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.4)]" : ocrValue ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-border"}`}
+                        placeholder="00000"
+                      />
+                      <Edit3
+                        className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-slate-400"
+                        size={24}
+                      />
+                    </div>
+                    {ocrWarning && (
+                      <p className="mt-3 max-w-xs text-sm font-medium text-amber-300">
+                        {ocrWarning}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+              {step === "camera" && (
+                <div className="mx-auto mt-5 w-full max-w-[320px] rounded-2xl bg-slate-800 p-4 shadow-sm">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-3 text-slate-200">
+                      <Focus className="h-4 w-4 shrink-0 text-red-400" />
+                      <span className="text-left text-xs leading-tight font-medium">
+                        สแกนให้ตัวเลขอยู่ในกรอบสีแดง
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-200">
+                      <LightbulbOff className="h-4 w-4 shrink-0 text-amber-400" />
+                      <span className="text-left text-xs leading-tight font-medium">
+                        โปรดหลีกเลี่ยงแสงสะท้อนบนหน้าปัด
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-200">
+                      <Edit3 className="h-4 w-4 shrink-0 text-blue-400" />
+                      <span className="text-left text-xs leading-tight font-medium">
+                        พิมพ์แก้ไขตัวเลขเองได้ หากอ่านไม่ครบ
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-200">
+                      <Camera className="h-4 w-4 shrink-0 text-emerald-400" />
+                      <span className="text-left text-xs leading-tight font-medium">
+                        ระบบจะเก็บรูปเพื่อบันทึกหลังสแกน
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
           )}
         </div>
-        <div className="border-t border-slate-100 bg-white p-6 pt-0">
+        <div className="border-border bg-surface mt-2 border-t p-6 pt-0">
           {step === "setup" ? (
             <div className="mt-6 flex gap-4">
               <button

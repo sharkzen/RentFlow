@@ -124,9 +124,6 @@ export const TenantService = {
     return res.data;
   },
 
-  // ผู้เช่าจ่ายบิลเอง — backend verify ผ่าน SlipOK จริง ไม่เชื่อ refNo ที่ส่งมา
-  // (refNo ใช้แค่ dedupe เบื้องต้นก่อนยิง SlipOK) คนละ endpoint กับ
-  // BillService.uploadSlipAsOwner ที่ owner ใช้บันทึกสลิปแทน
   uploadPaymentSlip: async (
     billId: string,
     file: File,
@@ -177,6 +174,32 @@ export const TenantService = {
 
   cancelMaintenance: async (id: string) => {
     const res = await axios.delete(`/api/tenants/maintenance/${id}`);
+    return res.data;
+  },
+
+  getMaintenanceMessages: async (id: string) => {
+    const res = await axios.get(`/api/tenants/maintenance/${id}/messages`);
+    return res.data;
+  },
+
+  sendMaintenanceMessage: async (id: string, message: string) => {
+    const res = await axios.post(`/api/tenants/maintenance/${id}/messages`, {
+      message,
+    });
+
+    return res.data;
+  },
+
+  editMaintenanceMessage: async (
+    id: string,
+    messageId: string,
+    message: string,
+  ) => {
+    const res = await axios.patch(
+      `/api/tenants/maintenance/${id}/messages/${messageId}`,
+      { message },
+    );
+
     return res.data;
   },
 

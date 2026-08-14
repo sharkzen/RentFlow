@@ -15,9 +15,18 @@ import { DormService } from "@/features/dormitory/services/dorm.service";
 import { CustomSelect } from "@/lib/ui/CustomSelect";
 
 const TYPE_OPTIONS = [
-  { value: "NORMAL", label: "ทั่วไป (Normal)" },
-  { value: "IMPORTANT", label: "สำคัญ (Important)" },
-  { value: "URGENT", label: "ด่วน (Urgent)" },
+  {
+    value: "NORMAL",
+    label: "ทั่วไป (Normal)",
+  },
+  {
+    value: "IMPORTANT",
+    label: "สำคัญ (Important)",
+  },
+  {
+    value: "URGENT",
+    label: "ด่วน (Urgent)",
+  },
 ];
 
 interface CreateAnnouncementModalProps {
@@ -164,47 +173,52 @@ export default function CreateAnnouncementModal({
 
   return (
     <div className="fixed inset-0 z-[999] flex justify-center bg-black/50 transition-all sm:items-center sm:p-4">
-      <div className="animate-in fade-in zoom-in-95 flex w-full max-w-3xl flex-col bg-white shadow-2xl duration-200 sm:max-h-[95vh] sm:rounded-2xl">
-        <div className="flex shrink-0 items-center justify-between border-b border-gray-100 p-4 sm:p-6">
-          <h2 className="text-xl font-bold text-gray-900">สร้างประกาศใหม่</h2>
+      <div className="bg-surface animate-in fade-in zoom-in-95 flex w-full max-w-3xl flex-col shadow-2xl duration-200 sm:max-h-[95vh] sm:rounded-2xl">
+        <div className="border-border flex shrink-0 items-center justify-between border-b p-4 sm:p-6">
+          <h2 className="text-foreground text-xl font-bold">สร้างประกาศใหม่</h2>
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="cursor-pointer rounded-full bg-gray-50 p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
+            className="bg-background text-muted hover:bg-border hover:text-foreground cursor-pointer rounded-full p-2 transition-colors disabled:opacity-50"
           >
             <X size={20} />
           </button>
         </div>
         <div className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="text-foreground mb-1 block text-sm font-medium">
               หัวข้อประกาศ <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               placeholder="เช่น แจ้งงดจ่ายน้ำชั่วคราว"
               disabled={isLoading}
-              className="w-full rounded-xl border border-gray-200 px-4 py-2.5 transition-all outline-none focus:border-blue-500 focus:border-transparent focus:ring-4 focus:ring-blue-500/10 disabled:bg-gray-50"
+              className="border-border disabled:bg-background w-full rounded-xl border px-4 py-2.5 transition-all outline-none focus:border-blue-500 focus:border-transparent focus:ring-4 focus:ring-blue-500/10"
               value={formData.title}
               onChange={(e) => handleInputChange("title", e.target.value)}
             />
           </div>
           <div className="flex flex-col gap-4 sm:flex-row">
             <div className="flex-1">
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="text-foreground mb-1 block text-sm font-medium">
                 เลือกหอพัก <span className="text-red-500">*</span>
               </label>
               <CustomSelect
                 icon={<Building2 size={16} />}
                 disabled={isLoading || isLoadingDorms}
                 placeholder={
-                  isLoadingDorms ? "กำลังโหลดข้อมูล..." : "ไม่พบข้อมูลหอพักของคุณ"
+                  isLoadingDorms
+                    ? "กำลังโหลดข้อมูล..."
+                    : "ไม่พบข้อมูลหอพักของคุณ"
                 }
                 options={
                   isLoadingDorms
                     ? []
                     : [
-                        { value: "ALL", label: "ทุกหอพัก" },
+                        {
+                          value: "ALL",
+                          label: "ทุกหอพัก",
+                        },
                         ...dorms.map((dorm: any) => ({
                           value: dorm.id,
                           label: dorm.name,
@@ -216,7 +230,7 @@ export default function CreateAnnouncementModal({
               />
             </div>
             <div className="flex-1">
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="text-foreground mb-1 block text-sm font-medium">
                 ประเภท
               </label>
               <CustomSelect
@@ -229,12 +243,12 @@ export default function CreateAnnouncementModal({
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="text-foreground mb-1 block text-sm font-medium">
               รูปภาพแนบ (ถ้ามี)
             </label>
             {previewImage ? (
-              <div className="flex items-start gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
-                <div className="group relative h-24 w-24 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+              <div className="border-border bg-background flex items-start gap-4 rounded-xl border p-4">
+                <div className="group border-border bg-surface relative h-24 w-24 shrink-0 cursor-pointer overflow-hidden rounded-lg border shadow-sm">
                   <img
                     src={previewImage}
                     alt="Preview Thumbnail"
@@ -245,10 +259,10 @@ export default function CreateAnnouncementModal({
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 pt-1">
-                  <span className="line-clamp-1 max-w-[200px] text-sm font-medium text-gray-700 sm:max-w-xs">
+                  <span className="text-foreground line-clamp-1 max-w-[200px] text-sm font-medium sm:max-w-xs">
                     {imageFile?.name || "รูปภาพแนบ"}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-muted text-xs">
                     ขนาด:{" "}
                     {imageFile ? (imageFile.size / 1024 / 1024).toFixed(2) : 0}{" "}
                     MB
@@ -266,7 +280,7 @@ export default function CreateAnnouncementModal({
               </div>
             ) : (
               <div
-                className={`relative cursor-pointer overflow-hidden rounded-xl border-2 border-dashed border-gray-200 p-6 text-center transition-colors hover:border-gray-300 hover:bg-gray-50 ${isLoading ? "pointer-events-none opacity-50" : ""}`}
+                className={`border-border hover:bg-background hover:border-muted relative cursor-pointer overflow-hidden rounded-xl border-2 border-dashed p-6 text-center transition-colors ${isLoading ? "pointer-events-none opacity-50" : ""}`}
               >
                 <input
                   id="imageInput"
@@ -276,14 +290,14 @@ export default function CreateAnnouncementModal({
                   className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
                   onChange={handleImageChange}
                 />
-                <div className="flex flex-col items-center gap-2 text-gray-500">
+                <div className="text-muted flex flex-col items-center gap-2">
                   <div className="mb-1 rounded-full bg-blue-50 p-3 text-blue-500">
                     <ImageIcon size={28} />
                   </div>
                   <span className="text-sm font-medium">
                     คลิกหรือลากรูปภาพมาวางที่นี่
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-muted text-xs">
                     รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 5MB
                   </span>
                 </div>
@@ -291,19 +305,19 @@ export default function CreateAnnouncementModal({
             )}
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="text-foreground mb-1 block text-sm font-medium">
               รายละเอียด <span className="text-red-500">*</span>
             </label>
             <textarea
               rows={5}
               disabled={isLoading}
               placeholder="พิมพ์รายละเอียดประกาศที่นี่..."
-              className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 transition-all outline-none focus:border-blue-500 focus:border-transparent focus:ring-4 focus:ring-blue-500/10 disabled:bg-gray-50"
+              className="border-border disabled:bg-background w-full resize-none rounded-xl border px-4 py-3 transition-all outline-none focus:border-blue-500 focus:border-transparent focus:ring-4 focus:ring-blue-500/10"
               value={formData.content}
               onChange={(e) => handleInputChange("content", e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+          <div className="flex items-center gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4 dark:bg-blue-50/10">
             <input
               type="checkbox"
               id="sendEmail"
@@ -314,17 +328,17 @@ export default function CreateAnnouncementModal({
             />
             <label
               htmlFor="sendEmail"
-              className={`text-sm font-medium text-blue-900 ${isLoading ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
+              className={`text-sm font-medium text-blue-900 dark:text-white ${isLoading ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
             >
               ส่งแจ้งเตือนเข้าอีเมลลูกบ้านทันที
             </label>
           </div>
         </div>
-        <div className="flex shrink-0 justify-end gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50/50 p-4 sm:px-6">
+        <div className="border-border bg-background/50 flex shrink-0 justify-end gap-3 rounded-b-2xl border-t p-4 sm:px-6">
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="rounded-xl px-5 py-2.5 font-medium text-gray-600 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="text-muted hover:bg-border rounded-xl px-5 py-2.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             ยกเลิก
           </button>

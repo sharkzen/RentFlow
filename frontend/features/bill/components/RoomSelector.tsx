@@ -49,29 +49,29 @@ export default function RoomSelector({
     <div className="relative w-full" ref={ref}>
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`flex min-h-[42px] w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2 transition-all ${isOpen ? "border-indigo-500 ring-2 ring-indigo-100" : "border-gray-200 hover:border-indigo-300"} ${disabled ? "cursor-not-allowed bg-gray-100 opacity-70" : "bg-white"}`}
+        className={`flex min-h-[42px] w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2 transition-all ${isOpen ? "border-indigo-500 ring-2 ring-indigo-100" : "border-border hover:border-indigo-300"} ${disabled ? "bg-background cursor-not-allowed opacity-70" : "bg-surface"}`}
       >
         <div className="flex items-center gap-2 overflow-hidden">
           <div
-            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${selectedRoom ? "bg-indigo-100 text-indigo-600" : "bg-gray-100 text-gray-400"}`}
+            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ${selectedRoom ? "bg-indigo-100 text-indigo-600" : "bg-background text-muted"}`}
           >
             <Home size={14} />
           </div>
           <div className="flex flex-col truncate">
             {selectedRoom ? (
               <>
-                <span className="text-sm font-bold text-gray-800">
+                <span className="text-foreground text-sm font-bold">
                   ห้อง {selectedRoom.roomNumber}
                 </span>
                 {selectedRoom.tenantName && (
-                  <div className="flex items-center gap-1 text-[10px] text-gray-500">
+                  <div className="text-muted flex items-center gap-1 text-[10px]">
                     <User size={10} />
                     <span className="truncate">{selectedRoom.tenantName}</span>
                   </div>
                 )}
               </>
             ) : (
-              <span className="text-sm text-gray-400">
+              <span className="text-muted text-sm">
                 {isLoading ? "กำลังโหลด..." : "-- เลือกห้องพัก --"}
               </span>
             )}
@@ -79,21 +79,21 @@ export default function RoomSelector({
         </div>
         <ChevronDown
           size={16}
-          className={`shrink-0 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </div>
       {isOpen && !disabled && (
-        <div className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-1 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl ring-1 ring-black/5">
-          <div className="border-b border-gray-50 p-2">
+        <div className="border-border bg-surface animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-1 w-full overflow-hidden rounded-xl border shadow-xl ring-1 ring-black/5">
+          <div className="border-border border-b p-2">
             <div className="relative">
               <Search
                 size={14}
-                className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
+                className="text-muted absolute top-1/2 left-3 -translate-y-1/2"
               />
               <input
                 type="text"
                 placeholder="ค้นหาเลขห้อง..."
-                className="w-full rounded-lg bg-gray-50 py-1.5 pr-3 pl-9 text-xs font-medium text-gray-700 transition-colors outline-none focus:bg-white focus:ring-1 focus:ring-indigo-200"
+                className="bg-background text-foreground focus:bg-surface w-full rounded-lg py-1.5 pr-3 pl-9 text-xs font-medium transition-colors outline-none focus:ring-1 focus:ring-indigo-200"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 autoFocus
@@ -106,13 +106,13 @@ export default function RoomSelector({
                 <div
                   key={room.id}
                   onClick={() => handleSelect(room.id)}
-                  className={`flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 transition-colors ${value === room.id ? "bg-indigo-50 text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`}
+                  className={`flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 transition-colors ${value === room.id ? "bg-indigo-50 text-indigo-700" : "text-foreground hover:bg-background"}`}
                 >
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold">
                       ห้อง {room.roomNumber}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-muted text-xs">
                       {room.tenantName || "-"}
                     </span>
                   </div>
@@ -122,7 +122,7 @@ export default function RoomSelector({
                 </div>
               ))
             ) : (
-              <div className="py-4 text-center text-xs text-gray-400">
+              <div className="text-muted py-4 text-center text-xs">
                 ไม่พบห้องพักกรุณา
                 <Link className="text-blue-500 underline" href="/owner/rooms">
                   สร้าง

@@ -1,0 +1,20 @@
+# Override for testing the PROD build stack on your own machine, bypassing Caddy/domains.
+# Usage:
+#   docker compose -f docker-compose.prod.yml -f docker-compose.prod.local-test.yml up -d --build
+#
+# Do NOT use this file on the actual VPS — it re-exposes ports that
+# docker-compose.prod.yml deliberately hides (db, redis) and skips Caddy/HTTPS.
+
+services:
+  frontend:
+    ports:
+      - "3000:3000"
+
+  backend:
+    ports:
+      - "3001:3001"
+
+  # Caddy isn't needed for local testing since we hit frontend/backend directly.
+  caddy:
+    profiles:
+      - disabled

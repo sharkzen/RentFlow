@@ -217,23 +217,23 @@ function CustomDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border bg-white px-4 py-2 text-sm font-medium transition-all ${isOpen ? "border-indigo-500 ring-2 ring-indigo-100" : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"}`}
+        className={`bg-surface flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-2xl border px-4 py-2 text-sm font-medium transition-all ${isOpen ? "border-indigo-500 ring-2 ring-indigo-100" : "border-border hover:border-muted hover:bg-background"}`}
       >
-        <div className="flex items-center gap-3 truncate text-slate-700">
-          {icon && <span className="text-slate-400">{icon}</span>}
+        <div className="text-foreground flex items-center gap-3 truncate">
+          {icon && <span className="text-muted">{icon}</span>}
           <span className="truncate">
             {renderOption ? renderOption(selectedOption) : selectedOption.label}
           </span>
         </div>
         <ChevronDown
           size={16}
-          className={`shrink-0 text-slate-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`text-muted shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
       {isOpen && (
         <div className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-2 w-full min-w-45">
-          <div className="rounded-2xl border border-slate-100 bg-white p-1 shadow-xl">
-            <div className="max-h-75 overflow-y-auto rounded-xl p-1 pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-track]:bg-transparent">
+          <div className="border-border bg-surface rounded-2xl border p-1 shadow-xl">
+            <div className="[&::-webkit-scrollbar-thumb]:bg-border max-h-75 overflow-y-auto rounded-xl p-1 pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
               <div className="space-y-1">
                 {options.map((option) => {
                   const isSelected = option.value === value;
@@ -246,7 +246,7 @@ function CustomDropdown({
                         onChange(option.value);
                         setIsOpen(false);
                       }}
-                      className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${isSelected ? "bg-indigo-50 font-semibold text-indigo-600" : "text-slate-600 hover:bg-slate-50"}`}
+                      className={`flex w-full cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${isSelected ? "bg-indigo-50 font-semibold text-indigo-600" : "text-muted hover:bg-background"}`}
                     >
                       <div className="flex items-center gap-2">
                         {renderOption ? renderOption(option) : option.label}

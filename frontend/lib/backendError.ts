@@ -3,6 +3,8 @@ export const errorMessageMap: Record<string, string> = {
   DATA_ARE_NOT_VALID: "ข้อมูลไม่ครบหรือไม่ถูกต้อง",
   EMAIL_ALREADY_EXISTS: "อีเมลนี้ถูกใช้งานแล้ว",
   INVALID_MAP_URL: "ลิงก์ Google Map ไม่ถูกต้อง",
+  MAP_LINK_UNRESOLVED:
+    "ไม่สามารถอ่านพิกัดจากลิงก์/ข้อความที่กรอกได้ กรุณาปักหมุดใหม่แล้วคัดลอกลิงก์จากแถบ URL หรือกรอกพิกัด (ละติจูด, ลองจิจูด) แทน",
   INVALID_EMAIL_OR_PASSWORD: "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
   UNAUTHORIZED: "ไม่สามารถเข้าถึงข้อมูลได้ กรุณาลองใหม่ภายหลัง",
   FORBIDDEN: "ไม่สามารถเข้าถึงข้อมูลได้ กรุณาลองใหม่ภายหลัง",
@@ -33,6 +35,8 @@ export const errorMessageMap: Record<string, string> = {
     "ไม่สามารถตั้งสถานะมีผู้เช่าโดยตรงได้ กรุณาไปที่เมนูจัดการผู้เช่า",
   CANNOT_DELETE_PAID_BILL:
     "ไม่สามารถลบบิลที่ชำระเงินแล้วได้ เพื่อรักษาประวัติการเงิน",
+  DORM_NOT_READY_FOR_PUBLISH:
+    "ยังเผยแพร่ไม่ได้ กรุณากรอกเบอร์ติดต่ออย่างน้อย 1 เบอร์, Line หรือ Facebook อย่างน้อย 1 ช่องทาง และเพิ่มรูปภาพหอพักอย่างน้อย 1 รูป",
 };
 
 export function showBackendError(code?: string) {

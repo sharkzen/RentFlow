@@ -11,7 +11,7 @@ export default function Loading() {
         </div>
         <Skeleton className="h-11 w-full lg:w-48" rounded="lg" />
       </div>
-      <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-6 md:p-8">
+      <div className="border-border bg-surface flex items-center justify-between rounded-3xl border p-6 md:p-8">
         <div className="space-y-3">
           <Skeleton className="h-4 w-40" />
           <Skeleton className="h-10 w-48" />

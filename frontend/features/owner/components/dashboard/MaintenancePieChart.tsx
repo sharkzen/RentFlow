@@ -90,7 +90,7 @@ export const MaintenancePieChart = ({
 
   return (
     <div className="flex h-full w-full flex-col justify-center">
-      <h3 className="mb-2 text-center text-sm font-semibold text-gray-500">
+      <h3 className="text-muted mb-2 text-center text-sm font-semibold">
         สัดส่วนสถานะการแจ้งซ่อม
       </h3>
       <div className="relative h-64 w-full overflow-hidden">

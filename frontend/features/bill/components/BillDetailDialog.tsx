@@ -103,8 +103,7 @@ export default function BillDetailDialog({
     currentStatus === "PENDING" ||
     currentStatus === "WAITING_FOR_VERIFICATION" ||
     currentStatus === "OVERDUE";
-  const canEditItems =
-    bill.status === "PENDING" || bill.status === "OVERDUE";
+  const canEditItems = bill.status === "PENDING" || bill.status === "OVERDUE";
   const advancePayment = bill.tenant?.advancePayment || 0;
   const items = bill.items || [];
   const chargeItems = items.filter((item) => item.type === "CHARGE");
@@ -446,7 +445,7 @@ export default function BillDetailDialog({
         );
       case "CANCELLED":
         return (
-          <span className={`${base} border-gray-200 bg-gray-50 text-gray-600`}>
+          <span className={`${base} border-border bg-background text-muted`}>
             <XCircle size={14} />
             ยกเลิก
           </span>
@@ -461,18 +460,18 @@ export default function BillDetailDialog({
       <div className="animate-in fade-in fixed inset-0 z-60 flex items-center justify-center bg-black/60 transition-all duration-300 sm:p-4 md:p-6">
         <div
           ref={detailRef}
-          className="flex h-screen w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-5xl sm:rounded-2xl"
+          className="bg-surface flex h-screen w-full flex-col overflow-hidden shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-5xl sm:rounded-2xl"
         >
-          <div className="flex flex-none items-center justify-between border-b border-gray-100 bg-white px-4 py-3 sm:px-6 sm:py-4">
+          <div className="border-border bg-surface flex flex-none items-center justify-between border-b px-4 py-3 sm:px-6 sm:py-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={onClose}
-                className="cursor-pointer rounded-full p-2 text-gray-500 hover:bg-gray-100 active:bg-gray-200 sm:hidden"
+                className="text-muted hover:bg-background active:bg-border cursor-pointer rounded-full p-2 sm:hidden"
               >
                 <ArrowLeft size={22} />
               </button>
               <div>
-                <h3 className="flex items-center gap-2 text-lg font-bold text-gray-800">
+                <h3 className="text-foreground flex items-center gap-2 text-lg font-bold">
                   <Receipt
                     className="hidden text-indigo-600 sm:block"
                     size={20}
@@ -486,8 +485,8 @@ export default function BillDetailDialog({
                       year: "numeric",
                     })}
                   </span>
-                  <span className="text-xs text-gray-400">•</span>
-                  <span className="text-xs text-gray-500 sm:text-sm">
+                  <span className="text-muted text-xs">•</span>
+                  <span className="text-muted text-xs sm:text-sm">
                     {bill.roomNumberSnapshot}• {bill.tenantNameSnapshot}
                   </span>
                 </div>
@@ -499,43 +498,52 @@ export default function BillDetailDialog({
               </div>
               <button
                 onClick={onClose}
-                className="hidden cursor-pointer rounded-full bg-gray-50 p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 sm:flex"
+                className="bg-background text-muted hover:bg-border hover:text-foreground hidden cursor-pointer rounded-full p-2 transition-colors sm:flex"
               >
                 <X size={20} />
               </button>
             </div>
           </div>
           <div className="flex flex-1 flex-col overflow-hidden sm:flex-row">
-            <div className="custom-scrollbar flex-1 overflow-y-auto bg-slate-50/50 p-4 sm:p-6">
+            <div className="custom-scrollbar bg-background/50 flex-1 overflow-y-auto p-4 sm:p-6">
               <div className="mx-auto max-w-2xl space-y-5">
                 <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
+                  <div className="dark:bg-background rounded-xl border border-blue-100 bg-white p-4 shadow-sm">
                     <div className="mb-3 flex items-center gap-2 border-b border-blue-50 pb-2 font-bold text-blue-700">
                       <Droplets size={18} />
-                      มิเตอร์น้ำ {bill?.waterRateSnapshot}/หน่วย
+                      {bill?.waterBillingTypeSnapshot === "FLAT_RATE"
+                        ? "ค่าน้ำเหมาจ่าย"
+                        : `มิเตอร์น้ำ ${bill?.waterRateSnapshot}/หน่วย`}
                     </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between text-gray-500">
-                        <span>ก่อนหน้า</span>
-                        <span>{bill.prevWaterUnitSnapshot}</span>
-                      </div>
-                      <div className="flex justify-between font-medium">
-                        <span>ล่าสุด</span>
-                        <span>{bill.currentWaterUnitSnapshot}</span>
-                      </div>
-                      <div className="mt-1 flex justify-between rounded-lg bg-blue-50 p-2 text-xs font-bold text-blue-800">
-                        <span>ใช้ {bill.waterUsedSnapshot}หน่วย</span>
+                    {bill?.waterBillingTypeSnapshot === "FLAT_RATE" ? (
+                      <div className="flex justify-between rounded-lg bg-blue-50 p-2 text-xs font-bold text-blue-800">
+                        <span>เหมาจ่ายรายเดือน</span>
                         <span>฿{bill.waterFeeSnapshot.toLocaleString()}</span>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="space-y-2 text-sm">
+                        <div className="text-muted flex justify-between">
+                          <span>ก่อนหน้า</span>
+                          <span>{bill.prevWaterUnitSnapshot}</span>
+                        </div>
+                        <div className="flex justify-between font-medium">
+                          <span>ล่าสุด</span>
+                          <span>{bill.currentWaterUnitSnapshot}</span>
+                        </div>
+                        <div className="mt-1 flex justify-between rounded-lg bg-blue-50 p-2 text-xs font-bold text-blue-800">
+                          <span>ใช้ {bill.waterUsedSnapshot}หน่วย</span>
+                          <span>฿{bill.waterFeeSnapshot.toLocaleString()}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="rounded-xl border border-amber-100 bg-white p-4 shadow-sm">
+                  <div className="dark:bg-background rounded-xl border border-amber-100 bg-white p-4 shadow-sm">
                     <div className="mb-3 flex items-center gap-2 border-b border-amber-50 pb-2 font-bold text-amber-700">
                       <Zap size={18} />
                       มิเตอร์ไฟ {bill?.electricRateSnapshot}/หน่วย
                     </div>
                     <div className="space-y-2 text-sm">
-                      <div className="flex justify-between text-gray-500">
+                      <div className="text-muted flex justify-between">
                         <span>ก่อนหน้า</span>
                         <span>{bill.prevElectricUnitSnapshot}</span>
                       </div>
@@ -582,47 +590,45 @@ export default function BillDetailDialog({
                       </div>
                     </div>
                   )}
-                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                <div className="border-border bg-surface rounded-xl border p-5 shadow-sm">
                   <div className="mb-4 flex items-center justify-between">
-                    <h4 className="flex items-center gap-2 font-bold text-gray-700">
-                      <FileText size={18} className="text-gray-400" />
+                    <h4 className="text-foreground flex items-center gap-2 font-bold">
+                      <FileText size={18} className="text-muted" />
                       สรุปยอดชำระ
                     </h4>
-                    {canEditItems &&
-                      !isAddingItem &&
-                      !editingItemId && (
-                        <button
-                          onClick={() => setIsAddingItem(true)}
-                          className="flex cursor-pointer items-center gap-1.5 rounded-md text-xs font-semibold text-indigo-600 transition-colors hover:text-indigo-800"
-                        >
-                          <Plus size={14} />
-                          เพิ่มรายการอื่น
-                        </button>
-                      )}
+                    {canEditItems && !isAddingItem && !editingItemId && (
+                      <button
+                        onClick={() => setIsAddingItem(true)}
+                        className="flex cursor-pointer items-center gap-1.5 rounded-md text-xs font-semibold text-indigo-600 transition-colors hover:text-indigo-800"
+                      >
+                        <Plus size={14} />
+                        เพิ่มรายการอื่น
+                      </button>
+                    )}
                   </div>
-                  <div className="space-y-3 text-sm text-gray-600">
+                  <div className="text-muted space-y-3 text-sm">
                     <div className="flex justify-between">
                       <span>ค่าห้อง</span>
-                      <span className="font-medium text-gray-900">
+                      <span className="text-foreground font-medium">
                         ฿{bill.roomPriceSnapshot.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>ค่าน้ำ</span>
-                      <span className="font-medium text-gray-900">
+                      <span className="text-foreground font-medium">
                         ฿{bill.waterFeeSnapshot.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>ค่าไฟ</span>
-                      <span className="font-medium text-gray-900">
+                      <span className="text-foreground font-medium">
                         ฿{bill.electricFeeSnapshot.toLocaleString()}
                       </span>
                     </div>
                     {bill.commonFeeSnapshot > 0 && (
                       <div className="flex justify-between">
                         <span>ส่วนกลาง</span>
-                        <span className="font-medium text-gray-900">
+                        <span className="text-foreground font-medium">
                           ฿{bill.commonFeeSnapshot.toLocaleString()}
                         </span>
                       </div>
@@ -636,7 +642,7 @@ export default function BillDetailDialog({
                       </div>
                     )}
                     {allItemsSorted && allItemsSorted.length > 0 && (
-                      <div className="my-3 border-t border-dashed border-gray-200 pt-3">
+                      <div className="border-border my-3 border-t border-dashed pt-3">
                         <div className="space-y-3">
                           {allItemsSorted.map((item) => {
                             if (editingItemId === item.id) {
@@ -650,7 +656,7 @@ export default function BillDetailDialog({
                                       <input
                                         type="text"
                                         placeholder="ชื่อรายการ"
-                                        className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none disabled:bg-gray-100"
+                                        className="border-border bg-surface disabled:bg-background w-full rounded-md border px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                                         value={editItemData.name}
                                         disabled={
                                           item.name === "หักเงินค่าเช่าล่วงหน้า"
@@ -667,7 +673,7 @@ export default function BillDetailDialog({
                                       <input
                                         type="number"
                                         placeholder="จำนวนเงิน"
-                                        className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                                        className="border-border bg-surface w-full rounded-md border px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                                         value={editItemData.amount}
                                         onChange={(e) =>
                                           setEditItemData({
@@ -709,7 +715,7 @@ export default function BillDetailDialog({
                                       {isTypeDropdownOpen &&
                                         item.name !==
                                           "หักเงินค่าเช่าล่วงหน้า" && (
-                                          <div className="absolute top-full left-0 z-10 mt-1 w-full overflow-hidden rounded-md border border-gray-100 bg-white shadow-lg">
+                                          <div className="border-border bg-surface absolute top-full left-0 z-10 mt-1 w-full overflow-hidden rounded-md border shadow-lg">
                                             <button
                                               type="button"
                                               onClick={() => {
@@ -720,7 +726,7 @@ export default function BillDetailDialog({
 
                                                 setIsTypeDropdownOpen(false);
                                               }}
-                                              className="flex w-full items-center gap-1.5 px-2 py-2 text-xs hover:bg-gray-50"
+                                              className="hover:bg-background flex w-full items-center gap-1.5 px-2 py-2 text-xs"
                                             >
                                               <PlusCircle
                                                 size={12}
@@ -738,7 +744,7 @@ export default function BillDetailDialog({
 
                                                 setIsTypeDropdownOpen(false);
                                               }}
-                                              className="flex w-full items-center gap-1.5 border-t border-gray-50 px-2 py-2 text-xs hover:bg-gray-50"
+                                              className="border-border hover:bg-background flex w-full items-center gap-1.5 border-t px-2 py-2 text-xs"
                                             >
                                               <MinusCircle
                                                 size={12}
@@ -752,7 +758,7 @@ export default function BillDetailDialog({
                                     <div className="flex shrink-0 justify-end gap-1.5">
                                       <button
                                         onClick={() => setEditingItemId(null)}
-                                        className="rounded-md border border-gray-200 bg-white p-1.5 text-gray-500 hover:bg-gray-50"
+                                        className="border-border bg-surface text-muted hover:bg-background rounded-md border p-1.5"
                                       >
                                         <X size={14} />
                                       </button>
@@ -786,38 +792,37 @@ export default function BillDetailDialog({
                                       เพิ่มเติม
                                     </span>
                                   )}
-                                  <span className="wrap-break-word text-gray-700">
+                                  <span className="text-foreground wrap-break-word">
                                     {item.name}
                                   </span>
                                 </div>
                                 <div className="flex w-full items-center justify-between gap-3 self-end sm:w-auto sm:justify-end sm:self-auto">
                                   <span
-                                    className={`font-medium ${item.type === "DISCOUNT" ? "text-red-600" : "text-gray-900"}`}
+                                    className={`font-medium ${item.type === "DISCOUNT" ? "text-red-600" : "text-foreground"}`}
                                   >
                                     {item.type === "DISCOUNT" ? "-" : ""}฿
                                     {item.amount.toLocaleString()}
                                   </span>
-                                  {canEditItems &&
-                                    !editingItemId && (
-                                      <div className="flex items-center gap-1 opacity-100 transition-opacity">
-                                        <button
-                                          onClick={() => handleStartEdit(item)}
-                                          disabled={isProcessing}
-                                          className="cursor-pointer rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-indigo-600"
-                                        >
-                                          <Edit2 size={14} />
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            handleDeleteItem(item.id, item.name)
-                                          }
-                                          disabled={isProcessing}
-                                          className="cursor-pointer rounded-md p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
-                                        >
-                                          <Trash2 size={14} />
-                                        </button>
-                                      </div>
-                                    )}
+                                  {canEditItems && !editingItemId && (
+                                    <div className="flex items-center gap-1 opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() => handleStartEdit(item)}
+                                        disabled={isProcessing}
+                                        className="text-muted hover:bg-background cursor-pointer rounded-md p-1 hover:text-indigo-600"
+                                      >
+                                        <Edit2 size={14} />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          handleDeleteItem(item.id, item.name)
+                                        }
+                                        disabled={isProcessing}
+                                        className="text-muted cursor-pointer rounded-md p-1 hover:bg-red-50 hover:text-red-600"
+                                      >
+                                        <Trash2 size={14} />
+                                      </button>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             );
@@ -826,8 +831,8 @@ export default function BillDetailDialog({
                       </div>
                     )}
                     {isAddingItem && (
-                      <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/30 p-4">
-                        <h5 className="mb-3 text-xs font-semibold text-indigo-900">
+                      <div className="mt-4 rounded-xl border border-indigo-100 bg-indigo-50/30 p-4 dark:border-indigo-800 dark:bg-indigo-800/30">
+                        <h5 className="mb-3 text-xs font-semibold text-indigo-900 dark:text-white">
                           เพิ่มรายการค่าใช้จ่าย / ส่วนลด
                         </h5>
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
@@ -835,7 +840,7 @@ export default function BillDetailDialog({
                             <input
                               type="text"
                               placeholder="เช่น ค่าล้างแอร์, ส่วนลด..."
-                              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                              className="border-border bg-surface text-foreground w-full rounded-lg border px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
                               value={newItemData.name}
                               onChange={(e) =>
                                 setNewItemData({
@@ -847,13 +852,13 @@ export default function BillDetailDialog({
                           </div>
                           <div className="w-full lg:w-32">
                             <div className="relative">
-                              <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm font-medium text-gray-500">
+                              <span className="text-muted absolute top-1/2 left-3 -translate-y-1/2 text-sm font-medium">
                                 ฿
                               </span>
                               <input
                                 type="number"
                                 placeholder="0.00"
-                                className="w-full rounded-lg border border-gray-300 bg-white py-2 pr-3 pl-8 text-sm text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+                                className="border-border bg-surface text-foreground w-full rounded-lg border py-2 pr-3 pl-8 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
                                 value={newItemData.amount}
                                 onChange={(e) =>
                                   setNewItemData({
@@ -891,7 +896,7 @@ export default function BillDetailDialog({
                               />
                             </button>
                             {isTypeDropdownOpen && (
-                              <div className="absolute top-full left-0 z-10 mt-1 w-full overflow-hidden rounded-lg border border-gray-100 bg-white shadow-lg">
+                              <div className="border-border bg-surface absolute top-full left-0 z-10 mt-1 w-full overflow-hidden rounded-lg border shadow-lg">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -902,7 +907,7 @@ export default function BillDetailDialog({
 
                                     setIsTypeDropdownOpen(false);
                                   }}
-                                  className="flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                                  className="text-foreground flex w-full cursor-pointer items-center gap-2 px-3 py-2.5 text-sm hover:bg-blue-50 hover:text-blue-700"
                                 >
                                   <PlusCircle
                                     size={14}
@@ -920,7 +925,7 @@ export default function BillDetailDialog({
 
                                     setIsTypeDropdownOpen(false);
                                   }}
-                                  className="flex w-full cursor-pointer items-center gap-2 border-t border-gray-50 px-3 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700"
+                                  className="border-border text-foreground flex w-full cursor-pointer items-center gap-2 border-t px-3 py-2.5 text-sm hover:bg-red-50 hover:text-red-700"
                                 >
                                   <MinusCircle
                                     size={14}
@@ -959,8 +964,8 @@ export default function BillDetailDialog({
                       </div>
                     )}
                   </div>
-                  <div className="mt-4 flex justify-between border-t border-dashed border-gray-200 pt-4">
-                    <span className="text-xs text-gray-500">
+                  <div className="border-border mt-4 flex justify-between border-t border-dashed pt-4">
+                    <span className="text-muted text-xs">
                       ครบกำหนด{" "}
                       {new Date(bill.dueDate).toLocaleDateString("th-TH", {
                         day: "numeric",
@@ -973,8 +978,8 @@ export default function BillDetailDialog({
                     </span>
                   </div>
                 </div>
-                <div className="mt-6 border-t border-gray-200 pt-6 sm:hidden">
-                  <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+                <div className="border-border mt-6 border-t pt-6 sm:hidden">
+                  <div className="border-border bg-surface overflow-hidden rounded-xl border shadow-sm">
                     <BillSlipSidebar
                       slipUrl={slipUrl}
                       payment={bill.payment}
@@ -986,7 +991,7 @@ export default function BillDetailDialog({
                 </div>
               </div>
             </div>
-            <div className="hidden w-full shrink-0 flex-col border-l border-gray-100 bg-slate-50/50 sm:flex sm:w-[320px] lg:w-100">
+            <div className="border-border bg-background/50 hidden w-full shrink-0 flex-col border-l sm:flex sm:w-[320px] lg:w-100">
               <div className="custom-scrollbar h-full w-full overflow-y-auto p-0">
                 <BillSlipSidebar
                   slipUrl={slipUrl}
@@ -999,12 +1004,12 @@ export default function BillDetailDialog({
             </div>
           </div>
           {isActionable && (
-            <div className="pb-safe-area z-20 flex-none border-t border-gray-100 bg-white p-4 sm:px-6">
+            <div className="pb-safe-area border-border bg-surface z-20 flex-none border-t p-4 sm:px-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
                   <button
                     onClick={() => handleActionClick("DELETE")}
-                    className="flex w-full cursor-pointer items-center justify-center rounded-xl border border-red-100 px-6 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 sm:w-auto"
+                    className="flex w-full cursor-pointer items-center justify-center rounded-xl border border-red-100 px-6 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 sm:w-auto dark:border-gray-800"
                   >
                     <Trash2 size={18} />
                     ลบบิล

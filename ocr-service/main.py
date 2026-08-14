@@ -285,6 +285,15 @@ def process_and_read(img_bytes, is_debug=False):
 def read_root():
     return JSONResponse({"status": "UI is at /static/index.html. Use GET /static/index.html"})
 
+@app.get("/health")
+def health_check():
+    pool_ready = ocr_pool is not None and ocr_pool._pool.qsize() > 0
+    status_code = 200 if pool_ready else 503
+    return JSONResponse(
+        {"status": "ok" if pool_ready else "degraded", "ocr_pool_size": ocr_pool._pool.qsize() if ocr_pool else 0},
+        status_code=status_code,
+    )
+
 @app.post("/scan")
 async def scan_meter(image: UploadFile = File(...)):
     try:

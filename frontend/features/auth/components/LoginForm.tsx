@@ -18,6 +18,7 @@ import useLogin from "@/features/auth/hooks/useLogin";
 import { authService } from "../services/auth.service";
 import { useAuth } from "@/lib/providers/AuthProvider";
 import log from "@/lib/logger";
+import Image from "next/image";
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -106,30 +107,37 @@ export default function LoginForm() {
         DATA_ARE_NOT_VALID: "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
         UNAUTHORIZED: "ไม่มีสิทธิ์เข้าใช้งาน",
         INTERNAL_SERVER_ERROR: "เกิดข้อผิดพลาดที่เซิร์ฟเวอร์",
+        ACCOUNT_LOCKED:
+          "บัญชีถูกล็อกชั่วคราวเนื่องจากเข้าสู่ระบบผิดหลายครั้ง กรุณาลองใหม่ภายหลัง",
       };
 
-      try {
-        const response = await toast.promise(
-          mutation.mutateAsync({
-            email,
-            password,
-          }),
-          {
-            pending: "กำลังเข้าสู่ระบบ...",
-            success: "เข้าสู่ระบบสำเร็จ",
+      const loadingToastId = "login-form-toast";
 
-            error: {
-              render({ data }: { data: any }) {
-                const backendErrorCode =
-                  data?.response?.data?.message || data?.message;
-                return (
-                  errorMessages[backendErrorCode] ||
-                  "เข้าสู่ระบบไม่สำเร็จ โปรดลองอีกครั้ง"
-                );
-              },
-            },
-          },
-        );
+      if (toast.isActive(loadingToastId)) {
+        toast.update(loadingToastId, {
+          render: "กำลังเข้าสู่ระบบ...",
+          type: "default",
+          isLoading: true,
+          autoClose: false,
+        });
+      } else {
+        toast.loading("กำลังเข้าสู่ระบบ...", {
+          toastId: loadingToastId,
+        });
+      }
+
+      try {
+        const response = await mutation.mutateAsync({
+          email,
+          password,
+        });
+
+        toast.update(loadingToastId, {
+          render: "เข้าสู่ระบบสำเร็จ",
+          type: "success",
+          isLoading: false,
+          autoClose: 2000,
+        });
 
         const me = await authService.getMe();
         setUser(me);
@@ -148,17 +156,61 @@ export default function LoginForm() {
         else if (response.role === "ADMIN") router.replace("/admin/dashboard");
       } catch (error: any) {
         log.error("Login failed:", error);
+        const backendErrorCode =
+          error?.response?.data?.message || error?.message;
+
+        if (backendErrorCode === "ACCOUNT_LOCKED") {
+          const lockedUntil = error?.response?.data?.lockedUntil;
+          const remainingSeconds = lockedUntil
+            ? Math.max(
+                0,
+                Math.round(
+                  (new Date(lockedUntil).getTime() - Date.now()) / 1000,
+                ),
+              )
+            : 0;
+
+          const formatTime = (totalSeconds: number) => {
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            return `${m}:${s.toString().padStart(2, "0")}`;
+          };
+
+          const message =
+            remainingSeconds > 0
+              ? `บัญชีถูกล็อกชั่วคราว ลองใหม่ในอีก ${formatTime(remainingSeconds)} นาที`
+              : "สามารถลองเข้าสู่ระบบใหม่ได้แล้ว";
+
+          toast.update(loadingToastId, {
+            render: message,
+            type: "error",
+            isLoading: false,
+            autoClose: 4000,
+          });
+        } else {
+          toast.update(loadingToastId, {
+            render:
+              errorMessages[backendErrorCode] ||
+              "เข้าสู่ระบบไม่สำเร็จ โปรดลองอีกครั้ง",
+            type: "error",
+            isLoading: false,
+            autoClose: 4000,
+          });
+        }
       }
     }
   };
 
   return (
-    <div className="grid h-[calc(100vh-65px)] w-full bg-white md:grid-cols-2">
+    <div className="bg-background grid h-[calc(100vh-65px)] w-full md:grid-cols-2">
       <div className="relative hidden md:block">
-        <img
+        <Image
           src="/images/bg-main.jpg"
           alt="Apartment management"
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          priority
+          sizes="50vw"
+          className="object-cover dark:opacity-50"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
         <div className="relative z-10 flex h-full flex-col p-12 text-white">
@@ -172,26 +224,23 @@ export default function LoginForm() {
       </div>
       <div className="flex items-center justify-center px-6 py-12 md:px-12 lg:px-24">
         <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <h1 className="mb-10 text-5xl font-extrabold">
+          <div className="mb-8 flex items-center justify-center gap-3">
+            <Image src="/logo.png" width={48} height={48} alt="RentFlow Logo" />
+
+            <h1 className="text-5xl font-extrabold">
               Rent{" "}
-              <span className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
                 Flow
               </span>
             </h1>
-            {qrState === "idle" && (
-              <h2 className="text-xl font-semibold text-gray-800">
-                เข้าสู่ระบบ
-              </h2>
-            )}
           </div>
           {qrState === "loading" && (
-            <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center shadow-sm">
+            <div className="border-border bg-surface rounded-2xl border p-10 text-center shadow-sm">
               <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-blue-600" />
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-foreground text-lg font-semibold">
                 กำลังตรวจสอบ QR Code...
               </h3>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="text-muted mt-2 text-sm">
                 โปรดรอสักครู่ ระบบกำลังนำคุณเข้าสู่แดชบอร์ด
               </p>
             </div>
@@ -207,7 +256,7 @@ export default function LoginForm() {
               <p className="mb-6 text-sm text-red-600">{qrErrorMessage}</p>
               <button
                 onClick={() => setQrState("idle")}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                className="bg-surface text-foreground hover:bg-background flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm transition"
               >
                 <ArrowLeft className="h-4 w-4" />
                 กลับไปเข้าสู่ระบบด้วยอีเมล
@@ -217,18 +266,19 @@ export default function LoginForm() {
           {qrState === "idle" && (
             <form
               onSubmit={handleSubmit}
-              className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+              className="bg-surface rounded-2xl p-6"
             >
               <div className="space-y-5">
                 <div className="space-y-1">
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Mail className="h-4 w-4 text-gray-500" />
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-white">
+                    <Mail className="h-4 w-4" />
                     อีเมล
                   </label>
                   <input
                     id="email"
                     type="email"
                     value={email}
+                    placeholder="your_email@gmail.com"
                     onChange={(e) => {
                       setEmail(e.target.value);
 
@@ -238,21 +288,22 @@ export default function LoginForm() {
                           email: undefined,
                         }));
                     }}
-                    className={`w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                    className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-border"} focus:ring-blue-100`}
                   />
                   <p className="min-h-4 text-xs text-red-600">
                     {errors.email || ""}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <Lock className="h-4 w-4 text-gray-500" />
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-white">
+                    <Lock className="h-4 w-4" />
                     รหัสผ่าน
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
+                      placeholder="******"
                       onChange={(e) => {
                         setPassword(e.target.value);
 
@@ -262,12 +313,13 @@ export default function LoginForm() {
                             password: undefined,
                           }));
                       }}
-                      className={`w-full rounded-xl border bg-gray-50 px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                      className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-border"} `}
                     />
                     <button
+                      tabIndex={-1}
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="text-muted hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
                     >
                       {showPassword ? (
                         <EyeOff className="h-5 w-5" />

@@ -60,14 +60,14 @@ export default function MaintenanceContainer() {
   return (
     <div className="mx-auto w-full">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+        <h1 className="text-foreground text-2xl font-bold tracking-tight sm:text-3xl">
           แจ้งซ่อมบำรุง / แจ้งเรื่อง
         </h1>
-        <p className="mt-2 text-sm text-gray-500 sm:text-base">
+        <p className="text-muted mt-2 text-sm sm:text-base">
           แจ้งปัญหาที่เกิดขึ้นภายในห้องพัก หรือติดตามสถานะการซ่อมได้ที่นี่
         </p>
       </div>
-      <div className="relative mb-8 flex w-full rounded-2xl bg-gray-100 p-1.5">
+      <div className="bg-background relative mb-8 flex w-full rounded-2xl p-1.5">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -81,7 +81,7 @@ export default function MaintenanceContainer() {
               {isActive && (
                 <motion.div
                   layoutId="maintenance-tab-indicator"
-                  className="absolute inset-0 z-0 rounded-xl bg-white"
+                  className="bg-surface absolute inset-0 z-0 rounded-xl"
                   transition={{
                     type: "spring",
                     stiffness: 400,
@@ -90,7 +90,7 @@ export default function MaintenanceContainer() {
                 />
               )}
               <span
-                className={`relative z-10 flex items-center gap-2 transition-colors duration-300 ${isActive ? "text-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+                className={`relative z-10 flex items-center gap-2 transition-colors duration-300 ${isActive ? "text-blue-600" : "text-muted hover:text-foreground"}`}
               >
                 <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 {tab.label}

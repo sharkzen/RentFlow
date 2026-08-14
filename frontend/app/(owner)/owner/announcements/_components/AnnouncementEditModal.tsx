@@ -13,9 +13,18 @@ import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { CustomSelect } from "@/lib/ui/CustomSelect";
 
 const TYPE_OPTIONS = [
-  { value: "NORMAL", label: "ทั่วไป (Normal)" },
-  { value: "IMPORTANT", label: "สำคัญ (Important)" },
-  { value: "URGENT", label: "ด่วน (Urgent)" },
+  {
+    value: "NORMAL",
+    label: "ทั่วไป (Normal)",
+  },
+  {
+    value: "IMPORTANT",
+    label: "สำคัญ (Important)",
+  },
+  {
+    value: "URGENT",
+    label: "ด่วน (Urgent)",
+  },
 ];
 
 interface AnnouncementEditModalProps {
@@ -188,13 +197,13 @@ export default function AnnouncementEditModal({
   return (
     <>
       <div className="fixed inset-0 z-[990] flex justify-center bg-black/50 transition-all sm:items-center sm:p-4">
-        <div className="animate-in fade-in zoom-in-95 flex w-full max-w-3xl flex-col bg-white shadow-2xl duration-200 sm:max-h-[95vh] sm:rounded-2xl">
-          <div className="flex shrink-0 items-center justify-between border-b border-gray-100 p-4 sm:p-6">
-            <h2 className="text-xl font-bold text-gray-900">แก้ไขประกาศ</h2>
+        <div className="bg-surface animate-in fade-in zoom-in-95 flex w-full max-w-3xl flex-col shadow-2xl duration-200 sm:max-h-[95vh] sm:rounded-2xl">
+          <div className="border-border flex shrink-0 items-center justify-between border-b p-4 sm:p-6">
+            <h2 className="text-foreground text-xl font-bold">แก้ไขประกาศ</h2>
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="cursor-pointer rounded-full bg-gray-50 p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
+              className="bg-background text-muted hover:bg-border hover:text-foreground cursor-pointer rounded-full p-2 transition-colors disabled:opacity-50"
             >
               <X size={20} />
             </button>
@@ -203,10 +212,10 @@ export default function AnnouncementEditModal({
             ref={scrollContainerRef}
             className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-6"
           >
-            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50/50 p-4">
+            <div className="border-border bg-background/50 flex items-center justify-between rounded-xl border p-4">
               <div>
-                <p className="font-medium text-gray-900">แสดงประกาศนี้</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-foreground font-medium">แสดงประกาศนี้</p>
+                <p className="text-muted text-sm">
                   ปิดการใช้งานเพื่อซ่อนประกาศชั่วคราวโดยไม่ต้องลบ
                 </p>
               </div>
@@ -218,25 +227,25 @@ export default function AnnouncementEditModal({
                   onChange={(e) => setIsActive(e.target.checked)}
                   disabled={isLoading}
                 />
-                <div className="peer h-6 w-11 rounded-full bg-gray-200 peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white disabled:opacity-50"></div>
+                <div className="peer border-border bg-border after:border-border h-6 w-11 rounded-full peer-checked:bg-blue-600 peer-focus:ring-4 peer-focus:ring-blue-300 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white disabled:opacity-50"></div>
               </label>
             </div>
             <div className="flex flex-col gap-4 sm:flex-row">
               <div className="flex-1">
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="text-foreground mb-1 block text-sm font-medium">
                   หัวข้อประกาศ <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   placeholder="หัวข้อประกาศ..."
                   disabled={isLoading}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 transition-all outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:bg-gray-50"
+                  className="border-border disabled:bg-background w-full rounded-xl border px-4 py-2.5 transition-all outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />
               </div>
               <div className="sm:w-1/3">
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="text-foreground mb-1 block text-sm font-medium">
                   ประเภท
                 </label>
                 <CustomSelect
@@ -250,7 +259,7 @@ export default function AnnouncementEditModal({
             </div>
             <div>
               <div className="mb-1 flex items-center justify-between">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="text-foreground block text-sm font-medium">
                   รูปภาพประกอบ (กดที่รูปเพื่อเปลี่ยนรูปใหม่)
                 </label>
                 {previewImage && (
@@ -265,7 +274,7 @@ export default function AnnouncementEditModal({
                 )}
               </div>
               <div
-                className={`relative cursor-pointer overflow-hidden rounded-xl border-2 border-dashed border-gray-200 text-center transition-colors hover:border-gray-300 hover:bg-gray-50 ${isLoading ? "pointer-events-none opacity-50" : ""} ${previewImage ? "border-blue-200 bg-gray-50" : "p-6"}`}
+                className={`border-border hover:bg-background hover:border-muted relative cursor-pointer overflow-hidden rounded-xl border-2 border-dashed text-center transition-colors ${isLoading ? "pointer-events-none opacity-50" : ""} ${previewImage ? "bg-background border-blue-200" : "p-6"}`}
               >
                 <input
                   id="editImageInput"
@@ -276,7 +285,7 @@ export default function AnnouncementEditModal({
                   onChange={handleImageChange}
                 />
                 {previewImage ? (
-                  <div className="group relative flex aspect-4/3 w-full items-center justify-center bg-gray-50">
+                  <div className="group bg-background relative flex aspect-4/3 w-full items-center justify-center">
                     <img
                       src={previewImage}
                       alt="Preview"
@@ -284,21 +293,21 @@ export default function AnnouncementEditModal({
                       className="h-full w-full object-contain"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
-                      <span className="flex items-center gap-2 rounded-lg bg-white/90 px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm">
+                      <span className="text-foreground flex items-center gap-2 rounded-lg bg-white/90 px-3 py-1.5 text-sm font-medium shadow-sm">
                         <ImageIcon size={16} />
                         คลิกเพื่อเปลี่ยนรูปภาพ
                       </span>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center gap-2 text-gray-500">
+                  <div className="text-muted flex flex-col items-center gap-2">
                     <div className="mb-1 rounded-full bg-blue-50 p-3 text-blue-500">
                       <ImageIcon size={28} />
                     </div>
                     <span className="text-sm font-medium">
                       คลิกหรือลากรูปภาพใหม่มาวางที่นี่
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-muted text-xs">
                       รองรับ JPG, PNG, WEBP ขนาดไม่เกิน 5MB
                     </span>
                   </div>
@@ -306,24 +315,24 @@ export default function AnnouncementEditModal({
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="text-foreground mb-1 block text-sm font-medium">
                 รายละเอียด <span className="text-red-500">*</span>
               </label>
               <textarea
                 rows={5}
                 disabled={isLoading}
                 placeholder="พิมพ์รายละเอียดประกาศที่นี่..."
-                className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 transition-all outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 disabled:bg-gray-50"
+                className="border-border disabled:bg-background w-full resize-none rounded-xl border px-4 py-3 transition-all outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
             </div>
           </div>
-          <div className="flex shrink-0 justify-end gap-3 rounded-b-2xl border-t border-gray-100 bg-gray-50/50 p-4 sm:px-6">
+          <div className="border-border bg-background/50 flex shrink-0 justify-end gap-3 rounded-b-2xl border-t p-4 sm:px-6">
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="rounded-xl px-5 py-2.5 font-medium text-gray-600 transition-colors hover:bg-gray-200 disabled:opacity-50"
+              className="text-muted hover:bg-border rounded-xl px-5 py-2.5 font-medium transition-colors disabled:opacity-50"
             >
               ยกเลิก
             </button>

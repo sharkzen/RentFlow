@@ -12,19 +12,22 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import log from "@/lib/logger";
 import useRegister from "@/features/auth/hooks/useRegister";
 import type { OwnerRegisterFormData } from "@/features/auth/types";
+
 import {
   isValidEmail,
   isValidPhone,
   isValidPassword,
   isValidMapLink,
+  extractMapUrlFromText,
   isValidText,
 } from "@/features/auth/validators";
+
 import FormSuccess from "@/lib/ui/status/FormSuccess";
-import { showBackendError } from "@/lib/backendError";
 import InfoTooltip from "@/lib/ui/InfoTooltip";
+import MapTutorialContent from "@/lib/ui/MapTutorialContent";
+import Image from "next/image";
 
 export default function OwnerRegisterForm() {
   const mutation = useRegister();
@@ -92,7 +95,8 @@ export default function OwnerRegisterForm() {
     if (!isValidText(form.dormName, 3))
       newErrors.dormName = "กรุณากรอกชื่อหอพัก";
 
-    if (!isValidText(form.address, 5)) newErrors.address = "กรุณากรอกที่อยู่";
+    if (!isValidText(form.address, 5, 500))
+      newErrors.address = "กรุณากรอกที่อยู่";
 
     if (!isValidEmail(form.email)) newErrors.email = "อีเมลไม่ถูกต้อง";
 
@@ -112,7 +116,7 @@ export default function OwnerRegisterForm() {
 
     if (Object.keys(newErrors).length === 0) {
       await toast.promise(mutation.mutateAsync(form), {
-        pending: "กำลังบันทึกข้อมูล...",
+        pending: "กำลังลงทะเบียน...",
         success: "ลงทะเบียนสำเร็จ",
 
         error: {
@@ -141,12 +145,15 @@ export default function OwnerRegisterForm() {
   };
 
   return (
-    <div className="grid h-[calc(100vh-65px)] w-full bg-white md:grid-cols-2">
-      <div className="relative hidden md:block">
-        <img
+    <div className="bg-background grid min-h-[calc(100vh-65px)] w-full min-[1420px]:grid-cols-2">
+      <div className="relative hidden min-[1420px]:block">
+        <Image
           src="/images/bg-main.jpg"
           alt="Apartment management"
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          priority
+          sizes="50vw"
+          className="object-cover dark:opacity-50"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
         <div className="relative z-10 flex h-full flex-col p-12 text-white">
@@ -160,84 +167,95 @@ export default function OwnerRegisterForm() {
           </p>
         </div>
       </div>
-      <div className="flex items-center justify-center px-6 py-12 md:px-12 lg:px-24">
+      <div className="bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-2xl">
           {success ? (
             <FormSuccess />
           ) : (
             <>
-              <div className="mb-5 text-center">
-                <h1 className="mb-4 text-4xl font-extrabold text-gray-900 md:text-5xl">
-                  Rent
-                  <span className="bg-linear-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                    Flow
-                  </span>
-                </h1>
-                <h2 className="text-2xl font-semibold text-gray-800 md:text-3xl">
-                  ลงทะเบียนหอพัก
+              <div className="mb-8 text-center">
+                <div className="flex items-center justify-center gap-3">
+                  <Image
+                    src="/logo.png"
+                    width={48}
+                    height={48}
+                    alt="RentFlow Logo"
+                  />
+
+                  <h1 className="text-foreground text-3xl font-extrabold sm:text-4xl">
+                    Rent
+                    <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                      Flow
+                    </span>
+                  </h1>
+                </div>
+
+                <h2 className="text-foreground mt-6 text-xl font-semibold sm:text-2xl">
+                  สร้างบัญชีเจ้าของหอพัก
                 </h2>
-                <p className="mt-4 text-base text-gray-600">
-                  กรอกข้อมูลด้านล่างเพื่อสร้างบัญชีเจ้าของหอพัก
-                </p>
               </div>
               <form
                 onSubmit={handleSubmit}
-                className="rounded-2xl border border-gray-100 bg-white p-6 md:p-8"
+                className="border-border bg-surface rounded-2xl border p-5 min-[1420px]:border-none sm:p-6 md:p-8"
               >
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-5">
                     <div className="space-y-1">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <User className="h-4 w-4 text-gray-500" />
+                      <label className="text-foreground flex items-center gap-2 text-sm font-medium">
+                        <User className="text-muted h-4 w-4" />
                         ชื่อ-นามสกุล
                       </label>
                       <input
                         id="fullName"
                         type="text"
                         value={form.fullName}
+                        placeholder="นาย สมชาย ใจใจ"
                         onChange={(e) =>
                           handleChange("fullName", e.target.value)
                         }
-                        className={`w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm transition outline-none ${errors.fullName ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.fullName ? "border-red-500" : "border-border"} `}
                       />
                       <p className="min-h-4 text-xs text-red-600">
                         {errors.fullName || ""}
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <Mail className="h-4 w-4 text-gray-500" />
+                      <label className="text-foreground flex items-center gap-2 text-sm font-medium">
+                        <Mail className="text-muted h-4 w-4" />
                         อีเมล
                       </label>
                       <input
                         id="email"
                         type="email"
                         value={form.email}
+                        placeholder="your_email@gmail.com"
                         onChange={(e) => handleChange("email", e.target.value)}
-                        className={`w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-border"} `}
                       />
                       <p className="min-h-4 text-xs text-red-600">
                         {errors.email || ""}
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <Lock className="h-4 w-4 text-gray-500" />
+                      <label className="text-foreground flex items-center gap-2 text-sm font-medium">
+                        <Lock className="text-muted h-4 w-4" />
                         รหัสผ่าน
                       </label>
                       <div className="relative">
                         <input
                           type={showPassword ? "text" : "password"}
                           value={form.password}
+                          placeholder="******"
                           onChange={(e) =>
                             handleChange("password", e.target.value)
                           }
-                          className={`w-full rounded-xl border bg-gray-50 px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                          className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-border"} `}
                         />
                         <button
+                          tabIndex={-1}
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="text-muted hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
                         >
                           {showPassword ? (
                             <EyeOff className="h-5 w-5" />
@@ -251,25 +269,27 @@ export default function OwnerRegisterForm() {
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <Lock className="h-4 w-4 text-gray-500" />
+                      <label className="text-foreground flex items-center gap-2 text-sm font-medium">
+                        <Lock className="text-muted h-4 w-4" />
                         ยืนยันรหัสผ่าน
                       </label>
                       <div className="relative">
                         <input
                           type={showConfirmPassword ? "text" : "password"}
                           value={form.confirmPassword}
+                          placeholder="******"
                           onChange={(e) =>
                             handleChange("confirmPassword", e.target.value)
                           }
-                          className={`w-full rounded-xl border bg-gray-50 px-4 py-3 pr-12 text-sm transition outline-none ${errors.confirmPassword ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                          className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.confirmPassword ? "border-red-500" : "border-border"} `}
                         />
                         <button
+                          tabIndex={-1}
                           type="button"
                           onClick={() =>
                             setShowConfirmPassword(!showConfirmPassword)
                           }
-                          className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="text-muted hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
                         >
                           {showConfirmPassword ? (
                             <EyeOff className="h-5 w-5" />
@@ -285,96 +305,81 @@ export default function OwnerRegisterForm() {
                   </div>
                   <div className="space-y-5">
                     <div className="space-y-1">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <Home className="h-4 w-4 text-gray-500" />
+                      <label className="text-foreground flex items-center gap-2 text-sm font-medium">
+                        <Home className="text-muted h-4 w-4" />
                         ชื่อหอพัก
                       </label>
                       <input
                         id="dormName"
                         type="text"
                         value={form.dormName}
+                        placeholder="สุขใจ เพลส"
                         onChange={(e) =>
                           handleChange("dormName", e.target.value)
                         }
-                        className={`w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm transition outline-none ${errors.dormName ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.dormName ? "border-red-500" : "border-border"} `}
                       />
                       <p className="min-h-4 text-xs text-red-600">
                         {errors.dormName || ""}
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <MapPin className="h-4 w-4 text-gray-500" />
+                      <label className="text-foreground flex items-center gap-2 text-sm font-medium">
+                        <MapPin className="text-muted h-4 w-4" />
                         ที่อยู่หอพัก
                       </label>
                       <input
                         id="address"
                         type="text"
                         value={form.address}
+                        placeholder="เช่น 123/45 ซอยสุขใจ ถนนมิตรภาพ ต.ในเมือง อ.เมือง จ.นครราชสีมา 30000"
                         onChange={(e) =>
                           handleChange("address", e.target.value)
                         }
-                        className={`w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm transition outline-none ${errors.address ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.address ? "border-red-500" : "border-border"} `}
                       />
                       <p className="min-h-4 text-xs text-red-600">
                         {errors.address || ""}
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        ลิงก์ Google Map{" "}
-                        <Link
-                          className="text-blue-500 underline"
-                          href={"https://maps.google.com"}
-                          target="_blank"
-                        >
-                          {" "}
-                          เปิด Map
-                        </Link>
-                        <InfoTooltip>
-                          <p className="font-semibold text-gray-800">
-                            วิธีปักหมุดให้ตรงตำแหน่งจริง
-                          </p>
-                          <ol className="mt-1.5 list-decimal space-y-1 pl-4">
-                            <li>เปิด Google Maps แล้วเลื่อนแผนที่ไปยังหอพัก</li>
-                            <li>
-                              กดค้าง (long-press)
-                              บนตำแหน่งหอพักตรงจุดเป๊ะๆ เพื่อปักหมุดเอง
-                            </li>
-                            <li>
-                              กด Share แล้วคัดลอกลิงก์มาวางในช่องนี้
-                            </li>
-                          </ol>
-                          <p className="mt-1.5 text-amber-600">
-                            อย่าเสิร์ชหาชื่อหอแล้วกด Share ทันที
-                            เพราะอาจได้ลิงก์ของสถานที่ใกล้เคียงที่ไม่ตรงจริง
-                          </p>
+                      <label className="text-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium">
+                        <MapPin className="text-muted h-4 w-4 shrink-0" />
+                        ลิงก์ Google Map หรือ พิกัดที่ตั้ง
+                        <InfoTooltip fullscreen>
+                          <MapTutorialContent />
                         </InfoTooltip>
                       </label>
                       <input
                         id="mapUrl"
                         type="text"
                         value={form.mapUrl}
-                        onChange={(e) => handleChange("mapUrl", e.target.value)}
-                        className={`w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm transition outline-none ${errors.mapUrl ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                        placeholder="วางลิงก์แมพ หรือกรอกพิกัด (เช่น 16.18807, 103.27974)"
+                        onChange={(e) =>
+                          handleChange(
+                            "mapUrl",
+                            extractMapUrlFromText(e.target.value),
+                          )
+                        }
+                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.mapUrl ? "border-red-500" : "border-border"} `}
                       />
                       <p className="min-h-4 text-xs text-red-600">
                         {errors.mapUrl || ""}
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                        <Phone className="h-4 w-4 text-gray-500" />
+                      <label className="text-foreground flex items-center gap-2 text-sm font-medium">
+                        <Phone className="text-muted h-4 w-4" />
                         เบอร์โทรศัพท์
                       </label>
                       <input
                         id="phone"
                         type="text"
                         maxLength={10}
+                        placeholder="เช่น 0812345678"
                         value={form.phone}
                         onChange={(e) => handleChange("phone", e.target.value)}
-                        className={`w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm transition outline-none ${errors.phone ? "border-red-500" : "border-gray-300"} focus:bg-white focus:ring-4 focus:ring-blue-100`}
+                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.phone ? "border-red-500" : "border-border"} `}
                       />
                       <p className="min-h-4 text-xs text-red-600">
                         {errors.phone || ""}
@@ -385,11 +390,11 @@ export default function OwnerRegisterForm() {
                 <button
                   disabled={mutation.isPending}
                   type="submit"
-                  className={`${mutation.isPending ? "cursor-progress" : "cursor-pointer bg-gray-500"} mt-6 w-full rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 py-3.5 text-sm font-semibold text-white shadow-md transition hover:shadow-lg active:scale-[0.98] disabled:opacity-60`}
+                  className={`${mutation.isPending ? "cursor-progress" : "cursor-pointer"} mt-6 w-full rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 py-3.5 text-sm font-semibold text-white shadow-md transition hover:shadow-lg active:scale-[0.98] disabled:opacity-60`}
                 >
                   {mutation.isPending ? "กำลังลงทะเบียน..." : "ลงทะเบียน"}
                 </button>
-                <p className="mt-4 text-center text-sm text-gray-600">
+                <p className="text-muted mt-4 text-center text-sm">
                   มีบัญชีแล้ว?{" "}
                   <Link
                     href="/auth/login"

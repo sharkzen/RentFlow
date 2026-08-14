@@ -10,7 +10,7 @@ export const DormContent: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
         return (
           <p
             key={section.id}
-            className="mb-5 text-base leading-7 text-slate-600 md:text-[17px] md:leading-8"
+            className="text-muted mb-5 text-base leading-7 md:text-[17px] md:leading-8"
           >
             {section.value}
           </p>
@@ -22,13 +22,13 @@ export const DormContent: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
               {section.items.map((item: string, idx: number) => (
                 <div
                   key={idx}
-                  className="flex items-start gap-3 rounded-xl bg-slate-50 px-4 py-3"
+                  className="bg-background flex items-start gap-3 rounded-xl px-4 py-3"
                 >
                   <CheckCircle2
                     size={18}
                     className="mt-0.5 shrink-0 text-blue-500"
                   />
-                  <span className="text-sm text-slate-700 md:text-base">
+                  <span className="text-foreground text-sm md:text-base">
                     {item}
                   </span>
                 </div>
@@ -44,13 +44,13 @@ export const DormContent: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl">
+        <h1 className="text-foreground text-3xl font-bold tracking-tight md:text-4xl">
           {data.name}
         </h1>
       </div>
 
       <div>
-        <h3 className="mb-5 text-lg font-semibold text-slate-900">
+        <h3 className="text-foreground mb-5 text-lg font-semibold">
           รายละเอียดหอพัก
         </h3>
         <div>

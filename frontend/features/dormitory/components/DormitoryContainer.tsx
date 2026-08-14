@@ -22,16 +22,37 @@ import { Dormitory } from "@/features/admin";
 import { CustomSelect } from "@/lib/ui/CustomSelect";
 
 const STATUS_OPTIONS = [
-  { value: "ALL", label: "ทุกสถานะ (Status)" },
-  { value: "ACTIVE", label: "Active (ใช้งานปกติ)" },
-  { value: "PENDING", label: "Pending (รออนุมัติ)" },
-  { value: "BANNED", label: "Banned (ถูกระงับ)" },
+  {
+    value: "ALL",
+    label: "ทุกสถานะ (Status)",
+  },
+  {
+    value: "ACTIVE",
+    label: "Active (ใช้งานปกติ)",
+  },
+  {
+    value: "PENDING",
+    label: "Pending (รออนุมัติ)",
+  },
+  {
+    value: "BANNED",
+    label: "Banned (ถูกระงับ)",
+  },
 ];
 
 const PUBLISHED_OPTIONS = [
-  { value: "all", label: "การเผยแพร่ (All)" },
-  { value: "true", label: "Published (แสดงผล)" },
-  { value: "false", label: "Unpublished (ซ่อน)" },
+  {
+    value: "all",
+    label: "การเผยแพร่ (All)",
+  },
+  {
+    value: "true",
+    label: "Published (แสดงผล)",
+  },
+  {
+    value: "false",
+    label: "Unpublished (ซ่อน)",
+  },
 ];
 
 export default function DormitoryContainer() {
@@ -174,7 +195,7 @@ export default function DormitoryContainer() {
       case "BANNED":
         return "bg-red-100 text-red-700";
       default:
-        return "bg-gray-100 text-gray-600";
+        return "bg-background text-muted";
     }
   };
 
@@ -182,31 +203,31 @@ export default function DormitoryContainer() {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="flex items-center gap-3 text-2xl font-bold text-gray-800">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-200">
+          <h2 className="text-foreground flex items-center gap-3 text-2xl font-bold">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
               <Building2 size={20} />
             </div>
             จัดการข้อมูลหอพัก
           </h2>
-          <p className="mt-1 pl-13 text-sm text-gray-500">
+          <p className="text-muted mt-1 pl-13 text-sm">
             ตรวจสอบสถานะ เปิด/ปิด การเผยแพร่ และจัดการหอพักทั้งหมดในระบบ
           </p>
         </div>
         <button
           onClick={fetchData}
-          className="btn-icon flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-gray-600 hover:bg-gray-50"
+          className="btn-icon border-border bg-surface text-muted hover:bg-background flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2"
         >
           <RefreshCw size={16} className={loading ? "animate-spin" : ""} />{" "}
           รีเฟรช
         </button>
       </div>
-      <div className="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-white p-4 md:grid-cols-4">
+      <div className="border-border bg-surface grid grid-cols-1 gap-4 rounded-xl border p-4 md:grid-cols-4">
         <div className="relative md:col-span-2">
-          <Search className="absolute top-2.5 left-3 text-gray-400" size={18} />
+          <Search className="text-muted absolute top-2.5 left-3" size={18} />
           <input
             type="text"
             placeholder="ค้นหาชื่อหอพัก, ที่อยู่, หรือชื่อเจ้าของ..."
-            className="w-full rounded-lg border border-gray-200 py-2 pr-4 pl-10 transition-all outline-none focus:border-blue-500 focus:ring-blue-500"
+            className="border-border w-full rounded-lg border py-2 pr-4 pl-10 transition-all outline-none focus:border-blue-500 focus:ring-blue-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -232,10 +253,10 @@ export default function DormitoryContainer() {
           />
         </div>
       </div>
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="border-border bg-surface overflow-hidden rounded-xl border">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-gray-100 bg-gray-50 font-medium text-gray-500">
+            <thead className="border-border bg-background text-muted border-b font-medium">
               <tr>
                 <th className="px-6 py-4">หอพัก</th>
                 <th className="px-6 py-4">เจ้าของ</th>
@@ -245,16 +266,16 @@ export default function DormitoryContainer() {
                 <th className="px-6 py-4 text-right">จัดการ</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-border divide-y">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-400">
+                  <td colSpan={6} className="text-muted p-8 text-center">
                     กำลังโหลดข้อมูล...
                   </td>
                 </tr>
               ) : data.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-400">
+                  <td colSpan={6} className="text-muted p-8 text-center">
                     ไม่พบหอพักที่ตรงกับเงื่อนไข
                   </td>
                 </tr>
@@ -263,11 +284,11 @@ export default function DormitoryContainer() {
                   <tr
                     key={item.id}
                     onClick={() => handleView(item.id)}
-                    className="group cursor-pointer transition-colors hover:bg-gray-50"
+                    className="group hover:bg-background cursor-pointer transition-colors"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-16 shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+                        <div className="border-border bg-background h-12 w-16 shrink-0 overflow-hidden rounded-lg border">
                           {item.images && item.images.length > 0 ? (
                             <img
                               src={
@@ -279,16 +300,16 @@ export default function DormitoryContainer() {
                               alt=""
                             />
                           ) : (
-                            <div className="flex h-full items-center justify-center text-gray-300">
+                            <div className="text-muted flex h-full items-center justify-center">
                               <Building2 size={16} />
                             </div>
                           )}
                         </div>
                         <div>
-                          <p className="line-clamp-1 font-semibold text-gray-800">
+                          <p className="text-foreground line-clamp-1 font-semibold">
                             {item.name}
                           </p>
-                          <p className="line-clamp-1 flex items-center gap-1 text-xs text-gray-500">
+                          <p className="text-muted line-clamp-1 flex items-center gap-1 text-xs">
                             <MapPin size={10} /> {item.address}
                           </p>
                         </div>
@@ -296,15 +317,15 @@ export default function DormitoryContainer() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm">
-                        <p className="font-medium text-gray-800">
+                        <p className="text-foreground font-medium">
                           {item.owner.fullName}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-muted text-xs">
                           {item.owner.user.email}
                         </p>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-center text-gray-600">
+                    <td className="text-muted px-6 py-4 text-center">
                       {item._count.rooms}
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -313,7 +334,7 @@ export default function DormitoryContainer() {
                           e.stopPropagation();
                           handleTogglePublish(item);
                         }}
-                        className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold underline transition-colors ${item.isPublished ? "bg-green-50 text-green-700 hover:bg-green-100" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
+                        className={`inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold underline transition-colors ${item.isPublished ? "bg-green-50 text-green-700 hover:bg-green-100" : "bg-background text-muted hover:bg-skeleton"}`}
                       >
                         <Globe size={12} />{" "}
                         {item.isPublished ? "Published" : "Hidden"}
@@ -330,10 +351,10 @@ export default function DormitoryContainer() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={(e) => {
-                            e.stopPropagation(); // <--- เพิ่มบรรทัดนี้
+                            e.stopPropagation();
                             handleView(item.id);
                           }}
-                          className="cursor-pointer rounded-lg p-2 text-gray-500 transition-all hover:bg-blue-50 hover:text-blue-600"
+                          className="text-muted cursor-pointer rounded-lg p-2 transition-all hover:bg-blue-50 hover:text-blue-600"
                           title="ดูรายละเอียด"
                         >
                           <Eye size={18} />
@@ -364,8 +385,8 @@ export default function DormitoryContainer() {
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-4">
-          <p className="text-sm text-gray-600">
+        <div className="border-border bg-background flex items-center justify-between border-t px-6 py-4">
+          <p className="text-muted text-sm">
             แสดง {data.length > 0 ? (page - 1) * 10 + 1 : 0}ถึง{" "}
             {Math.min(page * 10, totalItems)}จาก {totalItems}รายการ
           </p>
@@ -373,14 +394,14 @@ export default function DormitoryContainer() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm transition-colors hover:bg-gray-50 disabled:opacity-50"
+              className="border-border bg-surface hover:bg-background rounded-lg border px-3 py-1.5 text-sm transition-colors disabled:opacity-50"
             >
               ก่อนหน้า
             </button>
             <button
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm transition-colors hover:bg-gray-50 disabled:opacity-50"
+              className="border-border bg-surface hover:bg-background rounded-lg border px-3 py-1.5 text-sm transition-colors disabled:opacity-50"
             >
               ถัดไป
             </button>

@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
+RUN useradd --create-home --shell /bin/bash appuser
+
 WORKDIR /app
 
 # Install dependencies
@@ -16,10 +18,15 @@ COPY requirements.txt .
 RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # Create necessary directories
-RUN mkdir -p /app/static 
+RUN mkdir -p /app/static
 
 # Copy project files
 COPY . .
+
+RUN chown -R appuser:appuser /app /home/appuser
+
+USER appuser
+ENV HOME=/home/appuser
 
 # Expose port for FastAPI
 EXPOSE 8899

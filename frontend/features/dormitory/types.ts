@@ -9,6 +9,9 @@ export interface Dormitory {
   slug: string;
   description: DormDescription;
   address: string;
+  lineId: string | null;
+  lineType: "PERSONAL" | "OFFICIAL";
+  facebook: string | null;
   latitude: number;
   longitude: number;
   mapUrl: string;
@@ -22,6 +25,14 @@ export interface Dormitory {
   settings: DormitorySettings;
   images: DormitoryImage[];
   owner: DormitoryOwner;
+  contacts: DormitoryContact[];
+}
+
+export interface DormitoryContact {
+  id: string;
+  name: string | null;
+  phone: string;
+  order: number;
 }
 
 export type DormitoryStatus =
@@ -35,6 +46,7 @@ export interface DormitorySettings {
   id: string;
   dormitoryId: string;
   roomPrice: number;
+  waterBillingType: "METERED" | "FLAT_RATE";
   waterRate: number;
   electricRate: number;
   commonFee: number;
@@ -81,8 +93,17 @@ export interface DormFormData {
   name: string;
   description: any;
   address: string;
+  contacts?: {
+    id?: string;
+    name?: string;
+    phone: string;
+  }[];
+  lineId?: string;
+  lineType?: "PERSONAL" | "OFFICIAL";
+  facebook?: string;
   mapUrl: string;
   roomPrice: number;
+  waterBillingType: "METERED" | "FLAT_RATE";
   waterRate: number;
   electricRate: number;
   commonFee: number;
@@ -94,6 +115,7 @@ export interface DormFormData {
   bankHolder?: string;
   promptPayType?: string;
   promptPayValue?: string;
+  promptPayHolder?: string;
 }
 
 export interface DormOverview {
@@ -129,6 +151,7 @@ export type DormSlugResponse = {
     airAvailable: number;
     fanAvailable: number;
     totalAvailable: number;
+    totalRooms: number;
   };
   description: {
     sections: (
@@ -147,6 +170,15 @@ export type DormSlugResponse = {
     )[];
   };
   address: string;
+  contacts: {
+    id: string;
+    name: string | null;
+    phone: string;
+    order: number;
+  }[];
+  lineId: string | null;
+  lineType: "PERSONAL" | "OFFICIAL";
+  facebook: string | null;
   latitude: number;
   longitude: number;
   mapUrl: string;
@@ -161,6 +193,7 @@ export type DormSlugResponse = {
     id: string;
     dormitoryId: string;
     roomPrice: number;
+    waterBillingType: "METERED" | "FLAT_RATE";
     waterRate: number;
     electricRate: number;
     commonFee: number;

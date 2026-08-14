@@ -9,16 +9,18 @@
     "dev:worker": "ts-node-dev --respawn --transpile-only -r tsconfig-paths/register --watch src src/workers/email.worker.ts",
     "dev": "npx prisma db seed && concurrently --kill-others \"npm run dev:server\" \"npm run dev:worker\"",
     "clean": "shx rm -rf dist",
+    "build:seed": "esbuild src/init.ts --bundle --platform=node --packages=external --outfile=dist/init.js",
+    "db:reset": "npx prisma db push --force-reset && npx prisma generate && npx prisma db seed",
     "prebuild": "npm run clean",
     "build:server": "esbuild src/server.ts --bundle --platform=node --packages=external --outdir=dist",
     "build:worker": "esbuild src/workers/email.worker.ts --bundle --platform=node --packages=external --outdir=dist/workers",
-    "build": "npm run build:server && npm run build:worker",
+    "build": "npm run build:server && npm run build:worker && npm run build:seed",
     "start:server": "node dist/server.js",
     "start:worker": "node dist/workers/email.worker.js",
     "start": "concurrently \"npm run start:server\" \"npm run start:worker\""
   },
   "prisma": {
-    "seed": "ts-node -r tsconfig-paths/register src/init.ts"
+    "seed": "node dist/init.js"
   },
   "_moduleAliases": {
     "@": "dist"

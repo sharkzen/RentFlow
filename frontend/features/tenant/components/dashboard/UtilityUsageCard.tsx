@@ -23,7 +23,7 @@ export default function UtilityUsageCard({ utilities }: Props) {
   return (
     <>
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div className="group flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-amber-300 hover:shadow-lg sm:p-6">
+        <div className="group border-border bg-surface flex h-full flex-col justify-between rounded-2xl border p-5 transition-all hover:border-amber-300 hover:shadow-lg sm:p-6">
           <div className="flex-1">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3 sm:gap-4">
@@ -36,16 +36,16 @@ export default function UtilityUsageCard({ utilities }: Props) {
                   />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-800 sm:text-lg">
+                  <h3 className="text-foreground text-base font-bold sm:text-lg">
                     ค่าไฟฟ้า
                   </h3>
-                  <p className="text-xs font-medium text-slate-400 sm:text-sm">
+                  <p className="text-muted text-xs font-medium sm:text-sm">
                     Electricity
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <span className="mb-0.5 block text-[10px] font-semibold tracking-wider text-slate-400 uppercase sm:text-xs">
+                <span className="text-muted mb-0.5 block text-[10px] font-semibold tracking-wider uppercase sm:text-xs">
                   ยอดการใช้
                 </span>
                 <div className="flex items-baseline justify-end gap-1 text-amber-600">
@@ -58,7 +58,7 @@ export default function UtilityUsageCard({ utilities }: Props) {
                 </div>
               </div>
             </div>
-            <div className="my-5 h-px w-full bg-slate-100"></div>
+            <div className="bg-border my-5 h-px w-full"></div>
             <div className="mb-4">
               {utilities.electric.imageUrl ? (
                 <button
@@ -71,7 +71,7 @@ export default function UtilityUsageCard({ utilities }: Props) {
               ) : (
                 <button
                   disabled
-                  className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-sm font-medium text-slate-400"
+                  className="bg-background text-muted flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium"
                 >
                   <CameraOff size={18} />
                   ไม่มีรูปภาพ
@@ -79,25 +79,25 @@ export default function UtilityUsageCard({ utilities }: Props) {
               )}
             </div>
           </div>
-          <div className="mt-auto rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
-            <div className="mb-3 flex items-center gap-2 text-xs font-medium text-slate-500">
+          <div className="bg-background ring-border mt-auto rounded-xl p-4 ring-1">
+            <div className="text-muted mb-3 flex items-center gap-2 text-xs font-medium">
               <History size={14} />
               <span>เปรียบเทียบมิเตอร์ (Meter Reading)</span>
             </div>
             <div className="flex items-center justify-between gap-2 sm:gap-4">
               <div className="flex flex-1 flex-col items-start overflow-hidden">
-                <span className="truncate text-[10px] text-slate-400 sm:text-xs">
+                <span className="text-muted truncate text-[10px] sm:text-xs">
                   ครั้งก่อน
                 </span>
-                <span className="truncate text-base font-medium text-slate-600 sm:text-lg">
+                <span className="text-foreground truncate text-base font-medium sm:text-lg">
                   {utilities.electric.prevUnit.toLocaleString()}
                 </span>
               </div>
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-slate-300 ring-1 ring-slate-100">
+              <div className="bg-surface text-muted ring-border flex h-8 w-8 shrink-0 items-center justify-center rounded-full ring-1">
                 <ArrowRight size={14} />
               </div>
               <div className="flex flex-1 flex-col items-end overflow-hidden">
-                <span className="truncate text-[10px] text-slate-400 sm:text-xs">
+                <span className="text-muted truncate text-[10px] sm:text-xs">
                   ล่าสุด (ปัจจุบัน)
                 </span>
                 <span className="truncate text-base font-bold text-amber-600 sm:text-lg">
@@ -107,7 +107,7 @@ export default function UtilityUsageCard({ utilities }: Props) {
             </div>
           </div>
         </div>
-        <div className="group flex h-full flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-blue-300 hover:shadow-lg sm:p-6">
+        <div className="group border-border bg-surface flex h-full flex-col justify-between rounded-2xl border p-5 transition-all hover:border-blue-300 hover:shadow-lg sm:p-6">
           <div className="flex-1">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3 sm:gap-4">
@@ -120,16 +120,16 @@ export default function UtilityUsageCard({ utilities }: Props) {
                   />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-slate-800 sm:text-lg">
+                  <h3 className="text-foreground text-base font-bold sm:text-lg">
                     ค่าน้ำประปา
                   </h3>
-                  <p className="text-xs font-medium text-slate-400 sm:text-sm">
+                  <p className="text-muted text-xs font-medium sm:text-sm">
                     Water Supply
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <span className="mb-0.5 block text-[10px] font-semibold tracking-wider text-slate-400 uppercase sm:text-xs">
+                <span className="text-muted mb-0.5 block text-[10px] font-semibold tracking-wider uppercase sm:text-xs">
                   ยอดการใช้
                 </span>
                 <div className="flex items-baseline justify-end gap-1 text-blue-600">
@@ -142,7 +142,7 @@ export default function UtilityUsageCard({ utilities }: Props) {
                 </div>
               </div>
             </div>
-            <div className="my-5 h-px w-full bg-slate-100"></div>
+            <div className="bg-border my-5 h-px w-full"></div>
             <div className="mb-4">
               {utilities.water.imageUrl ? (
                 <button
@@ -155,7 +155,7 @@ export default function UtilityUsageCard({ utilities }: Props) {
               ) : (
                 <button
                   disabled
-                  className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-slate-50 py-2.5 text-sm font-medium text-slate-400"
+                  className="bg-background text-muted flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-medium"
                 >
                   <CameraOff size={18} />
                   ไม่มีรูปภาพ
@@ -163,25 +163,25 @@ export default function UtilityUsageCard({ utilities }: Props) {
               )}
             </div>
           </div>
-          <div className="mt-auto rounded-xl bg-slate-50 p-4 ring-1 ring-slate-100">
-            <div className="mb-3 flex items-center gap-2 text-xs font-medium text-slate-500">
+          <div className="bg-background ring-border mt-auto rounded-xl p-4 ring-1">
+            <div className="text-muted mb-3 flex items-center gap-2 text-xs font-medium">
               <History size={14} />
               <span>เปรียบเทียบมิเตอร์ (Meter Reading)</span>
             </div>
             <div className="flex items-center justify-between gap-2 sm:gap-4">
               <div className="flex flex-1 flex-col items-start overflow-hidden">
-                <span className="truncate text-[10px] text-slate-400 sm:text-xs">
+                <span className="text-muted truncate text-[10px] sm:text-xs">
                   ครั้งก่อน
                 </span>
-                <span className="truncate text-base font-medium text-slate-600 sm:text-lg">
+                <span className="text-foreground truncate text-base font-medium sm:text-lg">
                   {utilities.water.prevUnit.toLocaleString()}
                 </span>
               </div>
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-slate-300 ring-1 ring-slate-100">
+              <div className="bg-surface text-muted ring-border flex h-8 w-8 shrink-0 items-center justify-center rounded-full ring-1">
                 <ArrowRight size={14} />
               </div>
               <div className="flex flex-1 flex-col items-end overflow-hidden">
-                <span className="truncate text-[10px] text-slate-400 sm:text-xs">
+                <span className="text-muted truncate text-[10px] sm:text-xs">
                   ล่าสุด (ปัจจุบัน)
                 </span>
                 <span className="truncate text-base font-bold text-blue-600 sm:text-lg">

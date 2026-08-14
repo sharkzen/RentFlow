@@ -1,9 +1,40 @@
+export const extractMapUrlFromText = (text: string): string => {
+  if (typeof text !== "string") return "";
+
+  const trimmed = text.trim();
+  const match = trimmed.match(/https?:\/\/\S+/);
+  return match ? match[0] : trimmed;
+};
+
+const BARE_COORD_PATTERN =
+  /^(-?\d{1,3}(?:\.\d+)?)\s*[,،]\s*(-?\d{1,3}(?:\.\d+)?)$/;
+
+export const isValidBareCoords = (text: string): boolean => {
+  if (typeof text !== "string") return false;
+
+  const match = text.trim().match(BARE_COORD_PATTERN);
+
+  if (!match) return false;
+
+  const lat = parseFloat(match[1]);
+  const lng = parseFloat(match[2]);
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    Math.abs(lat) <= 90 &&
+    Math.abs(lng) <= 180 &&
+    !(lat === 0 && lng === 0)
+  );
+};
+
 export const isValidMapLink = (link: string): boolean => {
   if (typeof link !== "string") return false;
 
   const raw = link.trim();
 
   if (!raw) return false;
+
+  if (isValidBareCoords(raw)) return true;
 
   const url = parseUrlSafe(raw);
 

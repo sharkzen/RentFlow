@@ -1,49 +1,45 @@
-import Image from "next/image";
 import HeroSearchButton from "./HeroSearchButton";
 
 export default function Hero() {
   return (
     <section
       suppressHydrationWarning
-      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-slate-950"
+      className="relative flex min-h-screen w-full items-center justify-center overflow-hidden"
     >
-      <div className="absolute inset-0 -z-10 select-none">
-        <Image
-          src="/hero.jpg"
-          alt="Modern Cozy Apartment"
-          fill
-          priority
-          fetchPriority="high"
-          sizes="100vw"
-          quality={70}
-          className="object-cover opacity-50"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/60 to-slate-950/40" />
-        <div className="absolute inset-0 bg-linear-to-t from-slate-950/90 via-transparent to-slate-950/90" />
-      </div>
+      <div className="bg-grid bg-grid-fade absolute inset-0 -z-10" />
+      <div
+        aria-hidden="true"
+        className="absolute -top-40 left-1/2 -z-10 h-100 w-100 -translate-x-1/2 rounded-full blur-3xl"
+        style={{ backgroundColor: "var(--glow-primary)" }}
+      />
+      <div
+        aria-hidden="true"
+        className="absolute top-20 left-1/4 -z-10 h-72 w-72 rounded-full blur-3xl"
+        style={{ backgroundColor: "var(--glow-secondary)" }}
+      />
       <div
         suppressHydrationWarning
         data-aos="fade-up"
         className="relative z-10 w-full px-6 py-12 md:px-12 lg:px-20"
       >
         <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
-          <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-white md:text-7xl lg:text-8xl">
+          <h1 className="text-foreground mb-6 text-5xl font-extrabold tracking-tight md:text-7xl lg:text-8xl">
             Rent
-            <span className="ml-3 bg-linear-to-br from-blue-400 to-cyan-300 bg-clip-text text-transparent">
+            <span className="ml-3 bg-linear-to-br from-blue-600 to-cyan-500 bg-clip-text text-transparent">
               Flow
             </span>
           </h1>
-          <h2 className="mb-8 text-2xl leading-relaxed font-medium text-slate-200 md:text-3xl lg:text-4xl">
+          <h2 className="text-foreground mb-8 text-2xl leading-relaxed font-medium opacity-80 md:text-3xl lg:text-4xl">
             ค้นหาหอพักที่ใช่{" "}
-            <span className="relative font-semibold whitespace-nowrap text-white">
+            <span className="text-foreground relative font-semibold whitespace-nowrap">
               <span
-                className="absolute -inset-1 block -skew-y-1 bg-blue-600/20 backdrop-blur-sm"
+                className="absolute -inset-1 block -skew-y-1 bg-blue-500/10 backdrop-blur-sm"
                 aria-hidden="true"
               />
               <span className="relative">ในสไตล์ที่เป็นคุณ</span>
             </span>
           </h2>
-          <p className="mb-10 max-w-2xl text-base leading-7 text-slate-400 md:text-lg">
+          <p className="text-muted mb-10 max-w-2xl text-base leading-7 md:text-lg">
             แพลตฟอร์มครบวงจรสำหรับหอพัก — ผู้เช่าค้นหาห้องสวยได้ง่าย ๆ
             <br className="hidden md:block" />
             เจ้าของหอจัดการประกาศและลูกบ้านชำระเงินได้สะดวกในที่เดียว

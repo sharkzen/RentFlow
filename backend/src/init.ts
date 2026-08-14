@@ -103,13 +103,13 @@ async function main() {
     });
 
     if (existingLandmark) {
-      logger.info(`Landmark '${landmark.name}' already exists.`);
+      logger.info(`Landmark '${landmark.mapUrl}' already exists.`);
     } else {
       await prisma.landmark.create({
         data: landmark as any,
       });
 
-      logger.info(`Landmark '${landmark.name}' created successfully!`);
+      logger.info(`Landmark '${landmark.mapUrl}' created successfully!`);
     }
   }
 }

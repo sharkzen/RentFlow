@@ -24,8 +24,8 @@ export const ActionCard = ({
   const textTitleClass = isWarning ? "text-orange-900" : "text-blue-900";
   const textSubClass = isWarning ? "text-orange-600/80" : "text-blue-600/80";
   const btnClass = isWarning
-    ? "text-orange-600 bg-white hover:bg-orange-100"
-    : "text-blue-600 bg-white hover:bg-blue-100";
+    ? "text-orange-600 bg-surface hover:bg-orange-100"
+    : "text-blue-600 bg-surface hover:bg-blue-100";
 
   return (
     <div

@@ -118,6 +118,15 @@ export interface OwnerUser {
   } | null;
 }
 
+export interface LockedUser {
+  id: string;
+  email: string;
+  role: string;
+  lockedUntil: string;
+  failedLoginAttempts: number;
+  createdAt: string;
+}
+
 export enum LandmarkType {
   UNIVERSITY = "UNIVERSITY",
   SCHOOL = "SCHOOL",
@@ -128,6 +137,17 @@ export enum LandmarkType {
   MARKET = "MARKET",
   OTHER = "OTHER",
 }
+
+export const LandmarkTypeLabel: Record<LandmarkType, string> = {
+  [LandmarkType.UNIVERSITY]: "มหาวิทยาลัย",
+  [LandmarkType.SCHOOL]: "โรงเรียน",
+  [LandmarkType.HOSPITAL]: "โรงพยาบาล",
+  [LandmarkType.SHOPPING_MALL]: "ห้างสรรพสินค้า",
+  [LandmarkType.ARL]: "รถไฟฟ้า",
+  [LandmarkType.OFFICE]: "สำนักงาน",
+  [LandmarkType.MARKET]: "ตลาด",
+  [LandmarkType.OTHER]: "อื่นๆ",
+};
 
 export interface Landmark {
   id: string;
@@ -147,4 +167,3 @@ export interface CreateLandmarkPayload {
   type: LandmarkType;
   mapUrl: string;
 }
-

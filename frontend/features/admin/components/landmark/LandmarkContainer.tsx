@@ -28,7 +28,6 @@ export default function LandmarkContainer() {
   } | null>(null);
 
   const [isDeleting, setIsDeleting] = useState(false);
-
   const isMountedRef = useRef(true);
 
   const handleOpenCreateModal = () => {
@@ -46,6 +45,7 @@ export default function LandmarkContainer() {
 
     try {
       const res = await AdminService.getLandmarks(page, 10, search);
+
       if (isMountedRef.current) {
         setLandmarks(res.data);
 
@@ -55,6 +55,7 @@ export default function LandmarkContainer() {
       }
     } catch (error) {
       console.error(error);
+
       if (isMountedRef.current)
         toast.error("โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
     } finally {
@@ -172,16 +173,16 @@ export default function LandmarkContainer() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50">
+    <div className="bg-background min-h-screen">
       <div className="">
         <LandmarkHeader onOpenModal={handleOpenCreateModal} />
-        <div className="mb-6 rounded-xl border border-gray-100 bg-white p-4">
+        <div className="border-border bg-surface mb-6 rounded-xl border p-4">
           <div className="relative max-w-md">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="text-muted absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <input
               type="text"
               placeholder="ค้นหาชื่อสถานที่..."
-              className="w-full rounded-lg border border-gray-200 py-2 pr-4 pl-10 text-sm transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="border-border w-full rounded-lg border py-2 pr-4 pl-10 text-sm transition-all focus:ring-2 focus:ring-blue-500 focus:outline-none"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

@@ -71,6 +71,7 @@ interface Props {
   dueDay?: number;
   dueMonthOffset?: number;
   lateFee?: number;
+  isWaterFlatRate?: boolean;
   ocrFeatureEnabled: boolean;
 }
 
@@ -83,6 +84,7 @@ export default function CreateBillDialog({
   dueDay,
   dueMonthOffset,
   lateFee,
+  isWaterFlatRate = false,
   ocrFeatureEnabled,
 }: Props) {
   const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
@@ -195,7 +197,8 @@ export default function CreateBillDialog({
 
   const hasNegativeUsage = items.some(
     (item) =>
-      (item.currentWater !== "" &&
+      (!isWaterFlatRate &&
+        item.currentWater !== "" &&
         Number(item.currentWater) < item.prevWater) ||
       (item.currentElectric !== "" &&
         Number(item.currentElectric) < item.prevElectric),
@@ -464,7 +467,6 @@ export default function CreateBillDialog({
     const dueDate = new Date(
       Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
     );
-
     dueDate.setDate(dueDay);
     dueDate.setMonth(dueDate.getMonth() + (dueMonthOffset ?? 0));
     return dueDate;
@@ -489,7 +491,10 @@ export default function CreateBillDialog({
     }
 
     const invalidItems = items.filter(
-      (i) => !i.roomId || i.currentWater === "" || i.currentElectric === "",
+      (i) =>
+        !i.roomId ||
+        (!isWaterFlatRate && i.currentWater === "") ||
+        i.currentElectric === "",
     );
 
     if (invalidItems.length > 0) {
@@ -517,7 +522,9 @@ export default function CreateBillDialog({
         items: items.map((item) => ({
           roomId: item.roomId,
           prevWater: item.prevWater,
-          currentWater: Number(item.currentWater),
+          currentWater: isWaterFlatRate
+            ? item.prevWater
+            : Number(item.currentWater),
           waterImageKey: item.waterImageKey,
           prevElectric: item.prevElectric,
           currentElectric: Number(item.currentElectric),
@@ -539,15 +546,17 @@ export default function CreateBillDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/40 p-0 sm:p-4">
-      <div className="relative flex h-full max-h-screen w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl transition-all sm:max-h-[95vh] sm:rounded-xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+      <div className="bg-surface relative flex h-full max-h-screen w-full max-w-5xl flex-col overflow-hidden shadow-2xl transition-all sm:max-h-[95vh] sm:rounded-xl">
+        <div className="border-border flex items-center justify-between border-b px-6 py-4">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-indigo-50 p-2 text-indigo-600">
               <Calendar size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-bold">สร้างบิลค่าเช่า</h2>
-              <p className="text-xs text-gray-500">{dormName}</p>
+              <h2 className="text-foreground text-lg font-bold">
+                สร้างบิลค่าเช่า
+              </h2>
+              <p className="text-muted text-xs">{dormName}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -561,13 +570,13 @@ export default function CreateBillDialog({
             </button>
             <button
               onClick={onClose}
-              className="cursor-pointer rounded-full p-2 text-gray-400 hover:bg-gray-100"
+              className="text-muted hover:bg-background cursor-pointer rounded-full p-2"
             >
               <X size={20} />
             </button>
           </div>
         </div>
-        <div className="relative z-40 flex flex-col items-start justify-between gap-4 border-b border-slate-100 bg-gray-50/50 p-4 lg:flex-row lg:items-center">
+        <div className="border-border bg-background/50 relative z-40 flex flex-col items-start justify-between gap-4 border-b p-4 lg:flex-row lg:items-center">
           <div className="w-full sm:w-auto">
             <MonthYearPicker
               value={selectedDate}
@@ -608,8 +617,8 @@ export default function CreateBillDialog({
                 </button>
               </div>
             ) : (
-              <div className="flex w-full items-center justify-center rounded-lg border border-gray-200 bg-gray-50 px-4 py-2 sm:w-auto">
-                <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+              <div className="border-border bg-background flex w-full items-center justify-center rounded-lg border px-4 py-2 sm:w-auto">
+                <div className="text-muted flex items-center gap-2 text-xs font-medium">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-4 w-4"
@@ -630,7 +639,7 @@ export default function CreateBillDialog({
             )}
           </div>
         </div>
-        <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/30 p-4 pb-20 sm:pb-4">
+        <div className="bg-background/30 flex-1 space-y-4 overflow-y-auto p-4 pb-20 sm:pb-4">
           {items.map((item, index) => (
             <BillItemRow
               key={item.id}
@@ -640,6 +649,7 @@ export default function CreateBillDialog({
               isLoadingRooms={isLoadingRooms}
               isSubmitting={isSubmitting}
               canRemove={items.length > 1}
+              isWaterFlatRate={isWaterFlatRate}
               onRoomSelect={handleRoomSelect}
               onChange={handleChange}
               onRemove={(id) => setItems(items.filter((i) => i.id !== id))}
@@ -656,20 +666,20 @@ export default function CreateBillDialog({
             เพิ่มรายการห้อง
           </button>
         </div>
-        <div className="absolute right-0 bottom-0 left-0 border-t border-slate-100 bg-white p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] sm:relative">
+        <div className="border-border bg-surface absolute right-0 bottom-0 left-0 border-t p-4 shadow-[0_-4px_10px_rgba(0,0,0,0.03)] sm:relative">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-500">{items.length}รายการ</div>
+            <div className="text-muted text-sm">{items.length}รายการ</div>
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="cursor-pointer rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+                className="border-border hover:bg-background cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting || hasNegativeUsage}
-                className={`flex cursor-pointer items-center gap-2 rounded-lg px-8 py-2 font-bold text-white shadow-md transition-all ${isSubmitting || hasNegativeUsage ? "cursor-not-allowed bg-slate-300 shadow-none" : "bg-indigo-600 shadow-indigo-100 hover:bg-indigo-700"} `}
+                className={`flex cursor-pointer items-center gap-2 rounded-lg px-8 py-2 font-bold text-white shadow-md transition-all ${isSubmitting || hasNegativeUsage ? "bg-skeleton cursor-not-allowed shadow-none" : "bg-indigo-600 hover:bg-indigo-700"} `}
               >
                 <Save size={18} />{" "}
                 {isSubmitting ? "กำลังบันทึก..." : "บันทึกและส่งบิล"}
@@ -678,8 +688,8 @@ export default function CreateBillDialog({
           </div>
         </div>
         {showDraftList && (
-          <div className="animate-in slide-in-from-bottom-5 absolute inset-0 z-40 flex flex-col bg-white">
-            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <div className="animate-in slide-in-from-bottom-5 bg-surface absolute inset-0 z-40 flex flex-col">
+            <div className="border-border flex items-center justify-between border-b px-6 py-4">
               <button
                 onClick={() => setShowDraftList(false)}
                 className="flex cursor-pointer items-center gap-2 font-bold text-indigo-600 hover:text-indigo-700"
@@ -687,15 +697,15 @@ export default function CreateBillDialog({
                 <ArrowLeft size={20} />
                 ย้อนกลับ
               </button>
-              <h3 className="flex items-center gap-2 text-lg font-bold">
+              <h3 className="text-foreground flex items-center gap-2 text-lg font-bold">
                 <Clock className="text-indigo-600" />
                 ฉบับร่างทั้งหมด
               </h3>
               <div className="w-10" />
             </div>
-            <div className="flex-1 overflow-y-auto bg-slate-50/50 p-6">
+            <div className="bg-background/50 flex-1 overflow-y-auto p-6">
               {drafts.length === 0 ? (
-                <div className="flex h-full flex-col items-center justify-center text-gray-400">
+                <div className="text-muted flex h-full flex-col items-center justify-center">
                   <p className="text-lg font-medium">ยังไม่มีฉบับร่าง</p>
                 </div>
               ) : (
@@ -704,17 +714,17 @@ export default function CreateBillDialog({
                     <div
                       key={draft.id}
                       onClick={() => useDraft(draft)}
-                      className="group flex cursor-pointer items-center justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:border-indigo-400 hover:shadow-lg"
+                      className="group bg-surface border-border flex cursor-pointer items-center justify-between rounded-2xl border p-5 shadow-sm transition-all hover:border-indigo-400 hover:shadow-lg"
                     >
                       <div className="flex items-center gap-4">
                         <div className="rounded-xl bg-amber-50 p-3 text-amber-600">
                           <FileText size={24} />
                         </div>
                         <div>
-                          <p className="text-base font-bold text-gray-800">
+                          <p className="text-foreground text-base font-bold">
                             {draft.name}
                           </p>
-                          <div className="text-[11px] text-gray-400">
+                          <div className="text-muted text-[11px]">
                             {new Date(draft.updatedAt).toLocaleString()}
                           </div>
                         </div>
@@ -724,7 +734,7 @@ export default function CreateBillDialog({
                           e.stopPropagation();
                           setDraftToDelete(draft.id);
                         }}
-                        className="cursor-pointer p-3 text-gray-300 transition-colors hover:text-red-500"
+                        className="text-muted cursor-pointer p-3 transition-colors hover:text-red-500"
                       >
                         <Trash2 size={20} />
                       </button>
@@ -736,9 +746,9 @@ export default function CreateBillDialog({
           </div>
         )}
         {isSavingDraft && (
-          <div className="animate-in fade-in absolute inset-0 z-50 flex items-center justify-center bg-white px-4">
-            <div className="w-full max-w-sm rounded-3xl bg-white p-8 ring-1 ring-black/5">
-              <h3 className="mb-4 text-xl font-bold text-gray-800">
+          <div className="animate-in fade-in bg-surface absolute inset-0 z-50 flex items-center justify-center px-4">
+            <div className="bg-surface w-full max-w-sm rounded-3xl p-8 ring-1 ring-black/5">
+              <h3 className="text-foreground mb-4 text-xl font-bold">
                 บันทึกฉบับร่าง
               </h3>
               <input
@@ -747,13 +757,13 @@ export default function CreateBillDialog({
                 placeholder="ชื่อฉบับร่าง..."
                 value={draftNameInput}
                 onChange={(e) => setDraftNameInput(e.target.value)}
-                className="mb-6 w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 outline-none focus:border-indigo-500"
+                className="border-border bg-background mb-6 w-full rounded-2xl border px-5 py-4 outline-none focus:border-indigo-500"
                 onKeyDown={(e) => e.key === "Enter" && confirmSaveDraft()}
               />
               <div className="flex gap-4">
                 <button
                   onClick={() => setIsSavingDraft(false)}
-                  className="flex-1 rounded-2xl bg-gray-100 py-4 font-bold text-gray-500"
+                  className="bg-background text-muted flex-1 rounded-2xl py-4 font-bold"
                 >
                   ยกเลิก
                 </button>
@@ -794,7 +804,7 @@ export default function CreateBillDialog({
         description={
           lateFee && lateFee > 0
             ? `รอบบิลนี้จะครบกำหนดชำระในอดีตไปแล้ว บิลที่สร้างจะถูกตั้งเป็น "เกินกำหนด" ทันที และจะถูกคิดค่าปรับล่าช้าตามจำนวนวันที่เกินกำหนด (${lateFee.toLocaleString()} บาท/วัน) คุณแน่ใจหรือไม่ที่จะสร้างบิลนี้?`
-            : "รอบบิลนี้จะครบกำหนดชำระในอดีตไปแล้ว บิลที่สร้างจะถูกตั้งเป็น \"เกินกำหนด\" ทันที คุณแน่ใจหรือไม่ที่จะสร้างบิลนี้?"
+            : 'รอบบิลนี้จะครบกำหนดชำระในอดีตไปแล้ว บิลที่สร้างจะถูกตั้งเป็น "เกินกำหนด" ทันที คุณแน่ใจหรือไม่ที่จะสร้างบิลนี้?'
         }
         type="warning"
         confirmText="ใช่, สร้างบิลย้อนหลัง"

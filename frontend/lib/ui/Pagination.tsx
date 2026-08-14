@@ -20,19 +20,19 @@ export default function Pagination({
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="rounded-lg border border-gray-200 p-2 hover:cursor-pointer hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        className="border-border hover:bg-surface rounded-lg border p-2 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <ChevronLeft className="h-5 w-5 text-gray-600" />
+        <ChevronLeft className="text-muted h-5 w-5" />
       </button>
-      <span className="text-sm font-medium text-gray-700">
+      <span className="text-foreground text-sm font-medium">
         หน้า {currentPage}จาก {totalPages}
       </span>
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="rounded-lg border border-gray-200 p-2 hover:cursor-pointer hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        className="border-border hover:bg-surface rounded-lg border p-2 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <ChevronRight className="h-5 w-5 text-gray-600" />
+        <ChevronRight className="text-muted h-5 w-5" />
       </button>
     </div>
   );

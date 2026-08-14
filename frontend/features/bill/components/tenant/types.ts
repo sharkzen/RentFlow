@@ -62,6 +62,14 @@ export interface IDormitory {
   slug: string;
   description: IDormitoryDescription;
   address: string;
+  contacts: {
+    id: string;
+    name: string | null;
+    phone: string;
+    order: number;
+  }[];
+  lineId: string | null;
+  facebook: string | null;
   latitude: number;
   longitude: number;
   mapUrl: string;
@@ -108,6 +116,7 @@ export interface IBillDetail {
   roomPriceSnapshot: number;
   billingMonth: string;
   dueDate: string;
+  waterBillingTypeSnapshot: "METERED" | "FLAT_RATE";
   prevWaterUnitSnapshot: number;
   currentWaterUnitSnapshot: number;
   waterUsedSnapshot: number;

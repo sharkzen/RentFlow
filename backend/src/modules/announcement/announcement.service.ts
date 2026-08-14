@@ -327,6 +327,7 @@ export const AnnouncementService = {
       action: "CREATE_ANNOUNCEMENT",
       entityType: "Announcement",
       entityId: announcement.id,
+
       metadata: {
         dormitoryId,
         title,
@@ -525,6 +526,7 @@ export const AnnouncementService = {
       action: "TOGGLE_ANNOUNCEMENT_PIN",
       entityType: "Announcement",
       entityId: id,
+
       metadata: {
         isPinned: updated.isPinned,
       },
@@ -562,6 +564,7 @@ export const AnnouncementService = {
       userId: ownerId,
       action: "REORDER_ANNOUNCEMENTS",
       entityType: "Announcement",
+
       metadata: {
         count: items.length,
       },

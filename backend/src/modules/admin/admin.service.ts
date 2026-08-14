@@ -87,11 +87,13 @@ export const AdminService = {
       getBucketSize(),
     ]);
 
-    const dbSizeResult = await prisma.$queryRaw<{ size: bigint }[]>`
-    SELECT pg_database_size(current_database()) as size
-  `;
+    const dbSizeResult = await prisma.$queryRaw<{ total_size: bigint }[]>`
+      SELECT SUM(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename)))::bigint as total_size
+      FROM pg_tables
+      WHERE schemaname = 'public';
+    `;
 
-    const dbSizeBytes = Number(dbSizeResult[0]?.size || 0);
+    const dbSizeBytes = Number(dbSizeResult[0]?.total_size || 0);
     const r2SizeBytes = r2Stats.totalSizeBytes;
     const dbFormatted = formatBytes(dbSizeBytes);
     const r2Formatted = formatBytes(r2SizeBytes);
@@ -378,6 +380,7 @@ export const AdminService = {
       action: "REJECT_OWNER",
       entityType: "OwnerProfile",
       entityId: id,
+
       metadata: {
         ownerName,
       },
@@ -578,7 +581,11 @@ export const AdminService = {
     };
   },
 
-  togglePublish: async (id: string, isPublished: boolean, adminUserId: string) => {
+  togglePublish: async (
+    id: string,
+    isPublished: boolean,
+    adminUserId: string,
+  ) => {
     const result = await prisma.dormitory.update({
       where: {
         id,
@@ -594,6 +601,7 @@ export const AdminService = {
       action: "TOGGLE_DORM_PUBLISH",
       entityType: "Dormitory",
       entityId: id,
+
       metadata: {
         isPublished,
       },
@@ -618,6 +626,7 @@ export const AdminService = {
       action: "UPDATE_DORM_STATUS_ADMIN",
       entityType: "Dormitory",
       entityId: id,
+
       metadata: {
         status,
       },
@@ -672,6 +681,7 @@ export const AdminService = {
       action: "TOGGLE_DORM_FEATURED",
       entityType: "Dormitory",
       entityId: id,
+
       metadata: {
         isFeatured,
       },
@@ -726,7 +736,10 @@ export const AdminService = {
   },
 
   reorderFeatured: async (
-    items: { id: string; order: number }[],
+    items: {
+      id: string;
+      order: number;
+    }[],
     adminUserId: string,
   ) => {
     await prisma.$transaction(
@@ -747,6 +760,7 @@ export const AdminService = {
       userId: adminUserId,
       action: "REORDER_FEATURED_DORMS",
       entityType: "Dormitory",
+
       metadata: {
         count: items.length,
       },
@@ -944,9 +958,77 @@ export const AdminService = {
       action: "UPDATE_USER_STATUS",
       entityType: "User",
       entityId: userId,
+
       metadata: {
         status,
       },
+    });
+
+    return result;
+  },
+
+  getLockedUsers: async (page: number, limit: number) => {
+    const skip = (page - 1) * limit;
+
+    const whereCondition: Prisma.UserWhereInput = {
+      lockedUntil: {
+        gt: new Date(),
+      },
+    };
+
+    const [total, items] = await prisma.$transaction([
+      prisma.user.count({
+        where: whereCondition,
+      }),
+      prisma.user.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+
+        orderBy: {
+          lockedUntil: "asc",
+        },
+
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          lockedUntil: true,
+          failedLoginAttempts: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+
+    return {
+      data: items,
+
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  },
+
+  unlockUser: async (userId: string, adminUserId: string) => {
+    const result = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+
+      data: {
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+      },
+    });
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "UNLOCK_ACCOUNT",
+      entityType: "User",
+      entityId: userId,
     });
 
     return result;
@@ -1036,6 +1118,7 @@ export const AdminService = {
       action: "CREATE_LANDMARK",
       entityType: "Landmark",
       entityId: result.id,
+
       metadata: {
         name: data.name,
       },
@@ -1106,5 +1189,4 @@ export const AdminService = {
 
     return result;
   },
-
 };

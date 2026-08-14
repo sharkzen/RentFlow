@@ -39,17 +39,28 @@ export function verifyRefreshToken(
   }
 }
 
-export const signResetToken = (payload: { sub: string }) => {
+type ResetSessionPayload = {
+  sub: string;
+  purpose: "password_reset";
+  otpId: string;
+};
+
+export const signResetSessionToken = (payload: ResetSessionPayload) => {
   return jwt.sign(payload, RESET_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "2m",
   });
 };
 
-export const verifyResetToken = (token: string) => {
+export const verifyResetSessionToken = (token: string) => {
   try {
-    return jwt.verify(token, RESET_SECRET) as {
-      sub: string;
-    };
+    const payload = jwt.verify(token, RESET_SECRET) as ResetSessionPayload &
+      JwtPayload;
+
+    if (payload.purpose !== "password_reset") {
+      throw new Error("INVALID_OR_EXPIRED_TOKEN");
+    }
+
+    return payload;
   } catch (error) {
     throw new Error("INVALID_OR_EXPIRED_TOKEN");
   }

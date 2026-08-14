@@ -11,14 +11,14 @@ interface DormitoryProps {
 export default function Dormitory({ dorms, total = 0 }: DormitoryProps) {
   if (!dorms || dorms.length === 0) {
     return (
-      <div className="flex w-full flex-col items-center justify-center border border-dashed border-slate-300 bg-white/50 py-32 text-center sm:rounded-3xl">
-        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50 ring-8 ring-slate-100/50">
-          <Frown className="h-10 w-10 text-slate-400" />
+      <div className="border-border bg-surface/50 flex w-full flex-col items-center justify-center border border-dashed py-32 text-center sm:rounded-3xl">
+        <div className="bg-background mb-6 flex h-20 w-20 items-center justify-center rounded-full ring-8 ring-black/5">
+          <Frown className="text-muted h-10 w-10" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900">
+        <h3 className="text-foreground text-xl font-bold">
           ไม่พบหอพักที่คุณค้นหา
         </h3>
-        <p className="mt-2 max-w-md text-slate-500">
+        <p className="text-muted mt-2 max-w-md">
           ลองปรับเปลี่ยนคำค้นหา เลือกทำเลอื่น หรือลบตัวกรองออก
           เพื่อดูหอพักเพิ่มเติม
         </p>
@@ -29,21 +29,21 @@ export default function Dormitory({ dorms, total = 0 }: DormitoryProps) {
   return (
     <Element name="dorm-results" className="w-full">
       <div suppressHydrationWarning data-aos="fade-up" className="w-full">
-        <div className="mb-8 flex flex-col gap-4 border-b border-slate-200 px-2 pb-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="border-border mb-8 flex flex-col gap-4 border-b px-2 pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-yellow-500" />
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+              <h2 className="text-foreground text-2xl font-bold tracking-tight md:text-3xl">
                 หอพักแนะนำ
               </h2>
             </div>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="text-muted mt-1 text-sm">
               เราคัดสรรหอพักคุณภาพดี ในทำเลที่คุณต้องการ
             </p>
           </div>
           <div className="text-right">
-            <span className="text-sm font-medium text-slate-500">
-              ทั้งหมด <span className="font-bold text-slate-900">{total}</span>{" "}
+            <span className="text-muted text-sm font-medium">
+              ทั้งหมด <span className="text-foreground font-bold">{total}</span>{" "}
               รายการ
             </span>
           </div>

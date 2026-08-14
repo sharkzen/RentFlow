@@ -40,7 +40,7 @@ export default function DatePickerTh({
 
   return (
     <div className="w-full">
-      <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-gray-700">
+      <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold text-gray-700 dark:text-white">
         {label} {required && <span className="text-red-500">*</span>}
         <Calendar size={15} />
       </label>
@@ -61,10 +61,10 @@ export default function DatePickerTh({
           dateFormat="d MMMM yyyy"
           locale="th"
           placeholderText="เลือกวันที่"
-          withPortal={isMobile}
+          withPortal={true}
           fixedHeight
           popperPlacement="bottom-start"
-          className="h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white pr-3 pl-5 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none"
+          className="dark:bg-surface h-10 w-full cursor-pointer rounded-lg border border-gray-300 bg-white pr-3 pl-5 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none dark:border-gray-600"
           renderCustomHeader={({
             date,
             changeYear,

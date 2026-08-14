@@ -49,7 +49,6 @@ export default function ApprovalContainer() {
   });
 
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
-
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -66,6 +65,7 @@ export default function ApprovalContainer() {
 
     try {
       const res = await AdminService.getPendingList(page, 10, debouncedSearch);
+
       if (isMountedRef.current) {
         setData(res.data);
         setTotalPages(res.meta.totalPages);
@@ -140,46 +140,46 @@ export default function ApprovalContainer() {
     <div className="space-y-6 pb-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="flex items-center gap-3 text-2xl font-bold text-gray-800">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-200">
+          <h2 className="text-foreground flex items-center gap-3 text-2xl font-bold">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
               <UserCheck size={20} />
             </div>
             อนุมัติผู้ประกอบการ
           </h2>
-          <p className="mt-1 pl-13 text-sm text-gray-500">
+          <p className="text-muted mt-1 pl-13 text-sm">
             จัดการคำขอสมัครสมาชิกและตรวจสอบข้อมูลหอพัก
           </p>
         </div>
         <div className="relative w-full md:w-72">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search className="h-4 w-4 text-gray-400" />
+            <Search className="text-muted h-4 w-4" />
           </div>
           <input
             type="text"
-            className="block w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-3 pl-10 text-sm text-gray-900 duration-300 placeholder:text-gray-400 focus:border-blue-600 focus:outline-none"
+            className="border-border bg-surface text-foreground placeholder:text-muted block w-full rounded-xl border py-2.5 pr-3 pl-10 text-sm duration-300 focus:border-blue-600 focus:outline-none"
             placeholder="ค้นหาชื่อ, อีเมล, เบอร์โทร..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+      <div className="border-border bg-surface overflow-hidden rounded-2xl border">
         {loading ? (
           <div className="flex h-64 items-center justify-center">
             <div className="flex flex-col items-center gap-3">
               <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
-              <p className="text-sm text-gray-400">กำลังโหลดข้อมูล...</p>
+              <p className="text-muted text-sm">กำลังโหลดข้อมูล...</p>
             </div>
           </div>
         ) : data.length === 0 ? (
           <div className="flex h-64 flex-col items-center justify-center text-center">
-            <div className="rounded-full bg-gray-50 p-4">
-              <UserCheck className="h-8 w-8 text-gray-300" />
+            <div className="bg-background rounded-full p-4">
+              <UserCheck className="text-muted h-8 w-8" />
             </div>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+            <h3 className="text-foreground mt-4 text-lg font-medium">
               ไม่พบรายการที่รออนุมัติ
             </h3>
-            <p className="text-gray-500">
+            <p className="text-muted">
               ไม่มีคำขอใหม่ในขณะนี้ หรือลองปรับคำค้นหา
             </p>
           </div>
@@ -187,7 +187,7 @@ export default function ApprovalContainer() {
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="border-b border-gray-100 bg-gray-50/50 text-xs tracking-wider text-gray-500 uppercase">
+                <thead className="border-border bg-background/50 text-muted border-b text-xs tracking-wider uppercase">
                   <tr>
                     <th className="px-6 py-4 font-semibold">
                       ผู้สมัคร (Owner)
@@ -202,11 +202,11 @@ export default function ApprovalContainer() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-border divide-y">
                   {data.map((item) => (
                     <tr
                       key={item.id}
-                      className="group transition-colors hover:bg-gray-50/80"
+                      className="group hover:bg-background/80 transition-colors"
                     >
                       <td
                         onClick={() => setSelectedItem(item)}
@@ -217,10 +217,10 @@ export default function ApprovalContainer() {
                             {item.fullName.charAt(0)}
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900">
+                            <p className="text-foreground font-semibold">
                               {item.fullName}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-muted text-xs">
                               {item.user.email}
                             </p>
                           </div>
@@ -232,11 +232,11 @@ export default function ApprovalContainer() {
                       >
                         <div className="space-y-1">
                           {item.phone ? (
-                            <p className="flex items-center gap-1.5 text-gray-600">
+                            <p className="text-muted flex items-center gap-1.5">
                               <Phone size={12} /> {item.phone}
                             </p>
                           ) : (
-                            <span className="text-xs text-gray-400">-</span>
+                            <span className="text-muted text-xs">-</span>
                           )}
                           {item.lineId && (
                             <p className="flex items-center gap-1.5 text-xs text-green-600">
@@ -248,7 +248,7 @@ export default function ApprovalContainer() {
                       </td>
                       <td
                         onClick={() => setSelectedItem(item)}
-                        className="cursor-pointer px-6 py-4 whitespace-nowrap text-gray-500"
+                        className="text-muted cursor-pointer px-6 py-4 whitespace-nowrap"
                       >
                         {format(new Date(item.createdAt), "d MMM yy HH:mm", {
                           locale: th,
@@ -263,19 +263,19 @@ export default function ApprovalContainer() {
                             {item.dormitories.length}หอพัก
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-400">-</span>
+                          <span className="text-muted text-xs">-</span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => setSelectedItem(item)}
-                            className="cursor-pointer rounded-lg border border-gray-200 bg-white p-2 text-gray-500 shadow-sm transition-colors hover:bg-gray-50 hover:text-blue-600"
+                            className="border-border bg-surface text-muted hover:bg-background cursor-pointer rounded-lg border p-2 shadow-sm transition-colors hover:text-blue-600"
                             title="ดูรายละเอียด"
                           >
                             <Eye size={16} />
                           </button>
-                          <div className="mx-1 h-4 w-px bg-gray-200"></div>
+                          <div className="bg-border mx-1 h-4 w-px"></div>
                           <button
                             onClick={() => openRejectConfirm(item)}
                             className="cursor-pointer rounded-lg bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100"
@@ -297,25 +297,27 @@ export default function ApprovalContainer() {
                 </tbody>
               </table>
             </div>
-            <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50 px-6 py-4">
-              <p className="text-sm text-gray-500">
+            <div className="border-border bg-background flex items-center justify-between border-t px-6 py-4">
+              <p className="text-muted text-sm">
                 แสดง{" "}
-                <span className="font-medium text-gray-900">
+                <span className="text-foreground font-medium">
                   {(page - 1) * 10 + 1}
                 </span>{" "}
                 ถึง{" "}
-                <span className="font-medium text-gray-900">
+                <span className="text-foreground font-medium">
                   {Math.min(page * 10, totalItems)}
                 </span>{" "}
                 จาก{" "}
-                <span className="font-medium text-gray-900">{totalItems}</span>{" "}
+                <span className="text-foreground font-medium">
+                  {totalItems}
+                </span>{" "}
                 รายการ
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="border-border bg-surface text-muted hover:bg-background flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <ChevronLeft size={16} />
                   ก่อนหน้า
@@ -323,7 +325,7 @@ export default function ApprovalContainer() {
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="border-border bg-surface text-muted hover:bg-background flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   ถัดไป <ChevronRight size={16} />
                 </button>

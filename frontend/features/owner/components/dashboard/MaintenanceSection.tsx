@@ -1,4 +1,5 @@
 "use client";
+import AnimatedNumber from "@/components/ui/AnimatedNumber";
 import { Wrench, FileText, AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
@@ -7,10 +8,10 @@ const MaintenanceCard = ({ title, value, total, color, icon }: any) => {
 
   const colors: any = {
     gray: {
-      text: "text-gray-900",
-      bg: "bg-gray-400",
-      bgLight: "bg-gray-100",
-      icon: "text-gray-400",
+      text: "text-foreground",
+      bg: "bg-muted",
+      bgLight: "bg-background",
+      icon: "text-muted",
     },
 
     red: {
@@ -38,13 +39,13 @@ const MaintenanceCard = ({ title, value, total, color, icon }: any) => {
   const theme = colors[color] || colors.gray;
 
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+    <div className="border-border bg-surface rounded-2xl border p-5 shadow-sm transition-all hover:shadow-md">
       <div className="flex items-center justify-between">
-        <span className="font-medium text-gray-500">{title}</span>
+        <span className="text-muted font-medium">{title}</span>
         <div className={theme.icon}>{icon}</div>
       </div>
       <div className={`mt-2 text-3xl font-extrabold ${theme.text}`}>
-        {value}
+        <AnimatedNumber value={value} />
       </div>
       <div className={`mt-2 h-1.5 w-full rounded-full ${theme.bgLight}`}>
         <div
@@ -59,16 +60,16 @@ const MaintenanceCard = ({ title, value, total, color, icon }: any) => {
 };
 
 export const MaintenanceSection = ({ overview, monthLabel, year }: any) => {
-  const total = overview.maintenance.total;
+  const total = overview?.maintenance.total;
 
   return (
     <div>
-      <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-gray-800">
+      <h2 className="text-foreground mb-4 flex items-center gap-2 text-lg font-bold">
         <Wrench className="text-orange-500" size={20} />
         การแจ้งซ่อม ({monthLabel} {year})
       </h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Link href={`/owner/maintenance?filter=ALL&dormId=${overview.dormId}`}>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(228px,1fr))] gap-4">
+        <Link href={`/owner/maintenance?filter=ALL&dormId=${overview?.dormId}`}>
           <MaintenanceCard
             title="แจ้งซ่อมทั้งหมด"
             value={total}
@@ -77,32 +78,34 @@ export const MaintenanceSection = ({ overview, monthLabel, year }: any) => {
             icon={<FileText size={20} />}
           />
         </Link>
-        <Link href={`/owner/maintenance?filter=OPEN&dormId=${overview.dormId}`}>
+        <Link
+          href={`/owner/maintenance?filter=OPEN&dormId=${overview?.dormId}`}
+        >
           <MaintenanceCard
             title="แจ้งแล้ว (รอรับเรื่อง)"
-            value={overview.maintenance.open}
+            value={overview?.maintenance.open}
             total={total}
             color="red"
             icon={<AlertCircle size={20} />}
           />
         </Link>
         <Link
-          href={`/owner/maintenance?filter=IN_PROGRESS&dormId=${overview.dormId}`}
+          href={`/owner/maintenance?filter=IN_PROGRESS&dormId=${overview?.dormId}`}
         >
           <MaintenanceCard
             title="กำลังดำเนินการ"
-            value={overview.maintenance.inProgress}
+            value={overview?.maintenance.inProgress}
             total={total}
             color="orange"
             icon={<Wrench size={20} />}
           />
         </Link>
         <Link
-          href={`/owner/maintenance?filter=COMPLETED&dormId=${overview.dormId}`}
+          href={`/owner/maintenance?filter=COMPLETED&dormId=${overview?.dormId}`}
         >
           <MaintenanceCard
             title="ซ่อมเสร็จแล้ว"
-            value={overview.maintenance.completed}
+            value={overview?.maintenance.completed}
             total={total}
             color="green"
             icon={<CheckCircle2 size={20} />}

@@ -108,21 +108,21 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
     <>
       <form
         onSubmit={handlePreSubmit}
-        className="rounded-2xl border border-gray-100 bg-white p-6"
+        className="border-border bg-surface rounded-2xl border p-6"
       >
         <div className="space-y-6">
           <div>
-            <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+            <h3 className="text-foreground flex items-center gap-2 text-lg font-bold">
               📝 รายละเอียดการแจ้งซ่อม
             </h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="text-muted mt-1 text-sm">
               กรุณาระบุข้อมูลให้ครบถ้วนเพื่อให้เจ้าหน้าที่ดำเนินการได้รวดเร็ว
             </p>
           </div>
-          <hr className="border-gray-100" />
+          <hr className="border-border" />
           <div className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+              <label className="text-foreground mb-1.5 block text-sm font-semibold">
                 หัวข้อปัญหา <span className="text-red-500">*</span>
               </label>
               <input
@@ -130,42 +130,40 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="เช่น แอร์ไม่เย็น, ท่อน้ำรั่ว, ไฟดับ"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                className="border-border bg-background text-foreground placeholder:text-muted focus:bg-surface w-full rounded-xl border px-4 py-2.5 transition-all outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 required
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+              <label className="text-foreground mb-1.5 block text-sm font-semibold">
                 รายละเอียดเพิ่มเติม
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="ระบุอาการอย่างละเอียด หรือช่วงเวลาที่สะดวกให้เข้าซ่อม..."
+                placeholder="ระบุอาการอย่างละเอียด"
                 rows={4}
-                className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-2.5 text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                className="border-border bg-background text-foreground placeholder:text-muted focus:bg-surface w-full resize-none rounded-xl border px-4 py-2.5 transition-all outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
           </div>
           <div>
-            <label className="mb-2 block text-sm font-semibold text-gray-700">
+            <label className="text-foreground mb-2 block text-sm font-semibold">
               รูปประกอบ (สูงสุด 2 รูป)
             </label>
             {files.length < 2 && (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="group relative flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50/50"
+                className="border-border bg-background group relative flex h-32 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all duration-200 hover:border-blue-300 hover:bg-blue-50/50"
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <div className="mb-2 rounded-full bg-white p-3 shadow-sm transition-transform group-hover:scale-110">
+                  <div className="bg-surface mb-2 rounded-full p-3 shadow-sm transition-transform group-hover:scale-110">
                     <UploadCloud className="h-6 w-6 text-blue-500" />
                   </div>
-                  <p className="mb-1 text-sm font-medium text-gray-500 group-hover:text-blue-600">
+                  <p className="text-muted mb-1 text-sm font-medium group-hover:text-blue-600">
                     คลิกเพื่ออัปโหลดรูปภาพ
                   </p>
-                  <p className="text-xs text-gray-400">
-                    PNG, JPG (ไม่เกิน 2 รูป)
-                  </p>
+                  <p className="text-muted text-xs">PNG, JPG (ไม่เกิน 2 รูป)</p>
                 </div>
                 <input
                   type="file"
@@ -182,7 +180,7 @@ export default function RequestForm({ onSuccess }: RequestFormProps) {
                 {previews.map((url, index) => (
                   <div
                     key={url}
-                    className="relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+                    className="border-border bg-surface relative aspect-square overflow-hidden rounded-xl border shadow-sm"
                   >
                     <img
                       src={url}
