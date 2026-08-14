@@ -1,15 +1,38 @@
-# โดเมนหลัก วิ่งไปหา Next.js (Frontend)
-yourdomain.com {
-    reverse_proxy frontend:3000
+# DuckDNS ฟรีให้แค่ 1 record (rentflow.duckdns.org) ต่อ subdomain
+# ไม่มี wildcard/subdomain ย่อยให้ใช้ (api.rentflow.duckdns.org จะ resolve ไม่ได้)
+# เลยแยก route ด้วย path แทนบนโดเมนเดียว
+
+rentflow.duckdns.org {
+    # /api/* วิ่งไปหา Fastify (Backend)
+    # backend routes ทั้งหมดอยู่ใต้ prefix /api อยู่แล้ว (ดู backend/src/app.ts) จึงไม่ต้อง strip path
+    # backend สามารถ scale เป็นหลาย instance ได้ (docker compose up -d --scale backend=N)
+    # Caddy จะ resolve DNS ของ service "backend" ใหม่ทุกครั้งที่ dial connection
+    # ทำให้กระจาย request แบบ round-robin ไปทุก instance โดยอัตโนมัติ
+    handle /api/* {
+        reverse_proxy backend:3001
+    }
+
+    # /health ของ backend เอาไว้เช็คสถานะจากภายนอกได้ด้วย (ไม่ได้อยู่ใต้ /api prefix)
+    handle /health {
+        reverse_proxy backend:3001
+    }
+
+    # /public/* คือรูปภาพ/ไฟล์ static ที่ backend serve เอง (fastifyStatic, ดู app.ts)
+    handle /public/* {
+        reverse_proxy backend:3001
+    }
+
+    # /docs คือ Swagger API docs ของ backend (ดู config/swagger.ts)
+    handle /docs* {
+        reverse_proxy backend:3001
+    }
+
+    # ที่เหลือทั้งหมดวิ่งไปหา Next.js (Frontend)
+    handle {
+        reverse_proxy frontend:3000
+    }
 }
 
-# ซับโดเมน API วิ่งไปหา Fastify (Backend)
-api.yourdomain.com {
-    reverse_proxy backend:3001
-}
-
-# (ทางเลือก) ซับโดเมนสำหรับ pgAdmin เพื่อจัดการ Database ผ่านหน้าเว็บ
-# แนะนำให้ตั้งรหัสผ่าน pgAdmin ให้คาดเดายากที่สุดถ้าเปิดใช้อันนี้
-db.yourdomain.com {
-    reverse_proxy pgadmin:80
-}
+# pgAdmin: แนะนำเข้าผ่าน SSH tunnel แทนเปิดเป็น public subdomain
+# (DuckDNS ไม่มี subdomain ย่อยให้ใช้ และ pgAdmin ต้องตั้งค่าเพิ่มถ้าจะรันใต้ path)
+# ตัวอย่าง: ssh -L 5050:localhost:5050 shark@<vps-ip>  แล้วเข้า http://localhost:5050

@@ -34,7 +34,7 @@ services:
 
   backend:
     build: ./backend
-    container_name: rentflow-backend
+    # ไม่มี container_name เพื่อให้ scale เป็นหลาย instance ได้ (docker compose up -d --scale backend=N)
     restart: unless-stopped
     depends_on:
       postgres:
@@ -44,6 +44,12 @@ services:
     env_file:
       - ./backend/.env.production # แนะนำให้แยก .env เป็นของ prod
     # ลบ ports: - "3001:3001" ออก
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     logging: *default-logging
 
   postgres:
@@ -70,7 +76,8 @@ services:
       - ./backend/.env.production # ซ่อน PGADMIN_DEFAULT_PASSWORD ไว้ในนี้
     environment:
       PGADMIN_CONFIG_SERVER_MODE: "True" # บน Prod ควรเป็น True เพื่อความปลอดภัย
-    # ลบ ports: - "5050:80" ออก
+    ports:
+      - "127.0.0.1:5050:80" # bind เฉพาะ localhost เข้าผ่าน SSH tunnel เท่านั้น ไม่เปิด public
     depends_on:
       postgres:
         condition: service_healthy

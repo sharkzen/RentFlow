@@ -70,6 +70,10 @@ export async function buildApp() {
     prefix: "/public/",
   });
 
+  app.get("/health", async (_request, reply) => {
+    reply.status(200).send({ status: "ok" });
+  });
+
   app.get("/api/status", {
     preHandler: [authMiddleware, authRoleMiddleware([Role.ADMIN])],
   }, async (request, reply) => {
