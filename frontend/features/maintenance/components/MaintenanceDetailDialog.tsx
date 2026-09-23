@@ -370,7 +370,7 @@ export default function MaintenanceDetailDialog({
                     <button
                       onClick={() => triggerUpdateStatus("IN_PROGRESS")}
                       disabled={isLoading}
-                      className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-700 active:scale-95 sm:w-auto"
+                      className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition-all hover:bg-blue-700 active:scale-95 sm:w-auto dark:shadow-none"
                     >
                       <CheckCircle size={18} />
                       รับเรื่อง / ดำเนินการ
@@ -381,7 +381,7 @@ export default function MaintenanceDetailDialog({
                   <button
                     onClick={() => triggerUpdateStatus("COMPLETED")}
                     disabled={isLoading}
-                    className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-green-500/20 transition-all hover:bg-green-700 active:scale-95 sm:w-auto"
+                    className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-green-500/20 transition-all hover:bg-green-700 active:scale-95 sm:w-auto dark:shadow-none"
                   >
                     <CheckCircle size={18} />
                     เสร็จสิ้น / ปิดงาน

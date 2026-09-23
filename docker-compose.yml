@@ -2,7 +2,10 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
+      args:
+        API_URL: http://backend:3001
+        NEXT_PUBLIC_SITE_URL: https://fruit-that-suite-taxi.trycloudflare.com
     container_name: rentflow-frontend
     restart: unless-stopped
     depends_on:
@@ -11,10 +14,6 @@ services:
       API_URL: http://backend:3001
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
-      - frontend_next:/app/.next
 
   backend:
     build:
@@ -33,7 +32,7 @@ services:
       DATABASE_URL: postgresql://rentflow:rentflow@postgres:5432/rentflow
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      OCR_SERVICE_URL: http://ocr-service:8899
+      OCR_SERVICE_URL: http://ocr-service:8899/scan
     ports:
       - "3001:3001"
     volumes:
@@ -97,15 +96,14 @@ services:
       DATABASE_URL: postgresql://rentflow:rentflow@postgres:5432/rentflow
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      OCR_SERVICE_URL: http://ocr-service:8899
+      OCR_SERVICE_URL: http://ocr-service:8899/scan
       TZ: Asia/Bangkok
     volumes:
       - ./backend:/app
-      - backend_node_modules:/app/node_modules
+      - worker_node_modules:/app/node_modules
 
 volumes:
   postgres_data:
   redis_data:
   backend_node_modules:
-  frontend_node_modules:
-  frontend_next:
+  worker_node_modules:

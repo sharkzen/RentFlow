@@ -392,7 +392,7 @@ export default function DormFilter() {
             </div>
             <button
               onClick={handleSearchClick}
-              className="group relative flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-linear-to-r from-blue-600 to-cyan-500 py-3.5 pr-8 pl-6 text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] hover:shadow-blue-500/50 active:scale-95 md:flex-none"
+              className="group relative flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-full bg-linear-to-r from-blue-600 to-cyan-500 py-3.5 pr-8 pl-6 text-white shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] hover:shadow-blue-500/50 active:scale-95 md:flex-none dark:shadow-none dark:hover:shadow-none"
             >
               <Search className="h-5 w-5 transition-transform group-hover:scale-110" />
               <span className="text-base font-bold whitespace-nowrap">

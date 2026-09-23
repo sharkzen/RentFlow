@@ -1,3 +1,27 @@
+import fs from "fs";
+import path from "path";
+
+const fontDataUriCache = new Map<string, string>();
+
+const getFontDataUri = (publicPath: string, fileName: string): string => {
+  const cacheKey = `${publicPath}/${fileName}`;
+
+  if (fontDataUriCache.has(cacheKey)) {
+    return fontDataUriCache.get(cacheKey)!;
+  }
+
+  const base64 = fs.readFileSync(
+    path.join(publicPath, "fonts", fileName),
+    "base64",
+  );
+
+  const dataUri = `data:font/ttf;base64,${base64}`;
+
+  fontDataUriCache.set(cacheKey, dataUri);
+
+  return dataUri;
+};
+
 export const buildBulkBillHtmlTemplate = (
   billsData: {
     bill: any;
@@ -206,19 +230,19 @@ export const buildBulkBillHtmlTemplate = (
           font-family: 'Sarabun';
           font-style: normal;
           font-weight: 400;
-          src: url('file:///${publicPath}/fonts/Sarabun-Regular.ttf') format('truetype');
+          src: url('${getFontDataUri(publicPath, "Sarabun-Regular.ttf")}') format('truetype');
         }
         @font-face {
           font-family: 'Sarabun';
           font-style: normal;
           font-weight: 700;
-          src: url('file:///${publicPath}/fonts/Sarabun-Bold.ttf') format('truetype');
+          src: url('${getFontDataUri(publicPath, "Sarabun-Bold.ttf")}') format('truetype');
         }
         @font-face {
           font-family: 'Sarabun';
           font-style: normal;
           font-weight: 800;
-          src: url('file:///${publicPath}/fonts/Sarabun-ExtraBold.ttf') format('truetype');
+          src: url('${getFontDataUri(publicPath, "Sarabun-ExtraBold.ttf")}') format('truetype');
         }
         body {
           font-family: 'Sarabun', sans-serif;

@@ -162,7 +162,7 @@ export default function BillContainer() {
                   <button
                     key={p}
                     onClick={() => handlePageChange(p)}
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold transition-all active:scale-95 ${page === p ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" : "text-muted hover:bg-background hover:text-foreground"}`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl text-sm font-bold transition-all active:scale-95 ${page === p ? "bg-indigo-600 text-white shadow-md shadow-indigo-200 dark:shadow-none" : "text-muted hover:bg-background hover:text-foreground"}`}
                   >
                     {p}
                   </button>

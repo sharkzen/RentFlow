@@ -99,7 +99,7 @@ export default function BillSlugContainer() {
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             onClick={() => router.push("/tenant/bills")}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-200 transition-all hover:bg-slate-800 active:scale-95"
+            className="flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-200 transition-all hover:bg-slate-800 active:scale-95 dark:shadow-none"
           >
             <ChevronLeft size={18} />
             กลับไปหน้ารายการบิล
@@ -205,7 +205,7 @@ export default function BillSlugContainer() {
     return (
       <button
         onClick={() => setIsPayModalOpen(true)}
-        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-xl active:scale-95"
+        className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-xl active:scale-95 dark:shadow-none dark:hover:shadow-none"
       >
         <CreditCard size={18} className="shrink-0" />
         <span className="truncate">

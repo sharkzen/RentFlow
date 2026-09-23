@@ -1,3 +1,27 @@
+import fs from "fs";
+import path from "path";
+
+const fontDataUriCache = new Map<string, string>();
+
+const getFontDataUri = (publicPath: string, fileName: string): string => {
+  const cacheKey = `${publicPath}/${fileName}`;
+
+  if (fontDataUriCache.has(cacheKey)) {
+    return fontDataUriCache.get(cacheKey)!;
+  }
+
+  const base64 = fs.readFileSync(
+    path.join(publicPath, "fonts", fileName),
+    "base64",
+  );
+
+  const dataUri = `data:font/ttf;base64,${base64}`;
+
+  fontDataUriCache.set(cacheKey, dataUri);
+
+  return dataUri;
+};
+
 export const buildBulkQrHtmlTemplate = (
   qrDataList: {
     roomNumber: string;
@@ -78,6 +102,11 @@ export const buildBulkQrHtmlTemplate = (
     })
     .join("");
 
+  const regularFont = getFontDataUri(publicPath, "IBMPlexSansThai-Regular.ttf");
+  const mediumFont = getFontDataUri(publicPath, "IBMPlexSansThai-Medium.ttf");
+  const semiBoldFont = getFontDataUri(publicPath, "IBMPlexSansThai-SemiBold.ttf");
+  const boldFont = getFontDataUri(publicPath, "IBMPlexSansThai-Bold.ttf");
+
   return `
     <!DOCTYPE html>
     <html>
@@ -85,28 +114,34 @@ export const buildBulkQrHtmlTemplate = (
       <meta charset="UTF-8">
       <style>
         @font-face {
-          font-family: 'Sarabun';
+          font-family: 'IBM Plex Sans Thai';
           font-style: normal;
           font-weight: 400;
-          src: url('file:///${publicPath}/fonts/Sarabun-Regular.ttf') format('truetype');
+          src: url('${regularFont}') format('truetype');
         }
         @font-face {
-          font-family: 'Sarabun';
+          font-family: 'IBM Plex Sans Thai';
+          font-style: normal;
+          font-weight: 500;
+          src: url('${mediumFont}') format('truetype');
+        }
+        @font-face {
+          font-family: 'IBM Plex Sans Thai';
           font-style: normal;
           font-weight: 600;
-          src: url('file:///${publicPath}/fonts/Sarabun-SemiBold.ttf') format('truetype');
+          src: url('${semiBoldFont}') format('truetype');
         }
         @font-face {
-          font-family: 'Sarabun';
+          font-family: 'IBM Plex Sans Thai';
           font-style: normal;
           font-weight: 700;
-          src: url('file:///${publicPath}/fonts/Sarabun-Bold.ttf') format('truetype');
+          src: url('${boldFont}') format('truetype');
         }
 
         * { box-sizing: border-box; }
 
         body {
-          font-family: 'Sarabun', sans-serif;
+          font-family: 'IBM Plex Sans Thai', sans-serif;
           margin: 0;
           padding: 0;
           background-color: #ffffff;

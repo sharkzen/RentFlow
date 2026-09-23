@@ -1,6 +1,7 @@
 import React from "react";
 import { OwnerUser } from "@/features/admin";
 import { Eye, UserCircle2 } from "lucide-react";
+import { formatThaiDate } from "@/lib/dateFormatter";
 
 interface UserTableProps {
   data: OwnerUser[];
@@ -126,7 +127,7 @@ export default function UserTable({
                     </span>
                   </td>
                   <td className="text-muted px-6 py-4 text-center text-xs">
-                    {new Date(user.createdAt).toLocaleDateString("th-TH")}
+                    {formatThaiDate(user.createdAt, "compact-datetime")}
                   </td>
                   <td className="px-6 py-4 text-center">
                     {renderStatusBadge(user.status)}

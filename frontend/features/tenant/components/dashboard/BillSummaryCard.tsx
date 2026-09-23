@@ -12,7 +12,7 @@ interface Props {
 export default function BillSummaryCard({ bill }: Props) {
   if (!bill) {
     return (
-      <div className="flex min-h-[180px] flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white shadow-lg shadow-emerald-100">
+      <div className="flex min-h-[180px] flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white shadow-lg shadow-emerald-100 dark:shadow-none">
         <CheckCircle2 size={48} className="mb-3 opacity-90" />
         <h2 className="text-xl font-bold">ไม่มียอดค้างชำระ</h2>
         <p className="text-sm text-emerald-100">ขอบคุณที่ชำระเงินตรงเวลาครับ</p>
@@ -41,8 +41,8 @@ export default function BillSummaryCard({ bill }: Props) {
 
   const isOverdue = bill.status === "OVERDUE";
   const bgClass = isOverdue
-    ? "from-red-600 to-orange-600 shadow-red-200"
-    : "from-indigo-600 to-violet-600 shadow-indigo-200";
+    ? "from-red-600 to-orange-600 shadow-red-200 dark:shadow-none"
+    : "from-indigo-600 to-violet-600 shadow-indigo-200 dark:shadow-none";
 
   return (
     <div

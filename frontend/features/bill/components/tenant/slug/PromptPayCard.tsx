@@ -148,7 +148,7 @@ export const PromptPayCard = ({
       <button
         onClick={handleDownload}
         disabled={isSaving}
-        className="flex cursor-pointer items-center gap-2 rounded-full bg-[#1A3761] px-8 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:scale-105 hover:bg-[#13294b] active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
+        className="flex cursor-pointer items-center gap-2 rounded-full bg-[#1A3761] px-8 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition-all hover:scale-105 hover:bg-[#13294b] active:scale-95 disabled:cursor-not-allowed disabled:opacity-70 dark:shadow-none"
       >
         {isSaving ? (
           <>

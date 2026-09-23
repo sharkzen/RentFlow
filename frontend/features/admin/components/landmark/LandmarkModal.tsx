@@ -219,7 +219,7 @@ export const LandmarkModal = ({
             </Button>
             <Button
               type="submit"
-              className="bg-blue-600 px-6 shadow-md shadow-blue-500/20 hover:bg-blue-700"
+              className="bg-blue-600 px-6 shadow-md shadow-blue-500/20 hover:bg-blue-700 dark:shadow-none"
             >
               {isEditMode ? "บันทึกการแก้ไข" : "บันทึกข้อมูล"}
             </Button>

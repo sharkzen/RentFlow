@@ -457,7 +457,7 @@ export default function ResetPasswordFlow() {
               <button
                 type="submit"
                 disabled={status === "loading"}
-                className="group relative flex w-full cursor-pointer justify-center rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white shadow-md shadow-blue-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:translate-y-0 disabled:cursor-wait disabled:bg-blue-400 disabled:shadow-none"
+                className="group relative flex w-full cursor-pointer justify-center rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-semibold text-white shadow-md shadow-blue-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:translate-y-0 disabled:cursor-wait disabled:bg-blue-400 disabled:shadow-none dark:shadow-none dark:hover:shadow-none"
               >
                 {status === "loading" ? (
                   <div className="flex items-center gap-2">

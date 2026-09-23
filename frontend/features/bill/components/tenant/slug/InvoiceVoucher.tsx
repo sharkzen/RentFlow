@@ -75,35 +75,35 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
     return (
       <div
         ref={ref}
-        className="flex flex-col bg-white print:m-0 print:h-[297mm] print:w-[210mm] print:p-[15mm] print:shadow-none"
+        className="flex flex-col print:m-0 print:h-[297mm] print:w-[210mm] print:p-[15mm] print:shadow-none"
       >
-        <div className="flex items-start justify-between border-b-2 border-slate-800 py-5">
+        <div className="border-foreground/80 flex items-start justify-between border-b-2 py-5">
           <div className="flex-1">
-            <h1 className="text-2xl leading-tight font-bold text-slate-900">
+            <h1 className="text-foreground text-2xl leading-tight font-bold">
               {dorm?.name || "ชื่อหอพัก/อพาร์ทเมนท์"}
             </h1>
-            <div className="mt-2 text-sm leading-relaxed text-slate-600">
+            <div className="text-muted mt-2 text-sm leading-relaxed">
               {dorm?.address || "ที่อยู่..."}
               <br />
               โทร: {dorm?.contacts?.[0]?.phone || "-"}
             </div>
           </div>
           <div className="text-right">
-            <div className="mb-1 text-2xl font-black text-slate-900">
+            <div className="text-foreground mb-1 text-2xl font-black">
               {isPaid ? "ใบเสร็จรับเงิน" : "ใบแจ้งหนี้"}
             </div>
-            <div className="text-lg font-bold text-slate-700 uppercase">
+            <div className="text-foreground/80 text-lg font-bold uppercase">
               {isPaid ? "(Receipt)" : "(Invoice)"}
             </div>
-            <div className="mt-3 text-sm text-slate-500">
+            <div className="text-muted mt-3 text-sm">
               เลขที่:{" "}
-              <span className="font-bold text-slate-900">
+              <span className="text-foreground font-bold">
                 #{id.slice(0, 10).toUpperCase()}
               </span>
             </div>
-            <div className="text-sm text-slate-500">
+            <div className="text-muted text-sm">
               วันที่:{" "}
-              <span className="font-bold text-slate-900">
+              <span className="text-foreground font-bold">
                 {format(new Date(), "d MMMM ", {
                   locale: th,
                 })}
@@ -114,24 +114,24 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
         </div>
         <div className="mt-8 flex justify-between gap-12">
           <div className="flex-1">
-            <h3 className="mb-2 border-b border-slate-200 pb-1 text-xs font-bold tracking-wider text-slate-500 uppercase">
+            <h3 className="border-border text-muted mb-2 border-b pb-1 text-xs font-bold tracking-wider uppercase">
               ผู้เช่า (Bill To)
             </h3>
-            <div className="text-xl font-bold text-slate-900">
+            <div className="text-foreground text-xl font-bold">
               {tenantNameSnapshot}
             </div>
-            <div className="mt-2 text-sm text-slate-600">
+            <div className="text-muted mt-2 text-sm">
               ห้องเลขที่:{" "}
-              <span className="text-lg font-bold text-slate-900">
+              <span className="text-foreground text-lg font-bold">
                 {roomNumberSnapshot}
               </span>
             </div>
           </div>
           <div className="min-w-50 text-right">
-            <h3 className="mb-2 border-b border-slate-200 pb-1 text-xs font-bold tracking-wider text-slate-500 uppercase">
+            <h3 className="border-border text-muted mb-2 border-b pb-1 text-xs font-bold tracking-wider uppercase">
               รายละเอียด (Reference)
             </h3>
-            <div className="text-sm text-slate-700">
+            <div className="text-foreground/80 text-sm">
               รอบบิลเดือน:{" "}
               <span className="font-bold">
                 {(() => {
@@ -154,7 +154,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
         <div className="mt-8 flex-1">
           <table className="w-full border-collapse text-left text-sm">
             <thead>
-              <tr className="border-y border-slate-800 bg-slate-100 text-slate-900 print:bg-slate-100">
+              <tr className="border-foreground/80 bg-background text-foreground border-y print:bg-slate-100">
                 <th
                   className="px-3 py-4 font-bold"
                   style={{
@@ -172,9 +172,9 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 text-slate-800">
+            <tbody className="divide-border text-foreground/90 divide-y">
               <tr>
-                <td className="px-3 py-4 font-semibold text-slate-900">
+                <td className="text-foreground px-3 py-4 font-semibold">
                   ค่าเช่าห้องพัก
                 </td>
                 <td className="px-3 py-4 text-center">-</td>
@@ -185,12 +185,12 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
               </tr>
               <tr>
                 <td className="px-3 py-4">
-                  <div className="font-semibold text-slate-900">
+                  <div className="text-foreground font-semibold">
                     ค่าน้ำประปา
                     {waterBillingTypeSnapshot === "FLAT_RATE" && " (เหมาจ่าย)"}
                   </div>
                   {waterBillingTypeSnapshot !== "FLAT_RATE" && (
-                    <div className="text-xs text-slate-500">
+                    <div className="text-muted text-xs">
                       (มิเตอร์: {prevWaterUnitSnapshot}-{" "}
                       {currentWaterUnitSnapshot})
                     </div>
@@ -212,8 +212,8 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
               </tr>
               <tr>
                 <td className="px-3 py-4">
-                  <div className="font-semibold text-slate-900">ค่าไฟฟ้า</div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-foreground font-semibold">ค่าไฟฟ้า</div>
+                  <div className="text-muted text-xs">
                     (มิเตอร์: {prevElectricUnitSnapshot}-{" "}
                     {currentElectricUnitSnapshot})
                   </div>
@@ -230,7 +230,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
               </tr>
               {commonFeeSnapshot > 0 && (
                 <tr>
-                  <td className="px-3 py-4 font-semibold text-slate-900">
+                  <td className="text-foreground px-3 py-4 font-semibold">
                     ค่าส่วนกลาง
                   </td>
                   <td className="px-3 py-4 text-center">-</td>
@@ -247,7 +247,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                       ค่าปรับล่าช้า
                     </div>
                     {daysLate > 0 && (
-                      <div className="text-xs text-slate-500">
+                      <div className="text-muted text-xs">
                         (ค้างชำระ {daysLate}วัน)
                       </div>
                     )}
@@ -262,13 +262,13 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
               {chargeItems.map((item) => (
                 <tr key={item.id}>
                   <td className="px-3 py-4">
-                    <div className="font-semibold text-slate-900">
+                    <div className="text-foreground font-semibold">
                       {item.name}
                     </div>
                   </td>
                   <td className="px-3 py-4 text-center">-</td>
                   <td className="px-3 py-4 text-right">-</td>
-                  <td className="px-3 py-4 text-right font-bold text-slate-900">
+                  <td className="text-foreground px-3 py-4 text-right font-bold">
                     {formatMoney(item.amount)}
                   </td>
                 </tr>
@@ -293,23 +293,23 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
             </tbody>
           </table>
         </div>
-        <div className="mt-6 border-t-2 border-slate-900 pt-4">
+        <div className="border-foreground mt-6 border-t-2 pt-4">
           <div className="flex flex-col items-end">
             <div className="flex w-full items-center justify-end gap-12">
-              <span className="text-lg font-medium text-slate-600 uppercase">
+              <span className="text-muted text-lg font-medium uppercase">
                 ยอดรวมสุทธิ (Total)
               </span>
-              <span className="text-4xl font-black text-slate-900">
+              <span className="text-foreground text-4xl font-black">
                 ฿{formatMoney(total)}
               </span>
             </div>
-            <div className="mt-1 text-xs text-slate-500 italic">
+            <div className="text-muted mt-1 text-xs italic">
               * ราคานี้รวมภาษีมูลค่าเพิ่มแล้ว (หากมี)
             </div>
           </div>
-          <div className="mt-12 flex items-end justify-between border-t border-slate-100 pt-10">
-            <div className="max-w-95 text-sm leading-relaxed text-slate-500">
-              <span className="mb-1 block font-bold text-slate-700 italic">
+          <div className="border-border mt-12 flex items-end justify-between border-t pt-10">
+            <div className="text-muted max-w-95 text-sm leading-relaxed">
+              <span className="text-foreground/80 mb-1 block font-bold italic">
                 หมายเหตุ:
               </span>
               {!isPaid
@@ -317,7 +317,7 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                 : "ขอบคุณที่ใช้บริการ เอกสารฉบับนี้ถือเป็นหลักฐานการรับเงินที่สมบูรณ์"}
             </div>
             <div className="flex flex-col items-center">
-              <div className="relative mb-2 h-16 w-52 border-b border-dotted border-slate-400">
+              <div className="border-muted relative mb-2 h-16 w-52 border-b border-dotted">
                 {isPaid && (
                   <div className="absolute -top-5 left-1/2 -translate-x-1/2 opacity-80 print:opacity-100">
                     <Image
@@ -339,10 +339,10 @@ export const InvoiceVoucher = forwardRef<HTMLDivElement, InvoiceProps>(
                   </div>
                 )}
               </div>
-              <div className="text-center text-sm font-bold text-slate-600 uppercase">
+              <div className="text-muted text-center text-sm font-bold uppercase">
                 ผู้ออกเอกสาร / ผู้รับเงิน
                 <br />
-                <span className="text-[10px] font-normal text-slate-400">
+                <span className="text-muted text-[10px] font-normal">
                   (Authorized Signature)
                 </span>
               </div>

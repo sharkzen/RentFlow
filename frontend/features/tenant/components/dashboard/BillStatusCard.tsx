@@ -62,7 +62,7 @@ export default function BillStatusCard({ bill }: Props) {
   const statusConfig = {
     PAID: {
       bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
-      shadow: "shadow-emerald-200/50",
+      shadow: "shadow-emerald-200/50 dark:shadow-none",
       icon: <CheckCircle2 size={16} />,
       label: "ชำระเรียบร้อย",
       badgeStyle: "bg-white/20 text-white border-white/20",
@@ -71,7 +71,7 @@ export default function BillStatusCard({ bill }: Props) {
 
     WAITING_FOR_VERIFICATION: {
       bg: "bg-gradient-to-br from-amber-400 to-orange-500",
-      shadow: "shadow-orange-200/50",
+      shadow: "shadow-orange-200/50 dark:shadow-none",
       icon: <Clock size={16} />,
       label: "รอตรวจสอบ",
       badgeStyle: "bg-white/20 text-white border-white/20",
@@ -80,7 +80,7 @@ export default function BillStatusCard({ bill }: Props) {
 
     OVERDUE: {
       bg: "bg-gradient-to-br from-rose-500 to-red-600",
-      shadow: "shadow-red-200/50",
+      shadow: "shadow-red-200/50 dark:shadow-none",
       icon: <AlertCircle size={16} />,
       label: "เกินกำหนด",
       badgeStyle: "bg-white/20 text-white border-white/20",
@@ -89,7 +89,7 @@ export default function BillStatusCard({ bill }: Props) {
 
     PENDING: {
       bg: "bg-gradient-to-br from-indigo-500 to-blue-600",
-      shadow: "shadow-blue-200/50",
+      shadow: "shadow-blue-200/50 dark:shadow-none",
       icon: <Wallet size={16} />,
       label: "รอชำระเงิน",
       badgeStyle: "bg-white/20 text-white border-white/20",
@@ -98,7 +98,7 @@ export default function BillStatusCard({ bill }: Props) {
 
     CANCELLED: {
       bg: "bg-gradient-to-br from-slate-500 to-slate-600",
-      shadow: "shadow-slate-200/50",
+      shadow: "shadow-slate-200/50 dark:shadow-none",
       icon: <XCircle size={16} />,
       label: "ยกเลิกแล้ว",
       badgeStyle: "bg-white/20 text-white border-white/20",

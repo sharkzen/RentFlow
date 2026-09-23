@@ -3,6 +3,7 @@ type DateFormatType =
   | "short"
   | "datetime"
   | "short-datetime"
+  | "compact-datetime"
   | "time"
   | "month-year";
 
@@ -56,6 +57,20 @@ export const formatThaiDate = (
       });
 
       return `${shortDate} ${time} น.`;
+    }
+    case "compact-datetime": {
+      const shortDate = date.toLocaleDateString("th-TH-u-ca-gregory", {
+        year: "2-digit",
+        month: "short",
+        day: "numeric",
+      });
+
+      const time = date.toLocaleTimeString("th-TH", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      return `${shortDate} ${time}`;
     }
     case "time":
       return `${date.toLocaleTimeString("th-TH", {

@@ -584,7 +584,7 @@ export default function PaymentModal({
                   <button
                     disabled={!selectedFile || isSubmitting || isScanning}
                     onClick={() => setShowConfirm(true)}
-                    className={`mt-4 flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl p-3 text-lg font-black text-white transition-all ${!selectedFile || isSubmitting || isScanning ? "bg-skeleton text-muted cursor-not-allowed shadow-none" : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700 active:scale-95"}`}
+                    className={`mt-4 flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl p-3 text-lg font-black text-white transition-all ${!selectedFile || isSubmitting || isScanning ? "bg-skeleton text-muted cursor-not-allowed shadow-none" : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700 active:scale-95 dark:shadow-none"}`}
                   >
                     {isSubmitting || isScanning ? (
                       <Loader2 className="animate-spin" size={24} />
