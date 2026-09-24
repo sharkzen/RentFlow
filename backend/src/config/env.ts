@@ -34,7 +34,6 @@ const envSchema = z.object({
   SLIPOK_BRANCH_ID: z.string().optional(),
   SLIPOK_API_KEY: z.string().optional(),
   OCR_SERVICE_URL: z.string().optional(),
-  GOOGLE_VISION_API_KEY: z.string().optional(),
 });
 
 const parsed = envSchema.parse(process.env);

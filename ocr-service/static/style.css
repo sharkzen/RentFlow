@@ -188,3 +188,83 @@ header p {
   font-size: 0.8rem;
   color: #aaa;
 }
+
+.params {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.params label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+.params input {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+}
+.params input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.review {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  font-size: 0.85rem;
+}
+
+.debug-item.wide {
+  grid-column: 1 / -1;
+}
+
+.debug-section h3 + .table-wrap {
+  margin-bottom: 1.5rem;
+}
+.debug-section .debug-grid + h3 {
+  margin-top: 2rem;
+}
+.table-wrap {
+  overflow-x: auto;
+  background: var(--card);
+  border-radius: 8px;
+}
+.debug-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.debug-table th,
+.debug-table td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+.debug-table th {
+  color: #aaa;
+  font-weight: 600;
+}
+.debug-table tr.best td {
+  color: var(--success);
+  font-weight: bold;
+}
+.debug-table td.mono {
+  font-family: ui-monospace, Consolas, monospace;
+}
+.debug-table .yes {
+  color: var(--success);
+}
+.debug-table .no {
+  color: var(--error);
+}

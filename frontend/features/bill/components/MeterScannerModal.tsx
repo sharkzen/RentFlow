@@ -11,6 +11,7 @@ import {
   Droplets,
   LightbulbOff,
   Focus,
+  ZoomIn,
 } from "lucide-react";
 
 import { toast } from "react-toastify";
@@ -55,6 +56,8 @@ export default function MeterScannerModal({
   const [preview, setPreview] = useState<string | null>(null);
   const [ocrValue, setOcrValue] = useState<string>("");
   const [ocrWarning, setOcrWarning] = useState<string | null>(null);
+  const [prevReading, setPrevReading] = useState<number | null>(null);
+  const [isPreviewZoomed, setIsPreviewZoomed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const failedAttemptsRef = useRef(0);
   const MAX_AUTO_RETRY = 3;
@@ -156,6 +159,8 @@ export default function MeterScannerModal({
       setOcrWarning(null);
       failedAttemptsRef.current = 0;
       resetUploadState(false);
+      setPrevReading(null);
+      setIsPreviewZoomed(false);
 
       if (scanType === "WATER" && !waterMeterDigits) {
         setStep("setup");
@@ -322,6 +327,9 @@ export default function MeterScannerModal({
       if (data?.success && data.number) {
         failedAttemptsRef.current = 0;
         setOcrValue(data.number);
+        setPrevReading(
+          typeof data.prevValue === "number" ? data.prevValue : null,
+        );
 
         if (data.suspicious || data.needsReview) {
           setOcrWarning(
@@ -381,6 +389,8 @@ export default function MeterScannerModal({
 
   const handleRetake = () => {
     resetUploadState(true);
+    setPrevReading(null);
+    setIsPreviewZoomed(false);
     setStep("camera");
     setPreview(null);
     setOcrWarning(null);
@@ -506,41 +516,59 @@ export default function MeterScannerModal({
                     </p>
                   </div>
                 )}
-                {step === "result" && (
-                  <div className="animate-in fade-in absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 px-6 backdrop-blur-md">
-                    <p
-                      className={`mb-3 text-sm font-bold ${ocrWarning ? "text-amber-400" : "text-emerald-400"}`}
-                    >
-                      {ocrWarning
-                        ? "⚠️ กรุณาตรวจสอบตัวเลข"
-                        : "✅ ตรวจสอบความถูกต้อง"}
-                    </p>
-                    <div className="relative w-full">
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={ocrValue}
-                        onChange={(e) =>
-                          setOcrValue(e.target.value.replace(/[^0-9]/g, ""))
-                        }
-                        className={`bg-surface text-foreground w-full rounded-2xl border-4 py-4 text-center text-5xl font-black tracking-[0.2em] transition-all outline-none ${ocrWarning ? "border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.4)]" : ocrValue ? "border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.4)]" : "border-border"}`}
-                        placeholder="00000"
-                      />
-                      <Edit3
-                        className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-slate-400"
-                        size={24}
-                      />
-                    </div>
-                    {ocrWarning && (
-                      <p className="mt-3 max-w-xs text-sm font-medium text-amber-300">
-                        {ocrWarning}
-                      </p>
-                    )}
-                  </div>
+                {step === "result" && preview && (
+                  <button
+                    type="button"
+                    onClick={() => setIsPreviewZoomed(true)}
+                    className="absolute right-2 bottom-2 z-30 flex cursor-pointer items-center gap-1 rounded-full bg-black/60 px-3 py-1.5 text-xs font-bold text-white"
+                  >
+                    <ZoomIn size={14} /> ขยายรูป
+                  </button>
                 )}
               </div>
+              {/* ช่องกรอกอยู่ใต้รูป ไม่ทับรูป — ผู้ใช้ต้องเห็นรูปชัดๆ เพื่อเทียบตัวเลขก่อนยืนยัน */}
+              {step === "result" && (
+                <div className="animate-in fade-in mx-auto mt-4 w-full max-w-[320px]">
+                  <p
+                    className={`mb-2 text-sm font-bold ${ocrWarning ? "text-amber-500" : "text-emerald-600"}`}
+                  >
+                    {ocrWarning
+                      ? "⚠️ กรุณาตรวจสอบตัวเลขกับรูป"
+                      : "✅ ตรวจสอบความถูกต้อง"}
+                  </p>
+                  <div className="relative w-full">
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={ocrValue}
+                      onChange={(e) =>
+                        setOcrValue(e.target.value.replace(/[^0-9]/g, ""))
+                      }
+                      className={`bg-surface text-foreground w-full rounded-2xl border-4 py-3 text-center text-4xl font-black tracking-[0.2em] transition-all outline-none ${ocrWarning ? "border-amber-500" : ocrValue ? "border-emerald-500" : "border-border"}`}
+                      placeholder="00000"
+                    />
+                    <Edit3
+                      className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-slate-400"
+                      size={22}
+                    />
+                  </div>
+                  {prevReading !== null && (
+                    <p className="text-muted mt-2 text-sm">
+                      เดือนก่อน:{" "}
+                      <span className="text-foreground font-mono font-bold">
+                        {prevReading}
+                      </span>
+                    </p>
+                  )}
+                  {ocrWarning && (
+                    <p className="mt-2 rounded-xl bg-amber-500/10 px-3 py-2 text-left text-sm font-medium text-amber-600 dark:text-amber-400">
+                      {ocrWarning}
+                    </p>
+                  )}
+                </div>
+              )}
               {step === "camera" && (
                 <div className="mx-auto mt-5 w-full max-w-[320px] rounded-2xl bg-slate-800 p-4 shadow-sm">
                   <div className="flex flex-col gap-3">
@@ -604,7 +632,7 @@ export default function MeterScannerModal({
                 ข้าม
               </button>
               <button
-                onPointerDown={takePictureAndScan}
+                onClick={takePictureAndScan}
                 disabled={!isCameraReady}
                 className="flex flex-[2] cursor-pointer items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-4 text-lg font-bold text-white shadow-lg transition hover:bg-indigo-700 active:scale-95 disabled:opacity-50"
               >
@@ -638,6 +666,25 @@ export default function MeterScannerModal({
           )}
         </div>
       </div>
+      {isPreviewZoomed && preview && (
+        <div
+          className="fixed inset-0 z-70 flex items-center justify-center bg-black/95 p-2"
+          onClick={() => setIsPreviewZoomed(false)}
+        >
+          <img
+            src={preview}
+            alt="Captured full size"
+            className="max-h-full max-w-full object-contain"
+          />
+          <button
+            type="button"
+            className="absolute top-4 right-4 cursor-pointer rounded-full bg-white/15 p-2 text-white"
+            aria-label="ปิดรูป"
+          >
+            <X size={24} />
+          </button>
+        </div>
+      )}
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );

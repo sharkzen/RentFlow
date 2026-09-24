@@ -28,6 +28,49 @@ import * as path from "path";
 import { buildBulkBillHtmlTemplate } from "../owner/lib/owner.lib";
 import { createPdfFromHtml, getCachedStamps } from "../tenant/lib/tenant.lib";
 
+// OCR หลาย pass บน CPU อาจใช้เวลาหลายวินาทีตอนคิวแน่น แต่ไม่ควรค้างนานกว่านี้
+const OCR_REQUEST_TIMEOUT_MS = 15_000;
+// จำนวนบิลย้อนหลังที่ใช้หาค่าเฉลี่ยการใช้งานของห้อง
+const OCR_USAGE_HISTORY_MONTHS = 6;
+// ใช้งานเกินค่าเฉลี่ยกี่เท่าถึงถือว่าผิดปกติ
+const OCR_USAGE_SPIKE_FACTOR = 3;
+
+interface OcrScanResponse {
+  review_reasons?: string[];
+  rolling_digits?: { index: number; estimate: string | null; applied: boolean }[];
+  uncertain_digits?: { index: number; line: string; single: string }[];
+  alternative?: string | null;
+}
+
+// แปลงเหตุผลที่ OCR service ไม่มั่นใจ เป็นข้อความภาษาไทยให้ผู้ใช้เข้าใจว่าต้องดูตรงไหน
+function ocrReviewMessages(data: OcrScanResponse, number: string): string[] {
+  const reasons = new Set(data.review_reasons ?? []);
+  const messages: string[] = [];
+
+  if (reasons.has("ROLLING_DIGIT")) {
+    const applied = (data.rolling_digits ?? []).find((r) => r.applied);
+    messages.push(
+      applied
+        ? `หลักที่ ${applied.index + 1} กำลังหมุนค้างระหว่างเลข ระบบประมาณเป็น ${applied.estimate}`
+        : "มีหลักที่กำลังหมุนค้างระหว่างเลข",
+    );
+  }
+
+  for (const u of data.uncertain_digits ?? []) {
+    messages.push(`ไม่แน่ใจหลักที่ ${u.index + 1} (อาจเป็น ${u.line} หรือ ${u.single})`);
+  }
+
+  if (reasons.has("AMBIGUOUS") && data.alternative && data.alternative !== number) {
+    messages.push(`ระบบลังเลระหว่าง ${number} กับ ${data.alternative}`);
+  }
+
+  if (reasons.has("LOW_CONFIDENCE") && messages.length === 0) {
+    messages.push("ภาพไม่ชัด ระบบไม่มั่นใจตัวเลขที่อ่านได้");
+  }
+
+  return messages;
+}
+
 export const billService = {
   getBills: async ({
     dormId,
@@ -1789,6 +1832,47 @@ export const billService = {
           : room.meterSetting.electricMeterDigits || 5;
     }
 
+    // ค่าเดือนก่อน + เกณฑ์การใช้งานปกติของห้องนี้ ส่งให้ OCR ใช้ช่วยเลือกคำตอบ และใช้เตือนผู้ใช้
+    const recentBills = await prisma.bill.findMany({
+      where: {
+        roomId,
+      },
+
+      orderBy: {
+        billingMonth: "desc",
+      },
+
+      take: OCR_USAGE_HISTORY_MONTHS,
+    });
+
+    const prevValue =
+      recentBills.length > 0
+        ? scanType === "WATER"
+          ? recentBills[0].currentWaterUnitSnapshot
+          : recentBills[0].currentElectricUnitSnapshot
+        : null;
+
+    const usageHistory = recentBills
+      .map((b) =>
+        scanType === "WATER"
+          ? b.currentWaterUnitSnapshot - b.prevWaterUnitSnapshot
+          : b.currentElectricUnitSnapshot - b.prevElectricUnitSnapshot,
+      )
+      .filter((u) => u >= 0);
+
+    const defaultMaxUsage = scanType === "WATER" ? 100 : 2000;
+    const minMaxUsage = scanType === "WATER" ? 20 : 200;
+    const maxNormalUsage =
+      usageHistory.length >= 2
+        ? Math.max(
+            Math.ceil(
+              (usageHistory.reduce((a, b) => a + b, 0) / usageHistory.length) *
+                OCR_USAGE_SPIKE_FACTOR,
+            ),
+            minMaxUsage,
+          )
+        : defaultMaxUsage;
+
     try {
       const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
@@ -1799,10 +1883,17 @@ export const billService = {
 
       const formData = new FormData();
       formData.append("image", blob, "meter.jpg");
+      formData.append("expected_digits", String(EXPECTED_DIGIT_LENGTH));
+      formData.append("max_usage", String(maxNormalUsage));
+
+      if (prevValue !== null) {
+        formData.append("prev_value", String(Math.floor(prevValue)));
+      }
 
       const response = await fetch(ocrServiceUrl, {
         method: "POST",
         body: formData,
+        signal: AbortSignal.timeout(OCR_REQUEST_TIMEOUT_MS),
       });
 
       const data = await response.json();
@@ -1819,52 +1910,53 @@ export const billService = {
         };
       }
 
-      let finalNumber = data.meter_number;
+      // OCR service ตัดหลักเกิน (ทศนิยม/เลขสีแดง) ให้แล้ว ตัดซ้ำไว้กันพลาดเผื่อ service เวอร์ชันเก่า
+      let finalNumber: string = data.meter_number ?? "";
 
-      if (finalNumber && finalNumber.length > EXPECTED_DIGIT_LENGTH) {
+      if (finalNumber.length > EXPECTED_DIGIT_LENGTH) {
         finalNumber = finalNumber.substring(0, EXPECTED_DIGIT_LENGTH);
       }
 
       const currentValue = Number(finalNumber);
       let suspicious = false;
-      let warningMessage: string | undefined;
+      const warnings: string[] = [];
 
-      if (!Number.isNaN(currentValue)) {
-        const lastBill = await prisma.bill.findFirst({
-          where: {
-            roomId,
-          },
-
-          orderBy: {
-            billingMonth: "desc",
-          },
-        });
-
-        if (lastBill) {
-          const prevValue =
-            scanType === "WATER"
-              ? lastBill.currentWaterUnitSnapshot
-              : lastBill.currentElectricUnitSnapshot;
-          const MAX_NORMAL_USAGE = scanType === "WATER" ? 100 : 2000;
-
-          if (currentValue < prevValue) {
-            suspicious = true;
-            warningMessage = `ค่าที่อ่านได้ (${currentValue}) น้อยกว่าเดือนก่อน (${prevValue}) กรุณาตรวจสอบ`;
-          } else if (currentValue - prevValue > MAX_NORMAL_USAGE) {
-            suspicious = true;
-            warningMessage = `การใช้งานเดือนนี้ (${currentValue - prevValue} หน่วย) สูงผิดปกติ กรุณาตรวจสอบ`;
-          }
+      if (finalNumber.length < EXPECTED_DIGIT_LENGTH) {
+        suspicious = true;
+        warnings.push(
+          `อ่านได้ ${finalNumber.length} หลัก แต่มิเตอร์นี้มี ${EXPECTED_DIGIT_LENGTH} หลัก`,
+        );
+      } else if (!Number.isNaN(currentValue) && prevValue !== null) {
+        if (currentValue < prevValue) {
+          suspicious = true;
+          warnings.push(
+            `ค่าที่อ่านได้ (${currentValue}) น้อยกว่าเดือนก่อน (${prevValue})`,
+          );
+        } else if (currentValue - prevValue > maxNormalUsage) {
+          suspicious = true;
+          warnings.push(
+            `การใช้งานเดือนนี้ (${currentValue - prevValue} หน่วย) สูงผิดปกติ`,
+          );
         }
       }
+
+      // เหตุผลจาก OCR service (จำนวนหลัก/ค่าเทียบเดือนก่อน ตรวจเองข้างบนแล้ว จึงไม่ซ้ำ)
+      warnings.push(...ocrReviewMessages(data, finalNumber));
+
+      const warningMessage =
+        warnings.length > 0
+          ? `${warnings.join(" • ")} — กรุณาตรวจสอบกับรูปก่อนยืนยัน`
+          : undefined;
 
       return {
         success: true,
         number: finalNumber,
-        rawText: data.meter_number,
+        rawText: data.ocr_digits ?? data.raw_digits ?? data.meter_number,
         correctedText: finalNumber,
         needsReview: Boolean(data.needs_review) || suspicious,
         suspicious,
         warningMessage,
+        prevValue,
       };
     } catch (error: any) {
       logger.error(`[Service] scanMeter HTTP Error: ${error.message}`);
