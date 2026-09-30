@@ -388,9 +388,10 @@ def _read_piece(ocr_model, roi_gray, comp, pad=4):
 
 
 def estimate_rolling_digit(ocr_model, roi_gray, col, digit_h):
-    """ประมาณค่าหลักที่หมุนค้าง ตามหลักการอ่านมิเตอร์: ค้างระหว่าง d กับ d+1 ให้อ่านเป็น d
-    - ชิ้นล่าง = ครึ่งบนของเลขถัดไป (d+1) อ่านได้แม่นกว่า → d = (ถัดไป - 1) mod 10
-    - ชิ้นบน = ครึ่งล่างของเลขที่กำลังออก (d) ใช้ยืนยัน / สำรอง"""
+    """ประมาณค่าหลักที่หมุนค้าง ตามหลักการจดมิเตอร์จริง: ค้างระหว่าง d กับ d+1 ให้จดเป็น d+1
+    (เลขที่กำลังจะขึ้น ไม่ใช่เลขที่กำลังจะหมด)
+    - ชิ้นล่าง = ครึ่งบนของเลขถัดไป (d+1) อ่านได้แม่นกว่า → ใช้ตรงๆ เป็นคำตอบ
+    - ชิ้นบน = ครึ่งล่างของเลขที่กำลังออก (d) ใช้ยืนยัน / สำรอง (d+1 = ปัจจุบัน + 1)"""
     comps = sorted(col["comps"], key=lambda c: c[1])
     mid = min(c[1] for c in comps) + col["span"] / 2
     upper = [c for c in comps if c[1] + c[3] / 2 < mid]
@@ -403,13 +404,13 @@ def estimate_rolling_digit(ocr_model, roi_gray, col, digit_h):
     if upper:
         cur_digit, cur_conf = _read_piece(ocr_model, roi_gray, max(upper, key=lambda c: c[4]))
 
-    from_next = str((int(next_digit) - 1) % 10) if next_digit else None
-    if from_next is not None and cur_digit and from_next == cur_digit:
-        return from_next, "consistent"
-    if from_next is not None and next_conf >= 0.6:
-        return from_next, "from_next"
-    if cur_digit and cur_conf >= 0.6:
-        return cur_digit, "from_current"
+    from_cur = str((int(cur_digit) + 1) % 10) if cur_digit else None
+    if next_digit and from_cur == next_digit:
+        return next_digit, "consistent"
+    if next_digit and next_conf >= 0.6:
+        return next_digit, "from_next"
+    if from_cur is not None and cur_conf >= 0.6:
+        return from_cur, "from_current"
     return None, "unknown"
 
 
