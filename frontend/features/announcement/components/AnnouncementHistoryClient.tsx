@@ -216,7 +216,7 @@ export default function AnnouncementHistoryClient() {
   }, [currentPage]);
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-5">
+    <div className="w-full space-y-5">
       {!isLoading && meta && (
         <div className="border-border bg-surface flex flex-col gap-3 rounded-2xl border p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="text-foreground text-sm font-medium">
@@ -238,7 +238,7 @@ export default function AnnouncementHistoryClient() {
           </div>
         </div>
       )}
-      <div className="space-y-3.5">
+      <div className="grid grid-cols-1 items-start gap-3.5 xl:grid-cols-2">
         {isLoading ? (
           [...Array(4)].map((_, i) => (
             <div
@@ -257,7 +257,7 @@ export default function AnnouncementHistoryClient() {
             </div>
           ))
         ) : announcements.length === 0 ? (
-          <div className="border-border bg-background flex flex-col items-center justify-center rounded-3xl border border-dashed py-16 text-center">
+          <div className="border-border bg-background col-span-full flex flex-col items-center justify-center rounded-3xl border border-dashed py-16 text-center">
             <div className="bg-surface mb-4 rounded-full p-4 shadow-sm">
               <Bell size={32} className="text-muted" />
             </div>
