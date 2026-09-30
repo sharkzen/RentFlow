@@ -124,7 +124,7 @@ export default function BillSlugContainer() {
   const paymentSetting = bill.room?.dormitory?.paymentSetting;
   const latestSlip =
     bill.payment?.slips && bill.payment.slips.length > 0
-      ? bill.payment.slips[bill.payment.slips.length - 1]
+      ? bill.payment.slips[0] // backend sorts createdAt desc → newest first
       : null;
   const currentSlipUrl = latestSlip?.url;
 

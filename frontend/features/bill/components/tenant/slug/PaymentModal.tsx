@@ -369,12 +369,14 @@ export default function PaymentModal({
                 </button>
               </div>
             )}
-            <div className="mt-4 flex items-center justify-center">
-              <div className="flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600">
-                <AlertCircle size={16} className="text-red-500" />
-                <span>ชำระแล้วโปรดอัพโหลดสลิปด้านล่าง</span>
+            {!isLocked && !currentSlipUrl && (
+              <div className="mt-4 flex items-center justify-center">
+                <div className="flex items-center gap-2 rounded-lg border border-red-100 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600">
+                  <AlertCircle size={16} className="text-red-500" />
+                  <span>ชำระแล้วโปรดอัพโหลดสลิปด้านล่าง</span>
+                </div>
               </div>
-            </div>
+            )}
             <div className="p-6">
               {!hasAnyPaymentMethod && !isLocked ? (
                 <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 text-center">
@@ -634,7 +636,7 @@ export default function PaymentModal({
         onClose={() => setShowConfirm(false)}
         onConfirm={processUpload}
         title="ยืนยันการส่งสลิป?"
-        description={`สลิปใบเดิมจะถูกแทนที่ด้วยใบใหม่ ยอดเงิน ${total.toLocaleString()} บาท`}
+        description={`${currentSlipUrl ? "สลิปใบเดิมจะถูกแทนที่ด้วยใบใหม่ " : ""}ยอดเงิน ${total.toLocaleString()} บาท`}
         type="warning"
         confirmText="ยืนยัน ส่งใหม่"
         isLoading={isSubmitting}
