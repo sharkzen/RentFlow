@@ -27,6 +27,15 @@ import {
   commonErrorResponses,
 } from "@/config/swagger";
 
+const slipUploadRateLimit = {
+  config: {
+    rateLimit: {
+      max: 10,
+      timeWindow: "1 minute",
+    },
+  },
+};
+
 const idParam = (name: string) => ({
   type: "object",
 
@@ -369,6 +378,8 @@ export async function tenantRoute(app: FastifyInstance) {
     routeRoles.post(
       "/payment/upload-slip",
       {
+        ...slipUploadRateLimit,
+
         schema: {
           tags: ["Tenant Self-Service (Tenant)"],
           summary:

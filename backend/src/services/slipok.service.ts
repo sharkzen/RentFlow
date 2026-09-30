@@ -134,6 +134,8 @@ export const slipOkService = {
   },
 };
 
+const THAILAND_UTC_OFFSET_MS = 7 * 60 * 60 * 1000;
+
 function parseSlipOkDate(dateStr: string, timeStr: string): Date {
   if (!dateStr || !timeStr) return new Date();
 
@@ -141,5 +143,12 @@ function parseSlipOkDate(dateStr: string, timeStr: string): Date {
   const month = parseInt(dateStr.substring(4, 6)) - 1;
   const day = parseInt(dateStr.substring(6, 8));
   const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-  return new Date(year, month, day, hours || 0, minutes || 0, seconds || 0);
+
+  // SlipOK always reports Thailand local time (UTC+7), regardless of the
+  // server process's own timezone, so build the UTC instant explicitly.
+  const utcMs =
+    Date.UTC(year, month, day, hours || 0, minutes || 0, seconds || 0) -
+    THAILAND_UTC_OFFSET_MS;
+
+  return new Date(utcMs);
 }

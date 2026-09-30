@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import sharp from "sharp";
 import generatePayload from "promptpay-qr";
 import QRCode from "qrcode";
 import { hashPassword } from "@/modules/auth/lib/password";
@@ -1397,6 +1398,25 @@ export const tenantService = {
     ];
 
     if (mimeType && !allowedMimeTypes.includes(mimeType)) {
+      throw new Error("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
+    }
+
+    const mimeToSharpFormat: { [key: string]: string } = {
+      "image/jpeg": "jpeg",
+      "image/jpg": "jpeg",
+      "image/png": "png",
+      "image/webp": "webp",
+    };
+
+    let realFormat: string | undefined;
+
+    try {
+      realFormat = (await sharp(fileBuffer).metadata()).format;
+    } catch {
+      realFormat = undefined;
+    }
+
+    if (!realFormat || mimeToSharpFormat[mimeType] !== realFormat) {
       throw new Error("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
     }
 

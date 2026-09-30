@@ -63,7 +63,8 @@ export default function PaymentModal({
   currentSlipUrl = null,
 }: Props) {
   const hasBank = !!paymentSetting?.bankAccount;
-  const hasPromptPay = !!paymentSetting?.promptPayId || true;
+  const hasPromptPay = !!paymentSetting?.promptPayValue;
+  const hasAnyPaymentMethod = hasBank || hasPromptPay;
   const isLocked = currentStatus === "PAID";
   const [method, setMethod] = useState<"BANK" | "PROMPTPAY">(
     hasBank ? "BANK" : "PROMPTPAY",
@@ -375,9 +376,23 @@ export default function PaymentModal({
               </div>
             </div>
             <div className="p-6">
-              {!isLocked && (
-                <div className="mb-8">
-                  {method === "BANK" ? (
+              {!hasAnyPaymentMethod && !isLocked ? (
+                <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 text-center">
+                  <AlertTriangle className="mx-auto mb-2 text-amber-500" size={28} />
+                  <p className="text-sm font-bold text-amber-700">
+                    เจ้าของหอยังไม่ได้ตั้งค่าช่องทางรับเงิน
+                  </p>
+                  <p className="mt-1 text-xs text-amber-600">
+                    กรุณาติดต่อเจ้าของหอเพื่อสอบถามช่องทางการชำระเงิน
+                    ก่อนโอนเงิน ระบบไม่สามารถตรวจสอบการโอนอัตโนมัติได้
+                    หากยังไม่มีบัญชีปลายทางที่ตั้งค่าไว้
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {!isLocked && (
+                    <div className="mb-8">
+                      {method === "BANK" ? (
                     <div className="border-border rounded-2xl border p-5 shadow-sm">
                       <div className="mb-4 flex items-center justify-between">
                         <span className="text-muted text-xs font-bold tracking-wider uppercase">
@@ -607,7 +622,9 @@ export default function PaymentModal({
                     </p>
                   </div>
                 )}
-              </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
