@@ -23,6 +23,7 @@ import { sendEmailImmediate } from "@/services/mail-sender";
 import { EmailType } from "@/queues/email.types";
 import * as argon2 from "argon2";
 import { env } from "@/config/env";
+import { decrypt } from "@/utils/encryption";
 const OTP_TTL_MS = 5 * 60 * 1000;
 const OTP_MAX_ATTEMPTS = 5;
 const LOGIN_MAX_ATTEMPTS = 5;
@@ -68,8 +69,22 @@ export const authService = {
       fullName = "Administrator";
     }
 
+    const tenantProfiles = userData.tenantProfiles.map(
+      ({
+        idCard,
+        address,
+        emergencyContactName,
+        emergencyContactPhone,
+        ...profile
+      }) => ({
+        ...profile,
+        phone: decrypt(profile.phone),
+      }),
+    );
+
     return {
       ...userData,
+      tenantProfiles,
       fullName: fullName || userData.email,
     };
   },
@@ -488,6 +503,47 @@ export const authService = {
     return {
       resetToken,
     };
+  },
+
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) throw new Error("UNAUTHORIZED");
+
+    const isValid = await verifyPassword(user.password, currentPassword);
+
+    if (!isValid) throw new Error("INVALID_CURRENT_PASSWORD");
+
+    if (currentPassword === newPassword) {
+      throw new Error("NEW_PASSWORD_SAME_AS_CURRENT");
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+
+      data: {
+        password: hashedPassword,
+      },
+    });
+
+    await createActivityLog({
+      userId,
+      action: "CHANGE_PASSWORD",
+      entityType: "User",
+      entityId: userId,
+    });
   },
 
   async resetPassword(resetToken: string, newPassword: string) {

@@ -40,6 +40,13 @@ export const verifyOtpSchema = z.object({
     .regex(/^\d{6}$/),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z
+    .string()
+    .regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/, "INVALID_NEW_PASSWORD"),
+});
+
 export const resetPasswordSchema = z.object({
   resetToken: z.string(),
   newPassword: z.string(),

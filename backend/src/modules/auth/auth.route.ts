@@ -15,6 +15,7 @@ import {
   forgotPasswordSchema,
   verifyOtpSchema,
   resetPasswordSchema,
+  changePasswordSchema,
 } from "@/modules/auth/dto/auth.schema";
 
 const bruteForceRateLimit = {
@@ -224,6 +225,32 @@ export async function authRoute(app: FastifyInstance) {
         },
       },
       AuthController.me,
+    );
+
+    routeRoles.post(
+      "/change-password",
+      {
+        ...bruteForceRateLimit,
+
+        schema: {
+          tags: ["Auth (Public)"],
+          summary: "เปลี่ยนรหัสผ่านโดยยืนยันรหัสผ่านเดิม",
+          body: zodBody(changePasswordSchema),
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          response: {
+            200: okResponse("เปลี่ยนรหัสผ่านสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+          },
+        },
+      },
+      AuthController.changePassword,
     );
   });
 }

@@ -7,6 +7,7 @@ import { AppError } from "@/lib/errors";
 
 import {
   adminRegisterSchema,
+  changePasswordSchema,
   forgotPasswordSchema,
   loginSchema,
   loginWithQrSchema,
@@ -240,6 +241,42 @@ export const AuthController = {
         error.message === "OTP_NOT_FOUND_OR_EXPIRED"
       ) {
         throw AppError.badRequest("INVALID_OR_EXPIRED_OTP");
+      }
+
+      throw error;
+    }
+  },
+
+  async changePassword(request: FastifyRequest, reply: FastifyReply) {
+    const user = request.user;
+
+    if (!user) {
+      throw AppError.unauthorized("UNAUTHORIZED");
+    }
+
+    const parsed = changePasswordSchema.safeParse(request.body);
+
+    if (!parsed.success) {
+      throw AppError.badRequest("INVALID_NEW_PASSWORD");
+    }
+
+    try {
+      await authService.changePassword(
+        user.sub,
+        parsed.data.currentPassword,
+        parsed.data.newPassword,
+      );
+
+      return reply.send({
+        ok: true,
+      });
+    } catch (error: any) {
+      if (error.message === "INVALID_CURRENT_PASSWORD") {
+        throw AppError.badRequest("INVALID_CURRENT_PASSWORD");
+      }
+
+      if (error.message === "NEW_PASSWORD_SAME_AS_CURRENT") {
+        throw AppError.badRequest("NEW_PASSWORD_SAME_AS_CURRENT");
       }
 
       throw error;
