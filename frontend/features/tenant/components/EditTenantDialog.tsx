@@ -307,9 +307,10 @@ export default function EditTenantDialog({
     }
   };
 
+  useScrollLock();
+
   if (!isOpen) return null;
 
-  useScrollLock();
   const inputBaseClass =
     "w-full h-10 rounded-lg border border-border bg-surface text-sm text-foreground focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none transition-all placeholder:text-muted";
   const inputClass = `${inputBaseClass} px-3`;

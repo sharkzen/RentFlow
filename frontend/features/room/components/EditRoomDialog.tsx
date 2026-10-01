@@ -199,9 +199,9 @@ export default function EditRoomDialog({
     }
   };
 
-  if (!isOpen) return null;
-
   useScrollLock();
+
+  if (!isOpen) return null;
 
   return (
     <>

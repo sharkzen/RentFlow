@@ -286,9 +286,9 @@ export default function PaymentModal({
     if (isOpen && !showConfirm) onClose();
   });
 
-  if (!isOpen) return null;
-
   useScrollLock();
+
+  if (!isOpen) return null;
 
   return (
     <>
@@ -380,7 +380,10 @@ export default function PaymentModal({
             <div className="p-6">
               {!hasAnyPaymentMethod && !isLocked ? (
                 <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 text-center">
-                  <AlertTriangle className="mx-auto mb-2 text-amber-500" size={28} />
+                  <AlertTriangle
+                    className="mx-auto mb-2 text-amber-500"
+                    size={28}
+                  />
                   <p className="text-sm font-bold text-amber-700">
                     เจ้าของหอยังไม่ได้ตั้งค่าช่องทางรับเงิน
                   </p>
@@ -395,235 +398,238 @@ export default function PaymentModal({
                   {!isLocked && (
                     <div className="mb-8">
                       {method === "BANK" ? (
-                    <div className="border-border rounded-2xl border p-5 shadow-sm">
-                      <div className="mb-4 flex items-center justify-between">
-                        <span className="text-muted text-xs font-bold tracking-wider uppercase">
-                          ข้อมูลบัญชี
-                        </span>
-                      </div>
-                      <div className="space-y-4">
-                        <div className="border-border bg-surface rounded-xl border p-4 shadow-sm">
-                          <div className="border-border mb-4 flex items-center gap-3 border-b pb-3">
-                            {selectedBank ? (
-                              <img
-                                src={selectedBank.logo}
-                                alt={selectedBank.id}
-                                className="border-border bg-surface h-10 w-10 rounded-full border object-cover shadow-sm"
-                                onError={(e) => {
-                                  e.currentTarget.onerror = null;
-                                  e.currentTarget.src = "/banks/default.png";
-                                }}
-                              />
-                            ) : (
-                              <div className="bg-background text-muted flex h-10 w-10 items-center justify-center rounded-full">
-                                <Building2 size={20} />
+                        <div className="border-border rounded-2xl border p-5 shadow-sm">
+                          <div className="mb-4 flex items-center justify-between">
+                            <span className="text-muted text-xs font-bold tracking-wider uppercase">
+                              ข้อมูลบัญชี
+                            </span>
+                          </div>
+                          <div className="space-y-4">
+                            <div className="border-border bg-surface rounded-xl border p-4 shadow-sm">
+                              <div className="border-border mb-4 flex items-center gap-3 border-b pb-3">
+                                {selectedBank ? (
+                                  <img
+                                    src={selectedBank.logo}
+                                    alt={selectedBank.id}
+                                    className="border-border bg-surface h-10 w-10 rounded-full border object-cover shadow-sm"
+                                    onError={(e) => {
+                                      e.currentTarget.onerror = null;
+                                      e.currentTarget.src =
+                                        "/banks/default.png";
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="bg-background text-muted flex h-10 w-10 items-center justify-center rounded-full">
+                                    <Building2 size={20} />
+                                  </div>
+                                )}
+                                <div>
+                                  <span className="text-muted block text-[11px] font-medium">
+                                    ธนาคาร
+                                  </span>
+                                  <span className="text-foreground block text-sm font-bold">
+                                    {selectedBank?.name ||
+                                      paymentSetting?.bankName ||
+                                      "ไม่ระบุธนาคาร"}
+                                  </span>
+                                </div>
                               </div>
-                            )}
-                            <div>
-                              <span className="text-muted block text-[11px] font-medium">
-                                ธนาคาร
-                              </span>
-                              <span className="text-foreground block text-sm font-bold">
-                                {selectedBank?.name ||
-                                  paymentSetting?.bankName ||
-                                  "ไม่ระบุธนาคาร"}
-                              </span>
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-muted mb-1 text-[11px] font-medium">
+                                    เลขที่บัญชี
+                                  </p>
+                                  <p className="text-foreground text-xl font-bold tracking-wider">
+                                    {paymentSetting?.bankAccount}
+                                  </p>
+                                </div>
+                                <div className="relative">
+                                  {copied && (
+                                    <div className="absolute -top-9 left-1/2 -translate-x-1/2 rounded bg-slate-800 px-2 py-1 text-[9px] text-nowrap text-white">
+                                      คัดลอกแล้ว
+                                    </div>
+                                  )}
+                                  <button
+                                    onClick={() =>
+                                      copyToClipboard(
+                                        paymentSetting?.bankAccount,
+                                      )
+                                    }
+                                    className={`cursor-pointer rounded-lg p-2.5 transition-colors ${copied ? "bg-emerald-100 text-emerald-600" : "bg-background text-muted hover:bg-border"}`}
+                                  >
+                                    {copied ? (
+                                      <Check size={18} />
+                                    ) : (
+                                      <Copy size={18} />
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
+                              <p className="mb-1 text-[11px] font-bold text-indigo-400 uppercase">
+                                ชื่อบัญชีผู้รับเงิน (ตรวจสอบชื่อนี้)
+                              </p>
+                              <p className="text-lg font-black text-indigo-900">
+                                {paymentSetting?.bankHolder}
+                              </p>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-muted mb-1 text-[11px] font-medium">
-                                เลขที่บัญชี
-                              </p>
-                              <p className="text-foreground text-xl font-bold tracking-wider">
-                                {paymentSetting?.bankAccount}
-                              </p>
+                        </div>
+                      ) : (
+                        <div className="flex justify-center">
+                          {loadingQr ? (
+                            <div className="border-border bg-background flex w-full flex-col items-center justify-center gap-6 rounded-[20px] border-2 border-dashed py-12">
+                              <div className="bg-skeleton relative flex h-56 w-56 animate-pulse items-center justify-center rounded-xl shadow-inner">
+                                <Loader2 className="text-muted h-10 w-10 animate-spin" />
+                              </div>
+                              <div className="flex w-full max-w-50 flex-col items-center gap-2.5">
+                                <div className="bg-skeleton h-4 w-3/4 animate-pulse rounded-full"></div>
+                                <div className="bg-skeleton h-8 w-1/2 animate-pulse rounded-full"></div>
+                              </div>
                             </div>
-                            <div className="relative">
-                              {copied && (
-                                <div className="absolute -top-9 left-1/2 -translate-x-1/2 rounded bg-slate-800 px-2 py-1 text-[9px] text-nowrap text-white">
-                                  คัดลอกแล้ว
-                                </div>
-                              )}
+                          ) : dataQrcode ? (
+                            <PromptPayCard
+                              qrData={dataQrcode.result}
+                              amount={dataQrcode.total}
+                              accountName={dataQrcode.promptPayName}
+                            />
+                          ) : (
+                            <div className="border-border bg-background w-full rounded-2xl border border-dashed p-8 text-center">
+                              <p className="text-muted text-sm">
+                                ไม่สามารถโหลด QR Code ได้
+                              </p>
                               <button
-                                onClick={() =>
-                                  copyToClipboard(paymentSetting?.bankAccount)
-                                }
-                                className={`cursor-pointer rounded-lg p-2.5 transition-colors ${copied ? "bg-emerald-100 text-emerald-600" : "bg-background text-muted hover:bg-border"}`}
+                                onClick={handleGenerateQR}
+                                className="mt-2 text-xs font-bold text-indigo-600 hover:underline"
                               >
-                                {copied ? (
-                                  <Check size={18} />
-                                ) : (
-                                  <Copy size={18} />
-                                )}
+                                ลองใหม่
                               </button>
                             </div>
-                          </div>
-                        </div>
-                        <div className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
-                          <p className="mb-1 text-[11px] font-bold text-indigo-400 uppercase">
-                            ชื่อบัญชีผู้รับเงิน (ตรวจสอบชื่อนี้)
-                          </p>
-                          <p className="text-lg font-black text-indigo-900">
-                            {paymentSetting?.bankHolder}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex justify-center">
-                      {loadingQr ? (
-                        <div className="border-border bg-background flex w-full flex-col items-center justify-center gap-6 rounded-[20px] border-2 border-dashed py-12">
-                          <div className="bg-skeleton relative flex h-56 w-56 animate-pulse items-center justify-center rounded-xl shadow-inner">
-                            <Loader2 className="text-muted h-10 w-10 animate-spin" />
-                          </div>
-                          <div className="flex w-full max-w-50 flex-col items-center gap-2.5">
-                            <div className="bg-skeleton h-4 w-3/4 animate-pulse rounded-full"></div>
-                            <div className="bg-skeleton h-8 w-1/2 animate-pulse rounded-full"></div>
-                          </div>
-                        </div>
-                      ) : dataQrcode ? (
-                        <PromptPayCard
-                          qrData={dataQrcode.result}
-                          amount={dataQrcode.total}
-                          accountName={dataQrcode.promptPayName}
-                        />
-                      ) : (
-                        <div className="border-border bg-background w-full rounded-2xl border border-dashed p-8 text-center">
-                          <p className="text-muted text-sm">
-                            ไม่สามารถโหลด QR Code ได้
-                          </p>
-                          <button
-                            onClick={handleGenerateQR}
-                            className="mt-2 text-xs font-bold text-indigo-600 hover:underline"
-                          >
-                            ลองใหม่
-                          </button>
+                          )}
                         </div>
                       )}
                     </div>
                   )}
-                </div>
-              )}
-              <div className="space-y-4">
-                <h4 className="text-foreground flex items-center gap-2 px-1 text-sm font-bold">
-                  <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] text-white ${isLocked ? "bg-green-500" : "bg-slate-800"}`}
-                  >
-                    {isLocked ? <Check size={12} /> : "2"}
-                  </span>
-                  {isLocked
-                    ? "หลักฐานการโอนเงิน (ตรวจสอบแล้ว)"
-                    : "อัพโหลดสลิปหลักฐาน"}
-                </h4>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
-                {!previewUrl && isReuploading && !isLocked && (
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-border bg-background group flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed py-10 transition-all hover:border-indigo-300 hover:bg-indigo-50/30"
-                  >
-                    <div className="bg-surface mb-3 rounded-full p-4 shadow-sm transition-transform group-hover:scale-110">
-                      <Upload
-                        className="text-muted group-hover:text-indigo-500"
-                        size={28}
-                      />
-                    </div>
-                    <p className="text-foreground text-sm font-bold">
-                      กดเพื่อเลือกรูปภาพสลิป
-                    </p>
-                    <p className="text-muted mt-1 text-[10px] font-bold tracking-widest uppercase">
-                      JPG, PNG เท่านั้น
-                    </p>
-                    {currentSlipUrl && (
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          cancelReupload();
-                        }}
-                        className="text-muted hover:text-foreground mt-4 text-xs font-bold underline"
+                  <div className="space-y-4">
+                    <h4 className="text-foreground flex items-center gap-2 px-1 text-sm font-bold">
+                      <span
+                        className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] text-white ${isLocked ? "bg-green-500" : "bg-slate-800"}`}
                       >
-                        ยกเลิกการแก้ไข
-                      </div>
-                    )}
-                  </button>
-                )}
-                {previewUrl && (
-                  <div className="border-border bg-background group relative overflow-hidden rounded-2xl border-2 shadow-inner">
-                    {isScanning && (
-                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
-                        <ScanEye className="mb-3 h-10 w-10 animate-pulse text-indigo-400" />
-                        <p className="text-sm font-bold text-white">
-                          กำลังตรวจสอบความถูกต้อง...
-                        </p>
-                      </div>
-                    )}
-                    <img
-                      src={previewUrl}
-                      alt="Slip Preview"
-                      className="block h-auto w-full"
+                        {isLocked ? <Check size={12} /> : "2"}
+                      </span>
+                      {isLocked
+                        ? "หลักฐานการโอนเงิน (ตรวจสอบแล้ว)"
+                        : "อัพโหลดสลิปหลักฐาน"}
+                    </h4>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleFileChange}
                     />
-                    {!isScanning && (
-                      <div className="absolute top-4 right-4 flex gap-2">
-                        {!isLocked ? (
-                          isReuploading ? (
-                            <button
-                              onClick={handleClearFile}
-                              className="cursor-pointer rounded-full bg-rose-500 p-2 text-white shadow-lg transition-all hover:scale-110 hover:bg-rose-600"
-                            >
-                              <X size={16} />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={startReupload}
-                              className="flex cursor-pointer items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-xs font-bold text-slate-700 shadow-lg backdrop-blur transition-all hover:bg-white hover:text-indigo-600"
-                            >
-                              <Edit2 size={14} />
-                              แก้ไขสลิป
-                            </button>
-                          )
-                        ) : (
-                          <div className="flex items-center gap-1 rounded-full bg-green-500/90 px-3 py-1.5 text-xs font-bold text-white shadow-lg backdrop-blur">
-                            <Lock size={12} />
-                            ตรวจสอบแล้ว
+                    {!previewUrl && isReuploading && !isLocked && (
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-border bg-background group flex w-full cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed py-10 transition-all hover:border-indigo-300 hover:bg-indigo-50/30"
+                      >
+                        <div className="bg-surface mb-3 rounded-full p-4 shadow-sm transition-transform group-hover:scale-110">
+                          <Upload
+                            className="text-muted group-hover:text-indigo-500"
+                            size={28}
+                          />
+                        </div>
+                        <p className="text-foreground text-sm font-bold">
+                          กดเพื่อเลือกรูปภาพสลิป
+                        </p>
+                        <p className="text-muted mt-1 text-[10px] font-bold tracking-widest uppercase">
+                          JPG, PNG เท่านั้น
+                        </p>
+                        {currentSlipUrl && (
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              cancelReupload();
+                            }}
+                            className="text-muted hover:text-foreground mt-4 text-xs font-bold underline"
+                          >
+                            ยกเลิกการแก้ไข
+                          </div>
+                        )}
+                      </button>
+                    )}
+                    {previewUrl && (
+                      <div className="border-border bg-background group relative overflow-hidden rounded-2xl border-2 shadow-inner">
+                        {isScanning && (
+                          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
+                            <ScanEye className="mb-3 h-10 w-10 animate-pulse text-indigo-400" />
+                            <p className="text-sm font-bold text-white">
+                              กำลังตรวจสอบความถูกต้อง...
+                            </p>
+                          </div>
+                        )}
+                        <img
+                          src={previewUrl}
+                          alt="Slip Preview"
+                          className="block h-auto w-full"
+                        />
+                        {!isScanning && (
+                          <div className="absolute top-4 right-4 flex gap-2">
+                            {!isLocked ? (
+                              isReuploading ? (
+                                <button
+                                  onClick={handleClearFile}
+                                  className="cursor-pointer rounded-full bg-rose-500 p-2 text-white shadow-lg transition-all hover:scale-110 hover:bg-rose-600"
+                                >
+                                  <X size={16} />
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={startReupload}
+                                  className="flex cursor-pointer items-center gap-2 rounded-full bg-white/90 px-3 py-2 text-xs font-bold text-slate-700 shadow-lg backdrop-blur transition-all hover:bg-white hover:text-indigo-600"
+                                >
+                                  <Edit2 size={14} />
+                                  แก้ไขสลิป
+                                </button>
+                              )
+                            ) : (
+                              <div className="flex items-center gap-1 rounded-full bg-green-500/90 px-3 py-1.5 text-xs font-bold text-white shadow-lg backdrop-blur">
+                                <Lock size={12} />
+                                ตรวจสอบแล้ว
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
                     )}
-                  </div>
-                )}
-                {!isLocked && isReuploading && (
-                  <button
-                    disabled={!selectedFile || isSubmitting || isScanning}
-                    onClick={() => setShowConfirm(true)}
-                    className={`mt-4 flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl p-3 text-lg font-black text-white transition-all ${!selectedFile || isSubmitting || isScanning ? "bg-skeleton text-muted cursor-not-allowed shadow-none" : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700 active:scale-95 dark:shadow-none"}`}
-                  >
-                    {isSubmitting || isScanning ? (
-                      <Loader2 className="animate-spin" size={24} />
-                    ) : (
-                      <>
-                        <CheckCircle size={24} />
-                        ยืนยันการส่งสลิป
-                      </>
+                    {!isLocked && isReuploading && (
+                      <button
+                        disabled={!selectedFile || isSubmitting || isScanning}
+                        onClick={() => setShowConfirm(true)}
+                        className={`mt-4 flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl p-3 text-lg font-black text-white transition-all ${!selectedFile || isSubmitting || isScanning ? "bg-skeleton text-muted cursor-not-allowed shadow-none" : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700 active:scale-95 dark:shadow-none"}`}
+                      >
+                        {isSubmitting || isScanning ? (
+                          <Loader2 className="animate-spin" size={24} />
+                        ) : (
+                          <>
+                            <CheckCircle size={24} />
+                            ยืนยันการส่งสลิป
+                          </>
+                        )}
+                      </button>
                     )}
-                  </button>
-                )}
-                {!isReuploading && currentSlipUrl && !isLocked && (
-                  <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4 text-center">
-                    <p className="text-sm font-bold text-amber-700">
-                      อยู่ในระหว่างการตรวจสอบ
-                    </p>
-                    <p className="mt-1 text-xs text-amber-600">
-                      หากคุณส่งสลิปผิด สามารถกดปุ่ม "แก้ไขสลิป"
-                      ด้านบนเพื่อส่งใหม่ได้
-                    </p>
-                  </div>
-                )}
+                    {!isReuploading && currentSlipUrl && !isLocked && (
+                      <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-4 text-center">
+                        <p className="text-sm font-bold text-amber-700">
+                          อยู่ในระหว่างการตรวจสอบ
+                        </p>
+                        <p className="mt-1 text-xs text-amber-600">
+                          หากคุณส่งสลิปผิด สามารถกดปุ่ม "แก้ไขสลิป"
+                          ด้านบนเพื่อส่งใหม่ได้
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
