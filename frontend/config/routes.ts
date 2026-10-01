@@ -40,6 +40,7 @@ export const routes = {
     contract: "/tenant/contract",
     dashboard: "/tenant/dashboard",
     maintenance: "/tenant/maintenance",
+    profile: "/tenant/profile",
   },
   public: {
     dorms: "/dorms",

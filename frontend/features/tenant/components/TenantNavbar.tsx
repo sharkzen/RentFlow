@@ -57,6 +57,11 @@ export default function TenantNavbar() {
       icon: <FileText size={20} />,
       href: "/tenant/contract",
     },
+    {
+      name: "โปรไฟล์",
+      icon: <User size={20} />,
+      href: "/tenant/profile",
+    },
   ];
 
   return (
