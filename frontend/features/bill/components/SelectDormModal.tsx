@@ -12,6 +12,8 @@ interface Props {
   onClose: () => void;
   dorms: Dorm[];
   onSelect: (dormId: string) => void;
+  description?: string;
+  hint?: string;
 }
 
 const CARD_ACCENTS = [
@@ -28,6 +30,8 @@ export default function SelectDormModal({
   onClose,
   dorms,
   onSelect,
+  description = "เลือกหอพักที่ต้องการสร้างบิลในรอบนี้",
+  hint = "แตะเพื่อสร้างบิลของหอพักนี้",
 }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const selectableDorms = useMemo(
@@ -67,7 +71,7 @@ export default function SelectDormModal({
                   เลือกหอพัก
                 </h2>
                 <p className="mt-0.5 text-xs text-blue-50/90 sm:text-sm">
-                  เลือกหอพักที่ต้องการสร้างบิลในรอบนี้
+                  {description}
                 </p>
               </div>
             </div>
@@ -127,9 +131,7 @@ export default function SelectDormModal({
                     <p className="text-foreground truncate text-sm font-semibold sm:text-base">
                       {dorm.name}
                     </p>
-                    <p className="text-muted mt-0.5 text-xs">
-                      แตะเพื่อสร้างบิลของหอพักนี้
-                    </p>
+                    <p className="text-muted mt-0.5 text-xs">{hint}</p>
                   </div>
                   <ChevronRight
                     size={20}

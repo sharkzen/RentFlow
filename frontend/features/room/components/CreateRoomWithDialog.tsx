@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 
 import {
@@ -13,7 +13,6 @@ import {
   Layers,
   ChevronDown,
   Check,
-  Search,
 } from "lucide-react";
 
 import { RoomService } from "@/features/room/services/room.service";
@@ -23,6 +22,7 @@ import { AxiosError } from "axios";
 import { showBackendError } from "@/lib/backendError";
 import { useClickOutsideModal } from "@/lib/hooks/useClickOutsideModal";
 import { Dormitory } from "@/features/dormitory";
+import SelectDormModal from "@/features/bill/components/SelectDormModal";
 
 enum RoomType {
   AIR = "AIR",
@@ -111,104 +111,6 @@ const RoomTypeDropdown = ({ value, onChange }: RoomTypeDropdownProps) => {
   );
 };
 
-interface DormSelectorProps {
-  dorms: Dormitory[];
-  value: string;
-  onChange: (value: string) => void;
-  error?: boolean;
-}
-
-const DormSelector = ({ dorms, value, onChange, error }: DormSelectorProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const filteredDorms = useMemo(() => {
-    return dorms.filter((d) =>
-      d.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-  }, [dorms, searchTerm]);
-
-  const selectedDorm = dorms.find((d) => d.id === value);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative w-full sm:w-72" ref={containerRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`bg-surface flex w-full cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm transition-all focus:ring-2 focus:outline-none ${error ? "border-red-300 ring-red-100 focus:border-red-500" : isOpen ? "border-blue-500 ring-2 ring-blue-100" : "border-border hover:bg-background"}`}
-      >
-        <span
-          className={`truncate ${selectedDorm ? "text-foreground font-medium" : "text-muted"}`}
-        >
-          {selectedDorm ? selectedDorm.name : "-- เลือกหอพัก --"}
-        </span>
-        <ChevronDown
-          className={`text-muted ml-2 h-4 w-4 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
-      </button>
-      {isOpen && (
-        <div className="border-border bg-surface animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-1 w-full min-w-[200px] overflow-hidden rounded-xl border shadow-xl ring-1 ring-black/5">
-          <div className="border-border border-b p-2">
-            <div className="relative">
-              <Search className="text-muted absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="ค้นหาชื่อหอ..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="border-border bg-background w-full rounded-md border py-1.5 pr-3 pl-8 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                autoFocus
-              />
-            </div>
-          </div>
-          <div className="custom-scrollbar max-h-60 overflow-y-auto p-1">
-            {filteredDorms.length === 0 ? (
-              <div className="text-muted py-3 text-center text-xs">
-                ไม่พบข้อมูล
-              </div>
-            ) : (
-              filteredDorms.map((dorm) => {
-                const isSelected = dorm.id === value;
-
-                return (
-                  <button
-                    key={dorm.id}
-                    type="button"
-                    onClick={() => {
-                      onChange(dorm.id);
-                      setIsOpen(false);
-                      setSearchTerm("");
-                    }}
-                    className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors ${isSelected ? "bg-blue-50 font-medium text-blue-700" : "text-foreground hover:bg-background"}`}
-                  >
-                    <span className="truncate">{dorm.name}</span>
-                    {isSelected && <Check className="h-4 w-4 text-blue-600" />}
-                  </button>
-                );
-              })
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
 interface RoomFormItem {
   floor: string;
   roomNumber: string;
@@ -237,6 +139,7 @@ export default function CreateRoomWithDialog({
   onSuccess,
 }: CreateRoomProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSelectDormOpen, setIsSelectDormOpen] = useState(false);
 
   const {
     register,
@@ -245,7 +148,6 @@ export default function CreateRoomWithDialog({
     reset,
     watch,
     setValue,
-    trigger,
 
     formState: { errors, isSubmitting },
   } = useForm<RoomFormValues>({
@@ -275,6 +177,22 @@ export default function CreateRoomWithDialog({
     name: "rooms",
   });
 
+  const targetDormId = watch("targetDormId");
+
+  const activeDormName =
+    dormName || dorms.find((d) => d.id === targetDormId)?.name || "";
+
+  const handleCreateClick = () => {
+    if (dormId || dorms.length === 1) {
+      if (!dormId) setValue("targetDormId", dorms[0].id);
+
+      setIsOpen(true);
+      return;
+    }
+
+    setIsSelectDormOpen(true);
+  };
+
   const toggleModal = () => {
     if (isOpen) {
       reset({
@@ -299,13 +217,19 @@ export default function CreateRoomWithDialog({
     const currentRooms = watch("rooms");
     const lastRoom = currentRooms[currentRooms.length - 1];
 
-    append({
-      floor: lastRoom?.floor || "",
-      roomNumber: "",
-      type: lastRoom?.type || RoomType.AIR,
-      basePrice: lastRoom?.basePrice || 0,
-      description: lastRoom?.description || "",
-    });
+    append(
+      {
+        floor: lastRoom?.floor || "",
+        roomNumber: "",
+        type: lastRoom?.type || RoomType.AIR,
+        basePrice: lastRoom?.basePrice || 0,
+        description: lastRoom?.description || "",
+      },
+      {
+        shouldFocus: true,
+        focusName: `rooms.${currentRooms.length}.roomNumber`,
+      },
+    );
   };
 
   const onSubmit = async (data: RoomFormValues) => {
@@ -394,13 +318,25 @@ export default function CreateRoomWithDialog({
     <>
       <div className="my-2 flex justify-end">
         <button
-          onClick={toggleModal}
+          onClick={handleCreateClick}
           className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-5 py-2.5 text-sm font-semibold text-white transition-all active:scale-95 max-sm:w-full`}
         >
           <Plus className="h-5 w-5" />
           <span>สร้างห้องพัก</span>
         </button>
       </div>
+      <SelectDormModal
+        isOpen={isSelectDormOpen}
+        onClose={() => setIsSelectDormOpen(false)}
+        dorms={dorms}
+        description="เลือกหอพักที่ต้องการสร้างห้องพัก"
+        hint="แตะเพื่อสร้างห้องพักของหอพักนี้"
+        onSelect={(id) => {
+          setValue("targetDormId", id);
+          setIsSelectDormOpen(false);
+          setIsOpen(true);
+        }}
+      />
       {isOpen && (
         <div className="fixed inset-0 z-999 flex overflow-hidden bg-black/60 transition-all sm:items-center sm:justify-center sm:p-4">
           <div
@@ -417,34 +353,9 @@ export default function CreateRoomWithDialog({
                     <Home className="h-3.5 w-3.5" />
                     <span className="whitespace-nowrap">หอพัก:</span>
                   </div>
-                  {dormId ? (
-                    <span className="font-semibold text-blue-600">
-                      {dormName}
-                    </span>
-                  ) : (
-                    <div className="w-full sm:ml-2">
-                      <input
-                        type="hidden"
-                        {...register("targetDormId", {
-                          required: true,
-                        })}
-                      />
-                      <DormSelector
-                        dorms={dorms}
-                        value={watch("targetDormId") || ""}
-                        onChange={(val) => {
-                          setValue("targetDormId", val);
-                          trigger("targetDormId");
-                        }}
-                        error={!!errors.targetDormId}
-                      />
-                      {errors.targetDormId && (
-                        <div className="mt-1 text-xs text-red-500">
-                          * กรุณาเลือกหอพัก
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <span className="font-semibold text-blue-600">
+                    {activeDormName}
+                  </span>
                 </div>
               </div>
               <button
@@ -507,7 +418,7 @@ export default function CreateRoomWithDialog({
                                   return true;
                                 },
                               })}
-                              className={`w-full rounded-lg border py-2 pr-3 pl-8 text-sm transition-all outline-none focus:ring-2 ${errors.rooms?.[index]?.floor ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-border focus:border-blue-500 focus:ring-blue-100"}`}
+                              className={`w-full rounded-lg border py-2 pr-3 pl-8 text-base transition-all outline-none focus:ring-2 md:text-sm ${errors.rooms?.[index]?.floor ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-border focus:border-blue-500 focus:ring-blue-100"}`}
                             />
                           </div>
                         </div>
@@ -520,7 +431,7 @@ export default function CreateRoomWithDialog({
                               required: true,
                             })}
                             placeholder="เช่น 101"
-                            className={`w-full rounded-lg border px-3 py-2 text-sm transition-all outline-none focus:ring-2 ${errors.rooms?.[index]?.roomNumber ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-border focus:border-blue-500 focus:ring-blue-100"}`}
+                            className={`w-full rounded-lg border px-3 py-2 text-base transition-all outline-none focus:ring-2 md:text-sm ${errors.rooms?.[index]?.roomNumber ? "border-red-300 focus:border-red-500 focus:ring-red-100" : "border-border focus:border-blue-500 focus:ring-blue-100"}`}
                           />
                         </div>
                         <div className="md:col-span-3">
@@ -558,7 +469,7 @@ export default function CreateRoomWithDialog({
                                   return true;
                                 },
                               })}
-                              className="border-border w-full rounded-lg border py-2 pr-2 pl-7 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                              className="border-border w-full rounded-lg border py-2 pr-2 pl-7 text-base outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 md:text-sm"
                             />
                           </div>
                         </div>
@@ -569,7 +480,7 @@ export default function CreateRoomWithDialog({
                           <input
                             {...register(`rooms.${index}.description`)}
                             placeholder="Optional"
-                            className="border-border w-full rounded-lg border px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            className="border-border w-full rounded-lg border px-3 py-2 text-base outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 md:text-sm"
                           />
                         </div>
                       </div>

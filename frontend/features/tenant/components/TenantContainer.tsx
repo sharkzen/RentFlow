@@ -13,6 +13,7 @@ import { DormService } from "@/features/dormitory/services/dorm.service";
 import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendError";
 import AddTenantDialog from "./AddTenantDialog";
+import SelectDormModal from "@/features/bill/components/SelectDormModal";
 import { Tenant } from "@/features/tenant";
 import { TenantService } from "@/features/tenant/services/tenant.service";
 import { Dormitory } from "@/features/dormitory";
@@ -121,6 +122,18 @@ export default function TenantContainer() {
   }, [search]);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSelectDormOpen, setIsSelectDormOpen] = useState(false);
+  const [addDormId, setAddDormId] = useState<string>();
+
+  const handleAddClick = () => {
+    if (dorms.length > 1) {
+      setIsSelectDormOpen(true);
+      return;
+    }
+
+    setAddDormId(selectedDorm);
+    setIsAddModalOpen(true);
+  };
   const currentFilterLabel = filterOptions.find(
     (opt) => opt.value === filterStatus,
   )?.label;
@@ -257,7 +270,7 @@ export default function TenantContainer() {
         </div>
         <div className="col-span-12 md:col-span-2 lg:col-span-2">
           <button
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={handleAddClick}
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:from-blue-700 hover:to-blue-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:scale-95"
           >
             <Plus className="h-5 w-5" />
@@ -295,13 +308,29 @@ export default function TenantContainer() {
           </div>
         </div>
       )}
-      {isAddModalOpen && selectedDorm && (
+      <SelectDormModal
+        isOpen={isSelectDormOpen}
+        onClose={() => setIsSelectDormOpen(false)}
+        dorms={dorms}
+        description="เลือกหอพักที่ต้องการเพิ่มผู้เช่า"
+        hint="แตะเพื่อเพิ่มผู้เช่าในหอพักนี้"
+        onSelect={(id) => {
+          setAddDormId(id);
+          setIsSelectDormOpen(false);
+          setIsAddModalOpen(true);
+        }}
+      />
+      {isAddModalOpen && addDormId && (
         <AddTenantDialog
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
-          dormId={selectedDorm}
+          dormId={addDormId}
           onSuccess={() => {
-            getTenants();
+            if (addDormId !== selectedDorm) {
+              setSelectedDorm(addDormId);
+            } else {
+              getTenants();
+            }
           }}
         />
       )}
