@@ -12,6 +12,10 @@ import {
   LightbulbOff,
   Focus,
   ZoomIn,
+  Zap,
+  Hand,
+  AlertTriangle,
+  CheckCircle2,
 } from "lucide-react";
 
 import { toast } from "react-toastify";
@@ -404,8 +408,18 @@ export default function MeterScannerModal({
     <div className="fixed inset-0 z-60 flex justify-center bg-black/80">
       <div className="bg-surface animate-in fade-in zoom-in-95 flex w-full max-w-4xl flex-col overflow-hidden shadow-2xl duration-200 sm:rounded-3xl">
         <div className="bg-surface flex shrink-0 items-center justify-between px-5 py-4 shadow-sm">
-          <h3 className="text-foreground text-lg font-bold">
-            {scanType === "WATER" ? "💧 สแกนมิเตอร์น้ำ" : "⚡ สแกนมิเตอร์ไฟ"}
+          <h3 className="text-foreground flex items-center gap-2 text-lg font-bold">
+            {scanType === "WATER" ? (
+              <>
+                <Droplets size={20} className="text-blue-500" />
+                สแกนมิเตอร์น้ำ
+              </>
+            ) : (
+              <>
+                <Zap size={20} className="text-yellow-500" />
+                สแกนมิเตอร์ไฟ
+              </>
+            )}
           </h3>
           <button
             onClick={onClose}
@@ -453,7 +467,8 @@ export default function MeterScannerModal({
                   </span>
                 </div>
                 <p className="mt-2 text-sm font-medium text-emerald-600">
-                  👆 แบบนี้คือ 4 หลัก
+                  <Hand size={14} className="mr-1 inline -translate-y-px" />
+                  แบบนี้คือ 4 หลัก
                 </p>
               </div>
               <div className="space-y-2">
@@ -532,9 +547,23 @@ export default function MeterScannerModal({
                   <p
                     className={`mb-2 text-sm font-bold ${ocrWarning ? "text-amber-500" : "text-emerald-600"}`}
                   >
-                    {ocrWarning
-                      ? "⚠️ กรุณาตรวจสอบตัวเลขกับรูป"
-                      : "✅ ตรวจสอบความถูกต้อง"}
+                    {ocrWarning ? (
+                      <>
+                        <AlertTriangle
+                          size={16}
+                          className="mr-1 inline -translate-y-px"
+                        />
+                        กรุณาตรวจสอบตัวเลขกับรูป
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2
+                          size={16}
+                          className="mr-1 inline -translate-y-px"
+                        />
+                        ตรวจสอบความถูกต้อง
+                      </>
+                    )}
                   </p>
                   <div className="relative w-full">
                     <input

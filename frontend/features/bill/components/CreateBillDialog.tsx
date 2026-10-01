@@ -12,6 +12,9 @@ import {
   Clock,
   ArrowLeft,
   RotateCcw,
+  ScanLine,
+  Droplets,
+  Zap,
 } from "lucide-react";
 
 import log from "@/lib/logger";
@@ -607,13 +610,17 @@ export default function CreateBillDialog({
                   onClick={() => handleStartScan("WATER")}
                   className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-100 px-4 py-2 text-xs font-bold text-blue-700 transition-all hover:bg-blue-200 sm:flex-none"
                 >
-                  📷 สแกนน้ำต่อเนื่อง
+                  <ScanLine size={16} />
+                  <Droplets size={16} />
+                  สแกนน้ำต่อเนื่อง
                 </button>
                 <button
                   onClick={() => handleStartScan("ELECTRIC")}
                   className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-yellow-100 px-4 py-2 text-xs font-bold text-yellow-700 transition-all hover:bg-yellow-200 sm:flex-none"
                 >
-                  📷 สแกนไฟต่อเนื่อง
+                  <ScanLine size={16} />
+                  <Zap size={16} />
+                  สแกนไฟต่อเนื่อง
                 </button>
               </div>
             ) : (

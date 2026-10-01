@@ -9,11 +9,11 @@ import {
   FileText,
   CheckCircle2,
   Wallet,
+  ZoomIn,
 } from "lucide-react";
 
 import { useState, useRef } from "react";
 import { toast } from "react-toastify";
-import { useScrollLock } from "usehooks-ts";
 import log from "@/lib/logger";
 
 const BANK_MAP: Record<string, string> = {
@@ -64,7 +64,6 @@ export default function BillSlipSidebar({
   isEditable = true,
   isMobile = false,
 }: Props) {
-  useScrollLock();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -139,8 +138,9 @@ export default function BillSlipSidebar({
                 />
               </div>
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
-                <span className="text-foreground rounded-full bg-white/90 px-4 py-2 text-sm font-medium shadow-lg backdrop-blur-sm">
-                  🔍 แตะเพื่อดูรูปใหญ่
+                <span className="text-foreground flex items-center gap-1.5 rounded-full bg-white/90 px-4 py-2 text-sm font-medium shadow-lg backdrop-blur-sm">
+                  <ZoomIn size={16} />
+                  แตะเพื่อดูรูปใหญ่
                 </span>
               </div>
             </div>
