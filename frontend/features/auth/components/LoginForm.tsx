@@ -303,7 +303,7 @@ export default function LoginForm() {
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
-                      placeholder="******"
+                      placeholder="••••••"
                       onChange={(e) => {
                         setPassword(e.target.value);
 

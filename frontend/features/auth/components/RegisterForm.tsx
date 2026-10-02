@@ -245,7 +245,7 @@ export default function OwnerRegisterForm() {
                         <input
                           type={showPassword ? "text" : "password"}
                           value={form.password}
-                          placeholder="******"
+                          placeholder="••••••"
                           onChange={(e) =>
                             handleChange("password", e.target.value)
                           }
@@ -277,7 +277,7 @@ export default function OwnerRegisterForm() {
                         <input
                           type={showConfirmPassword ? "text" : "password"}
                           value={form.confirmPassword}
-                          placeholder="******"
+                          placeholder="••••••"
                           onChange={(e) =>
                             handleChange("confirmPassword", e.target.value)
                           }
