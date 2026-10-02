@@ -15,6 +15,7 @@ import {
   LandmarkService,
   Landmark,
 } from "@/features/dormitory/services/landmark.service";
+import { LandmarkType, LandmarkTypeLabel } from "@/features/admin/types";
 import log from "@/lib/logger";
 
 export default function DormFilter() {
@@ -281,7 +282,10 @@ export default function DormFilter() {
                       />
                     </div>
                   </div>
-                  <div className="max-h-56 overflow-y-auto p-1">
+                  <div
+                    data-lenis-prevent
+                    className="max-h-56 overflow-y-auto overscroll-contain p-1"
+                  >
                     <button
                       type="button"
                       onClick={() => handleSelectLocation("")}
@@ -295,7 +299,7 @@ export default function DormFilter() {
                         ([type, items]) => (
                           <div key={type} className="mt-2">
                             <div className="text-muted px-3 py-1 text-xs font-bold tracking-wider uppercase">
-                              {type}
+                              {LandmarkTypeLabel[type as LandmarkType] ?? type}
                             </div>
                             {items.map((lm) => (
                               <button
