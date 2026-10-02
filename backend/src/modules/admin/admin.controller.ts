@@ -38,6 +38,15 @@ export const updateStatusSchema = z.object({
   status: z.string(),
 });
 
+export const changePasswordSchema = z.object({
+  newPassword: z
+    .string()
+    .regex(
+      /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/,
+      "รหัสผ่านต้องมีอย่างน้อย 6 ตัว เป็นตัวอักษรอังกฤษและตัวเลขเท่านั้น",
+    ),
+});
+
 export const AdminController = {
   getDashboard: async (req: FastifyRequest, reply: FastifyReply) => {
     const stats = await AdminService.getDashboardStats();
@@ -264,6 +273,64 @@ export const AdminController = {
     }
   },
 
+  getUsers: async (req: FastifyRequest, reply: FastifyReply) => {
+    const {
+      page = 1,
+      limit = 15,
+      q = "",
+      role = "ALL",
+      status = "ALL",
+    } = req.query as any;
+
+    const result = await AdminService.getUsersList(
+      Math.max(1, Number(page) || 1),
+      Math.min(100, Math.max(1, Number(limit) || 15)),
+      String(q),
+      String(role),
+      String(status),
+    );
+    return reply.send(result);
+  },
+
+  getUserById: async (
+    req: FastifyRequest<{
+      Params: {
+        id: string;
+      };
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const result = await AdminService.getUserDetailById(req.params.id);
+
+    if (!result) throw AppError.notFound("USER_NOT_FOUND", "User not found");
+
+    return reply.send(result);
+  },
+
+  changeUserPassword: async (
+    req: FastifyRequest<{
+      Params: {
+        id: string;
+      };
+    }>,
+    reply: FastifyReply,
+  ) => {
+    const { newPassword } = changePasswordSchema.parse(req.body);
+
+    const user = req.user as UserDecodedDto;
+
+    const result = await AdminService.changeUserPassword(
+      req.params.id,
+      newPassword,
+      user.sub,
+    );
+
+    if (!result)
+      throw AppError.notFound("USER_NOT_FOUND", "ไม่พบข้อมูลผู้ใช้นี้");
+
+    return reply.send(result);
+  },
+
   getOwners: async (req: FastifyRequest, reply: FastifyReply) => {
     const { page = 1, limit = 10, q = "", status = "ALL" } = req.query as any;
 
@@ -323,11 +390,13 @@ export const AdminController = {
   },
 
   getLockedUsers: async (req: FastifyRequest, reply: FastifyReply) => {
-    const { page = 1, limit = 10 } = req.query as any;
+    const { page = 1, limit = 15, q = "", role = "ALL" } = req.query as any;
 
     const result = await AdminService.getLockedUsers(
-      Number(page),
-      Number(limit),
+      Math.max(1, Number(page) || 1),
+      Math.min(100, Math.max(1, Number(limit) || 15)),
+      String(q),
+      String(role),
     );
     return reply.send(result);
   },

@@ -1,29 +1,39 @@
 "use client";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { AdminService } from "@/features/admin/services/admin.service";
-import { OwnerUser, PaginatedResponse } from "@/features/admin";
+import {
+  AdminUser,
+  AdminUserDetail,
+  PaginatedResponse,
+} from "@/features/admin";
 import { toast } from "react-toastify";
 import UserTable from "./UserTable";
 import UserFilter from "./UserFilter";
 import UserDetailModal from "./UserDetailModal";
-import { Users, ChevronLeft, ChevronRight } from "lucide-react";
+import Pagination from "../Pagination";
+import { Users } from "lucide-react";
+
+const PAGE_SIZE = 15;
 
 export default function UserController() {
-  const [data, setData] = useState<OwnerUser[]>([]);
+  const [data, setData] = useState<AdminUser[]>([]);
   const [meta, setMeta] = useState<PaginatedResponse<any>["meta"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [role, setRole] = useState("ALL");
   const [status, setStatus] = useState("ALL");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [selectedUser, setSelectedUser] = useState<OwnerUser | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUserDetail | null>(
+    null,
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(search);
+      setDebouncedSearch(search.trim());
       setPage(1);
     }, 500);
 
@@ -33,17 +43,23 @@ export default function UserController() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await AdminService.getOwners(
+      const res = await AdminService.getUsers(
         page,
-        10,
+        PAGE_SIZE,
         debouncedSearch,
+        role,
         status,
       );
 
-      if (isMountedRef.current) {
-        setData(res.data);
-        setMeta(res.meta);
+      if (!isMountedRef.current) return;
+
+      if (res.meta.totalPages > 0 && page > res.meta.totalPages) {
+        setPage(res.meta.totalPages);
+        return;
       }
+
+      setData(res.data);
+      setMeta(res.meta);
     } catch (error) {
       console.error("Failed to fetch users", error);
 
@@ -51,7 +67,7 @@ export default function UserController() {
     } finally {
       if (isMountedRef.current) setLoading(false);
     }
-  }, [page, debouncedSearch, status]);
+  }, [page, debouncedSearch, role, status]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -62,12 +78,16 @@ export default function UserController() {
     };
   }, [fetchData]);
 
-  const handleViewDetail = async (user: OwnerUser) => {
+  const reloadDetail = async (userId: string) => {
+    const fullDetail = await AdminService.getUserDetail(userId);
+    setSelectedUser(fullDetail);
+  };
+
+  const handleViewDetail = async (user: AdminUser) => {
     try {
-      const fullDetail = await AdminService.getOwnerDetail(user.id);
-      setSelectedUser(fullDetail);
+      await reloadDetail(user.id);
       setIsModalOpen(true);
-    } catch (error) {
+    } catch {
       toast.error("โหลดข้อมูลรายละเอียดไม่สำเร็จ");
     }
   };
@@ -77,11 +97,22 @@ export default function UserController() {
       setActionLoading(true);
       await AdminService.updateUserStatus(userId, newStatus);
       toast.success(`เปลี่ยนสถานะเป็น ${newStatus} เรียบร้อยแล้ว`);
-      setIsModalOpen(false);
-      setSelectedUser(null);
-      fetchData();
-    } catch (error) {
+      await Promise.all([reloadDetail(userId), fetchData()]);
+    } catch {
       toast.error("ไม่สามารถอัปเดตสถานะได้");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUnlock = async (userId: string) => {
+    try {
+      setActionLoading(true);
+      await AdminService.unlockUser(userId);
+      toast.success("ปลดล็อคบัญชีเรียบร้อยแล้ว");
+      await Promise.all([reloadDetail(userId), fetchData()]);
+    } catch {
+      toast.error("ไม่สามารถปลดล็อคบัญชีได้");
     } finally {
       setActionLoading(false);
     }
@@ -96,11 +127,11 @@ export default function UserController() {
               <Users className="h-6 w-6" />
             </div>
             <h1 className="text-foreground text-2xl font-bold">
-              จัดการผู้ประกอบการ (Owners)
+              จัดการผู้ใช้งาน
             </h1>
           </div>
           <p className="text-muted mt-1 text-sm">
-            ตรวจสอบสถานะ อนุมัติ และจัดการบัญชีผู้ประกอบการหอพักทั้งหมดในระบบ
+            ดูข้อมูล ค้นหา เปลี่ยนรหัสผ่าน และจัดการบัญชีของลูกบ้านและเจ้าของหอพักทั้งหมดในระบบ
           </p>
         </div>
       </div>
@@ -108,6 +139,11 @@ export default function UserController() {
         <UserFilter
           search={search}
           onSearchChange={setSearch}
+          role={role}
+          onRoleChange={(val) => {
+            setRole(val);
+            setPage(1);
+          }}
           status={status}
           onStatusChange={(val) => {
             setStatus(val);
@@ -120,73 +156,25 @@ export default function UserController() {
         isLoading={loading}
         onViewDetail={handleViewDetail}
       />
-      {meta && meta.totalPages > 1 && (
-        <div className="border-border bg-surface flex items-center justify-between rounded-lg border-t px-4 py-3 shadow-sm sm:px-6">
-          <div className="flex flex-1 justify-between sm:hidden">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="border-border bg-surface text-foreground hover:bg-background relative inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
-              disabled={page === meta.totalPages}
-              className="border-border bg-surface text-foreground hover:bg-background relative ml-3 inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-            <div>
-              <p className="text-foreground text-sm">
-                แสดง <span className="font-medium">{(page - 1) * 10 + 1}</span>{" "}
-                ถึง{" "}
-                <span className="font-medium">
-                  {Math.min(page * 10, meta.total)}
-                </span>{" "}
-                จากทั้งหมด <span className="font-medium">{meta.total}</span>{" "}
-                รายการ
-              </p>
-            </div>
-            <div>
-              <nav
-                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
-                aria-label="Pagination"
-              >
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="text-muted ring-border hover:bg-background relative inline-flex items-center rounded-l-md px-2 py-2 ring-1 ring-inset focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                >
-                  <span className="sr-only">Previous</span>
-                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                </button>
-                <span className="text-foreground ring-border relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset focus:outline-offset-0">
-                  {page}/ {meta.totalPages}
-                </span>
-                <button
-                  onClick={() =>
-                    setPage((p) => Math.min(meta.totalPages, p + 1))
-                  }
-                  disabled={page === meta.totalPages}
-                  className="text-muted ring-border hover:bg-background relative inline-flex items-center rounded-r-md px-2 py-2 ring-1 ring-inset focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                >
-                  <span className="sr-only">Next</span>
-                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
-                </button>
-              </nav>
-            </div>
-          </div>
-        </div>
+      {meta && (
+        <Pagination
+          page={page}
+          limit={PAGE_SIZE}
+          total={meta.total}
+          totalPages={meta.totalPages}
+          onPageChange={setPage}
+        />
       )}
       {isModalOpen && (
         <UserDetailModal
           isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedUser(null);
+          }}
           user={selectedUser}
           onStatusUpdate={handleStatusUpdate}
+          onUnlock={handleUnlock}
           isLoading={actionLoading}
         />
       )}

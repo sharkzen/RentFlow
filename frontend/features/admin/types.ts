@@ -75,6 +75,8 @@ export interface Dormitory {
   owner: {
     fullName: string;
     phone: string | null;
+    lineId: string | null;
+    facebook: string | null;
     user: {
       email: string;
     };
@@ -101,6 +103,8 @@ export interface OwnerUser {
     id: string;
     fullName: string;
     phone: string | null;
+    lineId: string | null;
+    facebook: string | null;
     status: "PENDING" | "APPROVED" | "SUSPENDED";
     _count: {
       dormitories: number;
@@ -118,14 +122,134 @@ export interface OwnerUser {
   } | null;
 }
 
+export type UserRoleType = "ADMIN" | "OWNER" | "TENANT";
+
 export interface LockedUser {
   id: string;
   email: string;
-  role: string;
+  role: UserRoleType;
   lockedUntil: string;
   failedLoginAttempts: number;
   createdAt: string;
+  ownerProfile: {
+    fullName: string;
+    phone: string | null;
+  } | null;
+  tenantProfiles: {
+    firstName: string;
+    lastName: string;
+    phone: string | null;
+  }[];
 }
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: UserRoleType;
+  status: "PENDING" | "ACTIVE" | "BANNED" | "INACTIVE";
+  createdAt: string;
+  lockedUntil: string | null;
+  ownerProfile: {
+    id: string;
+    fullName: string;
+    phone: string | null;
+    lineId: string | null;
+    facebook: string | null;
+    status: "PENDING" | "APPROVED" | "SUSPENDED";
+    _count: {
+      dormitories: number;
+    };
+  } | null;
+  tenantProfiles: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    phone: string | null;
+    isActive: boolean;
+    room: {
+      roomNumber: string;
+      dormitory: {
+        name: string;
+      };
+    } | null;
+  }[];
+}
+
+export interface AdminTenantProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  email: string | null;
+  idCard: string | null;
+  address: string | null;
+  numberOfResidents: number;
+  isActive: boolean;
+  moveInDate: string | null;
+  moveOutDate: string | null;
+  contractStartDate: string | null;
+  contractEndDate: string | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  createdAt: string;
+  room: {
+    roomNumber: string;
+    dormitory: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  } | null;
+}
+
+export interface AdminUserDetail {
+  id: string;
+  email: string;
+  role: UserRoleType;
+  status: "PENDING" | "ACTIVE" | "BANNED" | "INACTIVE";
+  createdAt: string;
+  updatedAt: string;
+  lockedUntil: string | null;
+  failedLoginAttempts: number;
+  ownerProfile: {
+    id: string;
+    fullName: string;
+    phone: string | null;
+    lineId: string | null;
+    facebook: string | null;
+    status: "PENDING" | "APPROVED" | "SUSPENDED";
+    dormitories: {
+      id: string;
+      slug: string;
+      name: string;
+      address: string;
+      status: string;
+      isPublished: boolean;
+      _count: {
+        rooms: number;
+      };
+    }[];
+  } | null;
+  tenantProfiles: AdminTenantProfile[];
+}
+
+export const getUserDisplayName = (user: {
+  ownerProfile?: { fullName: string } | null;
+  tenantProfiles?: { firstName: string; lastName: string }[];
+}): string => {
+  if (user.ownerProfile?.fullName) return user.ownerProfile.fullName;
+
+  const tenant = user.tenantProfiles?.[0];
+  if (tenant) return `${tenant.firstName} ${tenant.lastName}`.trim();
+
+  return "ยังไม่ระบุชื่อ";
+};
+
+export const getUserPhone = (user: {
+  ownerProfile?: { phone: string | null } | null;
+  tenantProfiles?: { phone: string | null }[];
+}): string =>
+  user.ownerProfile?.phone || user.tenantProfiles?.[0]?.phone || "-";
 
 export enum LandmarkType {
   UNIVERSITY = "UNIVERSITY",
@@ -135,6 +259,11 @@ export enum LandmarkType {
   ARL = "ARL",
   OFFICE = "OFFICE",
   MARKET = "MARKET",
+  RESTAURANT = "RESTAURANT",
+  SUPERMARKET = "SUPERMARKET",
+  TRANSPORT = "TRANSPORT",
+  PARK = "PARK",
+  GOVERNMENT = "GOVERNMENT",
   OTHER = "OTHER",
 }
 
@@ -146,6 +275,11 @@ export const LandmarkTypeLabel: Record<LandmarkType, string> = {
   [LandmarkType.ARL]: "รถไฟฟ้า",
   [LandmarkType.OFFICE]: "สำนักงาน",
   [LandmarkType.MARKET]: "ตลาด",
+  [LandmarkType.RESTAURANT]: "ร้านอาหาร / คาเฟ่",
+  [LandmarkType.SUPERMARKET]: "ซูเปอร์มาร์เก็ต / ร้านสะดวกซื้อ",
+  [LandmarkType.TRANSPORT]: "สถานีขนส่ง / รถไฟ",
+  [LandmarkType.PARK]: "สวนสาธารณะ / ฟิตเนส",
+  [LandmarkType.GOVERNMENT]: "หน่วยงานราชการ",
   [LandmarkType.OTHER]: "อื่นๆ",
 };
 

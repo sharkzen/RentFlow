@@ -1,6 +1,8 @@
 import { axios } from "@/lib/api/api-client";
 
 import {
+  AdminUser,
+  AdminUserDetail,
   CreateLandmarkPayload,
   DashboardData,
   Dormitory,
@@ -112,6 +114,39 @@ export const AdminService = {
     return res.data;
   },
 
+  getUsers: async (
+    page = 1,
+    limit = 15,
+    search = "",
+    role = "ALL",
+    status = "ALL",
+  ): Promise<PaginatedResponse<AdminUser>> => {
+    const res = await axios.get("/api/admin/users", {
+      params: {
+        page,
+        limit,
+        q: search,
+        role,
+        status,
+      },
+    });
+
+    return res.data;
+  },
+
+  getUserDetail: async (userId: string): Promise<AdminUserDetail> => {
+    const res = await axios.get(`/api/admin/users/${userId}`);
+    return res.data;
+  },
+
+  changeUserPassword: async (userId: string, newPassword: string) => {
+    const res = await axios.patch(`/api/admin/users/${userId}/password`, {
+      newPassword,
+    });
+
+    return res.data;
+  },
+
   getOwners: async (
     page = 1,
     limit = 10,
@@ -145,12 +180,16 @@ export const AdminService = {
 
   getLockedUsers: async (
     page = 1,
-    limit = 10,
+    limit = 15,
+    search = "",
+    role = "ALL",
   ): Promise<PaginatedResponse<LockedUser>> => {
     const res = await axios.get("/api/admin/users/locked", {
       params: {
         page,
         limit,
+        q: search,
+        role,
       },
     });
 

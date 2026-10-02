@@ -19,6 +19,8 @@ import { EmailType } from "@/queues/email.types";
 import { getBucketSize } from "@/services/r2Client";
 import { formatBytes } from "@/utils/formatBytes";
 import { createActivityLog } from "@/services/activity-log.service";
+import { decrypt } from "@/utils/encryption";
+import { hashPassword } from "@/modules/auth/lib/password";
 
 export const AdminService = {
   getDashboardStats: async () => {
@@ -460,6 +462,8 @@ export const AdminService = {
             select: {
               fullName: true,
               phone: true,
+              lineId: true,
+              facebook: true,
 
               user: {
                 select: {
@@ -836,6 +840,8 @@ export const AdminService = {
               id: true,
               fullName: true,
               phone: true,
+              lineId: true,
+              facebook: true,
               status: true,
 
               _count: {
@@ -858,6 +864,303 @@ export const AdminService = {
         limit,
         totalPages: Math.ceil(total / limit),
       },
+    };
+  },
+
+  getUsersList: async (
+    page: number,
+    limit: number,
+    search: string,
+    role?: string,
+    status?: string,
+  ) => {
+    const skip = (page - 1) * limit;
+
+    const roleFilter =
+      role === UserRole.OWNER || role === UserRole.TENANT
+        ? role
+        : { in: [UserRole.OWNER, UserRole.TENANT] };
+
+    const tokens = search.trim().split(/\s+/).filter(Boolean);
+
+    const whereCondition: Prisma.UserWhereInput = {
+      role: roleFilter as Prisma.UserWhereInput["role"],
+      deletedAt: null,
+      status: status && status !== "ALL" ? (status as Status) : undefined,
+
+      AND: tokens.map((token) => {
+        const contains = { contains: token, mode: "insensitive" as const };
+
+        return {
+          OR: [
+            { email: contains },
+            { id: { startsWith: token.toLowerCase() } },
+            { ownerProfile: { fullName: contains } },
+            { ownerProfile: { phone: contains } },
+            { ownerProfile: { lineId: contains } },
+            { ownerProfile: { facebook: contains } },
+            { tenantProfiles: { some: { firstName: contains } } },
+            { tenantProfiles: { some: { lastName: contains } } },
+            { tenantProfiles: { some: { email: contains } } },
+            {
+              tenantProfiles: {
+                some: { room: { roomNumber: contains } },
+              },
+            },
+            {
+              tenantProfiles: {
+                some: { room: { dormitory: { name: contains } } },
+              },
+            },
+            {
+              ownerProfile: { dormitories: { some: { name: contains } } },
+            },
+          ],
+        };
+      }),
+    };
+
+    const [total, items] = await prisma.$transaction([
+      prisma.user.count({
+        where: whereCondition,
+      }),
+      prisma.user.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+
+        orderBy: {
+          createdAt: "desc",
+        },
+
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          lockedUntil: true,
+
+          ownerProfile: {
+            select: {
+              id: true,
+              fullName: true,
+              phone: true,
+              lineId: true,
+              facebook: true,
+              status: true,
+
+              _count: {
+                select: {
+                  dormitories: true,
+                },
+              },
+            },
+          },
+
+          tenantProfiles: {
+            where: {
+              deletedAt: null,
+            },
+
+            orderBy: {
+              createdAt: "desc",
+            },
+
+            take: 1,
+
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+              isActive: true,
+
+              room: {
+                select: {
+                  roomNumber: true,
+                  dormitory: {
+                    select: {
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      data: items.map((item) => ({
+        ...item,
+        tenantProfiles: item.tenantProfiles.map((t) => ({
+          ...t,
+          phone: decrypt(t.phone),
+        })),
+      })),
+
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  },
+
+  getUserDetailById: async (userId: string) => {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        role: {
+          in: [UserRole.OWNER, UserRole.TENANT],
+        },
+        deletedAt: null,
+      },
+
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        lockedUntil: true,
+        failedLoginAttempts: true,
+
+        ownerProfile: {
+          include: {
+            dormitories: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                address: true,
+                status: true,
+                isPublished: true,
+
+                _count: {
+                  select: {
+                    rooms: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+
+        tenantProfiles: {
+          where: {
+            deletedAt: null,
+          },
+
+          orderBy: {
+            createdAt: "desc",
+          },
+
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            email: true,
+            idCard: true,
+            address: true,
+            numberOfResidents: true,
+            isActive: true,
+            moveInDate: true,
+            moveOutDate: true,
+            contractStartDate: true,
+            contractEndDate: true,
+            emergencyContactName: true,
+            emergencyContactPhone: true,
+            createdAt: true,
+
+            room: {
+              select: {
+                roomNumber: true,
+                dormitory: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) return null;
+
+    return {
+      ...user,
+      tenantProfiles: user.tenantProfiles.map((t) => ({
+        ...t,
+        phone: decrypt(t.phone),
+        idCard: decrypt(t.idCard),
+        address: decrypt(t.address),
+        emergencyContactName: decrypt(t.emergencyContactName),
+        emergencyContactPhone: decrypt(t.emergencyContactPhone),
+      })),
+    };
+  },
+
+  changeUserPassword: async (
+    userId: string,
+    newPassword: string,
+    adminUserId: string,
+  ) => {
+    const target = await prisma.user.findFirst({
+      where: {
+        id: userId,
+        role: {
+          in: [UserRole.OWNER, UserRole.TENANT],
+        },
+        deletedAt: null,
+      },
+
+      select: {
+        id: true,
+      },
+    });
+
+    if (!target) return null;
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: {
+          id: userId,
+        },
+
+        data: {
+          password: hashedPassword,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+      }),
+      prisma.passwordResetOtp.deleteMany({
+        where: {
+          userId,
+        },
+      }),
+    ]);
+
+    await createActivityLog({
+      userId: adminUserId,
+      action: "ADMIN_CHANGE_PASSWORD",
+      entityType: "User",
+      entityId: userId,
+    });
+
+    return {
+      success: true,
     };
   },
 
@@ -967,13 +1270,41 @@ export const AdminService = {
     return result;
   },
 
-  getLockedUsers: async (page: number, limit: number) => {
+  getLockedUsers: async (
+    page: number,
+    limit: number,
+    search = "",
+    role?: string,
+  ) => {
     const skip = (page - 1) * limit;
+    const tokens = search.trim().split(/\s+/).filter(Boolean);
 
     const whereCondition: Prisma.UserWhereInput = {
       lockedUntil: {
         gt: new Date(),
       },
+
+      role:
+        role === UserRole.OWNER ||
+        role === UserRole.TENANT ||
+        role === UserRole.ADMIN
+          ? role
+          : undefined,
+
+      AND: tokens.map((token) => {
+        const contains = { contains: token, mode: "insensitive" as const };
+
+        return {
+          OR: [
+            { email: contains },
+            { id: { startsWith: token.toLowerCase() } },
+            { ownerProfile: { fullName: contains } },
+            { ownerProfile: { phone: contains } },
+            { tenantProfiles: { some: { firstName: contains } } },
+            { tenantProfiles: { some: { lastName: contains } } },
+          ],
+        };
+      }),
     };
 
     const [total, items] = await prisma.$transaction([
@@ -996,12 +1327,43 @@ export const AdminService = {
           lockedUntil: true,
           failedLoginAttempts: true,
           createdAt: true,
+
+          ownerProfile: {
+            select: {
+              fullName: true,
+              phone: true,
+            },
+          },
+
+          tenantProfiles: {
+            where: {
+              deletedAt: null,
+            },
+
+            orderBy: {
+              createdAt: "desc",
+            },
+
+            take: 1,
+
+            select: {
+              firstName: true,
+              lastName: true,
+              phone: true,
+            },
+          },
         },
       }),
     ]);
 
     return {
-      data: items,
+      data: items.map((item) => ({
+        ...item,
+        tenantProfiles: item.tenantProfiles.map((t) => ({
+          ...t,
+          phone: decrypt(t.phone),
+        })),
+      })),
 
       meta: {
         total,

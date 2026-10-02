@@ -1,5 +1,5 @@
 import React from "react";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Users } from "lucide-react";
 import { CustomSelect } from "@/lib/ui/CustomSelect";
 
 const STATUS_OPTIONS = [
@@ -21,9 +21,26 @@ const STATUS_OPTIONS = [
   },
 ];
 
+export const ROLE_OPTIONS = [
+  {
+    value: "ALL",
+    label: "ทุกบทบาท",
+  },
+  {
+    value: "TENANT",
+    label: "ลูกบ้าน (Tenant)",
+  },
+  {
+    value: "OWNER",
+    label: "เจ้าของหอ (Owner)",
+  },
+];
+
 interface UserFilterProps {
   search: string;
   onSearchChange: (val: string) => void;
+  role: string;
+  onRoleChange: (val: string) => void;
   status: string;
   onStatusChange: (val: string) => void;
 }
@@ -31,6 +48,8 @@ interface UserFilterProps {
 export default function UserFilter({
   search,
   onSearchChange,
+  role,
+  onRoleChange,
   status,
   onStatusChange,
 }: UserFilterProps) {
@@ -42,10 +61,18 @@ export default function UserFilter({
         </div>
         <input
           type="text"
-          placeholder="ค้นหาชื่อเจ้าของ, อีเมล, หรือเบอร์โทรศัพท์..."
+          placeholder="ค้นหาชื่อ, อีเมล, เบอร์เจ้าของ, Line, ห้อง, ชื่อหอพัก, ID..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="text-foreground ring-border placeholder:text-muted block w-full rounded-lg border-0 py-2.5 pr-3 pl-10 ring-1 transition-shadow ring-inset focus:ring-2 focus:ring-blue-600 focus:ring-inset sm:text-sm sm:leading-6"
+        />
+      </div>
+      <div className="w-full md:w-52">
+        <CustomSelect
+          options={ROLE_OPTIONS}
+          value={role}
+          onChange={onRoleChange}
+          icon={<Users size={16} />}
         />
       </div>
       <div className="w-full md:w-56">

@@ -5,28 +5,64 @@ import { LockedUser, PaginatedResponse } from "@/features/admin";
 import { toast } from "react-toastify";
 import LockedUsersTable from "./LockedUsersTable";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
-import { ShieldAlert, ChevronLeft, ChevronRight } from "lucide-react";
+import Pagination from "../Pagination";
+import { CustomSelect } from "@/lib/ui/CustomSelect";
+import { ShieldAlert, Search, Users } from "lucide-react";
+
+const PAGE_SIZE = 15;
+
+const ROLE_OPTIONS = [
+  { value: "ALL", label: "ทุกบทบาท" },
+  { value: "TENANT", label: "ลูกบ้าน (Tenant)" },
+  { value: "OWNER", label: "เจ้าของหอ (Owner)" },
+  { value: "ADMIN", label: "แอดมิน (Admin)" },
+];
 
 export default function LockedUsersController() {
   const [data, setData] = useState<LockedUser[]>([]);
   const [meta, setMeta] = useState<PaginatedResponse<any>["meta"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [role, setRole] = useState("ALL");
   const [now, setNow] = useState(() => Date.now());
   const [selectedUser, setSelectedUser] = useState<LockedUser | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const isMountedRef = useRef(true);
+  const hasLoadedRef = useRef(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
-      const res = await AdminService.getLockedUsers(page, 10);
+      if (!hasLoadedRef.current) setLoading(true);
 
-      if (isMountedRef.current) {
-        setData(res.data);
-        setMeta(res.meta);
+      const res = await AdminService.getLockedUsers(
+        page,
+        PAGE_SIZE,
+        debouncedSearch,
+        role,
+      );
+
+      if (!isMountedRef.current) return;
+
+      if (res.meta.totalPages > 0 && page > res.meta.totalPages) {
+        setPage(res.meta.totalPages);
+        return;
       }
+
+      setData(res.data);
+      setMeta(res.meta);
+      hasLoadedRef.current = true;
     } catch (error) {
       console.error("Failed to fetch locked users", error);
 
@@ -35,7 +71,7 @@ export default function LockedUsersController() {
     } finally {
       if (isMountedRef.current) setLoading(false);
     }
-  }, [page]);
+  }, [page, debouncedSearch, role]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -75,7 +111,7 @@ export default function LockedUsersController() {
       setIsConfirmOpen(false);
       setSelectedUser(null);
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error("ไม่สามารถปลดล็อคบัญชีได้");
     } finally {
       setActionLoading(false);
@@ -97,7 +133,40 @@ export default function LockedUsersController() {
           <p className="text-muted mt-1 text-sm">
             รายชื่อบัญชีที่ถูกล็อคชั่วคราวจากการเข้าสู่ระบบผิดหลายครั้ง
             สามารถปลดล็อคก่อนเวลาได้จากหน้านี้
+            {meta && meta.total > 0 && (
+              <span className="font-medium text-rose-600">
+                {" "}
+                (ทั้งหมด {meta.total} บัญชี)
+              </span>
+            )}
           </p>
+        </div>
+      </div>
+      <div className="border-border bg-surface rounded-xl border p-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
+          <div className="relative flex-1">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+              <Search className="text-muted h-5 w-5" />
+            </div>
+            <input
+              type="text"
+              placeholder="ค้นหาชื่อ, อีเมล, ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="text-foreground ring-border placeholder:text-muted block w-full rounded-lg border-0 py-2.5 pr-3 pl-10 ring-1 transition-shadow ring-inset focus:ring-2 focus:ring-blue-600 focus:ring-inset sm:text-sm sm:leading-6"
+            />
+          </div>
+          <div className="w-full md:w-52">
+            <CustomSelect
+              options={ROLE_OPTIONS}
+              value={role}
+              onChange={(val) => {
+                setRole(val);
+                setPage(1);
+              }}
+              icon={<Users size={16} />}
+            />
+          </div>
         </div>
       </div>
       <LockedUsersTable
@@ -106,66 +175,14 @@ export default function LockedUsersController() {
         now={now}
         onUnlock={handleUnlockClick}
       />
-      {meta && meta.totalPages > 1 && (
-        <div className="border-border bg-surface flex items-center justify-between rounded-lg border-t px-4 py-3 shadow-sm sm:px-6">
-          <div className="flex flex-1 justify-between sm:hidden">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="border-border bg-surface text-foreground hover:bg-background relative inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
-              disabled={page === meta.totalPages}
-              className="border-border bg-surface text-foreground hover:bg-background relative ml-3 inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-            <div>
-              <p className="text-foreground text-sm">
-                แสดง <span className="font-medium">{(page - 1) * 10 + 1}</span>{" "}
-                ถึง{" "}
-                <span className="font-medium">
-                  {Math.min(page * 10, meta.total)}
-                </span>{" "}
-                จากทั้งหมด <span className="font-medium">{meta.total}</span>{" "}
-                รายการ
-              </p>
-            </div>
-            <div>
-              <nav
-                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
-                aria-label="Pagination"
-              >
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="text-muted ring-border hover:bg-background relative inline-flex items-center rounded-l-md px-2 py-2 ring-1 ring-inset focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                >
-                  <span className="sr-only">Previous</span>
-                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                </button>
-                <span className="text-foreground ring-border relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset focus:outline-offset-0">
-                  {page}/ {meta.totalPages}
-                </span>
-                <button
-                  onClick={() =>
-                    setPage((p) => Math.min(meta.totalPages, p + 1))
-                  }
-                  disabled={page === meta.totalPages}
-                  className="text-muted ring-border hover:bg-background relative inline-flex items-center rounded-r-md px-2 py-2 ring-1 ring-inset focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-                >
-                  <span className="sr-only">Next</span>
-                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
-                </button>
-              </nav>
-            </div>
-          </div>
-        </div>
+      {meta && (
+        <Pagination
+          page={page}
+          limit={PAGE_SIZE}
+          total={meta.total}
+          totalPages={meta.totalPages}
+          onPageChange={setPage}
+        />
       )}
       <ConfirmDialog
         isOpen={isConfirmOpen}

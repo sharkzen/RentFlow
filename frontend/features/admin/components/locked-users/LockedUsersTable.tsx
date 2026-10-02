@@ -1,5 +1,10 @@
 import React from "react";
-import { LockedUser } from "@/features/admin";
+import {
+  LockedUser,
+  getUserDisplayName,
+  getUserPhone,
+} from "@/features/admin";
+import { renderRoleBadge } from "../user/UserTable";
 import { LockKeyholeOpen, ShieldAlert } from "lucide-react";
 
 interface LockedUsersTableProps {
@@ -84,15 +89,26 @@ export default function LockedUsersTable({
                         </div>
                         <div>
                           <div className="text-foreground font-semibold">
+                            {getUserDisplayName(user)}
+                          </div>
+                          <div className="text-muted text-xs">
                             {user.email}
                           </div>
                           <div className="text-muted text-xs">
-                            ID: {user.id.slice(0, 8)}...
+                            {getUserPhone(user)} • ID: {user.id.slice(0, 8)}...
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-center">{user.role}</td>
+                    <td className="px-6 py-4 text-center">
+                      {user.role === "ADMIN" ? (
+                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+                          แอดมิน
+                        </span>
+                      ) : (
+                        renderRoleBadge(user.role)
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-center">
                       <span className="bg-background text-muted inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full px-2 text-xs font-medium">
                         {user.failedLoginAttempts}

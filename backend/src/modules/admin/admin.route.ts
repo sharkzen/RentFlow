@@ -13,6 +13,7 @@ import {
   toggleFeaturedSchema,
   reorderFeaturedSchema,
   updateStatusSchema,
+  changePasswordSchema,
 } from "./admin.controller";
 
 import {
@@ -369,6 +370,110 @@ export async function adminRoute(app: FastifyInstance) {
     );
 
     routeRoles.get(
+      "/users",
+      {
+        schema: {
+          tags: ["Admin"],
+          summary:
+            "รายชื่อผู้ใช้ทั้งหมด (ลูกบ้าน/เจ้าของหอ) ค้นหา/กรองบทบาท/กรองสถานะ",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          querystring: {
+            type: "object",
+
+            properties: {
+              page: {
+                type: "string",
+              },
+
+              limit: {
+                type: "string",
+              },
+
+              q: {
+                type: "string",
+              },
+
+              role: {
+                type: "string",
+              },
+
+              status: {
+                type: "string",
+              },
+            },
+          },
+
+          response: {
+            200: paginatedResponse("รายชื่อผู้ใช้ทั้งหมด"),
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+          },
+        },
+      },
+      AdminController.getUsers,
+    );
+
+    routeRoles.get(
+      "/users/:id",
+      {
+        schema: {
+          tags: ["Admin"],
+          summary: "รายละเอียดผู้ใช้รายบุคคล (ลูกบ้าน/เจ้าของหอ)",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam,
+
+          response: {
+            200: okResponse("รายละเอียดผู้ใช้"),
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      AdminController.getUserById,
+    );
+
+    routeRoles.patch(
+      "/users/:id/password",
+      {
+        schema: {
+          tags: ["Admin"],
+          summary: "แอดมินเปลี่ยนรหัสผ่านให้ผู้ใช้",
+
+          security: [
+            {
+              bearerAuth: [],
+            },
+          ],
+
+          params: idParam,
+          body: zodBody(changePasswordSchema),
+
+          response: {
+            200: okResponse("เปลี่ยนรหัสผ่านสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      AdminController.changeUserPassword,
+    );
+
+    routeRoles.get(
       "/users/owners",
       {
         schema: {
@@ -480,7 +585,27 @@ export async function adminRoute(app: FastifyInstance) {
             },
           ],
 
-          querystring: pageQuery,
+          querystring: {
+            type: "object",
+
+            properties: {
+              page: {
+                type: "string",
+              },
+
+              limit: {
+                type: "string",
+              },
+
+              q: {
+                type: "string",
+              },
+
+              role: {
+                type: "string",
+              },
+            },
+          },
 
           response: {
             200: paginatedResponse("รายชื่อบัญชีที่ถูกล็อค"),
