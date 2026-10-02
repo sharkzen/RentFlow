@@ -456,6 +456,7 @@ export default function DormsDialog({
     new Set(),
   );
   const [isPaymentConfirmOpen, setIsPaymentConfirmOpen] = useState(false);
+  const [imageCount, setImageCount] = useState(dorm.images?.length ?? 0);
   const [isSaving, setIsSaving] = useState(false);
 
   useHotkeys("esc", () => {
@@ -569,10 +570,13 @@ export default function DormsDialog({
         Number(formData.waterRate) > 0 &&
         !!formData.electricRate &&
         Number(formData.electricRate) > 0,
-      billing: !!formData.dueDay,
-      images: true,
+      billing:
+        !!formData.dueDay &&
+        (!!formData.promptPayValue?.trim() ||
+          (!!formData.bankName?.trim() && !!formData.bankAccount?.trim())),
+      images: imageCount > 0,
     }),
-    [formData],
+    [formData, imageCount],
   );
 
   const dueDateExample = useMemo(() => {
@@ -1147,7 +1151,7 @@ export default function DormsDialog({
                       </span>
                     </div>
                     <div className="border-border bg-surface rounded-lg border border-dashed">
-                      <ImageSection dormId={dorm.id} />
+                      <ImageSection dormId={dorm.id} onCountChange={setImageCount} />
                     </div>
                   </div>
                 )}

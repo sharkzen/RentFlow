@@ -27,9 +27,13 @@ import { showBackendError } from "@/lib/backendError";
 
 interface ImageSectionProps {
   dormId: string;
+  onCountChange?: (count: number) => void;
 }
 
-export default function ImageSection({ dormId }: ImageSectionProps) {
+export default function ImageSection({
+  dormId,
+  onCountChange,
+}: ImageSectionProps) {
   const [images, setImages] = useState<DormitoryImage[]>([]);
 
   const fetchImages = async () => {
@@ -45,6 +49,10 @@ export default function ImageSection({ dormId }: ImageSectionProps) {
   useEffect(() => {
     fetchImages();
   }, [dormId]);
+
+  useEffect(() => {
+    onCountChange?.(images.length);
+  }, [images.length]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

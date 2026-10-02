@@ -88,7 +88,7 @@ const DormMap = ({
             loading="lazy"
             allowFullScreen
             referrerPolicy="no-referrer-when-downgrade"
-            src={`https://maps.google.com/maps?q=${latitude},${longitude}&hl=th&z=15&output=embed`}
+            src={`https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1s${latitude},${longitude}!6i15!3m1!1sth!5m1!1sth`}
             className="h-full w-full"
           ></iframe>
         ) : (
@@ -295,6 +295,28 @@ export default function DormitoryDetailModal({ data, isOpen, onClose }: Props) {
                       <p className="text-muted text-xs">เบอร์โทรศัพท์</p>
                       <p className="text-foreground font-medium">
                         {data.owner.phone || "-"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="bg-surface text-muted flex h-8 w-8 items-center justify-center rounded-full shadow-sm">
+                      <User size={14} />
+                    </div>
+                    <div>
+                      <p className="text-muted text-xs">Line ID (เจ้าของ)</p>
+                      <p className="text-foreground font-medium">
+                        {data.owner.lineId || "-"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="bg-surface text-muted flex h-8 w-8 items-center justify-center rounded-full shadow-sm">
+                      <User size={14} />
+                    </div>
+                    <div>
+                      <p className="text-muted text-xs">Facebook (เจ้าของ)</p>
+                      <p className="text-foreground font-medium">
+                        {data.owner.facebook || "-"}
                       </p>
                     </div>
                   </div>

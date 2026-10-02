@@ -46,7 +46,7 @@ export const DormMap: React.FC<DormMapProps> = ({
             loading="lazy"
             allowFullScreen
             referrerPolicy="no-referrer-when-downgrade"
-            src={`https://maps.google.com/maps?q=${latitude},${longitude}&hl=th&z=15&output=embed`}
+            src={`https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1s${latitude},${longitude}!6i15!3m1!1sth!5m1!1sth`}
             className="h-full w-full"
           />
         ) : (
