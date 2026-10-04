@@ -5,6 +5,7 @@ import {
 import { Role } from "@/types/role.type";
 import { FastifyInstance } from "fastify";
 import { TenantController } from "@/modules/tenant/tenant.controller";
+import { slipUploadRateLimit as slipUploadUserRateLimit } from "@/middleware/slip-rate-limit.middleware";
 
 import {
   getTenantDormQuerySchema,
@@ -379,6 +380,7 @@ export async function tenantRoute(app: FastifyInstance) {
       "/payment/upload-slip",
       {
         ...slipUploadRateLimit,
+        preHandler: slipUploadUserRateLimit,
 
         schema: {
           tags: ["Tenant Self-Service (Tenant)"],

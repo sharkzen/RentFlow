@@ -6,6 +6,7 @@ import { env } from "@/config/env";
 interface SlipOkData {
   transRef: string;
   sendingBank: string;
+  receivingBank?: string;
   amount: number;
   paidLocalAmount?: number;
   transDate: string;
@@ -44,6 +45,7 @@ const mapSlipData = (data: SlipOkData) => {
     success: true,
     refNo: data.transRef,
     bankCode: data.sendingBank,
+    receivingBank: data.receivingBank || null,
     amount: data.paidLocalAmount || data.amount,
     senderName: data.sender?.displayName || data.sender?.name,
     paidAt: parseSlipOkDate(data.transDate, data.transTime),
@@ -75,7 +77,7 @@ export const slipOkService = {
       form.append("amount", amount);
     }
 
-    form.append("log", "true");
+    // ไม่ส่ง log: SlipOK ไม่เก็บสลิปและไม่เช็คบัญชีผู้รับ เราเทียบบัญชีและกันสลิปซ้ำเอง
 
     try {
       const url = `https://api.slipok.com/api/line/apikey/${branchId}`;
@@ -85,70 +87,86 @@ export const slipOkService = {
           "x-authorization": apiKey,
           ...form.getHeaders(),
         },
+        timeout: SLIPOK_TIMEOUT_MS,
       });
 
       if (!response.data.success) {
-        if (response.data.code === 1013) {
-          throw new Error("SLIP_AMOUNT_MISMATCH");
-        }
-
-        const logicError: any = new Error("INVALID_SLIP");
-        logicError.data = response.data;
-        throw logicError;
+        throw classifySlipOkError(response.data.code, response.data);
       }
 
       return mapSlipData(response.data.data);
     } catch (error: any) {
-      if (axios.isAxiosError(error)) {
-        const responseBody = error.response?.data;
-        const statusCode = error.response?.status;
-
-        if (statusCode === 400 && responseBody?.code === 1014) {
-          if (responseBody?.data?.success === true) {
-            logger.warn(
-              "SlipOK Code 1014: Receiver mismatch but slip is valid. Proceeding with data.",
-            );
-
-            return mapSlipData(responseBody.data);
-          }
+      if (!axios.isAxiosError(error)) {
+        if (
+          error instanceof Error &&
+          (SLIP_REJECT_ERRORS.has(error.message) ||
+            error.message === "SLIPOK_UNAVAILABLE")
+        ) {
+          throw error;
         }
 
-        logger.error(
-          `SlipOK API Error [${statusCode}]: ${JSON.stringify(responseBody, null, 2)}`,
-        );
-
-        if (statusCode === 400) {
-          if (
-            responseBody?.code === 1004 ||
-            responseBody?.message?.includes("Credit")
-          ) {
-            throw new Error("SLIPOK_QUOTA_EXCEEDED");
-          }
-
-          throw new Error("INVALID_SLIP_API");
-        }
+        logger.error(`SlipOK unexpected error: ${error}`);
+        throw new Error("SLIPOK_UNAVAILABLE");
       }
 
-      throw error;
+      const responseBody = error.response?.data;
+      const statusCode = error.response?.status;
+
+      if (responseBody?.code === 1014 && responseBody?.data?.success === true) {
+        logger.warn(
+          "SlipOK Code 1014: Receiver mismatch but slip is valid. Proceeding with data.",
+        );
+
+        return mapSlipData(responseBody.data);
+      }
+
+      logger.error(
+        `SlipOK API Error [${statusCode ?? error.code}]: ${JSON.stringify(responseBody, null, 2)}`,
+      );
+
+      throw classifySlipOkError(responseBody?.code, responseBody);
     }
   },
 };
 
-const THAILAND_UTC_OFFSET_MS = 7 * 60 * 60 * 1000;
+const SLIPOK_TIMEOUT_MS = 20000;
 
-function parseSlipOkDate(dateStr: string, timeStr: string): Date {
-  if (!dateStr || !timeStr) return new Date();
+// ความผิดที่เกิดจากสลิปเอง ผู้เช่าต้องแก้และส่งใหม่
+const SLIP_REJECT_ERRORS = new Set([
+  "SLIP_AMOUNT_MISMATCH",
+  "SLIP_DUPLICATE_REF",
+  "INVALID_SLIP",
+]);
 
-  const year = parseInt(dateStr.substring(0, 4));
-  const month = parseInt(dateStr.substring(4, 6)) - 1;
-  const day = parseInt(dateStr.substring(6, 8));
+// รหัส 1005-1008, 1011: ไฟล์ไม่ใช่สลิป / ไม่มี QR / QR ไม่ถูกต้องหรือหมดอายุ
+const INVALID_SLIP_CODES = new Set([1005, 1006, 1007, 1008, 1011]);
+
+// ที่เหลือทั้งหมด (config, package, โควตา, ธนาคารขัดข้อง 1009, สลิปรอธนาคาร 1010,
+// 5xx, timeout) เป็นปัญหาฝั่งระบบ ไม่ใช่ความผิดผู้เช่า จึงให้ไปรอเจ้าของหอตรวจ
+function classifySlipOkError(code: number | undefined, body?: unknown): Error {
+  if (code === 1013) return new Error("SLIP_AMOUNT_MISMATCH");
+  if (code === 1012) return new Error("SLIP_DUPLICATE_REF");
+  if (code !== undefined && INVALID_SLIP_CODES.has(code)) {
+    return new Error("INVALID_SLIP");
+  }
+
+  logger.warn(
+    `SlipOK unavailable, falling back to manual verification (code=${code}): ${JSON.stringify(body)}`,
+  );
+
+  return new Error("SLIPOK_UNAVAILABLE");
+}
+
+// เวลาในสลิปเป็นเวลาไทย (UTC+7) แปลงให้ถูกต้องไม่ว่าเซิร์ฟเวอร์จะตั้ง timezone ใด
+function parseSlipOkDate(dateStr: string, timeStr: string): Date | null {
+  if (!dateStr || !timeStr || !/^\d{8}$/.test(dateStr)) return null;
+
   const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+  const pad = (n: number | undefined) => String(n || 0).padStart(2, "0");
 
-  // SlipOK always reports Thailand local time (UTC+7), regardless of the
-  // server process's own timezone, so build the UTC instant explicitly.
-  const utcMs =
-    Date.UTC(year, month, day, hours || 0, minutes || 0, seconds || 0) -
-    THAILAND_UTC_OFFSET_MS;
+  const date = new Date(
+    `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}T${pad(hours)}:${pad(minutes)}:${pad(seconds)}+07:00`,
+  );
 
-  return new Date(utcMs);
+  return Number.isNaN(date.getTime()) ? null : date;
 }

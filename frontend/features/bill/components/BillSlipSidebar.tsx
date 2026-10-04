@@ -258,12 +258,18 @@ export default function BillSlipSidebar({
                     <Wallet size={16} />
                     <span className="text-xs">ยอดเงิน</span>
                   </div>
-                  <span className="text-foreground text-lg font-bold">
-                    ฿
-                    {payment.transferAmount?.toLocaleString("th-TH", {
-                      minimumFractionDigits: 2,
-                    }) || "0.00"}
-                  </span>
+                  {payment.transferAmount == null ? (
+                    <span className="text-muted text-xs font-medium">
+                      ตรวจสอบยอดจากรูปสลิป
+                    </span>
+                  ) : (
+                    <span className="text-foreground text-lg font-bold">
+                      ฿
+                      {payment.transferAmount.toLocaleString("th-TH", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </span>
+                  )}
                 </div>
                 <div className="col-span-2 sm:col-span-1">
                   <div className="text-muted mb-0.5 flex items-center gap-1.5 text-[10px]">

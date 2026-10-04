@@ -23,9 +23,10 @@ import {
 
 import { env } from "@/config/env";
 import { slipOkService } from "@/services/slipok.service";
-import { uuidv4 } from "zod";
 import { deleteFile, generateSignedUrl, uploadFile } from "@/services/r2Client";
 import logger from "@/utils/logger";
+import { detectImageType } from "@/utils/image-type";
+import { getSlipBankCode } from "@/utils/bank-code";
 
 import {
   CreateMaintenanceParams,
@@ -1390,20 +1391,18 @@ export const tenantService = {
 
     if (bill.tenant.userId !== userId) throw new Error("FORBIDDEN_ACCESS");
 
-    const allowedMimeTypes = [
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/webp",
-    ];
+    if (bill.status === "PAID") throw new Error("BILL_ALREADY_PAID");
 
-    if (mimeType && !allowedMimeTypes.includes(mimeType)) {
+    // ตรวจจากเนื้อไฟล์จริง ไม่เชื่อ mimetype ที่ client ส่งมา:
+    // magic bytes ระบุชนิด และ sharp ยืนยันว่าถอดรหัสเป็นรูปภาพชนิดเดียวกันได้จริง
+    const detectedImage = detectImageType(fileBuffer);
+
+    if (!detectedImage) {
       throw new Error("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
     }
 
-    const mimeToSharpFormat: { [key: string]: string } = {
+    const sharpFormatByMime: { [key: string]: string } = {
       "image/jpeg": "jpeg",
-      "image/jpg": "jpeg",
       "image/png": "png",
       "image/webp": "webp",
     };
@@ -1416,7 +1415,7 @@ export const tenantService = {
       realFormat = undefined;
     }
 
-    if (!realFormat || mimeToSharpFormat[mimeType] !== realFormat) {
+    if (!realFormat || sharpFormatByMime[detectedImage.mime] !== realFormat) {
       throw new Error("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
     }
 
@@ -1437,7 +1436,19 @@ export const tenantService = {
     try {
       verifiedData = await slipOkService.verifySlip(fileBuffer, bill.total);
     } catch (error: any) {
-      throw error;
+      // ผู้เช่าผิดที่สลิปเอง (ยอดไม่ตรง / ไม่ใช่สลิป / ซ้ำ) ให้ส่งใหม่
+      // ส่วนปัญหาฝั่งระบบ ไม่แสดงให้ผู้เช่าเห็น บันทึกสลิปแล้วรอเจ้าของหอตรวจเหมือนปกติ
+      if (
+        ["SLIP_AMOUNT_MISMATCH", "SLIP_DUPLICATE_REF", "INVALID_SLIP"].includes(
+          error?.message,
+        )
+      ) {
+        throw error;
+      }
+
+      logger.error(
+        `Slip verification unavailable, queued for manual review: BillId=${billId}, Reason=${error?.message}`,
+      );
     }
 
     if (verifiedData?.refNo) {
@@ -1467,7 +1478,21 @@ export const tenantService = {
 
       if (slipReceiverAcc && targetBank) {
         if (matchAccount(targetBank, slipReceiverAcc)) {
-          isReceiverMatch = true;
+          // เลขบัญชีในสลิปถูกปิดบังเหลือไม่กี่หลัก จึงเทียบธนาคารผู้รับเพิ่มเมื่อรู้รหัสธนาคาร
+          const expectedBankCode = getSlipBankCode(dormSetting?.bankName);
+          const slipBankCode = verifiedData.receivingBank;
+
+          if (expectedBankCode && slipBankCode) {
+            isReceiverMatch = expectedBankCode === slipBankCode;
+
+            if (!isReceiverMatch) {
+              logger.warn(
+                `Suspicious Slip (Receiving Bank Mismatch): BillId=${billId}, Expected=${expectedBankCode}, Slip=${slipBankCode}`,
+              );
+            }
+          } else {
+            isReceiverMatch = true;
+          }
         }
       }
 
@@ -1484,7 +1509,21 @@ export const tenantService = {
         isReceiverMatch = false;
       }
 
-      if (isAmountMatch) {
+      // สลิปต้องโอนหลังออกบิล และห้ามเป็นเวลาในอนาคต ไม่งั้นส่งให้เจ้าของหอตรวจเอง
+      const MAX_FUTURE_SKEW_MS = 10 * 60 * 1000;
+      const paidAtMs = verifiedData.paidAt?.getTime?.();
+      const isDateValid =
+        Number.isFinite(paidAtMs) &&
+        paidAtMs >= bill.createdAt.getTime() &&
+        paidAtMs <= Date.now() + MAX_FUTURE_SKEW_MS;
+
+      if (!isDateValid) {
+        logger.warn(
+          `Suspicious Slip (Transfer Date): BillId=${billId}, PaidAt=${verifiedData.paidAt}, BillCreatedAt=${bill.createdAt.toISOString()}`,
+        );
+      }
+
+      if (isAmountMatch && isDateValid) {
         if (isReceiverMatch) {
           paymentStatus = PaymentStatus.VERIFIED;
           billStatus = BillStatus.PAID;
@@ -1492,7 +1531,7 @@ export const tenantService = {
         } else {
           logger.warn(`Suspicious Slip (Receiver Mismatch): BillId=${billId}`);
         }
-      } else {
+      } else if (!isAmountMatch) {
         logger.warn(
           `Amount Mismatch: Bill=${bill.total}, Slip=${verifiedData.amount}`,
         );
@@ -1511,18 +1550,8 @@ export const tenantService = {
 
     const year = new Date().getFullYear();
 
-    const mimeToExtension: {
-      [key: string]: string;
-    } = {
-      "image/jpeg": "jpg",
-      "image/jpg": "jpg",
-      "image/png": "png",
-      "image/webp": "webp",
-    };
-
-    const extension = mimeToExtension[mimeType] || "jpg";
-    const objectKey = `slips/${bill.roomId}/${year}/${uuidv4()}.${extension}`;
-    await uploadFile(fileBuffer, objectKey, mimeType);
+    const objectKey = `slips/${bill.roomId}/${year}/${randomUUID()}.${detectedImage.extension}`;
+    await uploadFile(fileBuffer, objectKey, detectedImage.mime);
 
     const transactionResult = await prisma.$transaction(async (tx) => {
       if (oldPayment) {
@@ -1558,7 +1587,7 @@ export const tenantService = {
           paymentMethod: "TRANSFER",
           status: paymentStatus,
           transferRef: verifiedData?.refNo || null,
-          transferAmount: verifiedData?.amount ?? undefined,
+          transferAmount: verifiedData?.amount ?? null,
           transferBank: verifiedData?.bankCode || null,
           senderName: verifiedData?.senderName || null,
           paidAt: finalPaidAt,
@@ -1571,7 +1600,7 @@ export const tenantService = {
         data: {
           bucket: env.BUCKET_NAME || env.BUCKET,
           objectKey: objectKey,
-          mimeType: mimeType,
+          mimeType: detectedImage.mime,
           size: fileBuffer.length,
           category: "PAYMENT_SLIP",
           paymentId: payment.id,
@@ -1635,7 +1664,8 @@ export const tenantService = {
             dormName: dormName,
             roomNumber: bill.room.roomNumber,
             tenantName: `${bill.tenant.firstName} ${bill.tenant.lastName}`,
-            amount: transactionResult.data.amount,
+            // สลิปที่ตรวจอัตโนมัติไม่ได้จะไม่มียอดจาก SlipOK ใช้ยอดบิลแสดงแทน
+            amount: transactionResult.data.amount ?? bill.total,
             paidDate: formatThaiDateTime(transactionResult.data.paidAt),
             bankName: transactionResult.data.bank,
             refNo: transactionResult.data.refNo,
@@ -1951,7 +1981,7 @@ export const tenantService = {
 
         const fileBuffer = await file.toBuffer();
         const ext = file.filename.split(".").pop();
-        const fileName = `${uuidv4()}.${ext}`;
+        const fileName = `${randomUUID()}.${ext}`;
         const objectKey = `maintenance/${maintenanceRequest.dormitoryId}/${fileName}`;
         await uploadFile(fileBuffer, objectKey, file.mimetype);
 

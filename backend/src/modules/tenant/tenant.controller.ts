@@ -411,14 +411,19 @@ export const TenantController = {
         case "SLIP_DUPLICATE_REF":
         case "SLIP_DUPLICATE_DETECTED_FROM_IMAGE":
           throw AppError.badRequest(error.message);
+        case "BILL_ALREADY_PAID":
+          throw AppError.badRequest(
+            "BILL_ALREADY_PAID",
+            "บิลนี้ชำระเงินเรียบร้อยแล้ว",
+          );
         case "BILL_NOT_FOUND":
           throw AppError.notFound("BILL_NOT_FOUND");
         case "FORBIDDEN_ACCESS":
           throw AppError.forbidden("FORBIDDEN_ACCESS");
         case "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED":
           throw AppError.badRequest("INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED");
-        case "INVALID_SLIP_API":
         case "SLIP_AMOUNT_MISMATCH":
+          throw AppError.badRequest("SLIP_AMOUNT_MISMATCH");
         case "INVALID_SLIP":
           throw AppError.badRequest("INVALID_SLIP");
         default:

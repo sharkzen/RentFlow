@@ -53,6 +53,51 @@ interface Props {
   currentSlipUrl?: string | null;
 }
 
+const SLIP_REJECTED_CODES = [
+  "SLIP_DUPLICATE",
+  "SLIP_DUPLICATE_REF",
+  "SLIP_DUPLICATE_DETECTED_FROM_IMAGE",
+  "SLIP_AMOUNT_MISMATCH",
+  "INVALID_SLIP",
+  "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED",
+];
+
+const getUploadErrorCode = (error: any): string => {
+  const code = error?.response?.data?.message;
+
+  return typeof code === "string" ? code : "UNKNOWN_ERROR";
+};
+
+const getUploadErrorMessage = (error: any): string => {
+  switch (getUploadErrorCode(error)) {
+    case "SLIP_DUPLICATE":
+    case "SLIP_DUPLICATE_REF":
+    case "SLIP_DUPLICATE_DETECTED_FROM_IMAGE":
+      return "สลิปนี้ถูกใช้ชำระบิลอื่นไปแล้ว กรุณาใช้สลิปที่ถูกต้อง";
+    case "SLIP_AMOUNT_MISMATCH":
+      return "ยอดเงินในสลิปไม่ตรงกับยอดบิล กรุณาตรวจสอบและส่งสลิปใหม่";
+    case "INVALID_SLIP":
+      return "ไม่พบข้อมูลสลิปในรูปนี้ กรุณาใช้สลิปโอนเงินที่ชัดเจนและเห็น QR Code ครบ";
+    case "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED":
+      return "กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น (JPG, PNG, WEBP)";
+    case "FILE_REQUIRED":
+      return "กรุณาเลือกรูปสลิป";
+    case "BILL_ALREADY_PAID":
+      return "บิลนี้ชำระเงินเรียบร้อยแล้ว";
+    case "BILL_NOT_FOUND":
+      return "ไม่พบข้อมูลบิล";
+    case "FORBIDDEN_ACCESS":
+      return "คุณไม่มีสิทธิ์เข้าถึงบิลนี้";
+    default:
+      if (error?.response?.status === 429)
+        return "ส่งคำขอบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่";
+      if (error?.response?.status === 413)
+        return "ไฟล์มีขนาดใหญ่เกินไป (สูงสุด 5MB)";
+
+      return "ไม่สามารถส่งสลิปได้ กรุณาลองใหม่อีกครั้ง";
+  }
+};
+
 export default function PaymentModal({
   isOpen,
   onClose,
@@ -121,9 +166,15 @@ export default function PaymentModal({
   };
 
   const preprocessImage = (file: File): Promise<string> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const img = new Image();
-      img.src = URL.createObjectURL(file);
+      const objectUrl = URL.createObjectURL(file);
+      img.src = objectUrl;
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("IMAGE_LOAD_FAILED"));
+      };
 
       img.onload = () => {
         const canvas = document.createElement("canvas");
@@ -232,8 +283,8 @@ export default function PaymentModal({
     setIsSubmitting(true);
     setShowConfirm(false);
 
-    await toast
-      .promise(
+    try {
+      await toast.promise(
         TenantService.uploadPaymentSlip(billId, selectedFile, slipData?.refNo),
         {
           pending: "กำลังอัพโหลดสลิปชำระเงิน...",
@@ -246,34 +297,30 @@ export default function PaymentModal({
 
           error: {
             render({ data }: { data: any }) {
-              const errorMsg =
-                data?.response?.data?.message ||
-                data?.message ||
-                "UNKNOWN_ERROR";
-              console.error(errorMsg);
+              console.error(data);
 
-              switch (errorMsg) {
-                case "SLIP_DUPLICATE":
-                case "SLIP_DUPLICATE_REF":
-                case "SLIP_DUPLICATE_DETECTED_FROM_IMAGE":
-                  return "สลิปซ้ำ";
-                case "INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED":
-                  return "กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น (JPG, PNG)";
-                case "BILL_NOT_FOUND":
-                  return "ไม่พบข้อมูลบิล";
-                case "FORBIDDEN_ACCESS":
-                  return "คุณไม่มีสิทธิ์เข้าถึงบิลนี้";
-                default:
-                  return `เกิดข้อผิดพลาด: ${errorMsg.substring(0, 50)}`;
-              }
+              return getUploadErrorMessage(data);
             },
           },
         },
-      )
-      .finally(() => {
-        setIsSubmitting(false);
+      );
+
+      onClose();
+    } catch (error: any) {
+      // อ่านรหัสจาก error ที่จับได้โดยตรง (render ของ toast ทำงานหลัง catch จึงใช้แทนไม่ได้)
+      const code = getUploadErrorCode(error);
+
+      if (code === "BILL_ALREADY_PAID") {
+        // สถานะบิลเปลี่ยนไปแล้ว ปิดโมดัลเพื่อรีเฟรช
         onClose();
-      });
+      } else if (SLIP_REJECTED_CODES.includes(code)) {
+        // สลิปมีปัญหา ล้างไฟล์ให้เลือกใหม่ ส่วนปัญหาอื่นเก็บไฟล์ไว้ให้ลองส่งซ้ำ
+        handleClearFile();
+        setSlipData({});
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const copyToClipboard = (text: string) => {

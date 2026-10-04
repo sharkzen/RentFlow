@@ -64,20 +64,43 @@ export const matchAccount = (
 ): boolean => {
   if (!target || !slip) return false;
 
-  const cleanTarget = target.replace(/[^0-9]/g, "");
-  const cleanSlip = slip.replace(/[^0-9]/g, "");
+  const normalizePhone = (digits: string) =>
+    digits.length === 11 && digits.startsWith("66")
+      ? `0${digits.slice(2)}`
+      : digits;
+
+  const cleanTarget = normalizePhone(target.replace(/[^0-9]/g, ""));
+  const cleanSlip = slip.replace(/[\s-]/g, "");
 
   if (!cleanTarget || !cleanSlip) return false;
 
-  if (cleanSlip.length >= 10) {
-    return cleanTarget === cleanSlip;
+  const MIN_VISIBLE_DIGITS = 4;
+  const visibleDigits = cleanSlip.replace(/[^0-9]/g, "").length;
+
+  if (visibleDigits < MIN_VISIBLE_DIGITS) return false;
+
+  if (/^[0-9]+$/.test(cleanSlip)) {
+    const slipDigits = normalizePhone(cleanSlip);
+
+    if (slipDigits.length >= 10) return cleanTarget === slipDigits;
+
+    return cleanTarget.endsWith(slipDigits);
   }
 
-  if (cleanSlip.length >= 3) {
-    return cleanTarget.endsWith(cleanSlip);
+  // สลิปที่ปิดบังเลขบัญชี เช่น xxx-x-x1234-x ต้องยาวเท่ากันและเลขที่เห็นต้องตรงตำแหน่งกัน
+  if (cleanSlip.length !== cleanTarget.length) return false;
+
+  for (let i = 0; i < cleanSlip.length; i++) {
+    const ch = cleanSlip[i];
+
+    if (/[0-9]/.test(ch)) {
+      if (ch !== cleanTarget[i]) return false;
+    } else if (!/[xX*•]/.test(ch)) {
+      return false;
+    }
   }
 
-  return false;
+  return true;
 };
 
 let browserInstance: Browser | null = null;
