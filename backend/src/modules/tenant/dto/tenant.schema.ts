@@ -34,6 +34,7 @@ export const createTenantSchema = z.object({
   advancePayment: z.coerce.number().optional(),
   entranceFee: z.coerce.number().optional(),
   notes: z.string().optional(),
+  privacyConsent: z.literal(true),
 });
 
 export const updateTenantSchema = z.object({
@@ -99,4 +100,5 @@ export const reEntryTenantSchema = z.object({
   moveInDate: z.string(),
   numberOfResidents: z.coerce.number().optional(),
   notes: z.string().optional(),
+  privacyConsent: z.literal(true),
 });

@@ -46,6 +46,8 @@ model User {
   status              Status             @default(PENDING)
   failedLoginAttempts Int                @default(0)
   lockedUntil         DateTime?
+  privacyConsentAt      DateTime?
+  privacyConsentVersion String?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
   ownerProfile        OwnerProfile?
@@ -188,6 +190,8 @@ model TenantProfile {
   notes                 String?
   emergencyContactName  String?
   emergencyContactPhone String?
+  privacyConsentAt      DateTime?
+  privacyConsentVersion String?
   createdAt             DateTime              @default(now())
   announcementReadLogs  AnnouncementReadLog[]
   bills                 Bill[]

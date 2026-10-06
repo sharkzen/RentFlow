@@ -50,3 +50,12 @@ export function decrypt(encryptedText?: string | null): string | null {
     return null;
   }
 }
+
+// แสดงเฉพาะหลักแรกและหลักสุดท้าย เช่น 1-XXXX-XXXXX-XX-9
+export function maskIdCard(idCard?: string | null): string | null {
+  if (!idCard) return null;
+  const digits = idCard.replace(/D/g, "");
+  if (digits.length !== 13)
+    return "X".repeat(Math.max(idCard.length - 1, 0)) + idCard.slice(-1);
+  return `${digits[0]}-XXXX-XXXXX-XX-${digits[12]}`;
+}

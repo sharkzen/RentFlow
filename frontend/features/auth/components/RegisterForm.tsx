@@ -28,6 +28,7 @@ import FormSuccess from "@/lib/ui/status/FormSuccess";
 import InfoTooltip from "@/lib/ui/InfoTooltip";
 import MapTutorialContent from "@/lib/ui/MapTutorialContent";
 import Image from "next/image";
+import PrivacyConsent from "@/lib/ui/PrivacyConsent";
 
 export default function OwnerRegisterForm() {
   const mutation = useRegister();
@@ -45,6 +46,7 @@ export default function OwnerRegisterForm() {
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [success, setSuccess] = useState<boolean>(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -79,11 +81,14 @@ export default function OwnerRegisterForm() {
       confirmPassword: "",
     });
 
+    setAcceptedPrivacy(false);
     setErrors({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!acceptedPrivacy) return;
 
     const newErrors: {
       [key: string]: string;
@@ -115,30 +120,33 @@ export default function OwnerRegisterForm() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      await toast.promise(mutation.mutateAsync(form), {
-        pending: "กำลังลงทะเบียน...",
-        success: "ลงทะเบียนสำเร็จ",
+      await toast.promise(
+        mutation.mutateAsync({ ...form, acceptedPrivacy: true }),
+        {
+          pending: "กำลังลงทะเบียน...",
+          success: "ลงทะเบียนสำเร็จ",
 
-        error: {
-          render({ data }: any) {
-            const errorMsg = data?.response?.data?.message || data?.message;
+          error: {
+            render({ data }: any) {
+              const errorMsg = data?.response?.data?.message || data?.message;
 
-            if (errorMsg === "INVALID_MAP_URL") {
-              return "ลิงก์แผนที่ใช้ไม่ได้ กรุณาเปลี่ยนลิงก์ (ลองใช้ลิงก์ปักหมุด)";
-            }
+              if (errorMsg === "INVALID_MAP_URL") {
+                return "ลิงก์แผนที่ใช้ไม่ได้ กรุณาเปลี่ยนลิงก์ (ลองใช้ลิงก์ปักหมุด)";
+              }
 
-            if (errorMsg === "EMAIL_ALREADY_EXISTS") {
-              return "อีเมลนี้ถูกใช้งานไปแล้ว";
-            }
+              if (errorMsg === "EMAIL_ALREADY_EXISTS") {
+                return "อีเมลนี้ถูกใช้งานไปแล้ว";
+              }
 
-            if (errorMsg === "DATA_ARE_NOT_VALID") {
-              return "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง";
-            }
+              if (errorMsg === "DATA_ARE_NOT_VALID") {
+                return "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง";
+              }
 
-            return `เกิดข้อผิดพลาด: ${errorMsg || "โปรดลองใหม่อีกครั้ง"}`;
+              return `เกิดข้อผิดพลาด: ${errorMsg || "โปรดลองใหม่อีกครั้ง"}`;
+            },
           },
         },
-      });
+      );
 
       onRegisterSuccess();
     }
@@ -387,10 +395,19 @@ export default function OwnerRegisterForm() {
                     </div>
                   </div>
                 </div>
+                <div className="mt-6">
+                  <PrivacyConsent
+                    checked={acceptedPrivacy}
+                    onChange={setAcceptedPrivacy}
+                  >
+                    ข้าพเจ้ายินยอมให้ RentFlow
+                    เก็บและใช้ข้อมูลส่วนบุคคลตามวัตถุประสงค์ของระบบ
+                  </PrivacyConsent>
+                </div>
                 <button
-                  disabled={mutation.isPending}
+                  disabled={mutation.isPending || !acceptedPrivacy}
                   type="submit"
-                  className={`${mutation.isPending ? "cursor-progress" : "cursor-pointer"} mt-6 w-full rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 py-3.5 text-sm font-semibold text-white shadow-md transition hover:shadow-lg active:scale-[0.98] disabled:opacity-60`}
+                  className={`${mutation.isPending ? "cursor-progress" : acceptedPrivacy ? "cursor-pointer" : "cursor-not-allowed"} mt-4 w-full rounded-xl bg-linear-to-r from-blue-600 to-cyan-500 py-3.5 text-sm font-semibold text-white shadow-md transition hover:shadow-lg active:scale-[0.98] disabled:opacity-60`}
                 >
                   {mutation.isPending ? "กำลังลงทะเบียน..." : "ลงทะเบียน"}
                 </button>

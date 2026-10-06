@@ -16,6 +16,7 @@ export const ownerRegisterSchema = z.object({
   mapUrl: z.string().transform((val) => extractMapUrlFromText(val)),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
+  acceptedPrivacy: z.literal(true),
 });
 
 export const loginSchema = z.object({

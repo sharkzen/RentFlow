@@ -25,6 +25,7 @@ export interface OwnerRegisterFormData {
   email: string;
   password: string;
   confirmPassword: string;
+  acceptedPrivacy?: boolean;
 }
 
 export interface User {

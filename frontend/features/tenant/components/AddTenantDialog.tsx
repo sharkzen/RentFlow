@@ -30,6 +30,7 @@ import { useScrollLock, useOnClickOutside } from "usehooks-ts";
 import { getTenantErrorMessage } from "@/features/tenant/constants/error-messages";
 import DatePickerTh from "@/lib/ui/DatePickerTh";
 import Link from "next/link";
+import PrivacyConsent from "@/lib/ui/PrivacyConsent";
 
 interface AddTenantDialogProps {
   isOpen: boolean;
@@ -65,6 +66,7 @@ export default function AddTenantDialog({
 }: AddTenantDialogProps) {
   useScrollLock();
   const [isLoading, setIsLoading] = useState(false);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   const [rooms, setRooms] = useState<Rooms[]>([]);
   const [isRoomSelectOpen, setIsRoomSelectOpen] = useState(false);
   const [roomSearch, setRoomSearch] = useState("");
@@ -173,6 +175,7 @@ export default function AddTenantDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!privacyConsent) return;
     setIsLoading(true);
 
     if (!formData.roomId) {
@@ -199,6 +202,7 @@ export default function AddTenantDialog({
       const payload = {
         ...formData,
         dormId: dormId,
+        privacyConsent: true,
         userId: isReEntry ? initialData.userId : undefined,
       };
 
@@ -232,6 +236,7 @@ export default function AddTenantDialog({
   };
 
   const resetForm = () => {
+    setPrivacyConsent(false);
     setFormData({
       email: "",
       password: "",
@@ -711,23 +716,34 @@ export default function AddTenantDialog({
             </div>
           </form>
         </div>
-        <div className="border-border bg-background flex items-center justify-end gap-3 border-t px-6 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="border-border bg-surface text-foreground hover:bg-background cursor-pointer rounded-lg border px-5 py-2 text-sm font-medium transition-all active:scale-95"
-          >
-            ยกเลิก
-          </button>
-          <button
-            type="submit"
-            form="add-tenant-form"
-            disabled={isLoading}
-            className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-indigo-400"
-          >
-            <Save size={18} />
-            {isLoading ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
-          </button>
+        <div className="border-border bg-background flex flex-col gap-3 border-t px-6 py-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="lg:max-w-xl">
+            <PrivacyConsent
+              id="tenant-privacy-consent"
+              checked={privacyConsent}
+              onChange={setPrivacyConsent}
+            >
+              ข้าพเจ้ายืนยันว่าได้แจ้งและได้รับความยินยอมจากผู้เช่าในการเก็บข้อมูลส่วนบุคคลแล้ว
+            </PrivacyConsent>
+          </div>
+          <div className="flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="border-border bg-surface text-foreground hover:bg-background cursor-pointer rounded-lg border px-5 py-2 text-sm font-medium transition-all active:scale-95"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="submit"
+              form="add-tenant-form"
+              disabled={isLoading || !privacyConsent}
+              className="flex cursor-pointer items-center gap-2 rounded-lg bg-indigo-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 active:scale-95 disabled:cursor-not-allowed disabled:bg-indigo-400"
+            >
+              <Save size={18} />
+              {isLoading ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+            </button>
+          </div>
         </div>
       </div>
     </div>

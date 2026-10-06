@@ -8,6 +8,7 @@ import { getLatLngFromUrl } from "@/lib/extractLatLng";
 import { hashPassword, verifyPassword } from "@/modules/auth/lib/password";
 import { LoginDto } from "@/modules/auth/dto/login.dto";
 import { createActivityLog } from "@/services/activity-log.service";
+import { PRIVACY_POLICY_VERSION } from "@/config/privacy";
 
 import {
   signAccessToken,
@@ -132,6 +133,8 @@ export const authService = {
           email: data.email,
           password: hashedPassword,
           role: "OWNER",
+          privacyConsentAt: new Date(),
+          privacyConsentVersion: PRIVACY_POLICY_VERSION,
         },
       });
 

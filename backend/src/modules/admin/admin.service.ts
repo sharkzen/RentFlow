@@ -19,7 +19,7 @@ import { EmailType } from "@/queues/email.types";
 import { getBucketSize } from "@/services/r2Client";
 import { formatBytes } from "@/utils/formatBytes";
 import { createActivityLog } from "@/services/activity-log.service";
-import { decrypt } from "@/utils/encryption";
+import { decrypt, maskIdCard } from "@/utils/encryption";
 import { hashPassword } from "@/modules/auth/lib/password";
 
 export const AdminService = {
@@ -1102,7 +1102,7 @@ export const AdminService = {
       tenantProfiles: user.tenantProfiles.map((t) => ({
         ...t,
         phone: decrypt(t.phone),
-        idCard: decrypt(t.idCard),
+        idCard: maskIdCard(decrypt(t.idCard)),
         address: decrypt(t.address),
         emergencyContactName: decrypt(t.emergencyContactName),
         emergencyContactPhone: decrypt(t.emergencyContactPhone),

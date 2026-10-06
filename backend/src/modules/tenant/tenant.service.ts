@@ -4,6 +4,7 @@ import generatePayload from "promptpay-qr";
 import QRCode from "qrcode";
 import { hashPassword } from "@/modules/auth/lib/password";
 import { encrypt, decrypt } from "@/utils/encryption";
+import { PRIVACY_POLICY_VERSION } from "@/config/privacy";
 import {
   BillStatus,
   MaintenanceStatus,
@@ -245,6 +246,8 @@ export const tenantService = {
           address: encrypt(data.address),
           emergencyContactName: encrypt(data.emergencyContactName),
           emergencyContactPhone: encrypt(data.emergencyContactPhone),
+          privacyConsentAt: new Date(),
+          privacyConsentVersion: PRIVACY_POLICY_VERSION,
         },
       });
 
@@ -2288,6 +2291,8 @@ export const tenantService = {
           address: encrypt(data.address),
           emergencyContactName: encrypt(data.emergencyContactName),
           emergencyContactPhone: encrypt(data.emergencyContactPhone),
+          privacyConsentAt: new Date(),
+          privacyConsentVersion: PRIVACY_POLICY_VERSION,
         },
       });
 
