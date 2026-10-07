@@ -42,12 +42,12 @@ export function OwnerPromoPanel() {
   const trial = usePublicTrial();
 
   return (
-    <div className="mt-auto max-w-lg">
+    <div className="max-w-lg">
       <p className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-sm font-medium backdrop-blur">
         <Gift size={16} />
         สำหรับเจ้าของหอพัก
       </p>
-      <h2 className="text-5xl leading-tight font-bold">
+      <h2 className="text-4xl leading-tight font-bold xl:text-5xl">
         ลงประกาศหอพัก
         <br />
         ฟรี

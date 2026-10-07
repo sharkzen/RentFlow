@@ -31,6 +31,7 @@ import { useOnClickOutside, useScrollLock } from "usehooks-ts";
 import { formatThaiDate } from "@/lib/dateFormatter";
 import Link from "next/link";
 import ChangePasswordModal from "./ChangePasswordModal";
+import OwnerSubscriptionPanel from "@/features/billing/components/admin/OwnerSubscriptionPanel";
 import { renderRoleBadge } from "./UserTable";
 
 interface UserDetailModalProps {
@@ -274,6 +275,10 @@ export default function UserDetailModal({
               </div>
               <div className="lg:col-span-2">
                 {isOwner ? (
+                  <div className="flex flex-col gap-6">
+                  {user.ownerProfile && (
+                    <OwnerSubscriptionPanel ownerId={user.ownerProfile.id} />
+                  )}
                   <div className="border-border bg-surface h-full rounded-xl border shadow-sm">
                     <div className="border-border border-b px-6 py-4">
                       <h3 className="text-foreground flex items-center gap-2 text-sm font-semibold">
@@ -335,6 +340,7 @@ export default function UserDetailModal({
                         </div>
                       )}
                     </div>
+                  </div>
                   </div>
                 ) : (
                   <div className="border-border bg-surface h-full rounded-xl border shadow-sm">

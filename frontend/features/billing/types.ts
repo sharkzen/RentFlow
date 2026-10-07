@@ -79,7 +79,19 @@ export interface MyBilling {
   usage: { dorms: number; rooms: number; slips: number };
   trial:
     | { available: false }
-    | { available: true; planName: string; days: number };
+    | {
+        available: true;
+        planName: string;
+        days: number;
+        limits: Pick<
+          Plan,
+          | "maxDorms"
+          | "maxRooms"
+          | "slipQuotaMonthly"
+          | "slipUnlimited"
+          | "hasOcr"
+        >;
+      };
   promotion: {
     pricePerMonth: number;
     maxSlots: number;
@@ -94,7 +106,8 @@ export type OrderStatus =
   | "PENDING_REVIEW"
   | "PAID"
   | "REJECTED"
-  | "EXPIRED";
+  | "EXPIRED"
+  | "REFUNDED";
 
 export interface BillingOrder {
   id: string;
@@ -191,3 +204,47 @@ export interface RevenueReport {
   promotions: { active: number; maxSlots: number };
   pendingReview: number;
 }
+
+/** ข้อมูลสมาชิกของเจ้าของหอรายคน (หน้าแอดมิน) */
+export interface OwnerSubscriptionInfo {
+  subscription: {
+    id: string;
+    planId: string;
+    planName: string;
+    status: SubscriptionState;
+    currentPeriodStart: string;
+    currentPeriodEnd: string | null;
+  } | null;
+  usage: { dorms: number; rooms: number };
+  trial: { usedAt: string | null; blocked: boolean };
+  promotions: { id: string; dormName: string; startsAt: string; endsAt: string }[];
+  plans: {
+    id: string;
+    name: string;
+    priceMonthly: number;
+    maxDorms: number;
+    maxRooms: number;
+  }[];
+  orders: {
+    id: string;
+    type: "PLAN" | "PROMOTION";
+    status: OrderStatus;
+    label: string;
+    months: number;
+    finalAmount: number;
+    paidAt: string | null;
+    createdAt: string;
+  }[];
+}
+
+export type OwnerSubscriptionAction =
+  | {
+      action: "GRANT";
+      planId: string;
+      days: number;
+      trial?: boolean;
+      reason: string;
+    }
+  | { action: "EXTEND"; days: number; reason: string }
+  | { action: "SET_END"; endsAt: string; reason: string }
+  | { action: "CANCEL"; reason: string };

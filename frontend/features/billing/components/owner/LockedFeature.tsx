@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/backendError";
 import { BillingService } from "../../services/billing.service";
 import { useOwnerBilling } from "../../context/OwnerBillingContext";
+import TrialConfirmDialog from "./TrialConfirmDialog";
 
 const PERKS = [
   "จัดการผู้เช่าและสัญญาเช่า",
@@ -18,6 +19,7 @@ const PERKS = [
 export default function LockedFeature({ name }: { name: string }) {
   const { billing, refresh } = useOwnerBilling();
   const [claiming, setClaiming] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const trial = billing?.trial.available ? billing.trial : null;
 
@@ -26,6 +28,8 @@ export default function LockedFeature({ name }: { name: string }) {
     try {
       await BillingService.claimTrial();
       toast.success("เริ่มทดลองใช้งานแล้ว");
+      setConfirmOpen(false);
+      // สิทธิ์ใหม่โหลดแล้ว OwnerAccessGate จะเปิดหน้านี้ให้เองโดยไม่ต้องเปลี่ยน URL
       await refresh();
     } catch (error) {
       toast.error(getApiErrorMessage(error));
@@ -58,12 +62,11 @@ export default function LockedFeature({ name }: { name: string }) {
       <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row">
         {trial && (
           <button
-            onClick={claimTrial}
-            disabled={claiming}
-            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-medium text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => setConfirmOpen(true)}
+            className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-medium text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95"
           >
             <Gift size={18} />
-            {claiming ? "กำลังเปิดใช้งาน..." : `ทดลองฟรี ${trial.days} วัน`}
+            {`ทดลองฟรี ${trial.days} วัน`}
           </button>
         )}
         <Link
@@ -73,6 +76,16 @@ export default function LockedFeature({ name }: { name: string }) {
           ดูแพ็คเกจและอัปเกรด
         </Link>
       </div>
+
+      {trial && (
+        <TrialConfirmDialog
+          isOpen={confirmOpen}
+          trial={trial}
+          isLoading={claiming}
+          onClose={() => setConfirmOpen(false)}
+          onConfirm={claimTrial}
+        />
+      )}
     </div>
   );
 }

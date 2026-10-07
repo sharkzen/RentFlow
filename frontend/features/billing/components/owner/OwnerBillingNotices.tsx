@@ -55,7 +55,7 @@ const safe = {
 /**
  * modal แจ้งเตือนเรื่องแพ็คเกจตอนเข้าระบบ (ทำงานเฉพาะเมื่อแอดมินเปิดบังคับโควต้า)
  * - ต้อนรับ: เจ้าของหอใหม่ รับทดลองฟรีได้ในคลิกเดียว (ขึ้นครั้งเดียวต่อ session)
- * - ใกล้หมดอายุ: เหลือ 7/3/1 วัน ขึ้นครั้งเดียวต่อระดับ
+ * - ใกล้หมดอายุ: เหลือ 7 วันลงมา ขึ้นวันละครั้งจนกว่าจะต่ออายุ
  * - ผ่อนผัน/หมดอายุ: ขึ้นครั้งเดียวต่อ session จนกว่าจะต่ออายุ
  */
 export default function OwnerBillingNotices() {
@@ -86,8 +86,8 @@ export default function OwnerBillingNotices() {
       );
 
       if (daysLeft >= 0 && daysLeft <= 7) {
-        const level = daysLeft <= 1 ? 1 : daysLeft <= 3 ? 3 : 7;
-        const key = `rf-notice-expiring:${billing.periodEnd}:${level}`;
+        // ขึ้นวันละครั้งตลอด 7 วันสุดท้าย (จำต่อจำนวนวันที่เหลือ) ปิดแล้วพรุ่งนี้ขึ้นใหม่
+        const key = `rf-notice-expiring:${billing.periodEnd}:${daysLeft}`;
 
         if (!safe.getLocal(key)) return { kind: "expiring", daysLeft, key };
       }

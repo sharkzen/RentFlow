@@ -3,7 +3,9 @@ import { useState } from "react";
 import DormsCard from "./DormsCard";
 import DormsDialog from "./DormsDialog";
 import { DormService } from "@/features/dormitory/services/dorm.service";
-import { Plus, Building2, Ban } from "lucide-react";
+import { Plus, Building2, Ban, Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useOwnerBilling } from "@/features/billing/context/OwnerBillingContext";
 import DromCreate from "./DromCreate";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dormitory } from "@/features/dormitory";
@@ -13,6 +15,19 @@ export default function DormsContainer() {
   const queryClient = useQueryClient();
   const [selectedDorm, setSelectedDorm] = useState<Dormitory | null>(null);
   const [onCreate, setOnCreate] = useState(false);
+  const router = useRouter();
+  const { billing } = useOwnerBilling();
+  // สร้างหอครบตามโควต้าแพ็คเกจแล้ว (ยังไม่มีแพ็คเกจ = 1 หอ) ปุ่มล็อกและพาไปเลือกแพ็คเกจ
+  const dormLimitReached =
+    !!billing?.enforced && billing.usage.dorms >= billing.plan.maxDorms;
+
+  const openCreate = () => {
+    if (dormLimitReached) {
+      router.push("/owner/billing");
+      return;
+    }
+    setOnCreate(true);
+  };
 
   const { data: dorms = [], isLoading } = useQuery<Dormitory[]>({
     queryKey: ["dorms"],
@@ -50,10 +65,19 @@ export default function DormsContainer() {
         </div>
         <div className="flex max-sm:w-full max-sm:justify-end">
           <button
-            onClick={() => setOnCreate(true)}
-            className="flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-linear-to-r from-blue-600 to-blue-500 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:from-blue-700 hover:to-blue-600 active:scale-95 max-sm:w-full"
+            onClick={openCreate}
+            title={
+              dormLimitReached
+                ? "สร้างหอได้ตามโควต้าแพ็คเกจแล้ว อัปเกรดเพื่อเพิ่มหอ"
+                : undefined
+            }
+            className={`flex cursor-pointer items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all active:scale-95 max-sm:w-full ${dormLimitReached ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : "bg-linear-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600"}`}
           >
-            <Plus size={18} strokeWidth={2.5} />
+            {dormLimitReached ? (
+              <Lock size={18} strokeWidth={2.5} />
+            ) : (
+              <Plus size={18} strokeWidth={2.5} />
+            )}
             <span>เพิ่มหอพักใหม่</span>
           </button>
         </div>
@@ -68,7 +92,7 @@ export default function DormsContainer() {
             เริ่มต้นด้วยการสร้างหอพักแรกของคุณ
           </p>
           <button
-            onClick={() => setOnCreate(true)}
+            onClick={openCreate}
             className="mt-4 font-medium text-indigo-600 hover:underline"
           >
             สร้างหอพักเลย
@@ -101,6 +125,13 @@ export default function DormsContainer() {
                     onEdit={() => {
                       if (!isBanned) setSelectedDorm(dorm);
                     }}
+                    onTogglePublish={(value) =>
+                      queryClient.setQueryData<Dormitory[]>(["dorms"], (old) =>
+                        old?.map((d) =>
+                          d.id === dorm.id ? { ...d, isPublished: value } : d,
+                        ),
+                      )
+                    }
                   />
                 </div>
               </div>

@@ -4,6 +4,8 @@ import {
   BillingSettings,
   Coupon,
   CouponPayload,
+  OwnerSubscriptionAction,
+  OwnerSubscriptionInfo,
   Paginated,
   Plan,
   PlanPayload,
@@ -90,6 +92,42 @@ export const AdminBillingService = {
       action,
       note: note || undefined,
     });
+    return res.data;
+  },
+
+  /** บันทึกว่าคืนเงินแล้ว (แอดมินโอนคืนเอง) ระบบจะยกเลิกสิทธิ์ที่ได้จากคำสั่งซื้อนั้น */
+  refundOrder: async (id: string, note: string) => {
+    const res = await axios.post(`/api/admin/billing/orders/${id}/refund`, {
+      note,
+    });
+    return res.data;
+  },
+
+  getOwnerSubscription: async (
+    ownerId: string,
+  ): Promise<OwnerSubscriptionInfo> => {
+    const res = await axios.get(
+      `/api/admin/billing/owners/${ownerId}/subscription`,
+    );
+    return res.data.data;
+  },
+
+  updateOwnerSubscription: async (
+    ownerId: string,
+    payload: OwnerSubscriptionAction,
+  ) => {
+    const res = await axios.post(
+      `/api/admin/billing/owners/${ownerId}/subscription`,
+      payload,
+    );
+    return res.data;
+  },
+
+  cancelPromotion: async (promotionId: string, reason: string) => {
+    const res = await axios.post(
+      `/api/admin/billing/promotions/${promotionId}/cancel`,
+      { reason },
+    );
     return res.data;
   },
 

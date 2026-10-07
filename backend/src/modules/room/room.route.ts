@@ -42,11 +42,12 @@ export async function roomRoute(app: FastifyInstance) {
       "preHandler",
       authRoleMiddleware([Role.OWNER, Role.ADMIN]),
     );
+    // ทุกงานเกี่ยวกับห้องพักต้องมีแพ็คเกจ (ไม่มีแพ็ค = ล็อก, หมดอายุ = อ่านอย่างเดียว)
+    routeRoles.addHook("preHandler", requireManageAccess);
 
     routeRoles.post(
       "/qr-auth/bulk-pdf",
       {
-        preHandler: requireManageAccess,
         schema: {
           tags: ["Room (Owner/Admin)"],
           summary: "สร้าง PDF QR Code เข้าห้องแบบหลายห้องพร้อมกัน",
@@ -78,7 +79,6 @@ export async function roomRoute(app: FastifyInstance) {
     routeRoles.post(
       "/:roomId/qr-auth",
       {
-        preHandler: requireManageAccess,
         schema: {
           tags: ["Room (Owner/Admin)"],
           summary: "สร้าง/ต่ออายุ QR Code เข้าห้อง",
@@ -105,7 +105,6 @@ export async function roomRoute(app: FastifyInstance) {
     routeRoles.patch(
       "/:roomId/qr-auth/status",
       {
-        preHandler: requireManageAccess,
         schema: {
           tags: ["Room (Owner/Admin)"],
           summary: "เปิด/ปิดการใช้งาน QR Code เข้าห้อง",

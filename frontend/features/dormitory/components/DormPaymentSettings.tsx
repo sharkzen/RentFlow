@@ -103,7 +103,7 @@ const Input = ({ className, ...props }: any) => (
   />
 );
 
-const BankSelect = ({
+export const BankSelect = ({
   value,
   onChange,
 }: {

@@ -6,9 +6,8 @@ import {
   Search,
   CheckCircle2,
   XCircle,
-  HelpCircle,
   Star,
-  Megaphone,
+  Crown,
 } from "lucide-react";
 
 interface DormProps {
@@ -39,7 +38,6 @@ export default function DormCard({
   const isPlaceholder = displayImage.includes("placehold.co");
   const isFull = availabilityStatus === "FULL";
   const isAvailable = availabilityStatus === "AVAILABLE";
-  const isNotSpecified = !isFull && !isAvailable;
 
   return (
     <Link href={`/dorms/${slug}`} className="group block h-full">
@@ -53,9 +51,9 @@ export default function DormCard({
             </span>
           ) : (
             isPromoted && (
-              <span className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white shadow-md">
-                <Megaphone size={12} />
-                โปรโมท
+              <span className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 rounded-full bg-linear-to-r from-orange-500 to-rose-500 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white shadow-md">
+                <Crown size={12} fill="currentColor" />
+                แนะนำมากที่สุด
               </span>
             )
           )}
@@ -96,12 +94,6 @@ export default function DormCard({
               <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-bold tracking-wide text-rose-500 ring-1 ring-rose-400/20">
                 <XCircle size={12} strokeWidth={2.5} />
                 เต็มแล้ว
-              </span>
-            )}
-            {isNotSpecified && (
-              <span className="bg-background text-muted ring-border inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold tracking-wide ring-1">
-                <HelpCircle size={12} strokeWidth={2.5} />
-                ไม่ระบุ
               </span>
             )}
           </div>

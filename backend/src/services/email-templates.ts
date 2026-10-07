@@ -1128,6 +1128,42 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
         ),
       };
     }
+    case EmailType.SUBSCRIPTION_CHANGED: {
+      // ผู้ดูแลระบบปรับแพ็คเกจ/วันหมดอายุ/คืนเงินให้ แจ้งเจ้าของหอให้ทราบเสมอ
+      return {
+        subject: getSubject(data.headline),
+
+        html: minifyHtml(
+          wrapEmail(
+            data.headline,
+            `
+            <div style="border-bottom: 2px solid ${THEME.primary}; padding-bottom: 16px; margin-bottom: 28px;">
+              <h1 style="color: ${THEME.primary}; margin: 0; font-size: 24px; font-weight: 800;">
+                ${data.headline}
+              </h1>
+              <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: 700; color: ${THEME.warning}; letter-spacing: 1px;">
+                ${data.ownerName ? `เรียน ${data.ownerName}` : "เรียนเจ้าของหอพัก"}
+              </p>
+            </div>
+
+            <p style="color: ${THEME.text}; font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">
+              ${data.detail}
+            </p>
+
+            <table width="100%">
+              <tr>
+                <td align="center">
+                  <a href="${data.link}" style="background-color: ${THEME.primary}; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; font-weight: 700; font-size: 15px; display: inline-block;">
+                    ดูแพ็คเกจของฉัน
+                  </a>
+                </td>
+              </tr>
+            </table>
+            `,
+          ),
+        ),
+      };
+    }
     default:
       throw new Error("Unknown Type");
   }

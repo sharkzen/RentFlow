@@ -124,7 +124,7 @@ export default function ConfirmDialog({
           </div>
           <h3 className="mb-2 text-lg font-bold text-slate-900">{title}</h3>
           {description && (
-            <p className="mb-4 text-sm text-slate-500">{description}</p>
+            <p className="mb-4 text-sm whitespace-pre-line text-slate-500">{description}</p>
           )}
           {showInput && (
             <div className="mb-6 w-full text-left">

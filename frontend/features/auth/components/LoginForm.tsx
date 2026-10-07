@@ -202,7 +202,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="bg-background grid h-[calc(100vh-65px)] w-full md:grid-cols-2">
+    <div className="bg-background grid min-h-[calc(100vh-65px)] w-full md:grid-cols-2">
       <div className="relative hidden md:block">
         <Image
           src="/images/bg-main.jpg"
@@ -213,8 +213,8 @@ export default function LoginForm() {
           className="object-cover dark:opacity-50"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-        <div className="relative z-10 flex h-full flex-col p-12 text-white">
-          <h2 className="text-5xl leading-tight font-bold">
+        <div className="relative z-10 flex h-full flex-col justify-end p-8 text-white lg:p-12">
+          <h2 className="text-3xl leading-tight font-bold lg:text-4xl xl:text-5xl">
             จัดการหอพักของคุณ
             <br />
             อย่างมืออาชีพ
@@ -222,16 +222,26 @@ export default function LoginForm() {
           <p className="mt-3 text-white/80">ห้องพัก • ผู้เช่า • รายได้</p>
         </div>
       </div>
-      <div className="flex items-center justify-center px-6 py-12 md:px-12 lg:px-24">
-        <div className="w-full max-w-md">
-          <div className="mb-8 flex items-center justify-center gap-3">
-            <Image src="/logo.png" width={48} height={48} alt="RentFlow Logo" />
-
-            <h1 className="text-5xl font-extrabold">
-              Rent{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                Flow
+      <div className="flex items-center justify-center px-5 py-8 sm:px-8 sm:py-12 md:px-10 lg:px-16 xl:px-24">
+        <div className="w-full max-w-sm sm:max-w-md">
+          <div className="mb-8 text-center">
+            <div className="mb-6 flex items-center justify-center gap-3">
+              <Image
+                src="/logo.png"
+                width={44}
+                height={44}
+                alt="RentFlow Logo"
+                className="h-10 w-10 sm:h-11 sm:w-11"
+              />
+              <span className="text-2xl font-extrabold sm:text-3xl">
+                Rent{" "}
+                <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                  Flow
+                </span>
               </span>
+            </div>
+            <h1 className="text-foreground text-2xl font-bold sm:text-3xl">
+              เข้าสู่ระบบ
             </h1>
           </div>
           {qrState === "loading" && (
@@ -264,14 +274,11 @@ export default function LoginForm() {
             </div>
           )}
           {qrState === "idle" && (
-            <form
-              onSubmit={handleSubmit}
-              className="bg-surface rounded-2xl p-6"
-            >
-              <div className="space-y-5">
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4">
                 <div className="space-y-1">
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-white">
-                    <Mail className="h-4 w-4" />
+                  <label className="text-foreground flex items-center gap-2 text-sm font-medium">
+                    <Mail className="text-muted h-4 w-4" />
                     อีเมล
                   </label>
                   <input
@@ -288,15 +295,15 @@ export default function LoginForm() {
                           email: undefined,
                         }));
                     }}
-                    className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-border"} focus:ring-blue-100`}
+                    className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-border"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10`}
                   />
-                  <p className="min-h-4 text-xs text-red-600">
+                  <p className="text-xs text-red-600 empty:hidden">
                     {errors.email || ""}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-white">
-                    <Lock className="h-4 w-4" />
+                  <label className="text-foreground flex items-center gap-2 text-sm font-medium">
+                    <Lock className="text-muted h-4 w-4" />
                     รหัสผ่าน
                   </label>
                   <div className="relative">
@@ -313,7 +320,7 @@ export default function LoginForm() {
                             password: undefined,
                           }));
                       }}
-                      className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-border"} `}
+                      className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-border"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10`}
                     />
                     <button
                       tabIndex={-1}
@@ -328,7 +335,7 @@ export default function LoginForm() {
                       )}
                     </button>
                   </div>
-                  <p className="min-h-4 text-xs text-red-600">
+                  <p className="text-xs text-red-600 empty:hidden">
                     {errors.password || ""}
                   </p>
                 </div>

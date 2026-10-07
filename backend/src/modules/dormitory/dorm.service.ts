@@ -89,7 +89,7 @@ export const dormService = {
         },
       }),
 
-      // หอที่จ่ายโปรโมท: ใครจ่ายก่อน (rankAt เก่ากว่า) แสดงก่อน ต่อจากหอที่แอดมินปักหมุด
+      // หอที่จ่ายโปรโมท (VIP): ใครจ่ายก่อน (rankAt เก่ากว่า) แสดงก่อน และมาก่อนหอที่แอดมินปักหมุด
       prisma.dormPromotion.findMany({
         where: {
           status: "ACTIVE",
@@ -107,10 +107,11 @@ export const dormService = {
       }),
     ]);
 
+    // ลำดับแสดง: หอ VIP ที่จ่ายเงิน (ชำระก่อนอยู่ก่อน) -> หอแนะนำของแอดมิน -> หอทั่วไป
     const featuredIdsOrdered = [
       ...new Set([
-        ...adminFeatured.map((d) => d.id),
         ...paidPromotions.map((p) => p.dormId),
+        ...adminFeatured.map((d) => d.id),
       ]),
     ];
 

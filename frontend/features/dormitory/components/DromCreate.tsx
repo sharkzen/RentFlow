@@ -3,6 +3,7 @@ import { RefObject, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendError";
+import { apiErrorRender } from "@/lib/ui/ApiErrorMessage";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { Building2, X, Loader2, Home } from "lucide-react";
 import { useScrollLock, useOnClickOutside } from "usehooks-ts";
@@ -36,7 +37,17 @@ export default function DormCreate({ onClose, onSuccess }: Props) {
       await toast.promise(DormService.createDrom(name.trim()), {
         pending: "กำลังสร้างระบบหอพัก...",
         success: "สร้างหอพักใหม่เรียบร้อย",
-        error: "เกิดข้อผิดพลาดในการสร้างหอพัก",
+        error: {
+          render: ({ data }: { data?: unknown }) => {
+            const code = (data as any)?.response?.data?.message as
+              | string
+              | undefined;
+
+            return code
+              ? apiErrorRender(code)
+              : "เกิดข้อผิดพลาดในการสร้างหอพัก";
+          },
+        },
       });
 
       onClose();

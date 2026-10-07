@@ -74,6 +74,8 @@ export const useOwnerBilling = () => useContext(OwnerBillingContext);
 /** เมนูงานจัดการที่ต้องมีแพ็คเกจ (เส้นทาง -> ชื่อฟีเจอร์) ใช้ร่วมกันทั้งเมนูและหน้าล็อก */
 export const MANAGE_FEATURES: { prefix: string; key: string; name: string }[] =
   [
+    { prefix: "/owner/dashboard", key: "dashboard", name: "ภาพรวม" },
+    { prefix: "/owner/rooms", key: "rooms", name: "จัดการห้องพัก" },
     { prefix: "/owner/tenants", key: "tenants", name: "จัดการผู้เช่า" },
     { prefix: "/owner/bills", key: "bills", name: "จัดการบิล" },
     { prefix: "/owner/maintenance", key: "maintenance", name: "จัดการแจ้งซ่อม" },
@@ -84,6 +86,10 @@ export const MANAGE_FEATURES: { prefix: string; key: string; name: string }[] =
       name: "เข้าระบบด้วย QR Code",
     },
   ];
+
+/** หน้าปลายทางของเมนูที่ถูกล็อก ใช้พากลับหลังรับทดลอง/ชำระเงินสำเร็จ */
+export const featureHref = (key: string | null | undefined) =>
+  MANAGE_FEATURES.find((f) => f.key === key)?.prefix ?? null;
 
 export const FEATURE_NAME_BY_KEY: Record<string, string> = Object.fromEntries([
   ...MANAGE_FEATURES.map((f) => [f.key, f.name]),

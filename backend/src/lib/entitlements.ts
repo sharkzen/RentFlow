@@ -30,8 +30,8 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   promoPricePerMonth: "199",
   promoMaxSlots: "10",
   promoHoldMinutes: "60",
-  // ปิดไว้ก่อนเพื่อไม่ให้เจ้าของหอเดิมถูกจำกัดทันที แอดมินเปิดเมื่อพร้อมเก็บเงิน
-  enforceLimits: "false",
+  // เปิดไว้เป็นค่าเริ่มต้น เจ้าของหอที่ยังไม่มีแพ็คเกจจะถูกล็อกฟีเจอร์จัดการ
+  enforceLimits: "true",
   // โควต้า SlipOK ที่แพลตฟอร์มซื้อไว้ต่อเดือน (0 = ไม่ได้ตั้ง ไม่แจ้งเตือน)
   slipOkPlatformQuota: "0",
 };
@@ -129,7 +129,9 @@ export async function getEntitlements(
     plan: sub.plan,
     status,
     canManage: status === "ACTIVE" || status === "TRIAL",
-    readOnly: status === "GRACE" || status === "EXPIRED",
+    // CANCELED (แอดมินยกเลิก/คืนเงิน) ดูข้อมูลได้อย่างเดียวเหมือนหมดอายุ ไม่ถูกล็อกจนเข้าไม่ได้
+    readOnly:
+      status === "GRACE" || status === "EXPIRED" || status === "CANCELED",
     periodEnd: end,
     graceEndsAt,
     usage,

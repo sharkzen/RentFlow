@@ -20,8 +20,10 @@ import DurationSwitch from "../shared/DurationSwitch";
 import PlanPriceBlock from "../shared/PlanPriceBlock";
 import {
   FEATURE_NAME_BY_KEY,
+  featureHref,
   useOwnerBilling,
 } from "../../context/OwnerBillingContext";
+import TrialConfirmDialog from "./TrialConfirmDialog";
 import {
   MONTH_LABEL,
   MONTH_OPTIONS,
@@ -48,6 +50,8 @@ const dateTh = (iso: string | null) =>
       })
     : "-";
 
+const daysLeft = (iso: string) =>
+  Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000));
 
 const STATUS_LABEL: Record<SubscriptionState, { text: string; cls: string }> = {
   FREE: { text: "แพ็คเกจฟรี", cls: "border-border bg-background text-muted" },
@@ -86,6 +90,7 @@ const ORDER_LABEL: Record<BillingOrder["status"], { text: string; cls: string }>
     },
     REJECTED: { text: "ไม่อนุมัติ", cls: "border-red-200 bg-red-50 text-red-700" },
     EXPIRED: { text: "หมดอายุ/ยกเลิก", cls: "border-border bg-background text-muted" },
+    REFUNDED: { text: "คืนเงินแล้ว", cls: "border-border bg-background text-muted" },
   };
 
 const inputClass =
@@ -218,6 +223,14 @@ function CheckoutModal({
       onClose={onClose}
     >
       <div className="flex flex-col gap-4">
+        {checkout.kind === "PROMOTION" && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+            หอที่โปรโมทจะแสดงก่อนหอทั่วไปและหอแนะนำในหน้าแรกและผลการค้นหา
+            ลำดับตามเวลาที่ชำระเงินสำเร็จ ผู้ที่ชำระก่อนจะได้อันดับแรกๆ ก่อน
+            ลำดับจะเริ่มนับเมื่อระบบยืนยันการชำระเงินแล้วเท่านั้น
+          </div>
+        )}
+
         {checkout.kind === "PROMOTION" && (
           <div>
             <label className="text-foreground/80 mb-1.5 block text-sm font-medium">
@@ -408,6 +421,8 @@ export default function OwnerBillingContainer() {
   const [months, setMonths] = useState(12);
   const [orderToCancel, setOrderToCancel] = useState<BillingOrder | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [trialConfirmOpen, setTrialConfirmOpen] = useState(false);
+  const [claimingTrial, setClaimingTrial] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refresh: refreshBilling } = useOwnerBilling();
@@ -462,14 +477,26 @@ export default function OwnerBillingContainer() {
     }
   }, [plans, searchParams]);
 
+  // มาจากเมนูที่ถูกล็อก: เปิดสิทธิ์สำเร็จแล้วพากลับหน้านั้นเลย
+  const goBackToFeature = () => {
+    const href = featureHref(fromFeature);
+    if (href) router.push(href);
+  };
+
   const claimTrial = async () => {
+    setClaimingTrial(true);
     try {
       await BillingService.claimTrial();
       toast.success("เริ่มทดลองใช้งานแล้ว");
-      refreshBilling();
+      setTrialConfirmOpen(false);
+      // รอสิทธิ์ใหม่โหลดก่อนค่อยพากลับ ไม่งั้นจะเห็นหน้าล็อกวาบหนึ่ง
+      await refreshBilling();
       load();
+      goBackToFeature();
     } catch (error) {
       toast.error(getApiErrorMessage(error));
+    } finally {
+      setClaimingTrial(false);
     }
   };
 
@@ -493,14 +520,16 @@ export default function OwnerBillingContainer() {
     setCheckout(null);
 
     if (order.status === "PENDING") {
-      router.push(`/owner/billing/checkout/${order.id}`);
+      router.push(
+        `/owner/billing/checkout/${order.id}${fromFeature ? `?from=${encodeURIComponent(fromFeature)}` : ""}`,
+      );
       return;
     }
 
     // คูปองลด 100% เปิดสิทธิ์ทันที ไม่ต้องโอนเงิน
     toast.success("เปิดใช้งานเรียบร้อย");
-    refreshBilling();
     load();
+    refreshBilling().then(goBackToFeature);
   };
 
   if (loading || !billing) {
@@ -524,7 +553,7 @@ export default function OwnerBillingContainer() {
             แพ็คเกจและการชำระเงิน
           </h1>
           <p className="text-muted mt-1 text-sm">
-            จัดการแพ็คเกจ โควต้า และโปรโมทหอพักของคุณ
+            จัดการแพ็คเกจ โควต้า และโปรโมทหอพัก ของคุณ
           </p>
         </div>
       </div>
@@ -560,8 +589,16 @@ export default function OwnerBillingContainer() {
           <div>
             <p className="text-muted text-sm">แพ็คเกจปัจจุบัน</p>
             <p className="text-foreground text-xl font-bold">
-              {billing.plan.name}
+              {billing.status === "FREE"
+                ? "ยังไม่ได้สมัครแพ็คเกจ"
+                : `แพ็คเกจ ${billing.plan.name}`}
             </p>
+            {billing.status === "FREE" && (
+              <p className="text-muted mt-0.5 text-sm">
+                ลงประกาศหอพักได้ฟรี {billing.plan.maxDorms} หอ
+                ส่วนเครื่องมือจัดการต้องมีแพ็คเกจ
+              </p>
+            )}
           </div>
           <span
             className={`rounded-full border px-3 py-1 text-xs font-medium ${status.cls}`}
@@ -572,8 +609,14 @@ export default function OwnerBillingContainer() {
         {billing.periodEnd && (
           <p className="text-muted mt-2 flex items-center gap-1.5 text-sm">
             <Clock size={14} />
-            {billing.status === "TRIAL" ? "ทดลองใช้ถึง" : "ใช้งานถึง"}{" "}
+            {billing.status === "TRIAL"
+              ? "ทดลองใช้ถึง"
+              : billing.status === "GRACE" || billing.status === "EXPIRED"
+                ? "หมดอายุเมื่อ"
+                : "ใช้งานถึง"}{" "}
             {dateTh(billing.periodEnd)}
+            {(billing.status === "TRIAL" || billing.status === "ACTIVE") &&
+              ` (เหลืออีก ${daysLeft(billing.periodEnd)} วัน)`}
           </p>
         )}
 
@@ -606,7 +649,7 @@ export default function OwnerBillingContainer() {
               </span>
             </div>
             <button
-              onClick={claimTrial}
+              onClick={() => setTrialConfirmOpen(true)}
               className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-blue-700 active:scale-95"
             >
               รับสิทธิ์ทดลองฟรี
@@ -709,10 +752,13 @@ export default function OwnerBillingContainer() {
                 โปรโมทหอพัก
               </h2>
               <p className="text-muted text-sm">
-                แสดงหอของคุณก่อนหอทั่วไป เริ่มต้น{" "}
+                แสดงหอของคุณก่อนหอทั่วไปและหอแนะนำ เริ่มต้น{" "}
                 {baht(billing.promotion.pricePerMonth)} / เดือน (ว่าง{" "}
                 {billing.promotion.slotsAvailable} จาก{" "}
                 {billing.promotion.maxSlots} ช่อง)
+              </p>
+              <p className="text-muted mt-0.5 text-xs">
+                ผู้ที่ชำระเงินสำเร็จก่อนจะได้อันดับแรกๆ ก่อน
               </p>
             </div>
           </div>
@@ -830,6 +876,16 @@ export default function OwnerBillingContainer() {
           </div>
         </div>
       </section>
+
+      {billing.trial.available && (
+        <TrialConfirmDialog
+          isOpen={trialConfirmOpen}
+          trial={billing.trial}
+          isLoading={claimingTrial}
+          onClose={() => setTrialConfirmOpen(false)}
+          onConfirm={claimTrial}
+        />
+      )}
 
       <ConfirmDialog
         isOpen={!!orderToCancel}

@@ -72,11 +72,11 @@ async function main() {
   const initialPlans = [
     {
       name: "FREE",
-      description: "ลงประกาศหอพักฟรี ไม่จำกัดจำนวนหอ",
+      description: "ลงประกาศหอพักฟรี 1 หอ (ไม่รวมงานจัดการห้อง/ผู้เช่า/บิล)",
       priceMonthly: 0,
-      // ลงประกาศฟรีทุกหอ ค่านี้เป็นเพดานกันใช้ผิดปกติ ไม่ใช่โควต้าที่ขาย (แอดมินแก้ได้)
-      maxDorms: 50,
-      maxRooms: 2000,
+      // ยังไม่มีแพ็คเกจ: สร้างหอได้ 1 หอ และจัดการห้องไม่ได้ (แอดมินแก้ได้)
+      maxDorms: 1,
+      maxRooms: 0,
       slipQuotaMonthly: 0,
       isFree: true,
       allowTrial: false,
@@ -180,7 +180,7 @@ async function main() {
 
   if (!existingTrialSetting) {
     const trialPlan = await prisma.plan.findFirst({
-      where: { name: "START" },
+      where: { name: "STANDARD" },
     });
 
     if (trialPlan) {
@@ -188,7 +188,7 @@ async function main() {
         data: { key: "trialPlanId", value: trialPlan.id },
       });
 
-      logger.info("Default trial plan set to START.");
+      logger.info("Default trial plan set to STANDARD.");
     }
   }
 

@@ -17,6 +17,7 @@ import {
   getEntitlements,
   getManageAccess,
   getNumberSetting,
+  getUsage,
   isEnforced,
   isOcrAllowed,
   getSetting,
@@ -269,7 +270,15 @@ async function fulfillOrder(
       sub.currentPeriodEnd > now;
 
     const start = canExtend ? sub!.currentPeriodEnd! : now;
-    const end = addMonths(start, order.months);
+
+    // ซื้อระหว่างทดลอง: วันทดลองที่เหลือต่อท้ายให้ ไม่ให้เสียสิทธิ์ที่ได้มา
+    const trialLeftMs =
+      sub?.status === "TRIAL" && sub.currentPeriodEnd && sub.currentPeriodEnd > now
+        ? sub.currentPeriodEnd.getTime() - now.getTime()
+        : 0;
+    const end = new Date(
+      addMonths(start, order.months).getTime() + trialLeftMs,
+    );
 
     await tx.subscription.upsert({
       where: { ownerId: order.ownerId },
@@ -458,6 +467,8 @@ export const BillingService = {
         },
         trial:
           trialEnabled === "true" &&
+          // เคยมีแพ็คเกจแล้ว (ซื้อหรือทดลอง) ไม่เสนอทดลองอีก ตรงกับเงื่อนไขใน claimTrial
+          ent.status === "FREE" &&
           !owner.trialUsedAt &&
           !owner.trialBlocked &&
           trialPlan
@@ -465,6 +476,13 @@ export const BillingService = {
                 available: true,
                 planName: trialPlan.name,
                 days: await getNumberSetting(SETTING_KEYS.trialDays),
+                limits: {
+                  maxDorms: trialPlan.maxDorms,
+                  maxRooms: trialPlan.maxRooms,
+                  slipQuotaMonthly: trialPlan.slipQuotaMonthly,
+                  slipUnlimited: trialPlan.slipUnlimited,
+                  hasOcr: trialPlan.hasOcr,
+                },
               }
             : { available: false },
         promotion: {
@@ -536,6 +554,15 @@ export const BillingService = {
       });
       if (!plan) {
         throw AppError.notFound("PLAN_NOT_AVAILABLE", "แพ็คเกจนี้ไม่เปิดขาย");
+      }
+
+      // กันซื้อแพ็คที่เล็กกว่าที่ใช้อยู่ (ข้อมูลไม่หาย แต่จะใช้งานไม่ได้)
+      const used = await getUsage(owner.id);
+      if (used.dorms > plan.maxDorms || used.rooms > plan.maxRooms) {
+        throw AppError.badRequest(
+          "PLAN_BELOW_USAGE",
+          `แพ็คเกจ ${plan.name} รองรับ ${plan.maxDorms} หอ ${plan.maxRooms} ห้อง แต่คุณมี ${used.dorms} หอ ${used.rooms} ห้อง`,
+        );
       }
 
       const order = await prisma.$transaction(async (tx) => {

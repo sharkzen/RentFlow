@@ -1,9 +1,17 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Settings } from "lucide-react";
+import {
+  Settings,
+  ShieldCheck,
+  Gift,
+  ScanLine,
+  Clock,
+  Landmark,
+  Megaphone,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/backendError";
-import { THAI_BANKS } from "@/features/dormitory/components/DormPaymentSettings";
+import { BankSelect } from "@/features/dormitory/components/DormPaymentSettings";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { AdminBillingService } from "../../services/admin-billing.service";
 import type { BillingSettings, Plan } from "../../types";
@@ -14,17 +22,22 @@ const inputClass =
 const labelClass = "text-foreground/80 mb-1.5 block text-sm font-medium";
 
 function Section({
+  icon: Icon,
   title,
   hint,
   children,
 }: {
+  icon: React.ElementType;
   title: string;
   hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="border-border bg-surface rounded-2xl border p-6 shadow-sm">
-      <h2 className="text-foreground text-base font-bold">{title}</h2>
+      <h2 className="text-foreground flex items-center gap-2 text-base font-bold">
+        <Icon size={18} className="text-blue-600" />
+        {title}
+      </h2>
       {hint && <p className="text-muted mt-1 text-sm">{hint}</p>}
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {children}
@@ -125,6 +138,7 @@ export default function BillingSettingsForm() {
       </div>
 
       <Section
+        icon={ShieldCheck}
         title="บังคับใช้โควต้าแพ็คเกจ"
         hint="เมื่อเปิด เจ้าของหอที่ไม่มีแพ็คเกจจะถูกจำกัดตามแพ็คเกจฟรี และสร้างหอ/ห้องเกินโควต้าไม่ได้ ควรตั้งแพ็คเกจให้เรียบร้อยก่อนเปิด"
       >
@@ -165,6 +179,7 @@ export default function BillingSettingsForm() {
       </Section>
 
       <Section
+        icon={Gift}
         title="ทดลองใช้ฟรี"
         hint="เจ้าของหอกดรับสิทธิ์ทดลองได้ครั้งเดียวต่อบัญชี"
       >
@@ -215,6 +230,7 @@ export default function BillingSettingsForm() {
       </Section>
 
       <Section
+        icon={ScanLine}
         title="โควต้า SlipOK ของแพลตฟอร์ม"
         hint="ยอดตรวจสลิปรวมทุกเจ้าของหอในเดือนนี้ เทียบกับแพ็ค SlipOK ที่ซื้อไว้ ระบบจะเตือนใน log เมื่อใช้ถึง 80%"
       >
@@ -250,6 +266,7 @@ export default function BillingSettingsForm() {
       </Section>
 
       <Section
+        icon={Clock}
         title="แพ็คเกจหมดอายุ"
         hint="หลังหมดอายุจะอ่านอย่างเดียวจนครบวันผ่อนผัน"
       >
@@ -268,6 +285,7 @@ export default function BillingSettingsForm() {
       </Section>
 
       <Section
+        icon={Landmark}
         title="บัญชีรับเงินค่าแพ็คเกจ"
         hint="เจ้าของหอจะเห็นบัญชีเหล่านี้ในหน้าชำระเงิน และระบบใช้เทียบกับผู้รับในสลิป ตั้งอย่างน้อยพร้อมเพย์หรือบัญชีธนาคารอย่างใดอย่างหนึ่ง"
       >
@@ -290,20 +308,12 @@ export default function BillingSettingsForm() {
             className={inputClass}
           />
         </div>
-        <div>
+        <div className="relative z-20">
           <label className={labelClass}>ธนาคาร</label>
-          <select
+          <BankSelect
             value={settings.bankName}
-            onChange={(e) => set("bankName", e.target.value)}
-            className={inputClass}
-          >
-            <option value="">-- ไม่ระบุ --</option>
-            {THAI_BANKS.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => set("bankName", val)}
+          />
         </div>
         <div>
           <label className={labelClass}>เลขที่บัญชี</label>
@@ -330,6 +340,7 @@ export default function BillingSettingsForm() {
       </Section>
 
       <Section
+        icon={Megaphone}
         title="โปรโมทหอ"
         hint="ใครชำระก่อนจะแสดงก่อน เมื่อช่องเต็มต้องรอจนมีหอหมดเวลา"
       >

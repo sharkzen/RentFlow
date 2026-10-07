@@ -8,7 +8,6 @@ import {
   Sparkles,
   CheckCircle2,
   XCircle,
-  HelpCircle,
   DoorOpen,
   Snowflake,
   Wind,
@@ -76,19 +75,16 @@ export const DormSidebar: React.FC<{ data: DormSlugResponse }> = ({ data }) => {
             </div>
           </div>
 
-          {availability && (
+          {/* ไม่มีห้องในระบบ = ไม่แสดงสถานะห้องว่าง */}
+          {availability && availability.totalRooms > 0 && (
             <div className="mt-1 shrink-0 text-right">
               {availability.isAvailable ? (
                 <span className="flex items-center justify-end gap-1.5 text-lg font-bold text-emerald-600">
                   <CheckCircle2 size={20} /> มีห้องว่าง
                 </span>
-              ) : availability.totalRooms > 0 ? (
+              ) : (
                 <span className="flex items-center justify-end gap-1.5 text-lg font-bold text-rose-600">
                   <XCircle size={20} /> ไม่ว่าง
-                </span>
-              ) : (
-                <span className="text-muted flex items-center justify-end gap-1.5 text-lg font-bold">
-                  <HelpCircle size={20} /> ยังไม่ระบุ
                 </span>
               )}
             </div>

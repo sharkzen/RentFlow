@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { Settings, ImageOff } from "lucide-react";
 import { Dormitory } from "@/features/dormitory";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import log from "@/lib/logger";
 import { showBackendError } from "@/lib/backendError";
@@ -15,8 +15,17 @@ interface DormsCardProps {
   onTogglePublish?: (value: boolean) => void;
 }
 
-export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
+export default function DormsCard({
+  dorm,
+  onEdit,
+  onTogglePublish,
+}: DormsCardProps) {
   const [published, setPublished] = useState(dorm.isPublished);
+
+  // ข้อมูลจาก server เปลี่ยน (เช่น refetch หลังกลับมาหน้านี้) ให้การ์ดตามค่าล่าสุด
+  useEffect(() => {
+    setPublished(dorm.isPublished);
+  }, [dorm.isPublished]);
   const [isImageLoading, setIsImageLoading] = useState(true);
   const cover =
     dorm.images?.find((i) => i.isCover)?.url ?? dorm.images?.[0]?.url ?? null;
@@ -29,6 +38,8 @@ export default function DormsCard({ dorm, onEdit }: DormsCardProps) {
 
     try {
       await DormService.updateDormStatus(dorm.id, next);
+      // อัปเดต cache รายการหอด้วย ไม่งั้นกลับมาหน้านี้จะเห็นสถานะเก่า
+      onTogglePublish?.(next);
     } catch (error: any) {
       setPublished(!next);
       log.error(error);

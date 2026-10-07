@@ -19,6 +19,12 @@ import {
   reviewOrderSchema,
   settingsSchema,
 } from "./admin-billing.service";
+import {
+  AdminBillingMemberService,
+  cancelPromotionSchema,
+  refundOrderSchema,
+  subscriptionActionSchema,
+} from "./admin-billing-member.service";
 
 const idParam = {
   type: "object",
@@ -339,6 +345,115 @@ export async function adminBillingRoute(app: FastifyInstance) {
           await AdminBillingService.reviewOrder(
             req.params.id,
             reviewOrderSchema.parse(req.body),
+            user.sub,
+          ),
+        );
+      },
+    );
+
+    routeRoles.get<{ Params: { id: string } }>(
+      "/owners/:id/subscription",
+      {
+        schema: {
+          tags,
+          summary: "สมาชิกของเจ้าของหอรายคน (แพ็คเกจ โควต้า โปรโมท คำสั่งซื้อล่าสุด)",
+          security,
+          params: idParam,
+          response: {
+            200: okResponse("ข้อมูลสมาชิก"),
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      async (req, reply) =>
+        reply.send(
+          await AdminBillingMemberService.getOwnerSubscription(req.params.id),
+        ),
+    );
+
+    routeRoles.post<{ Params: { id: string } }>(
+      "/owners/:id/subscription",
+      {
+        schema: {
+          tags,
+          summary: "แอดมินจัดการแพ็คเกจรายคน: ให้แพ็ค/ต่ออายุ/ตั้งวันหมด/ยกเลิก (ต้องระบุเหตุผล)",
+          security,
+          params: idParam,
+          response: {
+            200: okResponse("ดำเนินการสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      async (req, reply) => {
+        const user = req.user as UserDecodedDto;
+        return reply.send(
+          await AdminBillingMemberService.updateSubscription(
+            req.params.id,
+            subscriptionActionSchema.parse(req.body),
+            user.sub,
+          ),
+        );
+      },
+    );
+
+    routeRoles.post<{ Params: { id: string } }>(
+      "/promotions/:id/cancel",
+      {
+        schema: {
+          tags,
+          summary: "ยกเลิกโปรโมทหอที่กำลังแสดงอยู่ (ต้องระบุเหตุผล)",
+          security,
+          params: idParam,
+          response: {
+            200: okResponse("ยกเลิกสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      async (req, reply) => {
+        const user = req.user as UserDecodedDto;
+        return reply.send(
+          await AdminBillingMemberService.cancelPromotion(
+            req.params.id,
+            cancelPromotionSchema.parse(req.body),
+            user.sub,
+          ),
+        );
+      },
+    );
+
+    routeRoles.post<{ Params: { id: string } }>(
+      "/orders/:id/refund",
+      {
+        schema: {
+          tags,
+          summary: "บันทึกการคืนเงินคำสั่งซื้อที่ชำระแล้ว (แอดมินโอนคืนเอง ระบบยกเลิกสิทธิ์ให้)",
+          security,
+          params: idParam,
+          response: {
+            200: okResponse("บันทึกคืนเงินสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+            404: commonErrorResponses[404],
+          },
+        },
+      },
+      async (req, reply) => {
+        const user = req.user as UserDecodedDto;
+        return reply.send(
+          await AdminBillingMemberService.refundOrder(
+            req.params.id,
+            refundOrderSchema.parse(req.body),
             user.sub,
           ),
         );

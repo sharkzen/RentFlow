@@ -20,6 +20,7 @@ import { toast } from "react-toastify";
 import log from "@/lib/logger";
 import { AxiosError } from "axios";
 import { showBackendError } from "@/lib/backendError";
+import { apiErrorRender } from "@/lib/ui/ApiErrorMessage";
 import { useClickOutsideModal } from "@/lib/hooks/useClickOutsideModal";
 import { Dormitory } from "@/features/dormitory";
 import SelectDormModal from "@/features/bill/components/SelectDormModal";
@@ -299,10 +300,10 @@ export default function CreateRoomWithDialog({
       const message = err.response?.data?.message || error.message;
 
       toast.update(toastId, {
-        render: `${showBackendError(message)}`,
+        render: apiErrorRender(message),
         type: "error",
         isLoading: false,
-        autoClose: 4000,
+        autoClose: 6000,
       });
 
       log.error("CreateRoomWithDialog:onSubmit", error.message);

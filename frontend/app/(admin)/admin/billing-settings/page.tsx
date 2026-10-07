@@ -8,9 +8,7 @@ export const metadata = {
 export default function BillingSettingsPage() {
   return (
     <div className="bg-background min-h-screen">
-      <div className="mx-auto max-w-3xl">
-        <BillingSettingsForm />
-      </div>
+      <BillingSettingsForm />
     </div>
   );
 }

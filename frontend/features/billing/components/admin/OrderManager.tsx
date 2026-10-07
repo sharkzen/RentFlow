@@ -4,6 +4,7 @@ import { ReceiptText, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/backendError";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
+import { formatThaiDate } from "@/lib/dateFormatter";
 import { AdminBillingService } from "../../services/admin-billing.service";
 import type { AdminOrder, OrderStatus } from "../../types";
 
@@ -22,6 +23,10 @@ const STATUS: Record<OrderStatus, { text: string; cls: string }> = {
   },
   REJECTED: { text: "ไม่อนุมัติ", cls: "border-red-200 bg-red-50 text-red-700" },
   EXPIRED: { text: "หมดอายุ", cls: "border-border bg-background text-muted" },
+  REFUNDED: {
+    text: "คืนเงินแล้ว",
+    cls: "border-purple-200 bg-purple-50 text-purple-700",
+  },
 };
 
 const baht = (n: number) =>
@@ -42,7 +47,9 @@ export default function OrderManager() {
   const [slips, setSlips] = useState<string[] | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<"APPROVE" | "REJECT" | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    "APPROVE" | "REJECT" | "REFUND" | null
+  >(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -78,12 +85,17 @@ export default function OrderManager() {
     }
   };
 
-  const review = async (action: "APPROVE" | "REJECT") => {
+  const review = async (action: "APPROVE" | "REJECT" | "REFUND") => {
     if (!selected) return;
     setBusy(true);
     try {
-      await AdminBillingService.reviewOrder(selected.id, action, note);
-      toast.success(action === "APPROVE" ? "อนุมัติแล้ว" : "ปฏิเสธแล้ว");
+      if (action === "REFUND") {
+        await AdminBillingService.refundOrder(selected.id, note);
+        toast.success("บันทึกคืนเงินแล้ว สิทธิ์จากคำสั่งซื้อนี้ถูกยกเลิก");
+      } else {
+        await AdminBillingService.reviewOrder(selected.id, action, note);
+        toast.success(action === "APPROVE" ? "อนุมัติแล้ว" : "ปฏิเสธแล้ว");
+      }
       setSelected(null);
       load();
     } catch (error) {
@@ -175,10 +187,7 @@ export default function OrderManager() {
                 orders.map((o) => (
                   <tr key={o.id} className="hover:bg-background/80">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {new Date(o.createdAt).toLocaleString("th-TH", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      })}
+                      {formatThaiDate(o.createdAt, "short-datetime")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-foreground font-medium">
@@ -295,6 +304,19 @@ export default function OrderManager() {
                 ))
               )}
 
+              {selected.status === "PAID" && (
+                <button
+                  disabled={busy}
+                  onClick={() => {
+                    setNote("");
+                    setConfirmAction("REFUND");
+                  }}
+                  className="cursor-pointer rounded-xl border border-purple-200 px-4 py-2.5 font-medium text-purple-700 hover:bg-purple-50 disabled:opacity-60"
+                >
+                  บันทึกการคืนเงิน
+                </button>
+              )}
+
               {selected.status === "PENDING_REVIEW" && (
                 <>
                   <div className="flex gap-3">
@@ -327,24 +349,47 @@ export default function OrderManager() {
         onClose={() => !busy && setConfirmAction(null)}
         onConfirm={() => confirmAction && review(confirmAction)}
         isLoading={busy}
-        type={confirmAction === "REJECT" ? "error" : "success"}
+        type={
+          confirmAction === "APPROVE"
+            ? "success"
+            : confirmAction === "REFUND"
+              ? "warning"
+              : "error"
+        }
         title={
           confirmAction === "REJECT"
             ? "ปฏิเสธคำสั่งซื้อนี้?"
-            : "อนุมัติคำสั่งซื้อนี้?"
+            : confirmAction === "REFUND"
+              ? "บันทึกการคืนเงิน?"
+              : "อนุมัติคำสั่งซื้อนี้?"
         }
         description={
           confirmAction === "REJECT"
             ? "กรุณาระบุเหตุผล ข้อความนี้จะแสดงให้เจ้าของหอเห็น (หากโอนเงินมาแล้วต้องคืนเงินนอกระบบ)"
-            : `ยืนยันว่าได้รับเงิน ${selected ? selected.finalAmount.toLocaleString("th-TH") : ""} บาทแล้ว ระบบจะเปิดใช้งานแพ็คเกจ/โปรโมทให้ทันที`
+            : confirmAction === "REFUND"
+              ? `ระบบไม่ได้โอนเงินคืนให้ กรุณาโอนคืน ${selected ? selected.finalAmount.toLocaleString("th-TH") : ""} บาทให้เจ้าของหอก่อน แล้วจึงบันทึก เมื่อบันทึกแล้วสิทธิ์แพ็คเกจ/โปรโมทจากคำสั่งซื้อนี้จะถูกยกเลิก และแจ้งเจ้าของหอทางอีเมล`
+              : `ยืนยันว่าได้รับเงิน ${selected ? selected.finalAmount.toLocaleString("th-TH") : ""} บาทแล้ว ระบบจะเปิดใช้งานแพ็คเกจ/โปรโมทให้ทันที`
         }
-        confirmText={confirmAction === "REJECT" ? "ปฏิเสธ" : "อนุมัติ"}
-        showInput={confirmAction === "REJECT"}
+        confirmText={
+          confirmAction === "REJECT"
+            ? "ปฏิเสธ"
+            : confirmAction === "REFUND"
+              ? "บันทึกคืนเงิน"
+              : "อนุมัติ"
+        }
+        showInput={confirmAction === "REJECT" || confirmAction === "REFUND"}
         inputValue={note}
         onInputChange={setNote}
-        inputPlaceholder="เช่น ยอดโอนไม่ตรง หรือสลิปไม่ชัดเจน"
+        inputPlaceholder={
+          confirmAction === "REFUND"
+            ? "เหตุผลและหลักฐานการโอนคืน เช่น โอนคืนเมื่อ 8 ต.ค. ตามคำขอของลูกค้า"
+            : "เช่น ยอดโอนไม่ตรง หรือสลิปไม่ชัดเจน"
+        }
         inputMaxLength={300}
-        confirmDisabled={confirmAction === "REJECT" && note.trim().length < 3}
+        confirmDisabled={
+          (confirmAction === "REJECT" || confirmAction === "REFUND") &&
+          note.trim().length < 3
+        }
       />
     </>
   );

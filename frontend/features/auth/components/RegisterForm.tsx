@@ -157,7 +157,7 @@ export default function OwnerRegisterForm() {
   };
 
   return (
-    <div className="bg-background grid min-h-[calc(100vh-65px)] w-full min-[1420px]:grid-cols-2">
+    <div className="bg-background grid min-h-[calc(100dvh-65px)] w-full min-[1420px]:h-[calc(100dvh-65px)] min-[1420px]:grid-cols-2">
       <div className="relative hidden min-[1420px]:block">
         <Image
           src="/images/bg-main.jpg"
@@ -172,7 +172,7 @@ export default function OwnerRegisterForm() {
           <OwnerPromoPanel />
         </div>
       </div>
-      <div className="bg-background flex items-center justify-center p-4">
+      <div className="bg-background flex items-center justify-center px-4 py-6 min-[1420px]:overflow-y-auto sm:py-8">
         <div className="w-full max-w-2xl">
           {success ? (
             <FormSuccess />
@@ -181,33 +181,16 @@ export default function OwnerRegisterForm() {
               <div className="min-[1420px]:hidden">
                 <OwnerPromoStrip />
               </div>
-              <div className="mb-8 text-center">
-                <div className="flex items-center justify-center gap-3">
-                  <Image
-                    src="/logo.png"
-                    width={48}
-                    height={48}
-                    alt="RentFlow Logo"
-                  />
-
-                  <h1 className="text-foreground text-3xl font-extrabold sm:text-4xl">
-                    Rent
-                    <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-                      Flow
-                    </span>
-                  </h1>
-                </div>
-
-                <h2 className="text-foreground mt-6 text-xl font-semibold sm:text-2xl">
-                  สร้างบัญชีเจ้าของหอพัก
-                </h2>
-              </div>
               <form
                 onSubmit={handleSubmit}
-                className="border-border bg-surface rounded-2xl border p-5 min-[1420px]:border-none sm:p-6 md:p-8"
+                className="border-border bg-surface rounded-2xl border p-5 shadow-sm min-[1420px]:border-none min-[1420px]:p-4 min-[1420px]:shadow-none sm:p-6"
               >
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-5">
+                  <div className="space-y-3">
+                    <h3 className="text-foreground border-border flex items-center gap-2 border-b pb-2 text-sm font-bold">
+                      <User className="h-4 w-4 text-blue-600" />
+                      ข้อมูลบัญชี
+                    </h3>
                     <div className="space-y-1">
                       <label className="text-foreground flex items-center gap-2 text-sm font-medium">
                         <User className="text-muted h-4 w-4" />
@@ -221,9 +204,9 @@ export default function OwnerRegisterForm() {
                         onChange={(e) =>
                           handleChange("fullName", e.target.value)
                         }
-                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.fullName ? "border-red-500" : "border-border"} `}
+                        className={`bg-background w-full rounded-xl border px-4 py-2.5 text-sm transition outline-none ${errors.fullName ? "border-red-500" : "border-border"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10`}
                       />
-                      <p className="min-h-4 text-xs text-red-600">
+                      <p className="text-xs text-red-600 empty:hidden">
                         {errors.fullName || ""}
                       </p>
                     </div>
@@ -238,9 +221,9 @@ export default function OwnerRegisterForm() {
                         value={form.email}
                         placeholder="your_email@gmail.com"
                         onChange={(e) => handleChange("email", e.target.value)}
-                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-border"} `}
+                        className={`bg-background w-full rounded-xl border px-4 py-2.5 text-sm transition outline-none ${errors.email ? "border-red-500" : "border-border"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10`}
                       />
-                      <p className="min-h-4 text-xs text-red-600">
+                      <p className="text-xs text-red-600 empty:hidden">
                         {errors.email || ""}
                       </p>
                     </div>
@@ -257,7 +240,7 @@ export default function OwnerRegisterForm() {
                           onChange={(e) =>
                             handleChange("password", e.target.value)
                           }
-                          className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-border"} `}
+                          className={`bg-background w-full rounded-xl border px-4 py-2.5 pr-12 text-sm transition outline-none ${errors.password ? "border-red-500" : "border-border"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10`}
                         />
                         <button
                           tabIndex={-1}
@@ -272,7 +255,7 @@ export default function OwnerRegisterForm() {
                           )}
                         </button>
                       </div>
-                      <p className="min-h-4 text-xs text-red-600">
+                      <p className="text-xs text-red-600 empty:hidden">
                         {errors.password || ""}
                       </p>
                     </div>
@@ -289,7 +272,7 @@ export default function OwnerRegisterForm() {
                           onChange={(e) =>
                             handleChange("confirmPassword", e.target.value)
                           }
-                          className={`bg-background w-full rounded-xl border px-4 py-3 pr-12 text-sm transition outline-none ${errors.confirmPassword ? "border-red-500" : "border-border"} `}
+                          className={`bg-background w-full rounded-xl border px-4 py-2.5 pr-12 text-sm transition outline-none ${errors.confirmPassword ? "border-red-500" : "border-border"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10`}
                         />
                         <button
                           tabIndex={-1}
@@ -306,12 +289,16 @@ export default function OwnerRegisterForm() {
                           )}
                         </button>
                       </div>
-                      <p className="min-h-4 text-xs text-red-600">
+                      <p className="text-xs text-red-600 empty:hidden">
                         {errors.confirmPassword || ""}
                       </p>
                     </div>
                   </div>
-                  <div className="space-y-5">
+                  <div className="space-y-3">
+                    <h3 className="text-foreground border-border flex items-center gap-2 border-b pb-2 text-sm font-bold">
+                      <Home className="h-4 w-4 text-blue-600" />
+                      ข้อมูลหอพัก
+                    </h3>
                     <div className="space-y-1">
                       <label className="text-foreground flex items-center gap-2 text-sm font-medium">
                         <Home className="text-muted h-4 w-4" />
@@ -325,9 +312,9 @@ export default function OwnerRegisterForm() {
                         onChange={(e) =>
                           handleChange("dormName", e.target.value)
                         }
-                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.dormName ? "border-red-500" : "border-border"} `}
+                        className={`bg-background w-full rounded-xl border px-4 py-2.5 text-sm transition outline-none ${errors.dormName ? "border-red-500" : "border-border"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10`}
                       />
-                      <p className="min-h-4 text-xs text-red-600">
+                      <p className="text-xs text-red-600 empty:hidden">
                         {errors.dormName || ""}
                       </p>
                     </div>
@@ -344,9 +331,9 @@ export default function OwnerRegisterForm() {
                         onChange={(e) =>
                           handleChange("address", e.target.value)
                         }
-                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.address ? "border-red-500" : "border-border"} `}
+                        className={`bg-background w-full rounded-xl border px-4 py-2.5 text-sm transition outline-none ${errors.address ? "border-red-500" : "border-border"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10`}
                       />
-                      <p className="min-h-4 text-xs text-red-600">
+                      <p className="text-xs text-red-600 empty:hidden">
                         {errors.address || ""}
                       </p>
                     </div>
@@ -369,9 +356,9 @@ export default function OwnerRegisterForm() {
                             extractMapUrlFromText(e.target.value),
                           )
                         }
-                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.mapUrl ? "border-red-500" : "border-border"} `}
+                        className={`bg-background w-full rounded-xl border px-4 py-2.5 text-sm transition outline-none ${errors.mapUrl ? "border-red-500" : "border-border"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10`}
                       />
-                      <p className="min-h-4 text-xs text-red-600">
+                      <p className="text-xs text-red-600 empty:hidden">
                         {errors.mapUrl || ""}
                       </p>
                     </div>
@@ -387,15 +374,15 @@ export default function OwnerRegisterForm() {
                         placeholder="เช่น 0812345678"
                         value={form.phone}
                         onChange={(e) => handleChange("phone", e.target.value)}
-                        className={`bg-background w-full rounded-xl border px-4 py-3 text-sm transition outline-none ${errors.phone ? "border-red-500" : "border-border"} `}
+                        className={`bg-background w-full rounded-xl border px-4 py-2.5 text-sm transition outline-none ${errors.phone ? "border-red-500" : "border-border"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10`}
                       />
-                      <p className="min-h-4 text-xs text-red-600">
+                      <p className="text-xs text-red-600 empty:hidden">
                         {errors.phone || ""}
                       </p>
                     </div>
                   </div>
                 </div>
-                <div className="mt-6">
+                <div className="mt-4">
                   <PrivacyConsent
                     checked={acceptedPrivacy}
                     onChange={setAcceptedPrivacy}

@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -21,7 +21,11 @@ import { getApiErrorMessage } from "@/lib/backendError";
 import { THAI_BANKS } from "@/features/dormitory/components/DormPaymentSettings";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { BillingService } from "../../services/billing.service";
-import { useOwnerBilling } from "../../context/OwnerBillingContext";
+import {
+  FEATURE_NAME_BY_KEY,
+  featureHref,
+  useOwnerBilling,
+} from "../../context/OwnerBillingContext";
 import { MONTH_LABEL } from "../../lib/pricing";
 import type { OrderDetail } from "../../types";
 
@@ -120,6 +124,9 @@ function PriceRow({
 export default function CheckoutPage({ orderId }: { orderId: string }) {
   const router = useRouter();
   const { refresh: refreshBilling } = useOwnerBilling();
+  // มาจากเมนูที่ถูกล็อก: ชำระสำเร็จแล้วมีปุ่มพากลับหน้านั้นโดยตรง
+  const fromFeature = useSearchParams().get("from");
+  const nextHref = featureHref(fromFeature);
 
   const [detail, setDetail] = useState<OrderDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -501,7 +508,16 @@ export default function CheckoutPage({ orderId }: { orderId: string }) {
             </button>
           </div>
         ) : (
-          <label
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => inputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                inputRef.current?.click();
+              }
+            }}
             onDragOver={(e) => {
               e.preventDefault();
               setDragging(true);
@@ -521,7 +537,7 @@ export default function CheckoutPage({ orderId }: { orderId: string }) {
             <span className="text-muted text-xs">
               JPG, PNG, WEBP ไม่เกิน {MAX_SLIP_MB} MB
             </span>
-          </label>
+          </div>
         )}
         <input
           ref={inputRef}
@@ -651,10 +667,12 @@ export default function CheckoutPage({ orderId }: { orderId: string }) {
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
           {order.status === "PAID" && (
             <Link
-              href="/owner/dashboard"
+              href={nextHref ?? "/owner/dashboard"}
               className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
             >
-              ไปที่หน้าภาพรวม
+              {nextHref
+                ? `ไปที่${FEATURE_NAME_BY_KEY[fromFeature ?? ""] ?? "หน้าที่ต้องการ"}`
+                : "ไปที่หน้าภาพรวม"}
             </Link>
           )}
           <Link

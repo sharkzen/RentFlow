@@ -5,6 +5,7 @@ import {
 import { Role } from "@/types/role.type";
 import { FastifyInstance } from "fastify";
 import { DormController } from "./dorm.controller";
+import { requireManageAccess } from "@/middleware/subscription.middleware";
 
 import {
   getAllDormsQuerySchema,
@@ -164,6 +165,7 @@ export async function dormRoute(app: FastifyInstance) {
     routeRoles.get(
       "/:dormId/dashboard",
       {
+        preHandler: requireManageAccess,
         schema: {
           tags: ["Dormitory (Owner/Admin)"],
           summary: "สรุปสถิติ dashboard ของหอพัก (รายรับ/ห้อง/แจ้งซ่อม)",
@@ -190,6 +192,7 @@ export async function dormRoute(app: FastifyInstance) {
     routeRoles.get(
       "/:dormId/dashboard/export",
       {
+        preHandler: requireManageAccess,
         schema: {
           tags: ["Dormitory (Owner/Admin)"],
           summary: "Export รายงานสรุปรายรับเป็น PDF",
