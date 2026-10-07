@@ -1056,6 +1056,56 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
         ),
       };
     }
+    case EmailType.SUBSCRIPTION_EXPIRING:
+    case EmailType.SUBSCRIPTION_EXPIRED: {
+      const expired = type === EmailType.SUBSCRIPTION_EXPIRED;
+
+      const headline = expired
+        ? "แพ็คเกจของท่านหมดอายุแล้ว"
+        : `แพ็คเกจของท่านจะหมดอายุในอีก ${data.daysLeft} วัน`;
+
+      const detail = expired
+        ? `ท่านยังเข้าดูข้อมูลได้ตามปกติจนถึง ${data.graceEndsAt} แต่จะเพิ่มหอพัก ห้องพัก หรือออกบิลใหม่ไม่ได้จนกว่าจะต่ออายุ ข้อมูลของท่านจะไม่ถูกลบ`
+        : `แพ็คเกจ ${data.planName} จะหมดอายุวันที่ ${data.endDate} ต่ออายุก่อนหมดเพื่อให้ใช้งานต่อเนื่อง`;
+
+      return {
+        subject: getSubject(
+          expired
+            ? "แพ็คเกจ RentFlow ของท่านหมดอายุแล้ว"
+            : `แพ็คเกจ RentFlow จะหมดอายุในอีก ${data.daysLeft} วัน`,
+        ),
+
+        html: minifyHtml(
+          wrapEmail(
+            headline,
+            `
+            <div style="border-bottom: 2px solid ${THEME.primary}; padding-bottom: 16px; margin-bottom: 28px;">
+              <h1 style="color: ${THEME.primary}; margin: 0; font-size: 24px; font-weight: 800;">
+                ${headline}
+              </h1>
+              <p style="margin: 8px 0 0 0; font-size: 13px; font-weight: 700; color: ${expired ? THEME.danger : THEME.warning}; letter-spacing: 1px;">
+                ${data.ownerName ? `เรียน ${data.ownerName}` : "เรียนเจ้าของหอพัก"}
+              </p>
+            </div>
+
+            <p style="color: ${THEME.text}; font-size: 15px; line-height: 1.7; margin: 0 0 24px 0;">
+              ${detail}
+            </p>
+
+            <table width="100%">
+              <tr>
+                <td align="center">
+                  <a href="${data.link}" style="background-color: ${THEME.primary}; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; font-weight: 700; font-size: 15px; display: inline-block;">
+                    ต่ออายุแพ็คเกจ
+                  </a>
+                </td>
+              </tr>
+            </table>
+            `,
+          ),
+        ),
+      };
+    }
     default:
       throw new Error("Unknown Type");
   }

@@ -77,7 +77,8 @@ export default function BillingSettingsForm() {
 
     setSaving(true);
     try {
-      setSettings(await AdminBillingService.updateSettings(settings));
+      const { slipUsage: _slipUsage, ...payload } = settings;
+      setSettings(await AdminBillingService.updateSettings(payload));
       toast.success("บันทึกการตั้งค่าสำเร็จ");
     } catch (error: any) {
       toast.error(getApiErrorMessage(error, "เกิดข้อผิดพลาดในการบันทึกข้อมูล"));
@@ -173,6 +174,41 @@ export default function BillingSettingsForm() {
             className={inputClass}
           />
         </div>
+      </Section>
+
+      <Section
+        title="โควต้า SlipOK ของแพลตฟอร์ม"
+        hint="ยอดตรวจสลิปรวมทุกเจ้าของหอในเดือนนี้ เทียบกับแพ็ค SlipOK ที่ซื้อไว้ ระบบจะเตือนใน log เมื่อใช้ถึง 80%"
+      >
+        <div>
+          <label className={labelClass}>โควต้าที่ซื้อไว้ต่อเดือน (สลิป)</label>
+          <input
+            type="number"
+            min={0}
+            step={1}
+            value={settings.slipOkPlatformQuota}
+            onChange={(e) => set("slipOkPlatformQuota", num(e.target.value))}
+            className={inputClass}
+            placeholder="0 = ไม่ได้ตั้ง"
+          />
+        </div>
+        {settings.slipUsage && (
+          <div className="border-border bg-background rounded-xl border p-4">
+            <p className="text-muted text-sm">
+              ใช้ไปแล้วเดือน {settings.slipUsage.period}
+            </p>
+            <p className="text-foreground text-xl font-bold">
+              {settings.slipUsage.total.toLocaleString("th-TH")}
+              {settings.slipUsage.quota > 0 && (
+                <span className="text-muted text-sm font-normal">
+                  {" "}
+                  / {settings.slipUsage.quota.toLocaleString("th-TH")} (
+                  {settings.slipUsage.percent}%)
+                </span>
+              )}
+            </p>
+          </div>
+        )}
       </Section>
 
       <Section

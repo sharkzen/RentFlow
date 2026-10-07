@@ -27,6 +27,14 @@ export interface BillingSettings {
   promoMaxSlots: number;
   promoHoldMinutes: number;
   enforceLimits: boolean;
+  slipOkPlatformQuota: number;
+  /** อ่านอย่างเดียว ไม่ต้องส่งกลับตอนบันทึก */
+  slipUsage?: {
+    period: string;
+    total: number;
+    quota: number;
+    percent: number | null;
+  };
 }
 
 export type SubscriptionState =

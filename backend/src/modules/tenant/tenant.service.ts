@@ -41,6 +41,7 @@ import { emailQueue, EMAIL_JOB_NAME } from "@/queues/email.queue";
 import { EmailType } from "@/queues/email.types";
 import { randomUUID } from "crypto";
 import { createActivityLog } from "@/services/activity-log.service";
+import { reserveSlipCheck, releaseSlipCheck } from "@/lib/entitlements";
 
 export const tenantService = {
   getTenantDorm: async ({
@@ -1436,22 +1437,37 @@ export const tenantService = {
 
     let verifiedData: any = null;
 
-    try {
-      verifiedData = await slipOkService.verifySlip(fileBuffer, bill.total);
-    } catch (error: any) {
-      // ผู้เช่าผิดที่สลิปเอง (ยอดไม่ตรง / ไม่ใช่สลิป / ซ้ำ) ให้ส่งใหม่
-      // ส่วนปัญหาฝั่งระบบ ไม่แสดงให้ผู้เช่าเห็น บันทึกสลิปแล้วรอเจ้าของหอตรวจเหมือนปกติ
-      if (
-        ["SLIP_AMOUNT_MISMATCH", "SLIP_DUPLICATE_REF", "INVALID_SLIP"].includes(
-          error?.message,
-        )
-      ) {
-        throw error;
-      }
+    // โควต้าตรวจสลิปตามแพ็คเกจของเจ้าของหอ เกินโควต้า/แพ็คหมดอายุ ข้าม SlipOK ไปตรวจมือ
+    const ownerId = bill.room.dormitory.ownerId;
+    const canAutoVerify = await reserveSlipCheck(ownerId);
 
-      logger.error(
-        `Slip verification unavailable, queued for manual review: BillId=${billId}, Reason=${error?.message}`,
+    if (!canAutoVerify) {
+      logger.warn(
+        `Slip quota unavailable, queued for manual review: BillId=${billId}, OwnerId=${ownerId}`,
       );
+    } else {
+      try {
+        verifiedData = await slipOkService.verifySlip(fileBuffer, bill.total);
+      } catch (error: any) {
+        // ผู้เช่าผิดที่สลิปเอง (ยอดไม่ตรง / ไม่ใช่สลิป / ซ้ำ) ให้ส่งใหม่
+        // ส่วนปัญหาฝั่งระบบ ไม่แสดงให้ผู้เช่าเห็น บันทึกสลิปแล้วรอเจ้าของหอตรวจเหมือนปกติ
+        if (
+          [
+            "SLIP_AMOUNT_MISMATCH",
+            "SLIP_DUPLICATE_REF",
+            "INVALID_SLIP",
+          ].includes(error?.message)
+        ) {
+          throw error;
+        }
+
+        // ตรวจไม่ได้เพราะระบบขัดข้อง ไม่ควรตัดโควต้าของเจ้าของหอ
+        await releaseSlipCheck(ownerId);
+
+        logger.error(
+          `Slip verification unavailable, queued for manual review: BillId=${billId}, Reason=${error?.message}`,
+        );
+      }
     }
 
     if (verifiedData?.refNo) {

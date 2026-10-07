@@ -1,6 +1,10 @@
 import prisma from "@/lib/prisma";
 import { AppError } from "@/lib/errors";
-import { SETTING_DEFAULTS, SETTING_KEYS } from "@/lib/entitlements";
+import {
+  SETTING_DEFAULTS,
+  SETTING_KEYS,
+  getPlatformSlipUsage,
+} from "@/lib/entitlements";
 import { createActivityLog } from "@/services/activity-log.service";
 import { BillingService } from "@/modules/billing/billing.service";
 import { BillingOrderStatus, Prisma } from "@prisma/client";
@@ -31,6 +35,7 @@ export const settingsSchema = z.object({
   promoMaxSlots: z.number().int().min(0).optional(),
   promoHoldMinutes: z.number().int().min(5).max(1440).optional(),
   enforceLimits: z.boolean().optional(),
+  slipOkPlatformQuota: z.number().int().min(0).optional(),
 });
 
 export type SettingsInput = z.infer<typeof settingsSchema>;
@@ -325,6 +330,9 @@ export const AdminBillingService = {
         promoMaxSlots: Number(map.promoMaxSlots),
         promoHoldMinutes: Number(map.promoHoldMinutes),
         enforceLimits: map.enforceLimits === "true",
+        slipOkPlatformQuota: Number(map.slipOkPlatformQuota),
+        // อ่านอย่างเดียว ไม่ได้บันทึกผ่าน PUT
+        slipUsage: await getPlatformSlipUsage(),
       },
     };
   },
