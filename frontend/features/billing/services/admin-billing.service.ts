@@ -31,6 +31,14 @@ export const AdminBillingService = {
     return res.data;
   },
 
+  grantTrialToExistingOwners: async (): Promise<{
+    granted: number;
+    candidates: number;
+  }> => {
+    const res = await axios.post("/api/admin/billing/grant-trial");
+    return res.data.data;
+  },
+
   getReport: async (months = 12): Promise<RevenueReport> => {
     const res = await axios.get("/api/admin/billing/report", {
       params: { months },

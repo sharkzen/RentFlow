@@ -25,6 +25,10 @@ import {
 } from "@/features/auth/validators";
 
 import FormSuccess from "@/lib/ui/status/FormSuccess";
+import {
+  OwnerPromoPanel,
+  OwnerPromoStrip,
+} from "@/features/billing/components/public/OwnerPromo";
 import InfoTooltip from "@/lib/ui/InfoTooltip";
 import MapTutorialContent from "@/lib/ui/MapTutorialContent";
 import Image from "next/image";
@@ -164,15 +168,8 @@ export default function OwnerRegisterForm() {
           className="object-cover dark:opacity-50"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-        <div className="relative z-10 flex h-full flex-col p-12 text-white">
-          <h2 className="text-5xl leading-tight font-bold">
-            จัดการหอพักของคุณ
-            <br />
-            ได้ง่ายในที่เดียว
-          </h2>
-          <p className="mt-3 text-sm text-white/80">
-            ห้องพัก • ผู้เช่า • รายได้ • แผนที่
-          </p>
+        <div className="relative z-10 flex h-full flex-col p-12 pb-16 text-white">
+          <OwnerPromoPanel />
         </div>
       </div>
       <div className="bg-background flex items-center justify-center p-4">
@@ -181,6 +178,9 @@ export default function OwnerRegisterForm() {
             <FormSuccess />
           ) : (
             <>
+              <div className="min-[1420px]:hidden">
+                <OwnerPromoStrip />
+              </div>
               <div className="mb-8 text-center">
                 <div className="flex items-center justify-center gap-3">
                   <Image

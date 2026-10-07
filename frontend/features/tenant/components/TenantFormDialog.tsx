@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 type Tenant = {
   id?: string;
@@ -18,7 +19,10 @@ export default function TenantFormDialog({ tenant, onClose, onSave }: Props) {
   const [room, setRoom] = useState(tenant?.room || "");
 
   const handleSubmit = () => {
-    if (!name || !room) return alert("กรุณากรอกข้อมูลให้ครบ");
+    if (!name || !room) {
+      toast.error("กรุณากรอกข้อมูลให้ครบ");
+      return;
+    }
 
     onSave({
       ...tenant,

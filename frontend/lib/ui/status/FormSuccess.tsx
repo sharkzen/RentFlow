@@ -36,10 +36,23 @@ export default function FormSuccess() {
         <span className="my-2 text-sm font-bold">
           หลังจากตรวจสอบเสร็จสิ้น ระบบจะส่งอีเมลแจ้งผลไปยังคุณโดยอัตโนมัติ
         </span>
-        <div className="mb-6 w-full rounded-lg bg-green-50 p-4">
+        <div className="mb-4 w-full rounded-lg bg-green-50 p-4">
           <p className="font-medium text-green-700">
             คุณสามารถเริ่มจัดการหอพักของคุณได้ทันทีหลังจากการตรวจสอบเสร็จสิ้น
           </p>
+        </div>
+        <div className="mb-6 w-full rounded-lg bg-blue-50 p-4 text-left text-sm text-blue-800">
+          <p className="font-semibold">ขั้นตอนต่อไป</p>
+          <p className="mt-1">
+            เมื่อบัญชีได้รับอนุมัติ ให้เข้าสู่ระบบแล้วกดรับสิทธิ์ทดลองใช้ฟรี
+            หรือเลือกแพ็คเกจที่เหมาะกับหอพักของคุณ
+          </p>
+          <Link
+            href="/pricing"
+            className="mt-2 inline-block font-semibold text-blue-700 hover:underline"
+          >
+            ดูราคาแพ็คเกจระหว่างรออนุมัติ →
+          </Link>
         </div>
         <Link
           href="/"

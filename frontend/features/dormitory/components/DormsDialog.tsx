@@ -45,6 +45,8 @@ import InfoTooltip from "@/lib/ui/InfoTooltip";
 import MapTutorialContent from "@/lib/ui/MapTutorialContent";
 import Link from "next/link";
 import DormPaymentSettings from "./DormPaymentSettings";
+import LockedFinanceCard from "./LockedFinanceCard";
+import { useOwnerBilling } from "@/features/billing/context/OwnerBillingContext";
 import DormContactSettings from "./DormContactSettings";
 
 interface DormPaymentSetting {
@@ -448,6 +450,8 @@ export default function DormsDialog({
   onEdit,
   onRefresh,
 }: DormsDialogProps) {
+  // ไม่มีแพ็คเกจที่ใช้งานอยู่: ตั้งค่าการเงิน (เลขบัญชี/พร้อมเพย์) ไม่ได้ ส่วนอื่นของหอตั้งได้ปกติ
+  const { restricted: financeLocked } = useOwnerBilling();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [activeStep, setActiveStep] = useState<StepId>("general");
@@ -572,11 +576,12 @@ export default function DormsDialog({
         Number(formData.electricRate) > 0,
       billing:
         !!formData.dueDay &&
-        (!!formData.promptPayValue?.trim() ||
+        (financeLocked ||
+          !!formData.promptPayValue?.trim() ||
           (!!formData.bankName?.trim() && !!formData.bankAccount?.trim())),
       images: imageCount > 0,
     }),
-    [formData, imageCount],
+    [formData, imageCount, financeLocked],
   );
 
   const dueDateExample = useMemo(() => {
@@ -696,7 +701,7 @@ export default function DormsDialog({
       formData.promptPayValue?.trim()
     );
 
-    if (!hasPaymentSetting) {
+    if (!hasPaymentSetting && !financeLocked) {
       setIsPaymentConfirmOpen(true);
       return;
     }
@@ -1123,10 +1128,14 @@ export default function DormsDialog({
                       />
                       <span>{dueDateExample}</span>
                     </div>
-                    <DormPaymentSettings
-                      formData={formData}
-                      updateField={updateField}
-                    />
+                    {financeLocked ? (
+                      <LockedFinanceCard />
+                    ) : (
+                      <DormPaymentSettings
+                        formData={formData}
+                        updateField={updateField}
+                      />
+                    )}
                   </div>
                 )}
                 {activeStep === "images" && (

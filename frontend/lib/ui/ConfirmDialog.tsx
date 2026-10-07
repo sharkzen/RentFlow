@@ -24,6 +24,15 @@ interface ConfirmDialogProps {
   inputValue?: string;
   onInputChange?: (val: string) => void;
   inputPlaceholder?: string;
+  /** ช่องติ๊กเสริม (เช่น "ไม่ให้สิทธิ์ทดลองฟรี") */
+  checkboxLabel?: string;
+  checkboxHint?: string;
+  checkboxChecked?: boolean;
+  onCheckboxChange?: (val: boolean) => void;
+  /** ปิดปุ่มยืนยัน เช่น ยังไม่ได้กรอกเหตุผลที่จำเป็น */
+  confirmDisabled?: boolean;
+  /** แสดงตัวนับตัวอักษรใต้ช่องกรอก */
+  inputMaxLength?: number;
 }
 
 export default function ConfirmDialog({
@@ -40,6 +49,12 @@ export default function ConfirmDialog({
   inputValue = "",
   onInputChange,
   inputPlaceholder = "ระบุหมายเหตุเพิ่มเติม...",
+  checkboxLabel,
+  checkboxHint,
+  checkboxChecked = false,
+  onCheckboxChange,
+  confirmDisabled = false,
+  inputMaxLength,
 }: ConfirmDialogProps) {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -118,10 +133,36 @@ export default function ConfirmDialog({
                 onChange={(e) => onInputChange?.(e.target.value)}
                 placeholder={inputPlaceholder}
                 rows={3}
+                maxLength={inputMaxLength}
                 className="w-full resize-none rounded-xl border border-slate-200 p-3 text-sm text-slate-900 transition-all outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 autoFocus
               />
+              {inputMaxLength && (
+                <p className="mt-1 text-right text-xs text-slate-400">
+                  {inputValue.length}/{inputMaxLength}
+                </p>
+              )}
             </div>
+          )}
+          {checkboxLabel && (
+            <label className="mb-6 flex w-full cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-3 text-left transition-colors hover:bg-slate-50">
+              <input
+                type="checkbox"
+                checked={checkboxChecked}
+                onChange={(e) => onCheckboxChange?.(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer"
+              />
+              <span>
+                <span className="block text-sm font-medium text-slate-900">
+                  {checkboxLabel}
+                </span>
+                {checkboxHint && (
+                  <span className="mt-0.5 block text-xs text-slate-500">
+                    {checkboxHint}
+                  </span>
+                )}
+              </span>
+            </label>
           )}
           <div className="flex w-full gap-3">
             <button
@@ -135,7 +176,7 @@ export default function ConfirmDialog({
             <button
               type="button"
               onClick={onConfirm}
-              disabled={isLoading}
+              disabled={isLoading || confirmDisabled}
               className={`w-full cursor-pointer rounded-lg px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors disabled:opacity-70 ${style.btnConfirm}`}
             >
               {isLoading ? "กำลังดำเนินการ..." : confirmText}

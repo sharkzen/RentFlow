@@ -28,6 +28,9 @@ export interface BillingSettings {
   graceDays: number;
   promptPayId: string;
   promptPayName: string;
+  bankName: string;
+  bankAccountNumber: string;
+  bankAccountName: string;
   promoPricePerMonth: number;
   promoMaxSlots: number;
   promoHoldMinutes: number;
@@ -40,6 +43,16 @@ export interface BillingSettings {
     quota: number;
     percent: number | null;
   };
+}
+
+export type AccessLevel = "full" | "readonly" | "locked";
+
+export interface PayTo {
+  promptPayId: string;
+  promptPayName: string;
+  bankName: string;
+  bankAccountNumber: string;
+  bankAccountName: string;
 }
 
 export type SubscriptionState =
@@ -55,6 +68,11 @@ export interface MyBilling {
   canManage: boolean;
   readOnly: boolean;
   ocrAllowed: boolean;
+  /** ระดับสิทธิ์งานจัดการ: full ใช้ได้ / readonly ดูได้อย่างเดียว / locked ล็อก */
+  access: AccessLevel;
+  /** แอดมินเปิดบังคับโควต้าอยู่หรือไม่ (ปิดอยู่ = ไม่ล็อกอะไร) */
+  enforced: boolean;
+  trialBlocked: boolean;
   plan: Plan;
   periodEnd: string | null;
   graceEndsAt: string | null;
@@ -68,7 +86,7 @@ export interface MyBilling {
     slotsAvailable: number;
     active: { id: string; dormId: string; dormName: string; endsAt: string }[];
   };
-  payTo: { promptPayId: string; promptPayName: string };
+  payTo: PayTo;
 }
 
 export type OrderStatus =
@@ -109,11 +127,17 @@ export interface CouponPreview {
   finalAmount: number;
 }
 
-export interface OrderQr {
-  qr: string;
-  amount: number;
-  promptPayName: string;
-  holdUntil: string | null;
+export interface OrderDetail {
+  order: BillingOrder & {
+    listPrice: number;
+    termDiscount: number;
+    couponCode: string | null;
+    slipUrls: string[];
+    plan?: Plan | null;
+    dorm?: { id: string; name: string } | null;
+  };
+  payTo: PayTo;
+  qr: string | null;
 }
 
 export type CouponType = "PERCENT" | "FIXED";

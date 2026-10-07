@@ -4,7 +4,6 @@ import { AdminService } from "@/features/admin/services/admin.service";
 import { OwnerApproval } from "@/features/admin/types";
 import ApprovalDetailModal from "./ApprovalDetailModal";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
-import { ConfirmDialogType } from "@/lib/ui/ConfirmDialog";
 
 import {
   Search,
@@ -34,19 +33,13 @@ export default function ApprovalContainer() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedItem, setSelectedItem] = useState<OwnerApproval | null>(null);
 
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    type: ConfirmDialogType;
-    title: string;
-    description: string;
-    action: () => Promise<void>;
-  }>({
-    isOpen: false,
-    type: "info",
-    title: "",
-    description: "",
-    action: async () => {},
-  });
+  // การตัดสินใจที่รอยืนยัน: อนุมัติ (ติ๊กไม่ให้ทดลองฟรีได้) / ปฏิเสธ (ต้องกรอกเหตุผล ส่งทางอีเมล)
+  const [decision, setDecision] = useState<{
+    kind: "approve" | "reject";
+    item: OwnerApproval;
+  } | null>(null);
+  const [denyTrial, setDenyTrial] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
   const [isConfirmLoading, setIsConfirmLoading] = useState(false);
   const isMountedRef = useRef(true);
@@ -88,47 +81,40 @@ export default function ApprovalContainer() {
   }, [fetchData]);
 
   const openApproveConfirm = (item: OwnerApproval) => {
-    setConfirmDialog({
-      isOpen: true,
-      type: "success",
-      title: "ยืนยันการอนุมัติ",
-      description: `คุณต้องการอนุมัติผู้ใช้งาน "${item.fullName}" ใช่หรือไม่? ผู้ใช้จะสามารถเข้าสู่ระบบและจัดการหอพักได้ทันที`,
-
-      action: async () => {
-        await AdminService.approveOwner(item.id);
-        toast.success("อนุมัติผู้ใช้งานเรียบร้อยแล้ว");
-        setSelectedItem(null);
-        fetchData();
-      },
-    });
+    setDenyTrial(false);
+    setDecision({ kind: "approve", item });
   };
 
   const openRejectConfirm = (item: OwnerApproval) => {
-    setConfirmDialog({
-      isOpen: true,
-      type: "error",
-      title: "ยืนยันการไม่อนุมัติ",
-      description: `คุณต้องการปฏิเสธคำขอของ "${item.fullName}" ใช่หรือไม่? บัญชีนี้จะถูกระงับการใช้งานและต้องสมัครเข้ามาใหม่`,
+    setRejectReason("");
+    setDecision({ kind: "reject", item });
+  };
 
-      action: async () => {
-        await AdminService.rejectOwner(item.id);
-        toast.success("ปฏิเสธคำขอเรียบร้อยแล้ว");
-        setSelectedItem(null);
-        fetchData();
-      },
-    });
+  const closeDecision = () => {
+    if (!isConfirmLoading) setDecision(null);
   };
 
   const handleConfirmAction = async () => {
+    if (!decision) return;
+
     setIsConfirmLoading(true);
 
     try {
-      await confirmDialog.action();
+      if (decision.kind === "approve") {
+        await AdminService.approveOwner(decision.item.id, { denyTrial });
+        toast.success(
+          denyTrial
+            ? "อนุมัติเรียบร้อยแล้ว (ไม่ให้สิทธิ์ทดลองฟรี)"
+            : "อนุมัติผู้ใช้งานเรียบร้อยแล้ว",
+        );
+      } else {
+        await AdminService.rejectOwner(decision.item.id, rejectReason.trim());
+        toast.success("ปฏิเสธคำขอและส่งเหตุผลทางอีเมลเรียบร้อยแล้ว");
+      }
 
-      setConfirmDialog((prev) => ({
-        ...prev,
-        isOpen: false,
-      }));
+      setDecision(null);
+      setSelectedItem(null);
+      fetchData();
     } catch (error) {
       toast.error("เกิดข้อผิดพลาดในการดำเนินการ");
     } finally {
@@ -342,18 +328,36 @@ export default function ApprovalContainer() {
         onReject={() => selectedItem && openRejectConfirm(selectedItem)}
       />
       <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        onClose={() =>
-          setConfirmDialog((prev) => ({
-            ...prev,
-            isOpen: false,
-          }))
-        }
+        isOpen={!!decision}
+        onClose={closeDecision}
         onConfirm={handleConfirmAction}
-        title={confirmDialog.title}
-        description={confirmDialog.description}
-        type={confirmDialog.type}
         isLoading={isConfirmLoading}
+        type={decision?.kind === "reject" ? "error" : "success"}
+        title={
+          decision?.kind === "reject" ? "ยืนยันการไม่อนุมัติ" : "ยืนยันการอนุมัติ"
+        }
+        description={
+          decision?.kind === "reject"
+            ? `ปฏิเสธคำขอของ "${decision.item.fullName}" บัญชีนี้จะถูกลบและต้องสมัครใหม่ กรุณาระบุเหตุผล ระบบจะส่งข้อความนี้ไปที่อีเมลของผู้สมัคร`
+            : `อนุมัติ "${decision?.item.fullName ?? ""}" ผู้ใช้จะเข้าสู่ระบบและจัดการหอพักได้ทันที`
+        }
+        confirmText={decision?.kind === "reject" ? "ปฏิเสธและส่งอีเมล" : "อนุมัติ"}
+        showInput={decision?.kind === "reject"}
+        inputValue={rejectReason}
+        onInputChange={setRejectReason}
+        inputPlaceholder="เช่น ที่ตั้งหอพักไม่ตรงกับแผนที่ กรุณาปักหมุดใหม่"
+        inputMaxLength={500}
+        confirmDisabled={
+          decision?.kind === "reject" && rejectReason.trim().length < 5
+        }
+        checkboxLabel={
+          decision?.kind === "approve"
+            ? "ไม่ให้สิทธิ์ทดลองใช้ฟรี"
+            : undefined
+        }
+        checkboxHint="ติ๊กเมื่อสงสัยว่าเป็นผู้ใช้เดิมที่สมัครใหม่เพื่อรับสิทธิ์ทดลองซ้ำ บัญชีนี้จะซื้อแพ็คเกจได้ตามปกติ แต่กดรับทดลองฟรีไม่ได้"
+        checkboxChecked={denyTrial}
+        onCheckboxChange={setDenyTrial}
       />
     </div>
   );

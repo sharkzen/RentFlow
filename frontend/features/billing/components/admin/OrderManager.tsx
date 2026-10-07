@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ReceiptText, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/backendError";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { AdminBillingService } from "../../services/admin-billing.service";
 import type { AdminOrder, OrderStatus } from "../../types";
 
@@ -41,6 +42,7 @@ export default function OrderManager() {
   const [slips, setSlips] = useState<string[] | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"APPROVE" | "REJECT" | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -88,6 +90,7 @@ export default function OrderManager() {
       toast.error(getApiErrorMessage(error));
     } finally {
       setBusy(false);
+      setConfirmAction(null);
     }
   };
 
@@ -294,24 +297,20 @@ export default function OrderManager() {
 
               {selected.status === "PENDING_REVIEW" && (
                 <>
-                  <input
-                    type="text"
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="หมายเหตุ (แสดงให้เจ้าของหอเห็นเมื่อปฏิเสธ)"
-                    className="border-border w-full rounded-xl border px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
-                  />
                   <div className="flex gap-3">
                     <button
                       disabled={busy}
-                      onClick={() => review("REJECT")}
+                      onClick={() => {
+                        setNote("");
+                        setConfirmAction("REJECT");
+                      }}
                       className="flex-1 cursor-pointer rounded-xl border border-red-200 px-4 py-2.5 font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
                     >
                       ปฏิเสธ
                     </button>
                     <button
                       disabled={busy}
-                      onClick={() => review("APPROVE")}
+                      onClick={() => setConfirmAction("APPROVE")}
                       className="flex-1 cursor-pointer rounded-xl bg-emerald-600 px-4 py-2.5 font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
                     >
                       อนุมัติ
@@ -323,6 +322,30 @@ export default function OrderManager() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        isOpen={!!confirmAction}
+        onClose={() => !busy && setConfirmAction(null)}
+        onConfirm={() => confirmAction && review(confirmAction)}
+        isLoading={busy}
+        type={confirmAction === "REJECT" ? "error" : "success"}
+        title={
+          confirmAction === "REJECT"
+            ? "ปฏิเสธคำสั่งซื้อนี้?"
+            : "อนุมัติคำสั่งซื้อนี้?"
+        }
+        description={
+          confirmAction === "REJECT"
+            ? "กรุณาระบุเหตุผล ข้อความนี้จะแสดงให้เจ้าของหอเห็น (หากโอนเงินมาแล้วต้องคืนเงินนอกระบบ)"
+            : `ยืนยันว่าได้รับเงิน ${selected ? selected.finalAmount.toLocaleString("th-TH") : ""} บาทแล้ว ระบบจะเปิดใช้งานแพ็คเกจ/โปรโมทให้ทันที`
+        }
+        confirmText={confirmAction === "REJECT" ? "ปฏิเสธ" : "อนุมัติ"}
+        showInput={confirmAction === "REJECT"}
+        inputValue={note}
+        onInputChange={setNote}
+        inputPlaceholder="เช่น ยอดโอนไม่ตรง หรือสลิปไม่ชัดเจน"
+        inputMaxLength={300}
+        confirmDisabled={confirmAction === "REJECT" && note.trim().length < 3}
+      />
     </>
   );
 }

@@ -70,6 +70,36 @@ export default async function PricingPage() {
           </p>
         ) : (
           <>
+            <section className="border-border bg-surface mx-auto mt-10 max-w-3xl rounded-2xl border p-6 shadow-sm">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex-1">
+                  <h2 className="text-foreground text-lg font-bold">
+                    ลงประกาศหอพัก ฟรีตลอด
+                  </h2>
+                  <ul className="text-muted mt-2 space-y-1.5 text-sm">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-emerald-500" />
+                      ลงประกาศได้ทุกหอ ไม่มีค่าใช้จ่ายรายเดือน
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 size={16} className="text-emerald-500" />
+                      ตั้งค่ารายละเอียดหอ ราคา ค่าน้ำ-ค่าไฟ และรูปภาพได้เต็มที่
+                    </li>
+                  </ul>
+                </div>
+                <Link
+                  href="/auth/register"
+                  className="rounded-xl border border-blue-600 px-5 py-2.5 text-center text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
+                >
+                  สมัครลงประกาศฟรี
+                </Link>
+              </div>
+              <p className="text-muted border-border mt-4 border-t pt-3 text-xs">
+                แพ็คเกจด้านล่างสำหรับเครื่องมือจัดการหอพัก ได้แก่ ผู้เช่า ออกบิล
+                ตรวจสลิป แจ้งซ่อม และตั้งค่าการเงินของหอ
+              </p>
+            </section>
+
             {pricing.trial && (
               <div className="mx-auto mt-10 flex max-w-xl items-center justify-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm text-blue-800">
                 <Gift size={20} className="shrink-0" />

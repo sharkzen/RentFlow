@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { Settings } from "lucide-react";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/backendError";
+import { THAI_BANKS } from "@/features/dormitory/components/DormPaymentSettings";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { AdminBillingService } from "../../services/admin-billing.service";
 import type { BillingSettings, Plan } from "../../types";
 
@@ -35,6 +37,8 @@ export default function BillingSettingsForm() {
   const [settings, setSettings] = useState<BillingSettings | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [saving, setSaving] = useState(false);
+  const [granting, setGranting] = useState(false);
+  const [grantOpen, setGrantOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -66,6 +70,23 @@ export default function BillingSettingsForm() {
   const num = (value: string) => (value === "" ? 0 : Number(value));
 
   const trialPlans = plans.filter((p) => !p.isFree && p.allowTrial);
+
+  const handleGrantTrial = async () => {
+    setGranting(true);
+    try {
+      const res = await AdminBillingService.grantTrialToExistingOwners();
+      toast.success(
+        res.granted > 0
+          ? `แจกสิทธิ์ทดลองให้ ${res.granted} บัญชีแล้ว`
+          : "ไม่มีเจ้าของหอที่ต้องแจกเพิ่ม",
+      );
+    } catch (error) {
+      toast.error(getApiErrorMessage(error));
+    } finally {
+      setGranting(false);
+      setGrantOpen(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,6 +143,23 @@ export default function BillingSettingsForm() {
               aria-hidden="true"
               className={`bg-surface pointer-events-none inline-block h-5 w-5 transform rounded-full shadow transition duration-200 ${settings.enforceLimits ? "translate-x-5" : "translate-x-0"}`}
             />
+          </button>
+        </div>
+        <div className="border-border bg-background rounded-xl border p-4 sm:col-span-2">
+          <p className="text-foreground text-sm font-medium">
+            เจ้าของหอที่ใช้งานอยู่ก่อนเปิดระบบเก็บเงิน
+          </p>
+          <p className="text-muted mt-1 text-xs">
+            แจกทดลองฟรีให้เจ้าของหอที่อนุมัติแล้วและยังไม่มีแพ็คเกจ ตามแพ็คเกจและจำนวนวันที่ตั้งไว้ด้านล่าง
+            ข้อมูลเดิมไม่สะดุด กดซ้ำได้โดยไม่แจกซ้ำ และข้ามบัญชีที่ถูกตัดสิทธิ์ทดลอง ควรกดก่อนเปิดบังคับโควต้า
+          </p>
+          <button
+            type="button"
+            onClick={() => setGrantOpen(true)}
+            disabled={granting}
+            className="mt-3 cursor-pointer rounded-lg border border-blue-200 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {granting ? "กำลังแจกสิทธิ์..." : "แจกทดลองฟรีให้เจ้าของหอเดิมทุกคน"}
           </button>
         </div>
       </Section>
@@ -230,8 +268,8 @@ export default function BillingSettingsForm() {
       </Section>
 
       <Section
-        title="บัญชีรับเงิน (PromptPay)"
-        hint="ใช้เทียบกับสลิปที่เจ้าของหอโอนชำระแพ็คเกจ"
+        title="บัญชีรับเงินค่าแพ็คเกจ"
+        hint="เจ้าของหอจะเห็นบัญชีเหล่านี้ในหน้าชำระเงิน และระบบใช้เทียบกับผู้รับในสลิป ตั้งอย่างน้อยพร้อมเพย์หรือบัญชีธนาคารอย่างใดอย่างหนึ่ง"
       >
         <div>
           <label className={labelClass}>เลข PromptPay</label>
@@ -244,11 +282,48 @@ export default function BillingSettingsForm() {
           />
         </div>
         <div>
-          <label className={labelClass}>ชื่อบัญชี</label>
+          <label className={labelClass}>ชื่อบัญชีพร้อมเพย์</label>
           <input
             type="text"
             value={settings.promptPayName}
             onChange={(e) => set("promptPayName", e.target.value)}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label className={labelClass}>ธนาคาร</label>
+          <select
+            value={settings.bankName}
+            onChange={(e) => set("bankName", e.target.value)}
+            className={inputClass}
+          >
+            <option value="">-- ไม่ระบุ --</option>
+            {THAI_BANKS.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={labelClass}>เลขที่บัญชี</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={settings.bankAccountNumber}
+            onChange={(e) =>
+              set("bankAccountNumber", e.target.value.replace(/[^0-9-]/g, ""))
+            }
+            className={`${inputClass} font-mono`}
+            placeholder="123-4-56789-0"
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label className={labelClass}>ชื่อบัญชีธนาคาร</label>
+          <input
+            type="text"
+            value={settings.bankAccountName}
+            onChange={(e) => set("bankAccountName", e.target.value)}
             className={inputClass}
           />
         </div>
@@ -303,6 +378,16 @@ export default function BillingSettingsForm() {
           {saving ? "กำลังบันทึก..." : "บันทึกการตั้งค่า"}
         </button>
       </div>
+      <ConfirmDialog
+        isOpen={grantOpen}
+        onClose={() => setGrantOpen(false)}
+        onConfirm={handleGrantTrial}
+        isLoading={granting}
+        type="info"
+        title="แจกทดลองฟรีให้เจ้าของหอเดิม?"
+        description="ระบบจะแจกสิทธิ์ทดลองให้เจ้าของหอที่อนุมัติแล้วและยังไม่มีแพ็คเกจทุกคน ตามแพ็คเกจและจำนวนวันที่บันทึกไว้ล่าสุด (บัญชีที่ถูกตัดสิทธิ์ทดลองจะถูกข้าม)"
+        confirmText="แจกสิทธิ์ทดลอง"
+      />
     </form>
   );
 }

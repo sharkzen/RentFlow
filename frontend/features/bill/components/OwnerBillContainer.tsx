@@ -508,9 +508,8 @@ export default function BillContainer() {
           isWaterFlatRate={
             currentDorm?.settings?.waterBillingType === "FLAT_RATE"
           }
-          ocrFeatureEnabled={
-            (features?.data?.enabled || false) && ocrAllowedByPlan
-          }
+          ocrFeatureEnabled={features?.data?.enabled || false}
+          ocrLockedByPlan={!ocrAllowedByPlan}
         />
       )}
       <SelectDormModal

@@ -7,9 +7,9 @@ import {
   Edit3,
   Trash2,
   X,
-  AlertCircle,
 } from "lucide-react";
 import { toast } from "react-toastify";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { FeatureService } from "@/features/feature/services/feature.service";
 import type { Feature } from "@/features/feature/services";
 
@@ -388,40 +388,15 @@ export default function FeatureManager() {
           </div>
         </div>
       )}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 transition-opacity">
-          <div className="bg-surface w-full max-w-sm transform overflow-hidden rounded-2xl p-6 text-center shadow-2xl transition-all">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border-[6px] border-red-50/50 bg-red-50">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <h3 className="text-foreground mb-2 text-lg font-bold">
-              ยืนยันการลบฟีเจอร์?
-            </h3>
-            <p className="text-muted mb-8 text-sm">
-              คุณกำลังจะลบฟีเจอร์รหัส <br />
-              <span className="bg-background text-foreground mt-1 inline-block rounded px-2 py-0.5 font-mono font-bold">
-                {featureToDelete}
-              </span>
-              <br />
-              การกระทำนี้ไม่สามารถย้อนกลับได้
-            </p>
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="border-border bg-surface text-foreground/80 hover:bg-background flex-1 cursor-pointer rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors"
-              >
-                ยกเลิก
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="flex-1 cursor-pointer rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-red-700 hover:shadow active:scale-95"
-              >
-                ยืนยันการลบ
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        type="error"
+        title="ยืนยันการลบฟีเจอร์?"
+        description={`คุณกำลังจะลบฟีเจอร์รหัส ${featureToDelete ?? ""} การกระทำนี้ไม่สามารถย้อนกลับได้`}
+        confirmText="ยืนยันการลบ"
+      />
     </>
   );
 }

@@ -6,14 +6,20 @@ import {
   Clock,
   Gift,
   Megaphone,
+  Lock,
   Package,
-  Upload,
   X,
 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/backendError";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { BillingService } from "../../services/billing.service";
+import {
+  FEATURE_NAME_BY_KEY,
+  useOwnerBilling,
+} from "../../context/OwnerBillingContext";
 import {
   MONTH_LABEL,
   MONTH_OPTIONS,
@@ -24,7 +30,6 @@ import type {
   BillingOrder,
   CouponPreview,
   MyBilling,
-  OrderQr,
   Plan,
   SubscriptionState,
 } from "../../types";
@@ -112,7 +117,7 @@ function Modal({
 }
 
 type Checkout =
-  | { kind: "PLAN"; plan: Plan }
+  | { kind: "PLAN"; plan: Plan; months?: number }
   | { kind: "PROMOTION" };
 
 function CheckoutModal({
@@ -128,7 +133,10 @@ function CheckoutModal({
   onClose: () => void;
   onCreated: (order: BillingOrder) => void;
 }) {
-  const [months, setMonths] = useState(checkout.kind === "PLAN" ? 12 : 1);
+  // แพ็คเกจตั้งต้นที่รายปี (คุ้มสุด) ถ้ามาจากปุ่มต่ออายุจะใช้ระยะเวลาที่ส่งมา
+  const [months, setMonths] = useState(
+    checkout.kind === "PLAN" ? (checkout.months ?? 12) : 1,
+  );
   const [dormId, setDormId] = useState(dorms[0]?.id ?? "");
   const [code, setCode] = useState("");
   const [preview, setPreview] = useState<CouponPreview | null>(null);
@@ -319,100 +327,7 @@ function CheckoutModal({
           disabled={busy || (checkout.kind === "PROMOTION" && !dormId)}
           className="cursor-pointer rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {busy ? "กำลังดำเนินการ..." : "สร้างคำสั่งซื้อ"}
-        </button>
-      </div>
-    </Modal>
-  );
-}
-
-function PayModal({
-  order,
-  onClose,
-  onDone,
-}: {
-  order: BillingOrder;
-  onClose: () => void;
-  onDone: () => void;
-}) {
-  const [qr, setQr] = useState<OrderQr | null>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    BillingService.getOrderQr(order.id)
-      .then(setQr)
-      .catch((error) => toast.error(getApiErrorMessage(error)));
-  }, [order.id]);
-
-  const submit = async () => {
-    if (!file) {
-      toast.error("กรุณาเลือกรูปสลิป");
-      return;
-    }
-
-    setBusy(true);
-    try {
-      const result = await BillingService.uploadSlip(order.id, file);
-      toast.success(
-        result.status === "PAID"
-          ? "ชำระเงินสำเร็จ เปิดใช้งานเรียบร้อย"
-          : "ส่งสลิปแล้ว รอแอดมินตรวจสอบ",
-      );
-      onDone();
-    } catch (error) {
-      toast.error(getApiErrorMessage(error));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Modal title="ชำระเงิน" onClose={onClose}>
-      <div className="flex flex-col items-center gap-4 text-center">
-        {qr ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={qr.qr}
-              alt="QR PromptPay"
-              className="border-border h-56 w-56 rounded-xl border"
-            />
-            <div>
-              <p className="text-foreground text-2xl font-bold">
-                {baht(qr.amount)}
-              </p>
-              {qr.promptPayName && (
-                <p className="text-muted text-sm">{qr.promptPayName}</p>
-              )}
-              <p className="text-muted mt-1 text-xs">
-                โอนตามยอดนี้เท่านั้น แล้วอัปโหลดสลิปด้านล่าง
-              </p>
-            </div>
-          </>
-        ) : (
-          <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600" />
-        )}
-
-        <label className="border-border hover:bg-background flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-3 text-sm transition-colors">
-          <Upload size={18} className="text-muted" />
-          <span className="text-foreground/80 truncate">
-            {file ? file.name : "เลือกรูปสลิป (JPG, PNG, WEBP)"}
-          </span>
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="hidden"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
-        </label>
-
-        <button
-          onClick={submit}
-          disabled={busy || !file || !qr}
-          className="w-full cursor-pointer rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {busy ? "กำลังตรวจสอบสลิป..." : "ยืนยันการชำระเงิน"}
+          {busy ? "กำลังดำเนินการ..." : "ไปหน้าชำระเงิน"}
         </button>
       </div>
     </Modal>
@@ -474,7 +389,13 @@ export default function OwnerBillingContainer() {
   const [dorms, setDorms] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkout, setCheckout] = useState<Checkout | null>(null);
-  const [payOrder, setPayOrder] = useState<BillingOrder | null>(null);
+  const [orderToCancel, setOrderToCancel] = useState<BillingOrder | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { refresh: refreshBilling } = useOwnerBilling();
+  const fromFeature = searchParams.get("from");
+  const deepLinkHandled = React.useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -504,33 +425,64 @@ export default function OwnerBillingContainer() {
     load();
   }, [load]);
 
+  // ลิงก์ลัด ?plan=<id>&months=<n> (ปุ่มต่ออายุ/อัปเกรดจาก modal) เปิดหน้าสรุปให้เลย
+  useEffect(() => {
+    if (deepLinkHandled.current || plans.length === 0) return;
+
+    const planId = searchParams.get("plan");
+    if (!planId) return;
+
+    deepLinkHandled.current = true;
+    const plan = plans.find((p) => p.id === planId);
+    const months = Number(searchParams.get("months"));
+
+    if (plan) {
+      setCheckout({
+        kind: "PLAN",
+        plan,
+        months: [1, 3, 6, 12].includes(months) ? months : undefined,
+      });
+    }
+  }, [plans, searchParams]);
+
   const claimTrial = async () => {
     try {
       await BillingService.claimTrial();
       toast.success("เริ่มทดลองใช้งานแล้ว");
+      refreshBilling();
       load();
     } catch (error) {
       toast.error(getApiErrorMessage(error));
     }
   };
 
-  const cancelOrder = async (id: string) => {
+  const cancelOrder = async () => {
+    if (!orderToCancel) return;
+
+    setCancelling(true);
     try {
-      await BillingService.cancelOrder(id);
+      await BillingService.cancelOrder(orderToCancel.id);
       toast.success("ยกเลิกคำสั่งซื้อแล้ว");
       load();
     } catch (error) {
       toast.error(getApiErrorMessage(error));
+    } finally {
+      setCancelling(false);
+      setOrderToCancel(null);
     }
   };
 
   const handleCreated = (order: BillingOrder) => {
     setCheckout(null);
+
     if (order.status === "PENDING") {
-      setPayOrder(order);
-    } else {
-      toast.success("เปิดใช้งานเรียบร้อย");
+      router.push(`/owner/billing/checkout/${order.id}`);
+      return;
     }
+
+    // คูปองลด 100% เปิดสิทธิ์ทันที ไม่ต้องโอนเงิน
+    toast.success("เปิดใช้งานเรียบร้อย");
+    refreshBilling();
     load();
   };
 
@@ -559,6 +511,21 @@ export default function OwnerBillingContainer() {
           </p>
         </div>
       </div>
+
+      {fromFeature && FEATURE_NAME_BY_KEY[fromFeature] && billing.access !== "full" && (
+        <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+          <Lock size={20} className="mt-0.5 shrink-0" />
+          <p>
+            <span className="font-semibold">
+              {FEATURE_NAME_BY_KEY[fromFeature]}
+            </span>{" "}
+            ต้องใช้แพ็คเกจ
+            {billing.trial.available
+              ? ` รับทดลองใช้ฟรี ${billing.trial.days} วันได้ด้านล่าง หรือเลือกแพ็คเกจที่ต้องการ`
+              : " เลือกแพ็คเกจที่เหมาะกับคุณได้ด้านล่าง"}
+          </p>
+        </div>
+      )}
 
       {(billing.status === "GRACE" || billing.status === "EXPIRED") && (
         <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
@@ -810,13 +777,15 @@ export default function OwnerBillingContainer() {
                           {o.status === "PENDING" && (
                             <div className="flex items-center justify-center gap-2">
                               <button
-                                onClick={() => setPayOrder(o)}
+                                onClick={() =>
+                                  router.push(`/owner/billing/checkout/${o.id}`)
+                                }
                                 className="cursor-pointer rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
                               >
                                 ชำระเงิน
                               </button>
                               <button
-                                onClick={() => cancelOrder(o.id)}
+                                onClick={() => setOrderToCancel(o)}
                                 className="text-muted cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium hover:bg-red-50 hover:text-red-600"
                               >
                                 ยกเลิก
@@ -837,6 +806,18 @@ export default function OwnerBillingContainer() {
         </div>
       </section>
 
+      <ConfirmDialog
+        isOpen={!!orderToCancel}
+        onClose={() => setOrderToCancel(null)}
+        onConfirm={cancelOrder}
+        isLoading={cancelling}
+        type="warning"
+        title="ยกเลิกคำสั่งซื้อนี้?"
+        description="คำสั่งซื้อที่ยังไม่ชำระจะถูกยกเลิก หากโอนเงินไปแล้วกรุณาอย่ายกเลิก แต่เข้าไปแนบสลิปที่ปุ่มชำระเงิน"
+        confirmText="ยกเลิกคำสั่งซื้อ"
+        cancelText="กลับ"
+      />
+
       {checkout && (
         <CheckoutModal
           checkout={checkout}
@@ -847,16 +828,6 @@ export default function OwnerBillingContainer() {
         />
       )}
 
-      {payOrder && (
-        <PayModal
-          order={payOrder}
-          onClose={() => setPayOrder(null)}
-          onDone={() => {
-            setPayOrder(null);
-            load();
-          }}
-        />
-      )}
     </div>
   );
 }

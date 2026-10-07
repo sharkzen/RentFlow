@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { Edit3, Plus, Tag, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/backendError";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { AdminBillingService } from "../../services/admin-billing.service";
 import type { Coupon, CouponPayload, Plan } from "../../types";
 
@@ -51,6 +52,8 @@ export default function CouponManager() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CouponPayload>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [couponToDelete, setCouponToDelete] = useState<Coupon | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -113,10 +116,12 @@ export default function CouponManager() {
     }
   };
 
-  const remove = async (c: Coupon) => {
-    if (!window.confirm(`ลบคูปอง ${c.code}?`)) return;
+  const remove = async () => {
+    if (!couponToDelete) return;
+
+    setDeleting(true);
     try {
-      const res = await AdminBillingService.deleteCoupon(c.id);
+      const res = await AdminBillingService.deleteCoupon(couponToDelete.id);
       toast.success(
         res.deactivated
           ? "คูปองนี้เคยถูกใช้แล้ว จึงปิดการใช้งานแทนการลบ"
@@ -125,6 +130,9 @@ export default function CouponManager() {
       load();
     } catch (error) {
       toast.error(getApiErrorMessage(error, "เกิดข้อผิดพลาดในการลบข้อมูล"));
+    } finally {
+      setDeleting(false);
+      setCouponToDelete(null);
     }
   };
 
@@ -237,7 +245,7 @@ export default function CouponManager() {
                           <Edit3 size={18} />
                         </button>
                         <button
-                          onClick={() => remove(c)}
+                          onClick={() => setCouponToDelete(c)}
                           className="text-muted cursor-pointer rounded-lg p-2 hover:bg-red-50 hover:text-red-600"
                           title="ลบ"
                         >
@@ -455,6 +463,16 @@ export default function CouponManager() {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        isOpen={!!couponToDelete}
+        onClose={() => setCouponToDelete(null)}
+        onConfirm={remove}
+        isLoading={deleting}
+        type="error"
+        title="ลบคูปองนี้?"
+        description={`คูปอง ${couponToDelete?.code ?? ""} จะถูกลบ หากเคยมีคนใช้แล้ว ระบบจะปิดการใช้งานแทนการลบ เพื่อเก็บประวัติคำสั่งซื้อ`}
+        confirmText="ลบคูปอง"
+      />
     </>
   );
 }

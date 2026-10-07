@@ -41,6 +41,12 @@ export default function FormPending() {
           </p>
         </div>
         <Link
+          href="/pricing"
+          className="mb-3 w-full cursor-pointer rounded-lg border border-yellow-500 px-6 py-3 font-semibold text-yellow-700 transition-colors hover:bg-yellow-50 dark:text-yellow-500 dark:hover:bg-yellow-500/10"
+        >
+          ดูราคาแพ็คเกจระหว่างรออนุมัติ
+        </Link>
+        <Link
           href="/"
           className="w-full cursor-pointer rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-white shadow-lg transition-colors hover:bg-yellow-600"
         >

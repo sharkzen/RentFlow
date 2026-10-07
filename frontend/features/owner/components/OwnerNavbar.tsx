@@ -15,7 +15,12 @@ import {
   Megaphone,
   QrCode,
   Package,
+  Lock,
 } from "lucide-react";
+import {
+  MANAGE_FEATURES,
+  useOwnerBilling,
+} from "@/features/billing/context/OwnerBillingContext";
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -24,6 +29,9 @@ import Image from "next/image";
 export default function OwnerNavbar() {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { billing } = useOwnerBilling();
+  // เจ้าของหอที่ยังไม่มีแพ็คเกจ: เมนูงานจัดการล็อกด้วยกุญแจ กดแล้วไปเลือกแพ็คเกจทันที
+  const manageLocked = !!billing?.enforced && billing.access === "locked";
 
   const menuItems = [
     {
@@ -116,17 +124,31 @@ export default function OwnerNavbar() {
               <p className="text-muted mb-2 px-4 text-xs font-semibold tracking-wider uppercase">
                 Main Menu
               </p>
-              {menuItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`${pathname === item.href ? "bg-background text-indigo-600" : "text-muted"} hover:bg-background group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all hover:text-indigo-600 active:scale-[0.98]`}
-                >
-                  <span className="stroke-current">{item.icon}</span>
-                  {item.name}
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                const feature = MANAGE_FEATURES.find((f) => f.prefix === item.href);
+                const isLocked = manageLocked && !!feature;
+
+                return (
+                  <Link
+                    key={item.name}
+                    href={
+                      isLocked ? `/owner/billing?from=${feature!.key}` : item.href
+                    }
+                    onClick={() => setSidebarOpen(false)}
+                    title={isLocked ? "ต้องใช้แพ็คเกจ กดเพื่อเลือกแพ็คเกจ" : undefined}
+                    aria-label={
+                      isLocked ? `${item.name} (ล็อก ต้องใช้แพ็คเกจ)` : undefined
+                    }
+                    className={`${pathname === item.href ? "bg-background text-indigo-600" : "text-muted"} ${isLocked ? "opacity-70" : ""} hover:bg-background group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all hover:text-indigo-600 active:scale-[0.98]`}
+                  >
+                    <span className="stroke-current">{item.icon}</span>
+                    <span className="flex-1">{item.name}</span>
+                    {isLocked && (
+                      <Lock size={15} className="shrink-0 text-amber-500" />
+                    )}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
         </div>

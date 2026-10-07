@@ -1,8 +1,9 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
-import { AlertCircle, Edit3, Package, Plus, Trash2, X } from "lucide-react";
+import { Edit3, Package, Plus, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/backendError";
+import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { AdminBillingService } from "../../services/admin-billing.service";
 import type { Plan, PlanPayload } from "../../types";
 
@@ -61,6 +62,7 @@ export default function PlanManager() {
   const [form, setForm] = useState<PlanPayload>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [planToDelete, setPlanToDelete] = useState<Plan | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPlans = useCallback(async () => {
     setLoading(true);
@@ -119,6 +121,7 @@ export default function PlanManager() {
   const handleDelete = async () => {
     if (!planToDelete) return;
 
+    setDeleting(true);
     try {
       const res = await AdminBillingService.deletePlan(planToDelete.id);
       toast.success(
@@ -130,6 +133,8 @@ export default function PlanManager() {
       fetchPlans();
     } catch (error: any) {
       toast.error(getApiErrorMessage(error, "เกิดข้อผิดพลาดในการลบข้อมูล"));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -548,40 +553,16 @@ export default function PlanManager() {
         </div>
       )}
 
-      {planToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4">
-          <div className="bg-surface w-full max-w-sm overflow-hidden rounded-2xl p-6 text-center shadow-2xl">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border-[6px] border-red-50/50 bg-red-50">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <h3 className="text-foreground mb-2 text-lg font-bold">
-              ยืนยันการลบแพ็คเกจ?
-            </h3>
-            <p className="text-muted mb-8 text-sm">
-              แพ็คเกจ{" "}
-              <span className="text-foreground font-bold">
-                {planToDelete.name}
-              </span>
-              <br />
-              หากมีผู้ใช้งานอยู่ ระบบจะปิดการขายแทนการลบ
-            </p>
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => setPlanToDelete(null)}
-                className="border-border bg-surface text-foreground/80 hover:bg-background flex-1 cursor-pointer rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors"
-              >
-                ยกเลิก
-              </button>
-              <button
-                onClick={handleDelete}
-                className="flex-1 cursor-pointer rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-red-700 active:scale-95"
-              >
-                ยืนยัน
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={!!planToDelete}
+        onClose={() => setPlanToDelete(null)}
+        onConfirm={handleDelete}
+        isLoading={deleting}
+        type="error"
+        title="ลบแพ็คเกจนี้?"
+        description={`แพ็คเกจ ${planToDelete?.name ?? ""} จะถูกลบ หากมีผู้ใช้งานอยู่ ระบบจะปิดการขายแทนการลบ`}
+        confirmText="ลบแพ็คเกจ"
+      />
     </>
   );
 }

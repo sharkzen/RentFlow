@@ -15,7 +15,9 @@ import {
   ScanLine,
   Droplets,
   Zap,
+  Lock,
 } from "lucide-react";
+import Link from "next/link";
 
 import log from "@/lib/logger";
 import { toast } from "react-toastify";
@@ -76,6 +78,8 @@ interface Props {
   lateFee?: number;
   isWaterFlatRate?: boolean;
   ocrFeatureEnabled: boolean;
+  /** แพ็คเกจปัจจุบันไม่รวม OCR: แสดงปุ่มกุญแจพาไปอัปเกรด */
+  ocrLockedByPlan?: boolean;
 }
 
 export default function CreateBillDialog({
@@ -89,6 +93,7 @@ export default function CreateBillDialog({
   lateFee,
   isWaterFlatRate = false,
   ocrFeatureEnabled,
+  ocrLockedByPlan = false,
 }: Props) {
   const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -604,7 +609,16 @@ export default function CreateBillDialog({
                 บันทึกฉบับร่าง
               </button>
             </div>
-            {ocrFeatureEnabled ? (
+            {ocrFeatureEnabled && ocrLockedByPlan ? (
+              <Link
+                href="/owner/billing?from=ocr"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-700 transition-all hover:bg-amber-100 sm:w-auto"
+                title="สแกนมิเตอร์ด้วย OCR ต้องอัปเกรดแพ็คเกจ"
+              >
+                <Lock size={14} />
+                สแกนมิเตอร์ OCR (ต้องอัปเกรดแพ็คเกจ)
+              </Link>
+            ) : ocrFeatureEnabled ? (
               <div className="flex w-full gap-2 sm:w-auto">
                 <button
                   onClick={() => handleStartScan("WATER")}

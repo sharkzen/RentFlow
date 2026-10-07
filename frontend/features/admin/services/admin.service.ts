@@ -35,13 +35,17 @@ export const AdminService = {
     return res.data;
   },
 
-  approveOwner: async (id: string) => {
-    const res = await axios.patch(`/api/admin/approvals/${id}/approve`);
+  approveOwner: async (id: string, options: { denyTrial?: boolean } = {}) => {
+    const res = await axios.patch(`/api/admin/approvals/${id}/approve`, {
+      denyTrial: options.denyTrial ?? false,
+    });
     return res.data;
   },
 
-  rejectOwner: async (id: string) => {
-    const res = await axios.patch(`/api/admin/approvals/${id}/reject`);
+  rejectOwner: async (id: string, reason: string) => {
+    const res = await axios.patch(`/api/admin/approvals/${id}/reject`, {
+      reason,
+    });
     return res.data;
   },
 

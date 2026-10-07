@@ -4,7 +4,7 @@ import {
   CouponPreview,
   CreateOrderPayload,
   MyBilling,
-  OrderQr,
+  OrderDetail,
   Plan,
 } from "../types";
 
@@ -44,8 +44,8 @@ export const BillingService = {
     return res.data.data;
   },
 
-  getOrderQr: async (id: string): Promise<OrderQr> => {
-    const res = await axios.get(`/api/billing/orders/${id}/qr`);
+  getOrder: async (id: string): Promise<OrderDetail> => {
+    const res = await axios.get(`/api/billing/orders/${id}`);
     return res.data.data;
   },
 

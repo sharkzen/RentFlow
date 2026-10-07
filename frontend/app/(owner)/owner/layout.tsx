@@ -4,6 +4,9 @@ import { Role, Status } from "@/features/auth";
 import { fetchCurrentUser } from "@/lib/auth/requireRole";
 import FormPending from "@/lib/ui/status/FormPending";
 import FormBanned from "@/lib/ui/status/FormBanned";
+import { OwnerBillingProvider } from "@/features/billing/context/OwnerBillingContext";
+import OwnerAccessGate from "@/features/billing/components/owner/OwnerAccessGate";
+import OwnerBillingNotices from "@/features/billing/components/owner/OwnerBillingNotices";
 
 export default async function OwnerLayout({
   children,
@@ -23,9 +26,14 @@ export default async function OwnerLayout({
   if (!allowedRoles.includes(me.role as Role)) redirect("/");
 
   return (
-    <div className="bg-background flex min-h-screen">
-      <OwnerNavbar />
-      <main className="flex-1 overflow-hidden p-4 md:p-8">{children}</main>
-    </div>
+    <OwnerBillingProvider>
+      <div className="bg-background flex min-h-screen">
+        <OwnerNavbar />
+        <main className="flex-1 overflow-hidden p-4 md:p-8">
+          <OwnerAccessGate>{children}</OwnerAccessGate>
+        </main>
+      </div>
+      <OwnerBillingNotices />
+    </OwnerBillingProvider>
   );
 }
