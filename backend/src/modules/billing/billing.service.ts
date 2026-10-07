@@ -16,12 +16,15 @@ import {
   SETTING_KEYS,
   getEntitlements,
   getNumberSetting,
+  isOcrAllowed,
   getSetting,
 } from "@/lib/entitlements";
 import {
+  ALLOWED_MONTHS,
   addMonths,
   computeDiscount,
   currentPeriod,
+  planPeriodPrice,
   round2,
 } from "@/lib/billing-pricing";
 import { slipOkService } from "@/services/slipok.service";
@@ -36,14 +39,20 @@ type Tx = Prisma.TransactionClient;
 /** ล็อกเดียวสำหรับการจองช่องโปรโมท กันซื้อพร้อมกันจนเกินจำนวนช่อง */
 const PROMO_LOCK_KEY = 727001;
 
-const MAX_MONTHS = 12;
+const monthsSchema = z
+  .number()
+  .int()
+  .refine((m) => (ALLOWED_MONTHS as readonly number[]).includes(m), {
+    message: "ระยะเวลาไม่ถูกต้อง",
+  })
+  .default(1);
 
 export const createOrderSchema = z
   .object({
     type: z.enum(["PLAN", "PROMOTION"]),
     planId: z.string().optional(),
     dormId: z.string().optional(),
-    months: z.number().int().min(1).max(MAX_MONTHS).default(1),
+    months: monthsSchema,
     couponCode: z.string().trim().max(40).optional(),
   })
   .refine((v) => (v.type === "PLAN" ? !!v.planId : !!v.dormId), {
@@ -54,7 +63,7 @@ export const previewCouponSchema = z.object({
   code: z.string().trim().min(1).max(40),
   type: z.enum(["PLAN", "PROMOTION"]),
   planId: z.string().optional(),
-  months: z.number().int().min(1).max(MAX_MONTHS).default(1),
+  months: monthsSchema,
   dormId: z.string().optional(),
 });
 
@@ -283,6 +292,53 @@ export const BillingService = {
     return { success: true, data: plans };
   },
 
+  /** ข้อมูลหน้า pricing สาธารณะ: ไม่ต้องล็อกอิน และไม่เปิดเผยข้อมูลเจ้าของหอ */
+  getPublicPricing: async () => {
+    const [plans, promoPrice, promoMaxSlots, trialEnabled, trialPlanId, trialDays] =
+      await Promise.all([
+        prisma.plan.findMany({
+          where: { isActive: true, isFree: false },
+          orderBy: [{ sortOrder: "asc" }, { priceMonthly: "asc" }],
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            priceMonthly: true,
+            maxDorms: true,
+            maxRooms: true,
+            slipQuotaMonthly: true,
+            slipUnlimited: true,
+            hasOcr: true,
+            discountPct3m: true,
+            discountPct6m: true,
+            discountPct12m: true,
+          },
+        }),
+        getNumberSetting(SETTING_KEYS.promoPricePerMonth),
+        getNumberSetting(SETTING_KEYS.promoMaxSlots),
+        getSetting(SETTING_KEYS.trialEnabled),
+        getSetting(SETTING_KEYS.trialPlanId),
+        getNumberSetting(SETTING_KEYS.trialDays),
+      ]);
+
+    const trialPlan =
+      trialEnabled === "true" && trialPlanId
+        ? await prisma.plan.findFirst({
+            where: { id: trialPlanId, isActive: true, allowTrial: true },
+            select: { name: true },
+          })
+        : null;
+
+    return {
+      success: true,
+      data: {
+        plans,
+        promotion: { pricePerMonth: promoPrice, maxSlots: promoMaxSlots },
+        trial: trialPlan ? { planName: trialPlan.name, days: trialDays } : null,
+      },
+    };
+  },
+
   getMyBilling: async (userId: string) => {
     const owner = await prisma.ownerProfile.findFirst({
       where: { userId, deletedAt: null },
@@ -328,6 +384,7 @@ export const BillingService = {
         status: ent.status,
         canManage: ent.canManage,
         readOnly: ent.readOnly,
+        ocrAllowed: await isOcrAllowed(owner.id),
         plan: ent.plan,
         periodEnd: ent.periodEnd,
         graceEndsAt: ent.graceEndsAt,
@@ -376,7 +433,7 @@ export const BillingService = {
         where: { id: input.planId, isActive: true, isFree: false },
       });
       if (!plan) throw AppError.notFound("PLAN_NOT_AVAILABLE");
-      base = round2(plan.priceMonthly * input.months);
+      base = planPeriodPrice(plan, input.months);
     } else {
       base = round2(
         (await getNumberSetting(SETTING_KEYS.promoPricePerMonth)) *
@@ -425,7 +482,7 @@ export const BillingService = {
             })
           : null;
 
-        const base = round2(plan.priceMonthly * input.months);
+        const base = planPeriodPrice(plan, input.months);
         const discount = computeDiscount(coupon, base);
         const finalAmount = round2(base - discount);
 

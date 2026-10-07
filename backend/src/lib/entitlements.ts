@@ -205,7 +205,13 @@ export async function reserveSlipCheck(
   // แพ็คฟรี/หมดอายุ ไม่มีสิทธิ์ตรวจอัตโนมัติ
   if (!ent.canManage) return false;
 
-  const { slipQuotaMonthly, slipOverageRate } = ent.plan;
+  const { slipQuotaMonthly, slipOverageRate, slipUnlimited } = ent.plan;
+
+  // แพ็คเกจสลิปไม่จำกัด นับยอดไว้เฉยๆ
+  if (slipUnlimited) {
+    await db.slipUsage.update({ where, data: { count: { increment: 1 } } });
+    return true;
+  }
 
   // ตั้งค่าเกินโควต้าได้ (มีเรต) ให้ผ่านและนับต่อ เพื่อเอาไปคิดเงินภายหลัง
   if (slipOverageRate !== null) {
@@ -250,4 +256,24 @@ export async function getPlatformSlipUsage(db: Db = prisma) {
     quota,
     percent: quota > 0 ? Math.round((total / quota) * 100) : null,
   };
+}
+
+/**
+ * OCR สแกนมิเตอร์ ใช้ได้เมื่อแพ็คเกจมีสิทธิ์ OCR และใช้งานอยู่ (ทดลอง/ชำระแล้ว)
+ * ปิดบังคับโควต้าอยู่ (enforceLimits=false) จะไม่บล็อก เหมือนส่วนอื่น
+ */
+export async function isOcrAllowed(ownerId: string, db: Db = prisma) {
+  if (!(await isEnforced(db))) return true;
+
+  const ent = await getEntitlements(ownerId, db);
+  return ent.canManage && ent.plan.hasOcr;
+}
+
+export async function assertCanUseOcr(ownerId: string, db: Db = prisma) {
+  if (await isOcrAllowed(ownerId, db)) return;
+
+  throw AppError.forbidden(
+    "OCR_NOT_IN_PLAN",
+    "แพ็คเกจของคุณไม่รวมการสแกนมิเตอร์ด้วย OCR กรุณาอัปเกรดแพ็คเกจ",
+  );
 }

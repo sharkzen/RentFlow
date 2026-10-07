@@ -3,6 +3,7 @@ import { AppError } from "@/lib/errors";
 import {
   SETTING_DEFAULTS,
   SETTING_KEYS,
+  getNumberSetting,
   getPlatformSlipUsage,
 } from "@/lib/entitlements";
 import { createActivityLog } from "@/services/activity-log.service";
@@ -18,6 +19,11 @@ export const planSchema = z.object({
   maxRooms: z.number().int().min(0),
   slipQuotaMonthly: z.number().int().min(0),
   slipOverageRate: z.number().min(0).nullable().optional(),
+  slipUnlimited: z.boolean().optional(),
+  hasOcr: z.boolean().optional(),
+  discountPct3m: z.number().min(0).max(100).optional(),
+  discountPct6m: z.number().min(0).max(100).optional(),
+  discountPct12m: z.number().min(0).max(100).optional(),
   allowTrial: z.boolean().optional(),
   isFree: z.boolean().optional(),
   isActive: z.boolean().optional(),
@@ -374,5 +380,138 @@ export const AdminBillingService = {
     });
 
     return AdminBillingService.getSettings();
+  },
+};
+
+const THAI_OFFSET_MS = 7 * 60 * 60 * 1000;
+
+/** รายการ period (YYYY-MM, เวลาไทย) ย้อนหลัง n เดือน เรียงจากเก่าไปใหม่ */
+function lastPeriods(n: number, now = new Date()): string[] {
+  const th = new Date(now.getTime() + THAI_OFFSET_MS);
+  const result: string[] = [];
+
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(
+      Date.UTC(th.getUTCFullYear(), th.getUTCMonth() - i, 1),
+    );
+    result.push(
+      `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`,
+    );
+  }
+
+  return result;
+}
+
+export const AdminBillingReportService = {
+  getRevenueReport: async (months = 12) => {
+    const now = new Date();
+    const periods = lastPeriods(months, now);
+    const [startY, startM] = periods[0].split("-").map(Number);
+    // เริ่มต้นเดือนแรกตามเวลาไทย
+    const since = new Date(Date.UTC(startY, startM - 1, 1) - THAI_OFFSET_MS);
+
+    const [paidInRange, allTime, subs, graceDays, activePromos, maxSlots, review] =
+      await Promise.all([
+        prisma.billingOrder.findMany({
+          where: { status: "PAID", paidAt: { gte: since } },
+          select: { paidAt: true, finalAmount: true, type: true },
+        }),
+        prisma.billingOrder.aggregate({
+          where: { status: "PAID" },
+          _sum: { finalAmount: true, discountAmount: true },
+          _count: true,
+        }),
+        prisma.subscription.findMany({
+          include: { plan: { select: { id: true, name: true, priceMonthly: true } } },
+        }),
+        getNumberSetting(SETTING_KEYS.graceDays),
+        prisma.dormPromotion.count({
+          where: { status: "ACTIVE", endsAt: { gt: now } },
+        }),
+        getNumberSetting(SETTING_KEYS.promoMaxSlots),
+        prisma.billingOrder.count({ where: { status: "PENDING_REVIEW" } }),
+      ]);
+
+    const buckets = new Map(
+      periods.map((p) => [p, { period: p, plan: 0, promotion: 0, total: 0 }]),
+    );
+
+    for (const o of paidInRange) {
+      if (!o.paidAt) continue;
+      const th = new Date(o.paidAt.getTime() + THAI_OFFSET_MS);
+      const key = `${th.getUTCFullYear()}-${String(th.getUTCMonth() + 1).padStart(2, "0")}`;
+      const b = buckets.get(key);
+      if (!b) continue;
+      if (o.type === "PLAN") b.plan += o.finalAmount;
+      else b.promotion += o.finalAmount;
+      b.total += o.finalAmount;
+    }
+
+    const monthly = [...buckets.values()].map((b) => ({
+      ...b,
+      plan: Math.round(b.plan * 100) / 100,
+      promotion: Math.round(b.promotion * 100) / 100,
+      total: Math.round(b.total * 100) / 100,
+    }));
+
+    // นับสถานะจากวันที่จริง (ไม่รอ worker) เหมือน getEntitlements
+    const DAY = 24 * 60 * 60 * 1000;
+    const counts = { active: 0, trial: 0, grace: 0, expired: 0 };
+    const byPlan = new Map<
+      string,
+      { planId: string; name: string; price: number; count: number }
+    >();
+    let mrr = 0;
+
+    for (const s of subs) {
+      if (s.status === "CANCELED") continue;
+      const end = s.currentPeriodEnd;
+      const live = !end || end > now;
+      const inGrace =
+        !live && end !== null && end.getTime() + graceDays * DAY >= now.getTime();
+
+      if (live && s.status === "TRIAL") {
+        counts.trial++;
+      } else if (live) {
+        counts.active++;
+        mrr += s.plan.priceMonthly;
+        const row = byPlan.get(s.plan.id) ?? {
+          planId: s.plan.id,
+          name: s.plan.name,
+          price: s.plan.priceMonthly,
+          count: 0,
+        };
+        row.count++;
+        byPlan.set(s.plan.id, row);
+      } else if (inGrace) {
+        counts.grace++;
+      } else {
+        counts.expired++;
+      }
+    }
+
+    const current = monthly[monthly.length - 1];
+    const previous = monthly.length > 1 ? monthly[monthly.length - 2] : null;
+
+    return {
+      success: true,
+      data: {
+        totals: {
+          allTime: allTime._sum.finalAmount ?? 0,
+          discountGiven: allTime._sum.discountAmount ?? 0,
+          paidOrders: allTime._count,
+          thisMonth: current?.total ?? 0,
+          lastMonth: previous?.total ?? 0,
+        },
+        monthly,
+        subscriptions: {
+          ...counts,
+          mrr: Math.round(mrr * 100) / 100,
+          byPlan: [...byPlan.values()].sort((a, b) => b.count - a.count),
+        },
+        promotions: { active: activePromos, maxSlots },
+        pendingReview: review,
+      },
+    };
   },
 };

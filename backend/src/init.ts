@@ -60,7 +60,15 @@ async function main() {
     logger.info(`Feature '${featureKey}' created successfully!`);
   }
 
-  // แพ็คเกจเริ่มต้น (แอดมินแก้ไขราคา/โควต้าได้ภายหลังในหน้าแอดมิน)
+  // แพ็คเกจเริ่มต้น (แอดมินแก้ไขราคา/โควต้า/ส่วนลดได้ภายหลังในหน้าแอดมิน)
+  // สร้างเฉพาะชื่อที่ยังไม่มี จึงไม่ทับค่าที่แอดมินแก้ไว้เมื่อ container restart
+  // ส่วนลดตามระยะเวลา: 3 เดือน 5% / 6 เดือน 10% / รายปี 17% (เทียบเท่าจ่าย 10 เดือน ได้ 12)
+  const termDiscounts = {
+    discountPct3m: 5,
+    discountPct6m: 10,
+    discountPct12m: 17,
+  };
+
   const initialPlans = [
     {
       name: "FREE",
@@ -79,40 +87,79 @@ async function main() {
       priceMonthly: 199,
       maxDorms: 1,
       maxRooms: 12,
-      slipQuotaMonthly: 30,
+      slipQuotaMonthly: 12,
+      hasOcr: false,
       sortOrder: 1,
+      ...termDiscounts,
     },
     {
       name: "STANDARD",
+      description: "หอพักขนาดเล็ก พร้อมสแกนมิเตอร์ OCR",
       priceMonthly: 399,
-      maxDorms: 3,
-      maxRooms: 40,
-      slipQuotaMonthly: 100,
+      maxDorms: 1,
+      maxRooms: 30,
+      slipQuotaMonthly: 50,
+      hasOcr: true,
       sortOrder: 2,
+      ...termDiscounts,
     },
     {
       name: "PRO",
-      priceMonthly: 799,
-      maxDorms: 10,
-      maxRooms: 150,
-      slipQuotaMonthly: 350,
+      description: "หลายหอ ตรวจสลิปไม่จำกัด",
+      priceMonthly: 699,
+      maxDorms: 2,
+      maxRooms: 50,
+      slipQuotaMonthly: 0,
+      slipUnlimited: true,
+      hasOcr: true,
       sortOrder: 3,
+      ...termDiscounts,
     },
     {
       name: "BUSINESS",
-      priceMonthly: 1499,
-      maxDorms: 999,
-      maxRooms: 400,
-      slipQuotaMonthly: 900,
+      description: "ผู้ประกอบการหลายหอ ตรวจสลิปไม่จำกัด",
+      priceMonthly: 999,
+      maxDorms: 5,
+      maxRooms: 80,
+      slipQuotaMonthly: 0,
+      slipUnlimited: true,
+      hasOcr: true,
       sortOrder: 4,
+      ...termDiscounts,
     },
   ];
 
-  if ((await prisma.plan.count()) === 0) {
-    await prisma.plan.createMany({ data: initialPlans });
-    logger.info("Default plans created successfully!");
-  } else {
-    logger.info("Plans already exist.");
+  for (const plan of initialPlans) {
+    const existingPlan = await prisma.plan.findFirst({
+      where: { name: plan.name },
+    });
+
+    if (existingPlan) {
+      logger.info(`Plan '${plan.name}' already exists.`);
+    } else {
+      await prisma.plan.create({ data: plan });
+      logger.info(`Plan '${plan.name}' created successfully!`);
+    }
+  }
+
+  // แพ็คเกจที่ใช้ทดลองฟรี (เปิดทดลอง 14 วัน ค่าอื่นใช้ค่าเริ่มต้นของระบบ)
+  // ตั้งครั้งแรกเท่านั้น ถ้าแอดมินเปลี่ยนหรือเคลียร์แล้วจะไม่ถูกทับ
+  const existingTrialSetting = await prisma.platformSetting.findUnique({
+    where: { key: "trialPlanId" },
+  });
+
+  if (!existingTrialSetting) {
+    const trialPlan = await prisma.plan.findFirst({
+      where: { name: "START" },
+    });
+
+    if (trialPlan) {
+      await prisma.platformSetting.create({
+        data: { key: "trialPlanId", value: trialPlan.id },
+      });
+
+      logger.info("Default trial plan set to START.");
+    }
   }
 
   const initialLandmarks = [

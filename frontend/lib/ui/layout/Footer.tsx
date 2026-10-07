@@ -7,6 +7,12 @@ export default function Footer() {
         <p>© {new Date().getFullYear()} RentFlow. สงวนลิขสิทธิ์</p>
         <nav className="flex items-center gap-5">
           <Link
+            href="/pricing"
+            className="hover:text-foreground transition-colors"
+          >
+            ราคาแพ็คเกจ
+          </Link>
+          <Link
             href="/privacy"
             className="hover:text-foreground transition-colors"
           >

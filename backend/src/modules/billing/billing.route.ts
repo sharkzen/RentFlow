@@ -208,3 +208,20 @@ export async function billingRoute(app: FastifyInstance) {
     );
   });
 }
+
+/** เส้นทางสาธารณะ (ไม่ต้องล็อกอิน) แยก plugin เพื่อไม่ติด hook ของเจ้าของหอ */
+export async function billingPublicRoute(app: FastifyInstance) {
+  app.get(
+    "/pricing",
+    {
+      config: { rateLimit: { max: 60, timeWindow: "1 minute" } },
+      schema: {
+        tags: ["Billing (Public)"],
+        summary: "ราคาแพ็คเกจและโปรโมทหอ (สาธารณะ)",
+        response: { 200: okResponse("ข้อมูลราคา") },
+      },
+    },
+    async (_req: FastifyRequest, reply: FastifyReply) =>
+      reply.send(await BillingService.getPublicPricing()),
+  );
+}

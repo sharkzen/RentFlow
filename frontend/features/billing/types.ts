@@ -7,6 +7,11 @@ export interface Plan {
   maxRooms: number;
   slipQuotaMonthly: number;
   slipOverageRate: number | null;
+  slipUnlimited: boolean;
+  hasOcr: boolean;
+  discountPct3m: number;
+  discountPct6m: number;
+  discountPct12m: number;
   allowTrial: boolean;
   isFree: boolean;
   isActive: boolean;
@@ -49,6 +54,7 @@ export interface MyBilling {
   status: SubscriptionState;
   canManage: boolean;
   readOnly: boolean;
+  ocrAllowed: boolean;
   plan: Plan;
   periodEnd: string | null;
   graceEndsAt: string | null;
@@ -139,4 +145,25 @@ export interface AdminOrder extends BillingOrder {
 export interface Paginated<T> {
   data: T[];
   pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface RevenueReport {
+  totals: {
+    allTime: number;
+    discountGiven: number;
+    paidOrders: number;
+    thisMonth: number;
+    lastMonth: number;
+  };
+  monthly: { period: string; plan: number; promotion: number; total: number }[];
+  subscriptions: {
+    active: number;
+    trial: number;
+    grace: number;
+    expired: number;
+    mrr: number;
+    byPlan: { planId: string; name: string; price: number; count: number }[];
+  };
+  promotions: { active: number; maxSlots: number };
+  pendingReview: number;
 }

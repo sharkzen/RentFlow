@@ -16,6 +16,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import SendBillModal, { BillSummary } from "./SendBillModal";
 import { Feature, ApiResponse_Feature } from "@/features/feature/services";
 import { FeatureService } from "@/features/feature/services/feature.service";
+import { BillingService } from "@/features/billing/services/billing.service";
 import LoadingPage from "@/app/(owner)/owner/bills/loading";
 
 export default function BillContainer() {
@@ -44,6 +45,7 @@ export default function BillContainer() {
   const [features, setFeatures] = useState<
     ApiResponse_Feature<Feature> | undefined
   >();
+  const [ocrAllowedByPlan, setOcrAllowedByPlan] = useState(true);
 
   const statusOptions = [
     {
@@ -134,6 +136,14 @@ export default function BillContainer() {
 
         const featureRes = await FeatureService.getFeature("OCR_BILL");
         setFeatures(featureRes);
+
+        // แพ็คเกจที่ไม่มีสิทธิ์ OCR จะไม่เห็นปุ่มสแกน (ถ้าดึงสิทธิ์ไม่ได้ ปล่อยให้ backend ตัดสินตอนเรียกใช้)
+        try {
+          const billing = await BillingService.getMyBilling();
+          setOcrAllowedByPlan(billing.ocrAllowed);
+        } catch {
+          setOcrAllowedByPlan(true);
+        }
       } catch (err) {
         log.error(err);
       }
@@ -498,7 +508,9 @@ export default function BillContainer() {
           isWaterFlatRate={
             currentDorm?.settings?.waterBillingType === "FLAT_RATE"
           }
-          ocrFeatureEnabled={features?.data?.enabled || false}
+          ocrFeatureEnabled={
+            (features?.data?.enabled || false) && ocrAllowedByPlan
+          }
         />
       )}
       <SelectDormModal

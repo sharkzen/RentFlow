@@ -40,3 +40,30 @@ export function currentPeriod(now = new Date()): string {
   const th = new Date(now.getTime() + 7 * 60 * 60 * 1000);
   return `${th.getUTCFullYear()}-${String(th.getUTCMonth() + 1).padStart(2, "0")}`;
 }
+
+/** ระยะเวลาที่ขายได้ (เดือน) */
+export const ALLOWED_MONTHS = [1, 3, 6, 12] as const;
+
+export type PlanPricing = {
+  priceMonthly: number;
+  discountPct3m: number;
+  discountPct6m: number;
+  discountPct12m: number;
+};
+
+/** ส่วนลดตามระยะเวลาของแพ็คเกจ (เปอร์เซ็นต์) */
+export function durationDiscountPct(plan: PlanPricing, months: number): number {
+  if (months >= 12) return plan.discountPct12m;
+  if (months >= 6) return plan.discountPct6m;
+  if (months >= 3) return plan.discountPct3m;
+  return 0;
+}
+
+/**
+ * ราคาแพ็คเกจตามระยะเวลา หลังหักส่วนลดระยะเวลา ปัดเป็นบาทเต็ม
+ * (คูปองคิดซ้อนทับจากราคานี้อีกชั้น)
+ */
+export function planPeriodPrice(plan: PlanPricing, months: number): number {
+  const pct = Math.min(Math.max(durationDiscountPct(plan, months), 0), 100);
+  return Math.round(plan.priceMonthly * months * (1 - pct / 100));
+}

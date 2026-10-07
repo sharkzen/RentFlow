@@ -14,6 +14,11 @@ const emptyForm: PlanPayload = {
   maxRooms: 12,
   slipQuotaMonthly: 0,
   slipOverageRate: null,
+  slipUnlimited: false,
+  hasOcr: false,
+  discountPct3m: 0,
+  discountPct6m: 0,
+  discountPct12m: 0,
   allowTrial: true,
   isFree: false,
   isActive: true,
@@ -176,6 +181,9 @@ export default function PlanManager() {
                   สลิป/เดือน
                 </th>
                 <th className="px-6 py-4 font-semibold whitespace-nowrap">
+                  OCR
+                </th>
+                <th className="px-6 py-4 font-semibold whitespace-nowrap">
                   ผู้ใช้
                 </th>
                 <th className="px-6 py-4 font-semibold whitespace-nowrap">
@@ -189,7 +197,7 @@ export default function PlanManager() {
             <tbody className="divide-border divide-y">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
+                  <td colSpan={9} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-600"></div>
                       <span>กำลังโหลดข้อมูล...</span>
@@ -198,7 +206,7 @@ export default function PlanManager() {
                 </tr>
               ) : plans.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
+                  <td colSpan={9} className="px-6 py-12 text-center">
                     ยังไม่มีแพ็คเกจ
                   </td>
                 </tr>
@@ -233,7 +241,10 @@ export default function PlanManager() {
                       {fmt(plan.maxRooms)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {fmt(plan.slipQuotaMonthly)}
+                      {plan.slipUnlimited ? "ไม่จำกัด" : fmt(plan.slipQuotaMonthly)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {plan.hasOcr ? "มี" : "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {plan._count?.subscriptions ?? 0}
@@ -389,6 +400,7 @@ export default function PlanManager() {
                     min={0}
                     step={1}
                     required
+                    disabled={form.slipUnlimited}
                     value={form.slipQuotaMonthly}
                     onChange={(e) =>
                       setForm({
@@ -421,7 +433,70 @@ export default function PlanManager() {
                 </div>
               </div>
 
+              <div>
+                <p className="text-foreground/80 mb-1.5 text-sm font-medium">
+                  ส่วนลดตามระยะเวลา (%)
+                </p>
+                <div className="grid grid-cols-3 gap-3">
+                  {(
+                    [
+                      ["discountPct3m", "3 เดือน"],
+                      ["discountPct6m", "6 เดือน"],
+                      ["discountPct12m", "รายปี"],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <div key={key}>
+                      <label className="text-muted mb-1 block text-xs">
+                        {label}
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step="any"
+                        value={form[key]}
+                        onChange={(e) =>
+                          setForm({ ...form, [key]: num(e.target.value) })
+                        }
+                        className={inputClass}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-muted mt-1.5 text-xs">
+                  ราคารายปี {fmt(Math.round(form.priceMonthly * 12 * (1 - form.discountPct12m / 100)))} ฿ (เฉลี่ย {fmt(Math.round(form.priceMonthly * (1 - form.discountPct12m / 100)))} ฿/เดือน)
+                </p>
+              </div>
+
               <div className="border-border bg-background divide-border divide-y rounded-xl border">
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex flex-col">
+                    <span className="text-foreground text-sm font-medium">
+                      ตรวจสลิปไม่จำกัด
+                    </span>
+                    <span className="text-muted text-xs">
+                      ไม่ใช้โควต้าสลิปต่อเดือน
+                    </span>
+                  </div>
+                  <Toggle
+                    checked={form.slipUnlimited}
+                    onChange={(v) => setForm({ ...form, slipUnlimited: v })}
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex flex-col">
+                    <span className="text-foreground text-sm font-medium">
+                      สแกนมิเตอร์ด้วย OCR
+                    </span>
+                    <span className="text-muted text-xs">
+                      แพ็คเกจนี้ใช้ OCR อ่านเลขน้ำ/ไฟได้
+                    </span>
+                  </div>
+                  <Toggle
+                    checked={form.hasOcr}
+                    onChange={(v) => setForm({ ...form, hasOcr: v })}
+                  />
+                </div>
                 <div className="flex items-center justify-between p-4">
                   <div className="flex flex-col">
                     <span className="text-foreground text-sm font-medium">

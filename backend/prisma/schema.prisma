@@ -589,6 +589,11 @@ model Plan {
   maxRooms         Int            @default(12)
   slipQuotaMonthly Int            @default(0)
   slipOverageRate  Float?
+  slipUnlimited    Boolean        @default(false)
+  hasOcr           Boolean        @default(false)
+  discountPct3m    Float          @default(0)
+  discountPct6m    Float          @default(0)
+  discountPct12m   Float          @default(0)
   allowTrial       Boolean        @default(true)
   isFree           Boolean        @default(false)
   isActive         Boolean        @default(true)

@@ -7,6 +7,7 @@ import {
   Paginated,
   Plan,
   PlanPayload,
+  RevenueReport,
 } from "../types";
 
 export const AdminBillingService = {
@@ -28,6 +29,13 @@ export const AdminBillingService = {
   deletePlan: async (id: string): Promise<{ deactivated: boolean }> => {
     const res = await axios.delete(`/api/admin/billing/plans/${id}`);
     return res.data;
+  },
+
+  getReport: async (months = 12): Promise<RevenueReport> => {
+    const res = await axios.get("/api/admin/billing/report", {
+      params: { months },
+    });
+    return res.data.data;
   },
 
   getCoupons: async (): Promise<Coupon[]> => {

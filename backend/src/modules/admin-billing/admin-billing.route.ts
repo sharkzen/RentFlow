@@ -11,6 +11,7 @@ import {
   commonErrorResponses,
 } from "@/config/swagger";
 import {
+  AdminBillingReportService,
   AdminBillingService,
   couponSchema,
   planSchema,
@@ -127,6 +128,32 @@ export async function adminBillingRoute(app: FastifyInstance) {
         const user = req.user as UserDecodedDto;
         return reply.send(
           await AdminBillingService.deletePlan(req.params.id, user.sub),
+        );
+      },
+    );
+
+    routeRoles.get<{ Querystring: { months?: string } }>(
+      "/report",
+      {
+        schema: {
+          tags,
+          summary: "รายงานรายได้ แพ็คเกจที่ใช้งาน และโปรโมท",
+          security,
+          querystring: {
+            type: "object",
+            properties: { months: { type: "string" } },
+          },
+          response: {
+            200: okResponse("รายงานรายได้"),
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+          },
+        },
+      },
+      async (req, reply) => {
+        const months = Math.min(24, Math.max(1, Number(req.query.months) || 12));
+        return reply.send(
+          await AdminBillingReportService.getRevenueReport(months),
         );
       },
     );

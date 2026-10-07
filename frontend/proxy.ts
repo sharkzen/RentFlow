@@ -10,6 +10,7 @@ const PUBLIC_ROUTES: string[] = [
   "/auth/reset-password",
   "/dorms",
   "/privacy",
+  "/pricing",
 ];
 
 function isTokenExpired(token: string) {

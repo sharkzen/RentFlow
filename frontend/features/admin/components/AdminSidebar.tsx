@@ -18,6 +18,7 @@ import {
   Star,
   FileCode2,
   Lock,
+  BarChart3,
   Package,
   ReceiptText,
   Tag,
@@ -49,6 +50,11 @@ export default function AdminSidebar() {
       name: "หอพักแนะนำ",
       href: routes.admin.featured,
       icon: <Star size={20} />,
+    },
+    {
+      name: "รายงานรายได้",
+      href: routes.admin.billingReports,
+      icon: <BarChart3 size={20} />,
     },
     {
       name: "แพ็คเกจ (Plans)",

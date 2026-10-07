@@ -27,6 +27,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { buildBulkBillHtmlTemplate } from "../owner/lib/owner.lib";
 import { createPdfFromHtml, getCachedStamps } from "../tenant/lib/tenant.lib";
+import { assertCanUseOcr } from "@/lib/entitlements";
 
 // OCR หลาย pass บน CPU อาจใช้เวลาหลายวินาทีตอนคิวแน่น แต่ไม่ควรค้างนานกว่านี้
 const OCR_REQUEST_TIMEOUT_MS = 15_000;
@@ -1804,6 +1805,8 @@ export const billService = {
     });
 
     if (!owner) throw new Error("OWNER_PROFILE_NOT_FOUND");
+
+    await assertCanUseOcr(owner.id);
 
     const room = await prisma.room.findFirst({
       where: {

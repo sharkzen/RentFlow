@@ -14,6 +14,12 @@ import { toast } from "react-toastify";
 import { getApiErrorMessage } from "@/lib/backendError";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { BillingService } from "../../services/billing.service";
+import {
+  MONTH_LABEL,
+  MONTH_OPTIONS,
+  planPeriodPrice,
+  planSavings,
+} from "../../lib/pricing";
 import type {
   BillingOrder,
   CouponPreview,
@@ -35,7 +41,6 @@ const dateTh = (iso: string | null) =>
       })
     : "-";
 
-const MONTH_OPTIONS = [1, 3, 6, 12];
 
 const STATUS_LABEL: Record<SubscriptionState, { text: string; cls: string }> = {
   FREE: { text: "แพ็คเกจฟรี", cls: "border-border bg-background text-muted" },
@@ -123,7 +128,7 @@ function CheckoutModal({
   onClose: () => void;
   onCreated: (order: BillingOrder) => void;
 }) {
-  const [months, setMonths] = useState(1);
+  const [months, setMonths] = useState(checkout.kind === "PLAN" ? 12 : 1);
   const [dormId, setDormId] = useState(dorms[0]?.id ?? "");
   const [code, setCode] = useState("");
   const [preview, setPreview] = useState<CouponPreview | null>(null);
@@ -133,7 +138,11 @@ function CheckoutModal({
     checkout.kind === "PLAN"
       ? checkout.plan.priceMonthly
       : billing.promotion.pricePerMonth;
-  const base = unit * months;
+  // ราคาปกติรายเดือนคูณจำนวนเดือน และราคาหลังหักส่วนลดตามระยะเวลา (แพ็คเกจเท่านั้น)
+  const fullPrice = unit * months;
+  const base =
+    checkout.kind === "PLAN" ? planPeriodPrice(checkout.plan, months) : fullPrice;
+  const termSavings = fullPrice - base;
   const shown = preview ?? {
     baseAmount: base,
     discountAmount: 0,
@@ -227,16 +236,30 @@ function CheckoutModal({
             ระยะเวลา
           </label>
           <div className="grid grid-cols-4 gap-2">
-            {MONTH_OPTIONS.map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => changeMonths(m)}
-                className={`cursor-pointer rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${months === m ? "border-blue-600 bg-blue-50 text-blue-700" : "border-border text-muted hover:bg-background"}`}
-              >
-                {m} เดือน
-              </button>
-            ))}
+            {MONTH_OPTIONS.map((m) => {
+              const save =
+                checkout.kind === "PLAN" ? planSavings(checkout.plan, m) : 0;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => changeMonths(m)}
+                  className={`relative cursor-pointer rounded-xl border px-2 py-2 text-sm font-medium transition-colors ${months === m ? "border-blue-600 bg-blue-50 text-blue-700" : "border-border text-muted hover:bg-background"}`}
+                >
+                  {m === 12 && checkout.kind === "PLAN" && save > 0 && (
+                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-emerald-500 px-1.5 text-[10px] font-bold whitespace-nowrap text-white">
+                      คุ้มสุด
+                    </span>
+                  )}
+                  {MONTH_LABEL[m]}
+                  {save > 0 && (
+                    <span className="block text-[11px] font-normal text-emerald-600">
+                      ประหยัด {baht(save)}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -271,11 +294,17 @@ function CheckoutModal({
             <span>
               ราคา {baht(unit)} x {months} เดือน
             </span>
-            <span>{baht(shown.baseAmount)}</span>
+            <span>{baht(fullPrice)}</span>
           </div>
+          {termSavings > 0 && (
+            <div className="flex justify-between text-emerald-600">
+              <span>ส่วนลด{MONTH_LABEL[months]}</span>
+              <span>-{baht(termSavings)}</span>
+            </div>
+          )}
           {shown.discountAmount > 0 && (
             <div className="flex justify-between text-emerald-600">
-              <span>ส่วนลด</span>
+              <span>ส่วนลดจากโค้ด</span>
               <span>-{baht(shown.discountAmount)}</span>
             </div>
           )}
@@ -394,11 +423,29 @@ function UsageBar({
   label,
   used,
   max,
+  unlimited = false,
 }: {
   label: string;
   used: number;
   max: number;
+  unlimited?: boolean;
 }) {
+  if (unlimited) {
+    return (
+      <div>
+        <div className="mb-1 flex justify-between text-sm">
+          <span className="text-muted">{label}</span>
+          <span className="text-foreground">
+            {used.toLocaleString("th-TH")} / ไม่จำกัด
+          </span>
+        </div>
+        <div className="bg-background h-2 overflow-hidden rounded-full">
+          <div className="h-full w-full rounded-full bg-emerald-500/60" />
+        </div>
+      </div>
+    );
+  }
+
   const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 100;
   const danger = max > 0 && used >= max;
 
@@ -561,6 +608,7 @@ export default function OwnerBillingContainer() {
             label="ตรวจสลิปเดือนนี้"
             used={billing.usage.slips}
             max={billing.plan.slipQuotaMonthly}
+            unlimited={billing.plan.slipUnlimited}
           />
         </div>
 
@@ -623,10 +671,28 @@ export default function OwnerBillingContainer() {
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 size={16} className="text-emerald-500" />
-                      ตรวจสลิป {plan.slipQuotaMonthly.toLocaleString("th-TH")}{" "}
-                      ครั้ง/เดือน
+                      {plan.slipUnlimited
+                        ? "ตรวจสลิปไม่จำกัด"
+                        : `ตรวจสลิป ${plan.slipQuotaMonthly.toLocaleString("th-TH")} ครั้ง/เดือน`}
+                    </li>
+                    <li
+                      className={`flex items-center gap-2 ${plan.hasOcr ? "" : "opacity-50"}`}
+                    >
+                      {plan.hasOcr ? (
+                        <CheckCircle2 size={16} className="text-emerald-500" />
+                      ) : (
+                        <X size={16} />
+                      )}
+                      สแกนมิเตอร์น้ำ/ไฟด้วย OCR
                     </li>
                   </ul>
+                  {planSavings(plan, 12) > 0 && (
+                    <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                      รายปี {baht(planPeriodPrice(plan, 12))} (เฉลี่ย{" "}
+                      {baht(Math.round(planPeriodPrice(plan, 12) / 12))}/เดือน) ประหยัด{" "}
+                      {baht(planSavings(plan, 12))}
+                    </p>
+                  )}
                   <button
                     onClick={() => setCheckout({ kind: "PLAN", plan })}
                     className="mt-5 cursor-pointer rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95"
