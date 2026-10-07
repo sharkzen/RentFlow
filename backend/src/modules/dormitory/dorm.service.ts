@@ -72,8 +72,8 @@ export const dormService = {
     let resultDorms: any[] = [];
     let totalItems = 0;
 
-    const featuredIdsOrdered = (
-      await prisma.dormitory.findMany({
+    const [adminFeatured, paidPromotions] = await Promise.all([
+      prisma.dormitory.findMany({
         where: {
           isFeatured: true,
           status: "ACTIVE",
@@ -87,8 +87,34 @@ export const dormService = {
         orderBy: {
           featuredOrder: "asc",
         },
-      })
-    ).map((d) => d.id);
+      }),
+
+      // หอที่จ่ายโปรโมท: ใครจ่ายก่อน (rankAt เก่ากว่า) แสดงก่อน ต่อจากหอที่แอดมินปักหมุด
+      prisma.dormPromotion.findMany({
+        where: {
+          status: "ACTIVE",
+          endsAt: { gt: new Date() },
+          dorm: { status: "ACTIVE", isPublished: true, deletedAt: null },
+        },
+
+        select: {
+          dormId: true,
+        },
+
+        orderBy: {
+          rankAt: "asc",
+        },
+      }),
+    ]);
+
+    const featuredIdsOrdered = [
+      ...new Set([
+        ...adminFeatured.map((d) => d.id),
+        ...paidPromotions.map((p) => p.dormId),
+      ]),
+    ];
+
+    const promotedIdSet = new Set(paidPromotions.map((p) => p.dormId));
 
     const promoteFeaturedIds = (ids: string[]) => {
       const idSet = new Set(ids);
@@ -366,6 +392,7 @@ export const dormService = {
           images: imagesWithUrl,
           nearby: nearbyData,
           availabilityStatus,
+          isPromoted: promotedIdSet.has(dorm.id),
         };
       }),
     );

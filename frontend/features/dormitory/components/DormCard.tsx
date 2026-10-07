@@ -8,6 +8,7 @@ import {
   XCircle,
   HelpCircle,
   Star,
+  Megaphone,
 } from "lucide-react";
 
 interface DormProps {
@@ -19,6 +20,7 @@ interface DormProps {
   price: number;
   availabilityStatus?: "AVAILABLE" | "FULL";
   isFeatured?: boolean;
+  isPromoted?: boolean;
 }
 
 export default function DormCard({
@@ -30,6 +32,7 @@ export default function DormCard({
   price,
   availabilityStatus,
   isFeatured,
+  isPromoted,
 }: DormProps) {
   const displayImage =
     image || "https://placehold.co/800x600/f3f4f6/9ca3af?text=No+Image";
@@ -43,11 +46,18 @@ export default function DormCard({
       <div className="border-border bg-surface relative flex h-full w-full flex-col overflow-hidden rounded-2xl border shadow-sm transition-all duration-300 will-change-transform backface-hidden hover:-translate-y-1">
         <div className="bg-background relative aspect-4/3 w-full overflow-hidden">
           {isFull && <div className="absolute inset-0 z-10" />}
-          {isFeatured && (
+          {isFeatured ? (
             <span className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white shadow-md">
               <Star size={12} fill="currentColor" />
               แนะนำ
             </span>
+          ) : (
+            isPromoted && (
+              <span className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 rounded-full bg-blue-600 px-2.5 py-1 text-[11px] font-bold tracking-wide text-white shadow-md">
+                <Megaphone size={12} />
+                โปรโมท
+              </span>
+            )
           )}
           <Image
             src={displayImage}

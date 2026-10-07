@@ -70,6 +70,7 @@ export default function Dormitory({ dorms, total = 0 }: DormitoryProps) {
                 price={dorm.settings?.roomPrice || 0}
                 availabilityStatus={dorm.availabilityStatus}
                 isFeatured={dorm.isFeatured}
+                isPromoted={dorm.isPromoted}
               />
             );
           })}
