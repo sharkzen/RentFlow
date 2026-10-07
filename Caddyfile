@@ -1,4 +1,4 @@
-rentflow.duckdns.org {
+{$APP_URL} {
     encode gzip zstd
 
     header {
