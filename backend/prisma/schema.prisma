@@ -24,6 +24,8 @@ model File {
   isCover        Boolean             @default(false)
   createdAt      DateTime            @default(now())
   announcementId String?
+  billingOrderId String?
+  billingOrder   BillingOrder?       @relation("BillingOrderSlips", fields: [billingOrderId], references: [id])
   announcement   Announcement?       @relation("AnnouncementImages", fields: [announcementId], references: [id])
   dormitory      Dormitory?          @relation("DormitoryImages", fields: [dormitoryId], references: [id])
   maintenance    MaintenanceRequest? @relation("MaintenanceImages", fields: [maintenanceId], references: [id])
@@ -35,6 +37,7 @@ model File {
   @@index([paymentId])
   @@index([maintenanceId])
   @@index([announcementId])
+  @@index([billingOrderId])
 }
 
 model User {
@@ -67,6 +70,10 @@ model OwnerProfile {
   createdAt   DateTime    @default(now())
   dormitories Dormitory[]
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription  Subscription?
+  billingOrders BillingOrder[]
+  slipUsages    SlipUsage[]
+  trialUsedAt   DateTime?
 }
 
 model Dormitory {
@@ -98,6 +105,8 @@ model Dormitory {
   paymentSetting      PaymentSetting?
   rooms               Room[]
   contacts            DormitoryContact[]
+  promotions          DormPromotion[]
+  billingOrders       BillingOrder[]
 
   @@index([ownerId])
   @@index([isFeatured, featuredOrder])
@@ -422,6 +431,7 @@ enum FileCategory {
   PAYMENT_SLIP
   MAINTENANCE
   ANNOUNCEMENT
+  BILLING_SLIP
 }
 
 enum Status {
@@ -530,4 +540,170 @@ model RoomQrAuth {
   updatedAt DateTime @updatedAt
 
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  GRACE
+  EXPIRED
+  CANCELED
+}
+
+enum CouponType {
+  PERCENT
+  FIXED
+}
+
+enum CouponScope {
+  PLAN
+  PROMOTION
+  BOTH
+}
+
+enum BillingOrderType {
+  PLAN
+  PROMOTION
+}
+
+enum BillingOrderStatus {
+  PENDING
+  PENDING_REVIEW
+  PAID
+  REJECTED
+  EXPIRED
+}
+
+enum DormPromotionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELED
+}
+
+model Plan {
+  id               String         @id @default(uuid())
+  name             String
+  description      String?
+  priceMonthly     Float          @default(0)
+  maxDorms         Int            @default(1)
+  maxRooms         Int            @default(12)
+  slipQuotaMonthly Int            @default(0)
+  slipOverageRate  Float?
+  allowTrial       Boolean        @default(true)
+  isFree           Boolean        @default(false)
+  isActive         Boolean        @default(true)
+  sortOrder        Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  subscriptions    Subscription[]
+  orders           BillingOrder[]
+}
+
+model Subscription {
+  id                 String             @id @default(uuid())
+  ownerId            String             @unique
+  planId             String
+  status             SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime           @default(now())
+  currentPeriodEnd   DateTime?
+  trialEndsAt        DateTime?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  owner              OwnerProfile       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  plan               Plan               @relation(fields: [planId], references: [id])
+
+  @@index([status, currentPeriodEnd])
+}
+
+model Coupon {
+  id             String             @id @default(uuid())
+  code           String             @unique
+  description    String?
+  type           CouponType
+  value          Float
+  appliesTo      CouponScope        @default(BOTH)
+  planIds        String[]
+  startsAt       DateTime?
+  endsAt         DateTime?
+  maxRedemptions Int?
+  perOwnerLimit  Int                @default(1)
+  isActive       Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  redemptions    CouponRedemption[]
+  orders         BillingOrder[]
+}
+
+model CouponRedemption {
+  id        String       @id @default(uuid())
+  couponId  String
+  ownerId   String
+  orderId   String       @unique
+  createdAt DateTime     @default(now())
+  coupon    Coupon       @relation(fields: [couponId], references: [id])
+  order     BillingOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([couponId, ownerId])
+}
+
+model BillingOrder {
+  id             String             @id @default(uuid())
+  ownerId        String
+  type           BillingOrderType
+  planId         String?
+  dormId         String?
+  months         Int                @default(1)
+  baseAmount     Float
+  discountAmount Float              @default(0)
+  finalAmount    Float
+  couponId       String?
+  status         BillingOrderStatus @default(PENDING)
+  transferRef    String?            @unique
+  holdUntil      DateTime?
+  note           String?
+  paidAt         DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  owner          OwnerProfile       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  plan           Plan?              @relation(fields: [planId], references: [id])
+  dorm           Dormitory?         @relation(fields: [dormId], references: [id])
+  coupon         Coupon?            @relation(fields: [couponId], references: [id])
+  slips          File[]             @relation("BillingOrderSlips")
+  redemption     CouponRedemption?
+  promotion      DormPromotion?
+
+  @@index([ownerId, status])
+  @@index([type, status, holdUntil])
+}
+
+model DormPromotion {
+  id        String              @id @default(uuid())
+  dormId    String
+  orderId   String              @unique
+  startsAt  DateTime
+  endsAt    DateTime
+  rankAt    DateTime
+  status    DormPromotionStatus @default(ACTIVE)
+  createdAt DateTime            @default(now())
+  dorm      Dormitory           @relation(fields: [dormId], references: [id], onDelete: Cascade)
+  order     BillingOrder        @relation(fields: [orderId], references: [id])
+
+  @@index([status, endsAt])
+  @@index([dormId, status])
+}
+
+model SlipUsage {
+  id      String       @id @default(uuid())
+  ownerId String
+  period  String
+  count   Int          @default(0)
+  owner   OwnerProfile @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, period])
+}
+
+model PlatformSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

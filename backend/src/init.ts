@@ -60,6 +60,61 @@ async function main() {
     logger.info(`Feature '${featureKey}' created successfully!`);
   }
 
+  // แพ็คเกจเริ่มต้น (แอดมินแก้ไขราคา/โควต้าได้ภายหลังในหน้าแอดมิน)
+  const initialPlans = [
+    {
+      name: "FREE",
+      description: "ลงประกาศหอพักฟรี",
+      priceMonthly: 0,
+      maxDorms: 1,
+      maxRooms: 12,
+      slipQuotaMonthly: 0,
+      isFree: true,
+      allowTrial: false,
+      sortOrder: 0,
+    },
+    {
+      name: "START",
+      description: "เริ่มต้นใช้งานระบบจัดการหอพัก",
+      priceMonthly: 199,
+      maxDorms: 1,
+      maxRooms: 12,
+      slipQuotaMonthly: 30,
+      sortOrder: 1,
+    },
+    {
+      name: "STANDARD",
+      priceMonthly: 399,
+      maxDorms: 3,
+      maxRooms: 40,
+      slipQuotaMonthly: 100,
+      sortOrder: 2,
+    },
+    {
+      name: "PRO",
+      priceMonthly: 799,
+      maxDorms: 10,
+      maxRooms: 150,
+      slipQuotaMonthly: 350,
+      sortOrder: 3,
+    },
+    {
+      name: "BUSINESS",
+      priceMonthly: 1499,
+      maxDorms: 999,
+      maxRooms: 400,
+      slipQuotaMonthly: 900,
+      sortOrder: 4,
+    },
+  ];
+
+  if ((await prisma.plan.count()) === 0) {
+    await prisma.plan.createMany({ data: initialPlans });
+    logger.info("Default plans created successfully!");
+  } else {
+    logger.info("Plans already exist.");
+  }
+
   const initialLandmarks = [
     {
       name: "ตลาดต้นสน",
