@@ -14,6 +14,7 @@ export const SETTING_KEYS = {
   promoPricePerMonth: "promoPricePerMonth",
   promoMaxSlots: "promoMaxSlots",
   promoHoldMinutes: "promoHoldMinutes",
+  enforceLimits: "enforceLimits",
 } as const;
 
 export const SETTING_DEFAULTS: Record<string, string> = {
@@ -23,6 +24,8 @@ export const SETTING_DEFAULTS: Record<string, string> = {
   promoPricePerMonth: "199",
   promoMaxSlots: "10",
   promoHoldMinutes: "60",
+  // ปิดไว้ก่อนเพื่อไม่ให้เจ้าของหอเดิมถูกจำกัดทันที แอดมินเปิดเมื่อพร้อมเก็บเงิน
+  enforceLimits: "false",
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -121,7 +124,13 @@ export async function getEntitlements(
   };
 }
 
+async function isEnforced(db: Db) {
+  return (await getSetting(SETTING_KEYS.enforceLimits, db)) === "true";
+}
+
 export async function assertCanCreateDorm(ownerId: string, db: Db = prisma) {
+  if (!(await isEnforced(db))) return null;
+
   const ent = await getEntitlements(ownerId, db);
   if (ent.readOnly) {
     throw AppError.forbidden(
@@ -143,6 +152,8 @@ export async function assertCanCreateRooms(
   adding: number,
   db: Db = prisma,
 ) {
+  if (!(await isEnforced(db))) return null;
+
   const ent = await getEntitlements(ownerId, db);
   if (ent.readOnly) {
     throw AppError.forbidden(

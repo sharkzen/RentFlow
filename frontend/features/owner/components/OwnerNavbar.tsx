@@ -14,6 +14,7 @@ import {
   Menu,
   Megaphone,
   QrCode,
+  Package,
 } from "lucide-react";
 
 import { usePathname } from "next/navigation";
@@ -64,6 +65,11 @@ export default function OwnerNavbar() {
       name: "จัดการแจ้งซ่อม",
       icon: <Wrench size={20} />,
       href: "/owner/maintenance",
+    },
+    {
+      name: "แพ็คเกจ",
+      icon: <Package size={20} />,
+      href: "/owner/billing",
     },
     {
       name: "โปรไฟล์",

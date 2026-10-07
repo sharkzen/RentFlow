@@ -1,5 +1,13 @@
 import { axios } from "@/lib/api/api-client";
-import { BillingSettings, Plan, PlanPayload } from "../types";
+import {
+  AdminOrder,
+  BillingSettings,
+  Coupon,
+  CouponPayload,
+  Paginated,
+  Plan,
+  PlanPayload,
+} from "../types";
 
 export const AdminBillingService = {
   getPlans: async (): Promise<Plan[]> => {
@@ -19,6 +27,53 @@ export const AdminBillingService = {
 
   deletePlan: async (id: string): Promise<{ deactivated: boolean }> => {
     const res = await axios.delete(`/api/admin/billing/plans/${id}`);
+    return res.data;
+  },
+
+  getCoupons: async (): Promise<Coupon[]> => {
+    const res = await axios.get("/api/admin/billing/coupons");
+    return res.data.data;
+  },
+
+  createCoupon: async (payload: CouponPayload) => {
+    const res = await axios.post("/api/admin/billing/coupons", payload);
+    return res.data;
+  },
+
+  updateCoupon: async (id: string, payload: CouponPayload) => {
+    const res = await axios.put(`/api/admin/billing/coupons/${id}`, payload);
+    return res.data;
+  },
+
+  deleteCoupon: async (id: string): Promise<{ deactivated: boolean }> => {
+    const res = await axios.delete(`/api/admin/billing/coupons/${id}`);
+    return res.data;
+  },
+
+  getOrders: async (params: {
+    status?: string;
+    type?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<Paginated<AdminOrder>> => {
+    const res = await axios.get("/api/admin/billing/orders", { params });
+    return res.data;
+  },
+
+  getOrderSlips: async (id: string): Promise<string[]> => {
+    const res = await axios.get(`/api/admin/billing/orders/${id}/slips`);
+    return res.data.data;
+  },
+
+  reviewOrder: async (
+    id: string,
+    action: "APPROVE" | "REJECT",
+    note?: string,
+  ) => {
+    const res = await axios.post(`/api/admin/billing/orders/${id}/review`, {
+      action,
+      note: note || undefined,
+    });
     return res.data;
   },
 

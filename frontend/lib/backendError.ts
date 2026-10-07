@@ -41,7 +41,52 @@ export const errorMessageMap: Record<string, string> = {
     "ไม่สามารถลบบิลที่ชำระเงินแล้วได้ เพื่อรักษาประวัติการเงิน",
   DORM_NOT_READY_FOR_PUBLISH:
     "ยังเผยแพร่ไม่ได้ กรุณากรอกเบอร์ติดต่ออย่างน้อย 1 เบอร์, Line หรือ Facebook อย่างน้อย 1 ช่องทาง และเพิ่มรูปภาพหอพักอย่างน้อย 1 รูป",
+
+  // แพ็คเกจ / การชำระเงิน
+  VALIDATION_ERROR: "ข้อมูลไม่ครบหรือไม่ถูกต้อง",
+  RATE_LIMIT_EXCEEDED: "ส่งคำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่",
+  TOO_MANY_REQUESTS: "ส่งสลิปถี่เกินไป กรุณารอสักครู่แล้วลองใหม่",
+  SUBSCRIPTION_READ_ONLY:
+    "แพ็คเกจหมดอายุ ใช้งานได้แบบอ่านอย่างเดียว กรุณาต่ออายุเพื่อเพิ่มหอหรือห้อง",
+  DORM_LIMIT_REACHED:
+    "สร้างหอพักครบตามแพ็คเกจแล้ว กรุณาอัปเกรดแพ็คเกจเพื่อเพิ่มหอ",
+  ROOM_LIMIT_REACHED:
+    "จำนวนห้องเกินโควต้าแพ็คเกจ กรุณาอัปเกรดแพ็คเกจเพื่อเพิ่มห้อง",
+  OWNER_NOT_APPROVED: "บัญชีต้องได้รับการอนุมัติก่อนจึงจะซื้อแพ็คเกจได้",
+  PLAN_NOT_AVAILABLE: "แพ็คเกจนี้ไม่เปิดขายแล้ว",
+  PLAN_NOT_FOUND: "ไม่พบแพ็คเกจ",
+  COUPON_INVALID: "คูปองไม่ถูกต้อง หมดอายุ หรือใช้ครบสิทธิ์แล้ว",
+  COUPON_CODE_EXISTS: "รหัสคูปองนี้มีอยู่แล้ว",
+  COUPON_NOT_FOUND: "ไม่พบคูปอง",
+  DORM_NOT_PROMOTABLE: "โปรโมทได้เฉพาะหอพักที่อนุมัติแล้วและเผยแพร่อยู่",
+  PROMOTION_ALREADY_ACTIVE: "หอนี้กำลังโปรโมทอยู่ ซื้อใหม่ได้เมื่อหมดเวลา",
+  PROMOTION_IN_REVIEW: "หอนี้มีคำสั่งซื้อที่รอแอดมินตรวจสอบอยู่",
+  PROMOTION_SLOTS_FULL: "ช่องโปรโมทเต็มแล้ว กรุณารอจนกว่าจะมีหอหมดเวลา",
+  PROMOTION_HOLD_EXPIRED:
+    "หมดเวลาจองช่องและช่องเต็มแล้ว กรุณาติดต่อผู้ดูแลหากโอนเงินไปแล้ว",
+  ORDER_NOT_FOUND: "ไม่พบคำสั่งซื้อ",
+  ORDER_NOT_PAYABLE: "คำสั่งซื้อนี้ชำระหรือหมดอายุไปแล้ว",
+  ORDER_NOT_IN_REVIEW: "คำสั่งซื้อนี้ไม่ได้อยู่ระหว่างรอตรวจสอบ",
+  PAYMENT_NOT_CONFIGURED:
+    "ระบบยังไม่ได้ตั้งค่าบัญชีรับเงิน กรุณาติดต่อผู้ดูแล",
+  SLIP_AMOUNT_MISMATCH: "ยอดเงินในสลิปไม่ตรงกับยอดที่ต้องชำระ",
+  SLIP_DUPLICATE_REF: "สลิปนี้เคยถูกใช้ไปแล้ว",
+  INVALID_SLIP: "ไฟล์ที่ส่งไม่ใช่สลิปโอนเงินที่ถูกต้อง",
+  INVALID_FILE_TYPE_ONLY_IMAGES_ALLOWED: "รองรับเฉพาะไฟล์รูปภาพ JPG, PNG, WEBP",
+  FILE_REQUIRED: "กรุณาอัปโหลดรูปภาพสลิป",
+  TRIAL_NOT_AVAILABLE: "ขณะนี้ไม่มีสิทธิ์ทดลองใช้ฟรี",
+  TRIAL_ALREADY_USED: "คุณใช้สิทธิ์ทดลองไปแล้ว",
+  FREE_PLAN_EXISTS: "มีแพ็คเกจฟรีอยู่แล้ว แก้ไขตัวเดิมแทน",
+  FREE_PLAN_REQUIRED: "ต้องมีแพ็คเกจฟรีอย่างน้อย 1 ตัว",
+  INVALID_TRIAL_PLAN:
+    "แพ็คเกจทดลองต้องเป็นแพ็คเกจที่มีอยู่และไม่ใช่แพ็คฟรี",
 };
+
+/** ดึงข้อความไทยจาก error ของ axios (backend ส่ง { message: CODE }) */
+export function getApiErrorMessage(error: unknown, fallback?: string) {
+  const code = (error as any)?.response?.data?.message as string | undefined;
+  return errorMessageMap[code ?? ""] ?? fallback ?? showBackendError(code);
+}
 
 export function showBackendError(code?: string) {
   return errorMessageMap[code ?? ""] ?? "เกิดข้อผิดพลาดลองใหม่ภายหลัง";

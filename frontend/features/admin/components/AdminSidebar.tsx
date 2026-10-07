@@ -19,6 +19,8 @@ import {
   FileCode2,
   Lock,
   Package,
+  ReceiptText,
+  Tag,
   Wallet,
 } from "lucide-react";
 import Image from "next/image";
@@ -52,6 +54,16 @@ export default function AdminSidebar() {
       name: "แพ็คเกจ (Plans)",
       href: routes.admin.plans,
       icon: <Package size={20} />,
+    },
+    {
+      name: "คูปองและโปรโมชั่น",
+      href: routes.admin.coupons,
+      icon: <Tag size={20} />,
+    },
+    {
+      name: "คำสั่งซื้อและสลิป",
+      href: routes.admin.billingOrders,
+      icon: <ReceiptText size={20} />,
     },
     {
       name: "ตั้งค่าการเงิน",

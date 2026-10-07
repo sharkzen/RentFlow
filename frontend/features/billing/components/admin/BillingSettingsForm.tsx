@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Settings } from "lucide-react";
 import { toast } from "react-toastify";
+import { getApiErrorMessage } from "@/lib/backendError";
 import { AdminBillingService } from "../../services/admin-billing.service";
 import type { BillingSettings, Plan } from "../../types";
 
@@ -45,7 +46,7 @@ export default function BillingSettingsForm() {
         setPlans(p);
       })
       .catch((error: any) =>
-        toast.error(error.message || "ไม่สามารถโหลดการตั้งค่าได้"),
+        toast.error(getApiErrorMessage(error, "ไม่สามารถโหลดการตั้งค่าได้")),
       );
   }, []);
 
@@ -79,7 +80,7 @@ export default function BillingSettingsForm() {
       setSettings(await AdminBillingService.updateSettings(settings));
       toast.success("บันทึกการตั้งค่าสำเร็จ");
     } catch (error: any) {
-      toast.error(error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      toast.error(getApiErrorMessage(error, "เกิดข้อผิดพลาดในการบันทึกข้อมูล"));
     } finally {
       setSaving(false);
     }
@@ -100,6 +101,29 @@ export default function BillingSettingsForm() {
           </p>
         </div>
       </div>
+
+      <Section
+        title="บังคับใช้โควต้าแพ็คเกจ"
+        hint="เมื่อเปิด เจ้าของหอที่ไม่มีแพ็คเกจจะถูกจำกัดตามแพ็คเกจฟรี และสร้างหอ/ห้องเกินโควต้าไม่ได้ ควรตั้งแพ็คเกจให้เรียบร้อยก่อนเปิด"
+      >
+        <div className="border-border bg-background flex items-center justify-between rounded-xl border p-4 sm:col-span-2">
+          <span className="text-foreground text-sm font-medium">
+            เปิดบังคับโควต้า
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={settings.enforceLimits}
+            onClick={() => set("enforceLimits", !settings.enforceLimits)}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none ${settings.enforceLimits ? "bg-blue-600" : "bg-muted"}`}
+          >
+            <span
+              aria-hidden="true"
+              className={`bg-surface pointer-events-none inline-block h-5 w-5 transform rounded-full shadow transition duration-200 ${settings.enforceLimits ? "translate-x-5" : "translate-x-0"}`}
+            />
+          </button>
+        </div>
+      </Section>
 
       <Section
         title="ทดลองใช้ฟรี"

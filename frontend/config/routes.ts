@@ -6,7 +6,9 @@
 export const routes = {
   admin: {
     approvals: "/admin/approvals",
+    billingOrders: "/admin/billing-orders",
     billingSettings: "/admin/billing-settings",
+    coupons: "/admin/coupons",
     plans: "/admin/plans",
     dashboard: "/admin/dashboard",
     dormitories: "/admin/dormitories",
@@ -25,6 +27,7 @@ export const routes = {
   },
   owner: {
     announcements: "/owner/announcements",
+    billing: "/owner/billing",
     bills: "/owner/bills",
     dashboard: "/owner/dashboard",
     dorms: "/owner/dorms",

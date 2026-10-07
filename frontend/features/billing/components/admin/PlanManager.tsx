@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { AlertCircle, Edit3, Package, Plus, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
+import { getApiErrorMessage } from "@/lib/backendError";
 import { AdminBillingService } from "../../services/admin-billing.service";
 import type { Plan, PlanPayload } from "../../types";
 
@@ -61,7 +62,7 @@ export default function PlanManager() {
     try {
       setPlans(await AdminBillingService.getPlans());
     } catch (error: any) {
-      toast.error(error.message || "ไม่สามารถโหลดข้อมูลแพ็คเกจได้");
+      toast.error(getApiErrorMessage(error, "ไม่สามารถโหลดข้อมูลแพ็คเกจได้"));
     } finally {
       setLoading(false);
     }
@@ -104,7 +105,7 @@ export default function PlanManager() {
       setIsModalOpen(false);
       fetchPlans();
     } catch (error: any) {
-      toast.error(error.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      toast.error(getApiErrorMessage(error, "เกิดข้อผิดพลาดในการบันทึกข้อมูล"));
     } finally {
       setSaving(false);
     }
@@ -123,7 +124,7 @@ export default function PlanManager() {
       setPlanToDelete(null);
       fetchPlans();
     } catch (error: any) {
-      toast.error(error.message || "เกิดข้อผิดพลาดในการลบข้อมูล");
+      toast.error(getApiErrorMessage(error, "เกิดข้อผิดพลาดในการลบข้อมูล"));
     }
   };
 

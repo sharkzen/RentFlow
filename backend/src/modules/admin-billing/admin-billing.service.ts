@@ -2,6 +2,8 @@ import prisma from "@/lib/prisma";
 import { AppError } from "@/lib/errors";
 import { SETTING_DEFAULTS, SETTING_KEYS } from "@/lib/entitlements";
 import { createActivityLog } from "@/services/activity-log.service";
+import { BillingService } from "@/modules/billing/billing.service";
+import { BillingOrderStatus, Prisma } from "@prisma/client";
 import { z } from "zod";
 
 export const planSchema = z.object({
@@ -28,9 +30,51 @@ export const settingsSchema = z.object({
   promoPricePerMonth: z.number().min(0).optional(),
   promoMaxSlots: z.number().int().min(0).optional(),
   promoHoldMinutes: z.number().int().min(5).max(1440).optional(),
+  enforceLimits: z.boolean().optional(),
 });
 
 export type SettingsInput = z.infer<typeof settingsSchema>;
+
+export const couponSchema = z
+  .object({
+    code: z
+      .string()
+      .trim()
+      .min(3)
+      .max(40)
+      .regex(/^[A-Za-z0-9_-]+$/, "ใช้ได้เฉพาะ A-Z, 0-9, _ และ -")
+      .transform((v) => v.toUpperCase()),
+    description: z.string().trim().max(200).nullable().optional(),
+    type: z.enum(["PERCENT", "FIXED"]),
+    value: z.number().positive(),
+    appliesTo: z.enum(["PLAN", "PROMOTION", "BOTH"]).default("BOTH"),
+    planIds: z.array(z.string()).default([]),
+    startsAt: z.string().datetime().nullable().optional(),
+    endsAt: z.string().datetime().nullable().optional(),
+    maxRedemptions: z.number().int().positive().nullable().optional(),
+    perOwnerLimit: z.number().int().min(1).default(1),
+    isActive: z.boolean().default(true),
+  })
+  .refine((v) => v.type !== "PERCENT" || v.value <= 100, {
+    message: "ส่วนลดเปอร์เซ็นต์ต้องไม่เกิน 100",
+    path: ["value"],
+  })
+  .refine(
+    (v) => !v.startsAt || !v.endsAt || new Date(v.startsAt) < new Date(v.endsAt),
+    { message: "วันสิ้นสุดต้องอยู่หลังวันเริ่มต้น", path: ["endsAt"] },
+  );
+
+export const reviewOrderSchema = z.object({
+  action: z.enum(["APPROVE", "REJECT"]),
+  note: z.string().trim().max(300).optional(),
+});
+
+const couponData = (input: z.infer<typeof couponSchema>) => ({
+  ...input,
+  startsAt: input.startsAt ? new Date(input.startsAt) : null,
+  endsAt: input.endsAt ? new Date(input.endsAt) : null,
+  maxRedemptions: input.maxRedemptions ?? null,
+});
 
 /** แพ็คเกจ FREE ต้องมีได้แค่ตัวเดียว เพื่อให้ getEntitlements เลือกได้แน่นอน */
 async function assertSingleFreePlan(exceptId?: string) {
@@ -129,6 +173,140 @@ export const AdminBillingService = {
     return { success: true, deactivated: inUse };
   },
 
+  listCoupons: async () => {
+    const coupons = await prisma.coupon.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { _count: { select: { redemptions: true } } },
+    });
+    return { success: true, data: coupons };
+  },
+
+  createCoupon: async (input: z.infer<typeof couponSchema>, adminId: string) => {
+    const exists = await prisma.coupon.findUnique({
+      where: { code: input.code },
+    });
+    if (exists) throw AppError.conflict("COUPON_CODE_EXISTS", "รหัสคูปองนี้มีอยู่แล้ว");
+
+    const coupon = await prisma.coupon.create({ data: couponData(input) });
+
+    await createActivityLog({
+      userId: adminId,
+      action: "CREATE_COUPON",
+      entityType: "Coupon",
+      entityId: coupon.id,
+    });
+
+    return { success: true, data: coupon };
+  },
+
+  updateCoupon: async (
+    id: string,
+    input: z.infer<typeof couponSchema>,
+    adminId: string,
+  ) => {
+    const existing = await prisma.coupon.findUnique({ where: { id } });
+    if (!existing) throw AppError.notFound("COUPON_NOT_FOUND", "ไม่พบคูปอง");
+
+    if (input.code !== existing.code) {
+      const dup = await prisma.coupon.findUnique({ where: { code: input.code } });
+      if (dup) throw AppError.conflict("COUPON_CODE_EXISTS", "รหัสคูปองนี้มีอยู่แล้ว");
+    }
+
+    const coupon = await prisma.coupon.update({
+      where: { id },
+      data: couponData(input),
+    });
+
+    await createActivityLog({
+      userId: adminId,
+      action: "UPDATE_COUPON",
+      entityType: "Coupon",
+      entityId: id,
+    });
+
+    return { success: true, data: coupon };
+  },
+
+  /** คูปองที่เคยถูกใช้แล้วลบไม่ได้ (ประวัติคำสั่งซื้ออ้างอิงอยู่) จึงปิดการใช้งานแทน */
+  deleteCoupon: async (id: string, adminId: string) => {
+    const existing = await prisma.coupon.findUnique({
+      where: { id },
+      include: { _count: { select: { redemptions: true, orders: true } } },
+    });
+    if (!existing) throw AppError.notFound("COUPON_NOT_FOUND", "ไม่พบคูปอง");
+
+    const inUse = existing._count.redemptions + existing._count.orders > 0;
+
+    if (inUse) {
+      await prisma.coupon.update({ where: { id }, data: { isActive: false } });
+    } else {
+      await prisma.coupon.delete({ where: { id } });
+    }
+
+    await createActivityLog({
+      userId: adminId,
+      action: inUse ? "DEACTIVATE_COUPON" : "DELETE_COUPON",
+      entityType: "Coupon",
+      entityId: id,
+    });
+
+    return { success: true, deactivated: inUse };
+  },
+
+  listOrders: async (query: {
+    status?: string;
+    type?: string;
+    page: number;
+    limit: number;
+  }) => {
+    const where: Prisma.BillingOrderWhereInput = {};
+
+    if (query.status && query.status in BillingOrderStatus) {
+      where.status = query.status as BillingOrderStatus;
+    }
+    if (query.type === "PLAN" || query.type === "PROMOTION") {
+      where.type = query.type;
+    }
+
+    const [total, orders] = await Promise.all([
+      prisma.billingOrder.count({ where }),
+      prisma.billingOrder.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+        include: {
+          plan: { select: { name: true } },
+          dorm: { select: { name: true } },
+          coupon: { select: { code: true } },
+          owner: { select: { fullName: true, user: { select: { email: true } } } },
+        },
+      }),
+    ]);
+
+    return {
+      success: true,
+      data: orders,
+      pagination: {
+        page: query.page,
+        limit: query.limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / query.limit)),
+      },
+    };
+  },
+
+  getOrderSlips: async (id: string) => {
+    const urls = await BillingService.getSlipUrls(id);
+    return { success: true, data: urls };
+  },
+
+  reviewOrder: (
+    id: string,
+    input: z.infer<typeof reviewOrderSchema>,
+    adminId: string,
+  ) => BillingService.reviewOrder(id, input.action, adminId, input.note),
+
   getSettings: async () => {
     const rows = await prisma.platformSetting.findMany();
     const map: Record<string, string> = { ...SETTING_DEFAULTS };
@@ -146,6 +324,7 @@ export const AdminBillingService = {
         promoPricePerMonth: Number(map.promoPricePerMonth),
         promoMaxSlots: Number(map.promoMaxSlots),
         promoHoldMinutes: Number(map.promoHoldMinutes),
+        enforceLimits: map.enforceLimits === "true",
       },
     };
   },

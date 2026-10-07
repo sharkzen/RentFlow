@@ -9,6 +9,7 @@ import { createPdfFromHtml } from "../tenant/lib/tenant.lib";
 import { buildBulkQrHtmlTemplate } from "./lib/room.lib";
 import QRCode from "qrcode";
 import { env } from "@/config/env";
+import { assertCanCreateRooms } from "@/lib/entitlements";
 
 interface GetRoomParams {
   search?: string;
@@ -183,6 +184,10 @@ export const roomService = {
 
     if (validRooms.length > 0) {
       await prisma.$transaction(async (tx) => {
+        // ล็อกต่อเจ้าของ กันสร้างห้องพร้อมกันหลายคำขอจนทะลุโควต้า
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${owner.id}))`;
+        await assertCanCreateRooms(owner.id, validRooms.length, tx);
+
         const result = await tx.room.createMany({
           data: validRooms,
           skipDuplicates: true,

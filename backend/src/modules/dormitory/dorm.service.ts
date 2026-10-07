@@ -22,6 +22,7 @@ import { createActivityLog } from "@/services/activity-log.service";
 import sharp from "sharp";
 import { createPdfFromHtml } from "@/modules/tenant/lib/tenant.lib";
 import { formatDateTH } from "@/utils/date";
+import { assertCanCreateDorm } from "@/lib/entitlements";
 
 export const dormService = {
   async getAllDorms(query: GetDormsQueryDto) {
@@ -509,6 +510,8 @@ export const dormService = {
     });
 
     if (!owner) throw new Error("FORBIDDEN");
+
+    await assertCanCreateDorm(owner.id);
 
     const dorm = await prisma.dormitory.create({
       data: {
