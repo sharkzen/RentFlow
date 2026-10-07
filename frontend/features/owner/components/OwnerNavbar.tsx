@@ -110,7 +110,7 @@ export default function OwnerNavbar() {
         className={`border-border bg-surface fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden border-r transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} /* Desktop (>960px): Sticky */ min-[960px]:sticky min-[960px]:translate-x-0`}
       >
         <div className="flex h-full flex-col">
-          <div className="flex items-center gap-3 px-6 py-8">
+          <div className="flex shrink-0 items-center gap-3 px-6 py-8">
             <div className="flex h-10 w-10 items-center justify-center text-white">
               <Image src={"/logo.png"} width={32} height={32} alt={"logo"} />
             </div>
@@ -119,7 +119,7 @@ export default function OwnerNavbar() {
               <p className="text-muted text-xs font-medium">Owner Panel</p>
             </div>
           </div>
-          <div className="scrollbar-thin scrollbar-thumb-border flex-1 overflow-y-auto px-4 py-4">
+          <div className="scrollbar-thin scrollbar-thumb-border min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
             <nav className="space-y-1">
               <p className="text-muted mb-2 px-4 text-xs font-semibold tracking-wider uppercase">
                 Main Menu

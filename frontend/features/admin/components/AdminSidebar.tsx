@@ -119,9 +119,9 @@ export default function AdminSidebar() {
         </button>
       )}
       <aside
-        className={`border-border bg-surface fixed top-16.25 z-50 h-[calc(100vh-65px)] w-64 -translate-x-full overflow-hidden border-r transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} min-[960px]:sticky min-[960px]:translate-x-0`}
+        className={`border-border bg-surface fixed top-16.25 z-50 flex h-[calc(100vh-65px)] w-64 -translate-x-full flex-col overflow-hidden border-r transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : ""} min-[960px]:sticky min-[960px]:translate-x-0`}
       >
-        <div className="border-border flex h-20 items-center gap-3 border-b px-6">
+        <div className="border-border flex h-20 shrink-0 items-center gap-3 border-b px-6">
           <div className="flex h-10 w-10 items-center justify-center">
             <Image src={"/logo.png"} width={32} height={32} alt={"logo"} />
           </div>
@@ -132,7 +132,7 @@ export default function AdminSidebar() {
             <p className="text-muted text-xs font-medium">ระบบจัดการหอพัก</p>
           </div>
         </div>
-        <div className="scrollbar-thin scrollbar-thumb-gray-200 flex flex-1 flex-col overflow-y-auto px-4 py-6">
+        <div className="scrollbar-thin scrollbar-thumb-gray-200 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-6">
           <p className="text-muted mb-2 px-4 text-xs font-bold tracking-wider uppercase">
             เมนูหลัก
           </p>

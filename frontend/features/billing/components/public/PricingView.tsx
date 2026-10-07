@@ -109,7 +109,7 @@ export default function PricingView({ pricing }: { pricing: Pricing }) {
             <Gift size={20} className="shrink-0" />
             <span>
               สมัครใหม่ทดลองใช้แพ็คเกจ {pricing.trial.planName} ฟรี{" "}
-              {pricing.trial.days} วัน ไม่ต้องผูกบัตร
+              {pricing.trial.days} วัน 
             </span>
           </div>
         )}
