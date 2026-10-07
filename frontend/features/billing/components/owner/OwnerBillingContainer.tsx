@@ -16,6 +16,8 @@ import { getApiErrorMessage } from "@/lib/backendError";
 import ConfirmDialog from "@/lib/ui/ConfirmDialog";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { BillingService } from "../../services/billing.service";
+import DurationSwitch from "../shared/DurationSwitch";
+import PlanPriceBlock from "../shared/PlanPriceBlock";
 import {
   FEATURE_NAME_BY_KEY,
   useOwnerBilling,
@@ -361,8 +363,21 @@ function UsageBar({
     );
   }
 
-  const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 100;
-  const danger = max > 0 && used >= max;
+  // แพ็คที่ไม่มีโควต้านี้ (เช่น แพ็คฟรีไม่รวมการตรวจสลิป) ไม่ต้องโชว์ "0 / 0" กับแถบเต็ม
+  if (max <= 0) {
+    return (
+      <div>
+        <div className="mb-1 flex justify-between text-sm">
+          <span className="text-muted">{label}</span>
+          <span className="text-muted">ไม่รวมในแพ็คเกจ</span>
+        </div>
+        <div className="bg-background h-2 rounded-full" />
+      </div>
+    );
+  }
+
+  const pct = Math.min(100, Math.round((used / max) * 100));
+  const danger = used >= max;
 
   return (
     <div>
@@ -389,6 +404,8 @@ export default function OwnerBillingContainer() {
   const [dorms, setDorms] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkout, setCheckout] = useState<Checkout | null>(null);
+  // ตั้งต้นที่รายปี (คุ้มสุด)
+  const [months, setMonths] = useState(12);
   const [orderToCancel, setOrderToCancel] = useState<BillingOrder | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const router = useRouter();
@@ -599,77 +616,85 @@ export default function OwnerBillingContainer() {
       </section>
 
       <section>
-        <h2 className="text-foreground mb-3 text-lg font-bold">
+        <h2 className="text-foreground mb-4 text-lg font-bold">
           เลือกแพ็คเกจ
         </h2>
         {plans.length === 0 ? (
           <p className="text-muted text-sm">ยังไม่มีแพ็คเกจที่เปิดขาย</p>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {plans.map((plan) => {
-              const current =
-                billing.plan.id === plan.id && billing.status === "ACTIVE";
-              return (
-                <div
-                  key={plan.id}
-                  className={`bg-surface flex flex-col rounded-2xl border p-5 shadow-sm ${current ? "border-blue-500" : "border-border"}`}
-                >
-                  <h3 className="text-foreground text-lg font-bold">
-                    {plan.name}
-                  </h3>
-                  {plan.description && (
-                    <p className="text-muted mt-1 text-sm">{plan.description}</p>
-                  )}
-                  <p className="text-foreground mt-4 text-3xl font-bold">
-                    {baht(plan.priceMonthly)}
-                    <span className="text-muted text-sm font-normal">
-                      {" "}
-                      / เดือน
-                    </span>
-                  </p>
-                  <ul className="text-muted mt-4 flex-1 space-y-2 text-sm">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 size={16} className="text-emerald-500" />
-                      {plan.maxDorms.toLocaleString("th-TH")} หอพัก
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 size={16} className="text-emerald-500" />
-                      {plan.maxRooms.toLocaleString("th-TH")} ห้องพัก
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 size={16} className="text-emerald-500" />
-                      {plan.slipUnlimited
-                        ? "ตรวจสลิปไม่จำกัด"
-                        : `ตรวจสลิป ${plan.slipQuotaMonthly.toLocaleString("th-TH")} ครั้ง/เดือน`}
-                    </li>
-                    <li
-                      className={`flex items-center gap-2 ${plan.hasOcr ? "" : "opacity-50"}`}
-                    >
-                      {plan.hasOcr ? (
-                        <CheckCircle2 size={16} className="text-emerald-500" />
-                      ) : (
-                        <X size={16} />
-                      )}
-                      สแกนมิเตอร์น้ำ/ไฟด้วย OCR
-                    </li>
-                  </ul>
-                  {planSavings(plan, 12) > 0 && (
-                    <p className="mt-4 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                      รายปี {baht(planPeriodPrice(plan, 12))} (เฉลี่ย{" "}
-                      {baht(Math.round(planPeriodPrice(plan, 12) / 12))}/เดือน) ประหยัด{" "}
-                      {baht(planSavings(plan, 12))}
-                    </p>
-                  )}
-                  <button
-                    onClick={() => setCheckout({ kind: "PLAN", plan })}
-                    className="mt-5 cursor-pointer rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95"
+          <>
+            <DurationSwitch
+              value={months}
+              onChange={setMonths}
+              plans={plans}
+              id="owner-billing"
+            />
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {plans.map((plan) => {
+                const current =
+                  billing.plan.id === plan.id && billing.status === "ACTIVE";
+                return (
+                  <div
+                    key={plan.id}
+                    className={`bg-surface flex h-full flex-col rounded-2xl border p-5 shadow-sm transition-shadow hover:shadow-lg ${current ? "border-blue-500 ring-1 ring-blue-500" : "border-border"}`}
                   >
-                    {current ? "ต่ออายุ" : "เลือกแพ็คเกจนี้"}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="text-foreground text-lg font-bold">
+                        {plan.name}
+                      </h3>
+                      {current && (
+                        <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
+                          แพ็คเกจปัจจุบัน
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-muted mt-1 line-clamp-2 min-h-10 text-sm">
+                      {plan.description}
+                    </p>
+                    <div className="mt-4">
+                      <PlanPriceBlock plan={plan} months={months} />
+                    </div>
+                    <button
+                      onClick={() => setCheckout({ kind: "PLAN", plan, months })}
+                      className="mt-2 cursor-pointer rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-[0.98]"
+                    >
+                      {current ? "ต่ออายุ" : "เลือกแพ็คเกจนี้"}
+                    </button>
+                    <ul className="border-border mt-6 space-y-1.5 border-t pt-5 text-sm">
+                      {[
+                        { ok: true, text: `${plan.maxDorms.toLocaleString("th-TH")} หอพัก` },
+                        { ok: true, text: `${plan.maxRooms.toLocaleString("th-TH")} ห้องพักรวม` },
+                        {
+                          ok: true,
+                          text: plan.slipUnlimited
+                            ? "ตรวจสลิปไม่จำกัด"
+                            : `ตรวจสลิป ${plan.slipQuotaMonthly.toLocaleString("th-TH")} ครั้ง/เดือน`,
+                        },
+                        { ok: plan.hasOcr, text: "สแกนมิเตอร์ OCR" },
+                      ].map((row) => (
+                        <li
+                          key={row.text}
+                          className={`flex min-h-7 items-center gap-2.5 ${row.ok ? "text-foreground" : "text-muted/60"}`}
+                        >
+                          {row.ok ? (
+                            <CheckCircle2
+                              size={16}
+                              className="shrink-0 text-emerald-500"
+                            />
+                          ) : (
+                            <X size={16} className="shrink-0" />
+                          )}
+                          <span className={row.ok ? "" : "line-through decoration-1"}>
+                            {row.text}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </section>
 

@@ -154,7 +154,10 @@ async function main() {
   };
 
   for (const [key, value] of Object.entries(platformPaymentDefaults)) {
-    if (!value?.trim()) continue;
+    // กัน env_file ที่ไม่ตัดเครื่องหมายคำพูดให้ (เช่น PLATFORM_BANK_NAME="kbank")
+    const cleaned = value?.trim().replace(/^(["'])(.*)\1$/, "$2").trim();
+
+    if (!cleaned) continue;
 
     const existingSetting = await prisma.platformSetting.findUnique({
       where: { key },
@@ -162,7 +165,7 @@ async function main() {
 
     if (!existingSetting) {
       await prisma.platformSetting.create({
-        data: { key, value: value.trim() },
+        data: { key, value: cleaned },
       });
 
       logger.info(`Platform payment setting '${key}' initialised from env.`);
