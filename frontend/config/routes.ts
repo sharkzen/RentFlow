@@ -6,6 +6,8 @@
 export const routes = {
   admin: {
     approvals: "/admin/approvals",
+    billingSettings: "/admin/billing-settings",
+    plans: "/admin/plans",
     dashboard: "/admin/dashboard",
     dormitories: "/admin/dormitories",
     featured: "/admin/featured",

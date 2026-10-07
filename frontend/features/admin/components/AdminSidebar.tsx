@@ -18,6 +18,8 @@ import {
   Star,
   FileCode2,
   Lock,
+  Package,
+  Wallet,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -45,6 +47,16 @@ export default function AdminSidebar() {
       name: "หอพักแนะนำ",
       href: routes.admin.featured,
       icon: <Star size={20} />,
+    },
+    {
+      name: "แพ็คเกจ (Plans)",
+      href: routes.admin.plans,
+      icon: <Package size={20} />,
+    },
+    {
+      name: "ตั้งค่าการเงิน",
+      href: routes.admin.billingSettings,
+      icon: <Wallet size={20} />,
     },
     {
       name: "จัดการผู้ใช้งาน",
