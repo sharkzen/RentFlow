@@ -13,6 +13,7 @@ import {
 import {
   AdminBillingReportService,
   AdminBillingService,
+  AdminBillingTrialService,
   couponSchema,
   planSchema,
   reviewOrderSchema,
@@ -340,6 +341,29 @@ export async function adminBillingRoute(app: FastifyInstance) {
             reviewOrderSchema.parse(req.body),
             user.sub,
           ),
+        );
+      },
+    );
+
+    routeRoles.post(
+      "/grant-trial",
+      {
+        schema: {
+          tags,
+          summary: "แจกทดลองฟรีให้เจ้าของหอที่อนุมัติแล้วและยังไม่มีแพ็คเกจ",
+          security,
+          response: {
+            200: okResponse("แจกสิทธิ์ทดลองสำเร็จ"),
+            400: commonErrorResponses[400],
+            401: commonErrorResponses[401],
+            403: commonErrorResponses[403],
+          },
+        },
+      },
+      async (req: FastifyRequest, reply: FastifyReply) => {
+        const user = req.user as UserDecodedDto;
+        return reply.send(
+          await AdminBillingTrialService.grantTrialToExistingOwners(user.sub),
         );
       },
     );

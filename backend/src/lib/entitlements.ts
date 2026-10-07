@@ -18,6 +18,9 @@ export const SETTING_KEYS = {
   promoHoldMinutes: "promoHoldMinutes",
   enforceLimits: "enforceLimits",
   slipOkPlatformQuota: "slipOkPlatformQuota",
+  bankName: "bankName",
+  bankAccountNumber: "bankAccountNumber",
+  bankAccountName: "bankAccountName",
 } as const;
 
 export const SETTING_DEFAULTS: Record<string, string> = {
@@ -84,13 +87,17 @@ export async function getUsage(ownerId: string, db: Db = prisma) {
 export async function getEntitlements(
   ownerId: string,
   db: Db = prisma,
+  opts: { usage?: boolean } = {},
 ): Promise<Entitlements> {
+  const withUsage = opts.usage ?? true;
+
   const [sub, usage, graceDays] = await Promise.all([
     db.subscription.findUnique({
       where: { ownerId },
       include: { plan: true },
     }),
-    getUsage(ownerId, db),
+    // ตรวจสิทธิ์ทุก request ไม่ต้องนับหอ/ห้อง จึงข้ามได้
+    withUsage ? getUsage(ownerId, db) : Promise.resolve({ dorms: 0, rooms: 0 }),
     getNumberSetting(SETTING_KEYS.graceDays, db),
   ]);
 
@@ -129,7 +136,7 @@ export async function getEntitlements(
   };
 }
 
-async function isEnforced(db: Db) {
+export async function isEnforced(db: Db = prisma) {
   return (await getSetting(SETTING_KEYS.enforceLimits, db)) === "true";
 }
 
@@ -275,5 +282,50 @@ export async function assertCanUseOcr(ownerId: string, db: Db = prisma) {
   throw AppError.forbidden(
     "OCR_NOT_IN_PLAN",
     "แพ็คเกจของคุณไม่รวมการสแกนมิเตอร์ด้วย OCR กรุณาอัปเกรดแพ็คเกจ",
+  );
+}
+
+export type AccessLevel = "full" | "readonly" | "locked";
+
+/**
+ * ระดับการเข้าถึงงานจัดการ (ผู้เช่า/บิล/แจ้งซ่อม/ประกาศ/QR)
+ * - full: ใช้ได้เต็ม (ทดลอง/ชำระแล้ว หรือยังไม่เปิดบังคับ)
+ * - readonly: แพ็คหมดอายุ ดูได้แต่เพิ่ม/แก้ไม่ได้
+ * - locked: ไม่เคยมีแพ็คเกจ ต้องรับทดลองหรือซื้อก่อน
+ */
+export async function getManageAccess(
+  ownerId: string,
+  db: Db = prisma,
+): Promise<AccessLevel> {
+  if (!(await isEnforced(db))) return "full";
+
+  const ent = await getEntitlements(ownerId, db, { usage: false });
+
+  if (ent.canManage) return "full";
+  return ent.readOnly ? "readonly" : "locked";
+}
+
+/** ใช้เป็น preHandler ของ route จัดการ: อ่านได้ถ้า readonly, เขียนได้เมื่อ full เท่านั้น */
+export async function assertManageAccess(
+  ownerId: string,
+  method: string,
+  db: Db = prisma,
+) {
+  const access = await getManageAccess(ownerId, db);
+
+  if (access === "full") return;
+
+  if (access === "readonly") {
+    if (method === "GET" || method === "HEAD") return;
+
+    throw AppError.forbidden(
+      "SUBSCRIPTION_READ_ONLY",
+      "แพ็คเกจหมดอายุ ใช้งานได้แบบอ่านอย่างเดียว กรุณาต่ออายุ",
+    );
+  }
+
+  throw AppError.forbidden(
+    "SUBSCRIPTION_REQUIRED",
+    "ฟีเจอร์นี้ต้องใช้แพ็คเกจ กรุณารับทดลองใช้ฟรีหรือเลือกแพ็คเกจ",
   );
 }

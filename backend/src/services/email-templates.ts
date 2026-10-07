@@ -36,6 +36,15 @@ const getBankName = (code: string) => {
   return banks[code] || code || "-";
 };
 
+/** ข้อความที่ผู้ใช้/แอดมินพิมพ์เองต้อง escape ก่อนใส่ใน HTML อีเมล */
+const escapeHtml = (text: string) =>
+  text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const minifyHtml = (html: string) => {
   return html.replace(/\s+/g, " ").replace(/>\s+</g, "><").trim();
 };
@@ -641,6 +650,19 @@ export const getEmailTemplate = (type: EmailType, data: any) => {
               <p style="color: ${THEME.secondary}; font-size: 16px; line-height: 1.8; margin-bottom: 24px;">
                 จากการตรวจสอบข้อมูลและเอกสารประกอบการสมัครบัญชีผู้จัดการหอพักของคุณ ทีมงาน RentFlow ขออภัยที่ต้องแจ้งให้ทราบว่า <strong>เราไม่สามารถอนุมัติบัญชีของคุณได้ในขณะนี้</strong> เนื่องจากพบข้อมูลบางส่วนไม่ถูกต้องหรือไม่สมบูรณ์
               </p>
+
+              ${
+                data.reason
+                  ? `<div style="background-color: ${THEME.dangerBg}; border: 1px solid ${THEME.dangerBorder}; padding: 20px; margin-bottom: 20px;">
+                <div style="font-size: 14px; font-weight: 700; color: ${THEME.dangerText}; margin-bottom: 10px;">
+                  เหตุผลจากทีมงาน:
+                </div>
+                <div style="color: ${THEME.dangerText}; font-size: 15px; line-height: 1.7;">
+                  ${escapeHtml(String(data.reason)).replace(/\r?\n/g, "<br>")}
+                </div>
+              </div>`
+                  : ""
+              }
 
               <div style="background-color: ${THEME.dangerBg}; border: 1px solid ${THEME.dangerBorder}; padding: 20px; margin-bottom: 32px;">
                 <div style="font-size: 14px; font-weight: 700; color: ${THEME.dangerText}; margin-bottom: 10px;">

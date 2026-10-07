@@ -74,6 +74,8 @@ model OwnerProfile {
   billingOrders BillingOrder[]
   slipUsages    SlipUsage[]
   trialUsedAt   DateTime?
+  // แอดมินติ๊กตอนอนุมัติ เมื่อสงสัยว่าเป็นผู้ใช้เดิมที่สมัครใหม่เพื่อรับทดลองซ้ำ
+  trialBlocked  Boolean     @default(false)
 }
 
 model Dormitory {

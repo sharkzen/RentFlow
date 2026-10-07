@@ -34,6 +34,11 @@ const envSchema = z.object({
   SLIPOK_BRANCH_ID: z.string().optional(),
   SLIPOK_API_KEY: z.string().optional(),
   OCR_SERVICE_URL: z.string().optional(),
+  // บัญชีรับเงินค่าแพ็คเกจของแพลตฟอร์ม ใช้เป็นค่าเริ่มต้นตอน seed (แอดมินแก้ในหน้าตั้งค่าได้)
+  PLATFORM_PROMPTPAY_ID: z.string().optional(),
+  PLATFORM_ACCOUNT_NAME: z.string().optional(),
+  PLATFORM_BANK_NAME: z.string().optional(),
+  PLATFORM_BANK_ACCOUNT: z.string().optional(),
 });
 
 const parsed = envSchema.parse(process.env);

@@ -72,10 +72,11 @@ async function main() {
   const initialPlans = [
     {
       name: "FREE",
-      description: "ลงประกาศหอพักฟรี",
+      description: "ลงประกาศหอพักฟรี ไม่จำกัดจำนวนหอ",
       priceMonthly: 0,
-      maxDorms: 1,
-      maxRooms: 12,
+      // ลงประกาศฟรีทุกหอ ค่านี้เป็นเพดานกันใช้ผิดปกติ ไม่ใช่โควต้าที่ขาย (แอดมินแก้ได้)
+      maxDorms: 50,
+      maxRooms: 2000,
       slipQuotaMonthly: 0,
       isFree: true,
       allowTrial: false,
@@ -139,6 +140,32 @@ async function main() {
     } else {
       await prisma.plan.create({ data: plan });
       logger.info(`Plan '${plan.name}' created successfully!`);
+    }
+  }
+
+  // บัญชีรับเงินค่าแพ็คเกจของแพลตฟอร์ม ตั้งค่าเริ่มต้นจาก env ครั้งแรกเท่านั้น
+  // (แอดมินแก้ในหน้าตั้งค่าการเงินได้ และจะไม่ถูกทับเมื่อ container restart)
+  const platformPaymentDefaults: Record<string, string | undefined> = {
+    promptPayId: env.PLATFORM_PROMPTPAY_ID,
+    promptPayName: env.PLATFORM_ACCOUNT_NAME,
+    bankName: env.PLATFORM_BANK_NAME,
+    bankAccountNumber: env.PLATFORM_BANK_ACCOUNT,
+    bankAccountName: env.PLATFORM_ACCOUNT_NAME,
+  };
+
+  for (const [key, value] of Object.entries(platformPaymentDefaults)) {
+    if (!value?.trim()) continue;
+
+    const existingSetting = await prisma.platformSetting.findUnique({
+      where: { key },
+    });
+
+    if (!existingSetting) {
+      await prisma.platformSetting.create({
+        data: { key, value: value.trim() },
+      });
+
+      logger.info(`Platform payment setting '${key}' initialised from env.`);
     }
   }
 

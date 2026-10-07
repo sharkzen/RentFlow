@@ -267,7 +267,11 @@ export const AdminService = {
     };
   },
 
-  approveOwner: async (id: string, adminUserId: string) => {
+  approveOwner: async (
+    id: string,
+    adminUserId: string,
+    denyTrial: boolean = false,
+  ) => {
     const approvedOwner = await prisma.$transaction(async (tx) => {
       const owner = await tx.ownerProfile.update({
         where: {
@@ -276,6 +280,8 @@ export const AdminService = {
 
         data: {
           status: OwnerStatus.APPROVED,
+          // ติ๊กแล้วเท่านั้นที่เปลี่ยนค่า ไม่ยกเลิกสิทธิ์ที่เคยตัดไว้ตอนอนุมัติซ้ำ
+          ...(denyTrial ? { trialBlocked: true } : {}),
         },
 
         include: {
@@ -324,12 +330,13 @@ export const AdminService = {
       action: "APPROVE_OWNER",
       entityType: "OwnerProfile",
       entityId: id,
+      metadata: { denyTrial },
     });
 
     return approvedOwner;
   },
 
-  rejectOwner: async (id: string, adminUserId: string) => {
+  rejectOwner: async (id: string, adminUserId: string, reason: string) => {
     const ownerToDelete = await prisma.ownerProfile.findUnique({
       where: {
         id,
@@ -365,6 +372,7 @@ export const AdminService = {
         data: {
           ownerName: ownerName,
           email: userEmail,
+          reason,
         },
       },
       {
@@ -385,6 +393,7 @@ export const AdminService = {
 
       metadata: {
         ownerName,
+        reason,
       },
     });
 

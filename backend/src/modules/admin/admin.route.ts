@@ -7,6 +7,8 @@ import { FastifyInstance } from "fastify";
 
 import {
   AdminController,
+  approveOwnerSchema,
+  rejectOwnerSchema,
   createLandmarkSchema,
   updateLandmarkSchema,
   togglePublishSchema,
@@ -112,7 +114,7 @@ export async function adminRoute(app: FastifyInstance) {
       {
         schema: {
           tags: ["Admin"],
-          summary: "อนุมัติเจ้าของหอ",
+          summary: "อนุมัติเจ้าของหอ (denyTrial = ไม่ให้สิทธิ์ทดลองฟรี)",
 
           security: [
             {
@@ -121,6 +123,7 @@ export async function adminRoute(app: FastifyInstance) {
           ],
 
           params: idParam,
+          body: zodBody(approveOwnerSchema),
 
           response: {
             200: okResponse("อนุมัติเจ้าของหอสำเร็จ"),
@@ -138,7 +141,7 @@ export async function adminRoute(app: FastifyInstance) {
       {
         schema: {
           tags: ["Admin"],
-          summary: "ปฏิเสธ/ลบคำขอสมัครเจ้าของหอ",
+          summary: "ปฏิเสธ/ลบคำขอสมัครเจ้าของหอ (ต้องระบุเหตุผล ส่งไปทางอีเมล)",
 
           security: [
             {
@@ -147,6 +150,7 @@ export async function adminRoute(app: FastifyInstance) {
           ],
 
           params: idParam,
+          body: zodBody(rejectOwnerSchema),
 
           response: {
             200: okResponse("ปฏิเสธคำขอสำเร็จ"),

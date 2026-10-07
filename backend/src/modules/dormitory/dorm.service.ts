@@ -22,7 +22,7 @@ import { createActivityLog } from "@/services/activity-log.service";
 import sharp from "sharp";
 import { createPdfFromHtml } from "@/modules/tenant/lib/tenant.lib";
 import { formatDateTH } from "@/utils/date";
-import { assertCanCreateDorm } from "@/lib/entitlements";
+import { assertCanCreateDorm, getManageAccess } from "@/lib/entitlements";
 
 export const dormService = {
   async getAllDorms(query: GetDormsQueryDto) {
@@ -737,6 +737,10 @@ export const dormService = {
         ? (dorm.promptPayType as any)
         : null;
 
+    // ตั้งค่าการเงิน (เลขบัญชี/พร้อมเพย์) ใช้ได้เมื่อมีแพ็คเกจที่ใช้งานอยู่เท่านั้น
+    // ไม่มีสิทธิ์ก็ยังบันทึกรายละเอียดหอ ค่าน้ำไฟ ราคา ได้ตามปกติ แต่จะไม่แตะข้อมูลการเงิน
+    const canEditFinance = (await getManageAccess(ownerProfile.id)) === "full";
+
     return await prisma.$transaction(async (tx) => {
       const updatedDorm = await tx.dormitory.update({
         where: {
@@ -806,31 +810,37 @@ export const dormService = {
         }
       }
 
-      const paymentSetting = await tx.paymentSetting.upsert({
-        where: {
-          dormitoryId: dorm.id,
-        },
+      const paymentSetting = canEditFinance
+        ? await tx.paymentSetting.upsert({
+            where: {
+              dormitoryId: dorm.id,
+            },
 
-        update: {
-          bankName: dorm.bankName,
-          bankAccount: dorm.bankAccount,
-          bankHolder: dorm.bankHolder,
-          promptPayType: validPromptPayType,
-          promptPayValue: dorm.promptPayValue,
-          promptPayHolder: dorm.promptPayHolder,
-        },
+            update: {
+              bankName: dorm.bankName,
+              bankAccount: dorm.bankAccount,
+              bankHolder: dorm.bankHolder,
+              promptPayType: validPromptPayType,
+              promptPayValue: dorm.promptPayValue,
+              promptPayHolder: dorm.promptPayHolder,
+            },
 
-        create: {
-          dormitoryId: dorm.id,
-          bankName: dorm.bankName,
-          bankAccount: dorm.bankAccount,
-          bankHolder: dorm.bankHolder,
-          promptPayType: validPromptPayType,
-          promptPayValue: dorm.promptPayValue,
-          promptPayHolder: dorm.promptPayHolder,
-          isActive: true,
-        },
-      });
+            create: {
+              dormitoryId: dorm.id,
+              bankName: dorm.bankName,
+              bankAccount: dorm.bankAccount,
+              bankHolder: dorm.bankHolder,
+              promptPayType: validPromptPayType,
+              promptPayValue: dorm.promptPayValue,
+              promptPayHolder: dorm.promptPayHolder,
+              isActive: true,
+            },
+          })
+        : await tx.paymentSetting.findUnique({
+            where: {
+              dormitoryId: dorm.id,
+            },
+          });
 
       await createActivityLog({
         userId: userId,

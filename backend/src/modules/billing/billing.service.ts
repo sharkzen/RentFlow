@@ -15,7 +15,9 @@ import { AppError } from "@/lib/errors";
 import {
   SETTING_KEYS,
   getEntitlements,
+  getManageAccess,
   getNumberSetting,
+  isEnforced,
   isOcrAllowed,
   getSetting,
 } from "@/lib/entitlements";
@@ -32,6 +34,7 @@ import { uploadFile, generateSignedUrl } from "@/services/r2Client";
 import { createActivityLog } from "@/services/activity-log.service";
 import { detectImageType } from "@/utils/image-type";
 import { matchAccount } from "@/modules/tenant/lib/tenant.lib";
+import { getSlipBankCode } from "@/utils/bank-code";
 import logger from "@/utils/logger";
 
 type Tx = Prisma.TransactionClient;
@@ -89,6 +92,66 @@ async function getApprovedOwner(userId: string) {
   }
 
   return owner;
+}
+
+/** บัญชีรับเงินค่าแพ็คเกจของแพลตฟอร์ม (พร้อมเพย์ และ/หรือบัญชีธนาคาร) */
+async function getPayTo() {
+  const [promptPayId, promptPayName, bankName, bankAccountNumber, bankAccountName] =
+    await Promise.all([
+      getSetting(SETTING_KEYS.promptPayId),
+      getSetting(SETTING_KEYS.promptPayName),
+      getSetting(SETTING_KEYS.bankName),
+      getSetting(SETTING_KEYS.bankAccountNumber),
+      getSetting(SETTING_KEYS.bankAccountName),
+    ]);
+
+  return {
+    promptPayId: promptPayId ?? "",
+    promptPayName: promptPayName ?? "",
+    bankName: bankName ?? "",
+    bankAccountNumber: bankAccountNumber ?? "",
+    bankAccountName: bankAccountName ?? "",
+  };
+}
+
+type PayTo = Awaited<ReturnType<typeof getPayTo>>;
+
+function assertPaymentConfigured(payTo: PayTo) {
+  if (!payTo.promptPayId && !payTo.bankAccountNumber) {
+    throw AppError.internal(
+      "PAYMENT_NOT_CONFIGURED",
+      "ระบบยังไม่ได้ตั้งค่าบัญชีรับเงิน กรุณาติดต่อผู้ดูแล",
+    );
+  }
+}
+
+/** ผู้รับในสลิปต้องตรงกับพร้อมเพย์ หรือบัญชีธนาคารของแพลตฟอร์มอย่างใดอย่างหนึ่ง */
+function isReceiverMatch(
+  payTo: PayTo,
+  slip: {
+    receiverProxy: string | null;
+    receiverAccount: string | null;
+    receivingBank: string | null;
+  },
+) {
+  if (
+    payTo.promptPayId &&
+    (matchAccount(payTo.promptPayId, slip.receiverProxy) ||
+      matchAccount(payTo.promptPayId, slip.receiverAccount))
+  ) {
+    return true;
+  }
+
+  if (
+    payTo.bankAccountNumber &&
+    matchAccount(payTo.bankAccountNumber, slip.receiverAccount)
+  ) {
+    // เลขบัญชีในสลิปถูกปิดบังบางหลัก จึงเทียบรหัสธนาคารผู้รับเพิ่มเมื่อรู้ทั้งสองฝั่ง
+    const expectedBank = getSlipBankCode(payTo.bankName);
+    return !expectedBank || !slip.receivingBank || expectedBank === slip.receivingBank;
+  }
+
+  return false;
 }
 
 async function lockPromotions(tx: Tx) {
@@ -394,7 +457,10 @@ export const BillingService = {
           slips: usage?.count ?? 0,
         },
         trial:
-          trialEnabled === "true" && !owner.trialUsedAt && trialPlan
+          trialEnabled === "true" &&
+          !owner.trialUsedAt &&
+          !owner.trialBlocked &&
+          trialPlan
             ? {
                 available: true,
                 planName: trialPlan.name,
@@ -412,10 +478,10 @@ export const BillingService = {
             endsAt: p.endsAt,
           })),
         },
-        payTo: {
-          promptPayId: (await getSetting(SETTING_KEYS.promptPayId)) ?? "",
-          promptPayName: (await getSetting(SETTING_KEYS.promptPayName)) ?? "",
-        },
+        trialBlocked: owner.trialBlocked,
+        enforced: await isEnforced(),
+        access: await getManageAccess(owner.id),
+        payTo: await getPayTo(),
       },
     };
   },
@@ -644,36 +710,55 @@ export const BillingService = {
     return { success: true, data: orders };
   },
 
-  getOrderQr: async (userId: string, orderId: string) => {
+  /** รายละเอียดคำสั่งซื้อสำหรับหน้าสรุป/ชำระเงิน: ยอด ส่วนลด บัญชีรับเงิน QR และสลิปที่แนบแล้ว */
+  getOrder: async (userId: string, orderId: string) => {
     const owner = await getApprovedOwner(userId);
 
     const order = await prisma.billingOrder.findFirst({
-      where: { id: orderId, ownerId: owner.id, status: "PENDING" },
+      where: { id: orderId, ownerId: owner.id },
+      include: {
+        plan: true,
+        dorm: { select: { id: true, name: true } },
+        coupon: { select: { code: true } },
+        slips: { select: { id: true, objectKey: true } },
+      },
     });
     if (!order) throw AppError.notFound("ORDER_NOT_FOUND");
 
-    const [promptPayId, promptPayName] = await Promise.all([
-      getSetting(SETTING_KEYS.promptPayId),
-      getSetting(SETTING_KEYS.promptPayName),
-    ]);
+    const payTo = await getPayTo();
 
-    if (!promptPayId) {
-      throw AppError.internal(
-        "PAYMENT_NOT_CONFIGURED",
-        "ระบบยังไม่ได้ตั้งค่าบัญชีรับเงิน กรุณาติดต่อผู้ดูแล",
-      );
+    let qr: string | null = null;
+    if (order.status === "PENDING" && payTo.promptPayId) {
+      const payload = generatePayload(payTo.promptPayId, {
+        amount: order.finalAmount,
+      });
+      qr = await QRCode.toDataURL(payload);
     }
 
-    const payload = generatePayload(promptPayId, { amount: order.finalAmount });
-    const qr = await QRCode.toDataURL(payload);
+    // baseAmount ของแพ็คเกจคือราคาหลังหักส่วนลดตามระยะเวลาแล้ว จึงย้อนหาราคาเต็มเพื่อแสดงยอดที่ประหยัด
+    const listPrice =
+      order.type === "PLAN" && order.plan
+        ? order.plan.priceMonthly * order.months
+        : order.baseAmount;
+
+    const slipUrls = await Promise.all(
+      order.slips.map((f) => generateSignedUrl(f.objectKey, 600)),
+    );
+
+    const { slips: _slips, ...rest } = order;
 
     return {
       success: true,
       data: {
+        order: {
+          ...rest,
+          listPrice,
+          termDiscount: Math.max(0, listPrice - order.baseAmount),
+          couponCode: order.coupon?.code ?? null,
+          slipUrls,
+        },
+        payTo,
         qr,
-        amount: order.finalAmount,
-        promptPayName: promptPayName ?? "",
-        holdUntil: order.holdUntil,
       },
     };
   },
@@ -698,6 +783,13 @@ export const BillingService = {
 
   claimTrial: async (userId: string) => {
     const owner = await getApprovedOwner(userId);
+
+    if (owner.trialBlocked) {
+      throw AppError.badRequest(
+        "TRIAL_NOT_AVAILABLE",
+        "บัญชีนี้ไม่มีสิทธิ์ทดลองใช้ฟรี",
+      );
+    }
 
     const [enabled, planId, days] = await Promise.all([
       getSetting(SETTING_KEYS.trialEnabled),
@@ -783,13 +875,8 @@ export const BillingService = {
       );
     }
 
-    const promptPayId = await getSetting(SETTING_KEYS.promptPayId);
-    if (!promptPayId) {
-      throw AppError.internal(
-        "PAYMENT_NOT_CONFIGURED",
-        "ระบบยังไม่ได้ตั้งค่าบัญชีรับเงิน กรุณาติดต่อผู้ดูแล",
-      );
-    }
+    const payTo = await getPayTo();
+    assertPaymentConfigured(payTo);
 
     const image = await assertRealImage(fileBuffer);
 
@@ -856,9 +943,7 @@ export const BillingService = {
 
     if (verified) {
       const amountOk = Math.abs(verified.amount - order.finalAmount) < 0.5;
-      const receiverOk =
-        matchAccount(promptPayId, verified.receiverProxy) ||
-        matchAccount(promptPayId, verified.receiverAccount);
+      const receiverOk = isReceiverMatch(payTo, verified);
 
       // สลิปต้องโอนหลังสร้างคำสั่งซื้อ และไม่ใช่เวลาในอนาคต
       const paidAtMs = verified.paidAt?.getTime?.();

@@ -3,6 +3,7 @@ import {
   authRoleMiddleware,
 } from "@/middleware/auth.middleware";
 import { Role } from "@/types/role.type";
+import { requireManageAccess } from "@/middleware/subscription.middleware";
 import { FastifyInstance } from "fastify";
 import { BillController } from "@/modules/bill/bill.controller";
 
@@ -46,6 +47,7 @@ export async function billRoute(app: FastifyInstance) {
       "preHandler",
       authRoleMiddleware([Role.OWNER, Role.ADMIN]),
     );
+    routeRoles.addHook("preHandler", requireManageAccess);
 
     routeRoles.post(
       "/send-emails",
@@ -545,6 +547,7 @@ export async function billRoute(app: FastifyInstance) {
   app.register(async (routeRoles) => {
     routeRoles.addHook("preHandler", authMiddleware);
     routeRoles.addHook("preHandler", authRoleMiddleware([Role.OWNER]));
+    routeRoles.addHook("preHandler", requireManageAccess);
 
     routeRoles.post(
       "/:billId/upload-slip",

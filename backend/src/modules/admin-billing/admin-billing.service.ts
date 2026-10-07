@@ -5,10 +5,12 @@ import {
   SETTING_KEYS,
   getNumberSetting,
   getPlatformSlipUsage,
+  getSetting,
 } from "@/lib/entitlements";
 import { createActivityLog } from "@/services/activity-log.service";
 import { BillingService } from "@/modules/billing/billing.service";
 import { BillingOrderStatus, Prisma } from "@prisma/client";
+import logger from "@/utils/logger";
 import { z } from "zod";
 
 export const planSchema = z.object({
@@ -37,6 +39,14 @@ export const settingsSchema = z.object({
   graceDays: z.number().int().min(0).max(90).optional(),
   promptPayId: z.string().trim().max(30).optional(),
   promptPayName: z.string().trim().max(100).optional(),
+  bankName: z.string().trim().max(30).optional(),
+  bankAccountNumber: z
+    .string()
+    .trim()
+    .max(30)
+    .regex(/^[0-9-]*$/, "เลขบัญชีใช้ได้เฉพาะตัวเลขและขีด")
+    .optional(),
+  bankAccountName: z.string().trim().max(100).optional(),
   promoPricePerMonth: z.number().min(0).optional(),
   promoMaxSlots: z.number().int().min(0).optional(),
   promoHoldMinutes: z.number().int().min(5).max(1440).optional(),
@@ -332,6 +342,9 @@ export const AdminBillingService = {
         graceDays: Number(map.graceDays),
         promptPayId: map.promptPayId ?? "",
         promptPayName: map.promptPayName ?? "",
+        bankName: map.bankName ?? "",
+        bankAccountNumber: map.bankAccountNumber ?? "",
+        bankAccountName: map.bankAccountName ?? "",
         promoPricePerMonth: Number(map.promoPricePerMonth),
         promoMaxSlots: Number(map.promoMaxSlots),
         promoHoldMinutes: Number(map.promoHoldMinutes),
@@ -513,5 +526,83 @@ export const AdminBillingReportService = {
         pendingReview: review,
       },
     };
+  },
+};
+
+export const AdminBillingTrialService = {
+  /**
+   * แจกทดลองฟรีให้เจ้าของหอที่อนุมัติแล้วและยังไม่เคยมีแพ็คเกจ (ใช้ก่อนเปิด "บังคับโควต้า")
+   * ข้ามคนที่ถูกตัดสิทธิ์ทดลองหรือเคยใช้สิทธิ์ไปแล้ว กดซ้ำได้โดยไม่แจกซ้ำ
+   */
+  grantTrialToExistingOwners: async (adminId: string) => {
+    const [planId, days] = await Promise.all([
+      getSetting(SETTING_KEYS.trialPlanId),
+      getNumberSetting(SETTING_KEYS.trialDays),
+    ]);
+
+    const plan = planId
+      ? await prisma.plan.findFirst({
+          where: { id: planId, isActive: true, isFree: false },
+        })
+      : null;
+
+    if (!plan) {
+      throw AppError.badRequest(
+        "INVALID_TRIAL_PLAN",
+        "ยังไม่ได้ตั้งแพ็คเกจสำหรับทดลองใช้ฟรี",
+      );
+    }
+
+    const owners = await prisma.ownerProfile.findMany({
+      where: {
+        status: "APPROVED",
+        deletedAt: null,
+        trialBlocked: false,
+        trialUsedAt: null,
+        subscription: { is: null },
+      },
+      select: { id: true },
+    });
+
+    const now = new Date();
+    const end = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+    let granted = 0;
+
+    for (const owner of owners) {
+      try {
+        await prisma.$transaction(async (tx) => {
+          // เงื่อนไข trialUsedAt: null กันแจกซ้ำเมื่อมีคนกดรับเองพร้อมกัน
+          const claimed = await tx.ownerProfile.updateMany({
+            where: { id: owner.id, trialUsedAt: null },
+            data: { trialUsedAt: now },
+          });
+          if (claimed.count === 0) return;
+
+          await tx.subscription.create({
+            data: {
+              ownerId: owner.id,
+              planId: plan.id,
+              status: "TRIAL",
+              currentPeriodStart: now,
+              currentPeriodEnd: end,
+              trialEndsAt: end,
+            },
+          });
+          granted++;
+        });
+      } catch (error) {
+        // เจ้าของคนนั้นเพิ่งมี subscription (unique ชน) ข้ามได้
+        logger.warn(`grantTrial skipped owner ${owner.id}: ${error}`);
+      }
+    }
+
+    await createActivityLog({
+      userId: adminId,
+      action: "GRANT_TRIAL_TO_EXISTING_OWNERS",
+      entityType: "Subscription",
+      metadata: { planId: plan.id, days, granted, candidates: owners.length },
+    });
+
+    return { success: true, data: { granted, candidates: owners.length } };
   },
 };

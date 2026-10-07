@@ -139,18 +139,18 @@ export async function billingRoute(app: FastifyInstance) {
     );
 
     routeRoles.get<{ Params: { id: string } }>(
-      "/orders/:id/qr",
+      "/orders/:id",
       {
         schema: {
           tags,
-          summary: "QR PromptPay ตามยอดของคำสั่งซื้อ",
+          summary: "รายละเอียดคำสั่งซื้อ + บัญชีรับเงิน + QR (หน้าสรุป/ชำระเงิน)",
           security,
           params: idParam,
-          response: { 200: okResponse("QR สำหรับชำระเงิน"), ...errors },
+          response: { 200: okResponse("รายละเอียดคำสั่งซื้อ"), ...errors },
         },
       },
       async (req, reply) =>
-        reply.send(await BillingService.getOrderQr(userId(req), req.params.id)),
+        reply.send(await BillingService.getOrder(userId(req), req.params.id)),
     );
 
     routeRoles.post(
@@ -189,7 +189,8 @@ export async function billingRoute(app: FastifyInstance) {
         req: FastifyRequest<{ Params: { id: string } }>,
         reply: FastifyReply,
       ) => {
-        const part = await req.file();
+        // ไม่ใช่ multipart จะทำให้ req.file() โยน error (500) ต้องตอบ 400 ให้ชัดเจน
+        const part = req.isMultipart() ? await req.file() : undefined;
 
         if (!part) {
           throw AppError.badRequest("FILE_REQUIRED", "กรุณาอัพโหลดรูปภาพสลิป");

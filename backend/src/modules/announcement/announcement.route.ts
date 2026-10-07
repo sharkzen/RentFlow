@@ -3,6 +3,7 @@ import {
   authRoleMiddleware,
 } from "@/middleware/auth.middleware";
 import { Role } from "@/types/role.type";
+import { requireManageAccess } from "@/middleware/subscription.middleware";
 import { FastifyInstance } from "fastify";
 import {
   AnnouncementController,
@@ -31,6 +32,7 @@ export async function announcementRoute(app: FastifyInstance) {
   app.register(async (ownerRoutes) => {
     ownerRoutes.addHook("preHandler", authMiddleware);
     ownerRoutes.addHook("preHandler", authRoleMiddleware([Role.OWNER]));
+    ownerRoutes.addHook("preHandler", requireManageAccess);
 
     ownerRoutes.get(
       "/owner",

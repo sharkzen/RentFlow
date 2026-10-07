@@ -11,6 +11,7 @@ import {
 } from "./maintenance.controller";
 import { FastifyInstance } from "fastify";
 import { Role } from "@/types/role.type";
+import { requireManageAccess } from "@/middleware/subscription.middleware";
 import {
   zodBody,
   paginatedItemsResponse,
@@ -23,6 +24,7 @@ export async function maintenanceRoute(app: FastifyInstance) {
   app.register(async (route) => {
     route.addHook("preHandler", authMiddleware);
     route.addHook("preHandler", authRoleMiddleware([Role.OWNER]));
+    route.addHook("preHandler", requireManageAccess);
 
     route.get(
       "/",

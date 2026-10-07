@@ -3,6 +3,7 @@ import {
   authRoleMiddleware,
 } from "@/middleware/auth.middleware";
 import { Role } from "@/types/role.type";
+import { requireManageAccess } from "@/middleware/subscription.middleware";
 import { FastifyInstance } from "fastify";
 import { TenantController } from "@/modules/tenant/tenant.controller";
 import { slipUploadRateLimit as slipUploadUserRateLimit } from "@/middleware/slip-rate-limit.middleware";
@@ -56,6 +57,7 @@ export async function tenantRoute(app: FastifyInstance) {
       "preHandler",
       authRoleMiddleware([Role.ADMIN, Role.OWNER]),
     );
+    routeRoles.addHook("preHandler", requireManageAccess);
 
     routeRoles.post(
       "/",

@@ -5,6 +5,19 @@ import { AppError } from "@/lib/errors";
 import { UserDecodedDto } from "@/modules/auth/dto/user.dto";
 import { z } from "zod";
 
+export const approveOwnerSchema = z.object({
+  // ไม่ให้สิทธิ์ทดลองฟรี (ผู้ใช้เดิมสมัครใหม่)
+  denyTrial: z.boolean().optional(),
+});
+
+export const rejectOwnerSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(5, "กรุณาระบุเหตุผลอย่างน้อย 5 ตัวอักษร")
+    .max(500, "เหตุผลยาวเกินไป"),
+});
+
 export const createLandmarkSchema = z.object({
   name: z.string(),
   type: z.string(),
@@ -77,7 +90,9 @@ export const AdminController = {
     const user = req.user as UserDecodedDto;
 
     try {
-      await AdminService.approveOwner(id, user.sub);
+      const { denyTrial } = approveOwnerSchema.parse(req.body ?? {});
+
+      await AdminService.approveOwner(id, user.sub, denyTrial ?? false);
 
       return reply.send({
         success: true,
@@ -107,7 +122,9 @@ export const AdminController = {
     const user = req.user as UserDecodedDto;
 
     try {
-      await AdminService.rejectOwner(id, user.sub);
+      const { reason } = rejectOwnerSchema.parse(req.body);
+
+      await AdminService.rejectOwner(id, user.sub, reason);
 
       return reply.send({
         success: true,
