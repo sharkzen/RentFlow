@@ -14,7 +14,7 @@ const API_URL = process.env.API_URL || "http://localhost:3001";
 async function getPricing(): Promise<Pricing | null> {
   try {
     const res = await fetch(`${API_URL}/api/billing/public/pricing`, {
-      next: { revalidate: 300 },
+      cache: "no-store",
     });
 
     if (!res.ok) return null;
