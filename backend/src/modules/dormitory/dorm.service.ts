@@ -444,9 +444,12 @@ export const dormService = {
   },
 
   async getDormSlug(slug: string) {
-    const dorm = await prisma.dormitory.findUnique({
+    const dorm = await prisma.dormitory.findFirst({
       where: {
         slug: slug,
+        isPublished: true,
+        status: "ACTIVE",
+        deletedAt: null,
       },
 
       include: {

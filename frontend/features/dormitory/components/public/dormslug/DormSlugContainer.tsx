@@ -1,5 +1,7 @@
 "use client";
 import { useParams } from "next/navigation";
+import Link from "next/link";
+import { SearchX } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { DormService } from "@/features/dormitory/services/dorm.service";
 import { DormSlugResponse } from "@/features/dormitory/types";
@@ -29,11 +31,30 @@ const DormSlugSkeleton = () => (
   </main>
 );
 
+const DormNotFound = () => (
+  <main className="bg-grid bg-background flex min-h-[70vh] items-center justify-center px-4">
+    <div className="bg-surface border-border mx-auto max-w-md rounded-3xl border p-10 text-center shadow-lg">
+      <SearchX className="mx-auto mb-4 h-14 w-14 text-blue-600" />
+      <h1 className="text-foreground mb-2 text-2xl font-bold">ไม่พบหอพักนี้</h1>
+      <p className="text-muted mb-6 text-sm">
+        หอพักนี้อาจยังไม่เปิดให้บริการ ถูกปิดการเผยแพร่ หรือลิงก์ไม่ถูกต้อง
+      </p>
+      <Link
+        href="/"
+        className="inline-block rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-blue-700 active:scale-95"
+      >
+        กลับไปค้นหาหอพัก
+      </Link>
+    </div>
+  </main>
+);
+
 export default function DormSlugContainer() {
   const { slug } = useParams<{ slug: string }>();
   const decodedSlug = decodeURIComponent(slug);
   const [dorm, setDorm] = useState<DormSlugResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -42,10 +63,14 @@ export default function DormSlugContainer() {
   const fetchDorm = useCallback(async () => {
     try {
       setLoading(true);
+      setNotFound(false);
       const res = await DormService.getDormBySlug(decodedSlug);
       if (res) setDorm(res);
     } catch (error) {
       log.error(error);
+      const status = (error as { response?: { status?: number } })?.response
+        ?.status;
+      if (status === 404) setNotFound(true);
     } finally {
       setLoading(false);
     }
@@ -55,6 +80,7 @@ export default function DormSlugContainer() {
     fetchDorm();
   }, [fetchDorm]);
 
+  if (notFound) return <DormNotFound />;
   if (loading || !dorm) return <DormSlugSkeleton />;
 
   return (
